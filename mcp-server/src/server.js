@@ -1,11 +1,18 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { 
+  ListToolsRequestSchema, 
+  CallToolRequestSchema 
+} from '@modelcontextprotocol/sdk/types.js';
 import { UnityConnection } from './unityConnection.js';
-import { registerPingTool } from './tools/ping.js';
+import { createHandlers } from './handlers/index.js';
 import { config, logger } from './config.js';
 
 // Create Unity connection
 const unityConnection = new UnityConnection();
+
+// Create tool handlers
+const handlers = createHandlers(unityConnection);
 
 // Create MCP server
 const server = new Server(
@@ -20,9 +27,31 @@ const server = new Server(
   }
 );
 
-// Register tools
+// Register MCP protocol handlers
 logger.info('Registering tools...');
-registerPingTool(server, unityConnection);
+
+// Handle tool listing
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  const tools = Array.from(handlers.values()).map(handler => handler.getDefinition());
+  return { tools };
+});
+
+// Handle tool execution
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+  
+  const handler = handlers.get(name);
+  if (!handler) {
+    return {
+      status: 'error',
+      error: `Tool not found: ${name}`,
+      code: 'TOOL_NOT_FOUND'
+    };
+  }
+  
+  // Handler returns response in new format
+  return await handler.handle(args);
+});
 
 // Handle connection events
 unityConnection.on('connected', () => {
@@ -81,6 +110,8 @@ async function main() {
 // Export for testing
 export async function createServer(customConfig = config) {
   const testUnityConnection = new UnityConnection();
+  const testHandlers = createHandlers(testUnityConnection);
+  
   const testServer = new Server(
     {
       name: customConfig.server.name,
@@ -93,7 +124,26 @@ export async function createServer(customConfig = config) {
     }
   );
   
-  registerPingTool(testServer, testUnityConnection);
+  // Register handlers for test server
+  testServer.setRequestHandler(ListToolsRequestSchema, async () => {
+    const tools = Array.from(testHandlers.values()).map(handler => handler.getDefinition());
+    return { tools };
+  });
+  
+  testServer.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const { name, arguments: args } = request.params;
+    
+    const handler = testHandlers.get(name);
+    if (!handler) {
+      return {
+        status: 'error',
+        error: `Tool not found: ${name}`,
+        code: 'TOOL_NOT_FOUND'
+      };
+    }
+    
+    return await handler.handle(args);
+  });
   
   return {
     server: testServer,

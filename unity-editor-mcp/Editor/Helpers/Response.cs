@@ -116,5 +116,47 @@ namespace UnityEditorMCP.Helpers
         {
             return Success(new { message = "pong", timestamp = System.DateTime.UtcNow.ToString("o") });
         }
+        
+        // ===== New Format Methods (Phase 1.1) =====
+        
+        /// <summary>
+        /// Creates a standardized success response (new format)
+        /// </summary>
+        /// <param name="result">The result data</param>
+        /// <returns>JSON string of the response</returns>
+        public static string SuccessResult(object result)
+        {
+            var response = new Dictionary<string, object>
+            {
+                ["status"] = "success",
+                ["result"] = result
+            };
+            
+            return JsonConvert.SerializeObject(response);
+        }
+        
+        /// <summary>
+        /// Creates a standardized error response (new format)
+        /// </summary>
+        /// <param name="errorMessage">Error message</param>
+        /// <param name="code">Error code</param>
+        /// <param name="details">Optional error details</param>
+        /// <returns>JSON string of the response</returns>
+        public static string ErrorResult(string errorMessage, string code = "UNKNOWN_ERROR", object details = null)
+        {
+            var response = new Dictionary<string, object>
+            {
+                ["status"] = "error",
+                ["error"] = errorMessage,
+                ["code"] = code
+            };
+            
+            if (details != null)
+            {
+                response["details"] = details;
+            }
+            
+            return JsonConvert.SerializeObject(response);
+        }
     }
 }

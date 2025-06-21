@@ -3,39 +3,70 @@
 ## Overview
 This roadmap outlines the development phases for building Unity Editor MCP from scratch, with estimated timelines and deliverables for each phase.
 
-## Phase 1: Foundation (Days 1-3)
+## Phase 1: Foundation (Days 1-3) ✅
 
 ### Goals
 Establish basic communication between Unity and Node.js MCP server.
 
 ### Tasks
 - [x] Create project structure
-- [ ] Unity Editor MCP Package Setup
-  - [ ] Create package.json and folder structure
-  - [ ] Implement TCP listener on port 6400
-  - [ ] Basic command parsing (JSON)
-  - [ ] Simple ping/pong command
-  - [ ] Error handling framework
-  - [ ] Response helper class
-  - [ ] Basic status enum
-- [ ] Node.js MCP Server Setup
-  - [ ] Create package.json
-  - [ ] MCP SDK server initialization
-  - [ ] TCP client for Unity connection
-  - [ ] Basic tool registration
-  - [ ] Ping tool implementation
-  - [ ] Connection retry logic
-- [ ] Testing
-  - [ ] Verify TCP communication
-  - [ ] Test JSON serialization
-  - [ ] Connection stability tests
+- [x] Unity Editor MCP Package Setup
+  - [x] Create package.json and folder structure
+  - [x] Implement TCP listener on port 6400
+  - [x] Basic command parsing (JSON)
+  - [x] Simple ping/pong command
+  - [x] Error handling framework
+  - [x] Response helper class
+  - [x] Basic status enum
+- [x] Node.js MCP Server Setup
+  - [x] Create package.json
+  - [x] MCP SDK server initialization
+  - [x] TCP client for Unity connection
+  - [x] Basic tool registration
+  - [x] Ping tool implementation
+  - [x] Connection retry logic
+- [x] Testing
+  - [x] Verify TCP communication
+  - [x] Test JSON serialization
+  - [x] Connection stability tests
 
 ### Deliverables
-- Working TCP communication
-- Basic command routing
-- Ping/pong functionality
+- ✅ Working TCP communication
+- ✅ Basic command routing
+- ✅ Ping/pong functionality
 
-## Phase 2: Core GameObject Operations (Days 4-7)
+## Phase 1.1: Architectural Refinement (Day 4)
+
+### Goals
+Align implementation with reference project patterns for scalability.
+
+### Tasks
+- [ ] Response Format Alignment
+  - [ ] Change to {status, result} format
+  - [ ] Update Unity Response helper
+  - [ ] Update Node.js handlers
+  - [ ] Maintain backward compatibility
+- [ ] Tool Handler Architecture
+  - [ ] Create BaseToolHandler class
+  - [ ] Implement handler pattern
+  - [ ] Refactor command routing
+  - [ ] Remove switch-based routing
+- [ ] Enhanced Features
+  - [ ] Base64 encoding support
+  - [ ] JSON pre-validation
+  - [ ] Parameter summaries in errors
+  - [ ] Stack trace handling
+- [ ] Testing
+  - [ ] Update all tests for new format
+  - [ ] Verify no performance regression
+  - [ ] Document breaking changes
+
+### Deliverables
+- Scalable tool architecture
+- Aligned response format
+- Enhanced error handling
+
+## Phase 2: Core GameObject Operations (Days 5-8)
 
 ### Goals
 Implement fundamental GameObject manipulation capabilities.

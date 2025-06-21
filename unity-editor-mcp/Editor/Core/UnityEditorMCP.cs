@@ -285,11 +285,17 @@ namespace UnityEditorMCP.Core
                             echo = command.Parameters?["message"]?.ToString(),
                             timestamp = System.DateTime.UtcNow.ToString("o")
                         };
-                        response = Response.Success(command.Id, pongData);
+                        // Use new format
+                        response = Response.SuccessResult(pongData);
                         break;
                         
                     default:
-                        response = Response.Error(command.Id, $"Unknown command type: {command.Type}", "UNKNOWN_COMMAND");
+                        // Use new format with error details
+                        response = Response.ErrorResult(
+                            $"Unknown command type: {command.Type}", 
+                            "UNKNOWN_COMMAND",
+                            new { commandType = command.Type }
+                        );
                         break;
                 }
                 
@@ -308,7 +314,14 @@ namespace UnityEditorMCP.Core
                 {
                     if (client.Connected)
                     {
-                        var errorResponse = Response.Error(command.Id, $"Internal error: {ex.Message}", "INTERNAL_ERROR");
+                        var errorResponse = Response.ErrorResult(
+                            $"Internal error: {ex.Message}", 
+                            "INTERNAL_ERROR",
+                            new { 
+                                commandType = command.Type,
+                                stackTrace = ex.StackTrace
+                            }
+                        );
                         var responseBytes = Encoding.UTF8.GetBytes(errorResponse);
                         await client.GetStream().WriteAsync(responseBytes, 0, responseBytes.Length);
                     }
