@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEditorMCP.Models;
 using UnityEditorMCP.Helpers;
+using UnityEditorMCP.Logging;
 using Newtonsoft.Json;
 
 namespace UnityEditorMCP.Core
@@ -287,6 +288,83 @@ namespace UnityEditorMCP.Core
                         };
                         // Use new format
                         response = Response.SuccessResult(pongData);
+                        break;
+                        
+                    case "read_logs":
+                        // Parse parameters
+                        int count = 100;
+                        string logTypeFilter = null;
+                        
+                        if (command.Parameters != null)
+                        {
+                            if (command.Parameters.ContainsKey("count"))
+                            {
+                                if (int.TryParse(command.Parameters["count"].ToString(), out int parsedCount))
+                                {
+                                    count = Math.Min(Math.Max(parsedCount, 1), 1000); // Clamp between 1 and 1000
+                                }
+                            }
+                            
+                            if (command.Parameters.ContainsKey("logType"))
+                            {
+                                logTypeFilter = command.Parameters["logType"].ToString();
+                            }
+                        }
+                        
+                        // Get logs
+                        LogType? filterType = null;
+                        if (!string.IsNullOrEmpty(logTypeFilter))
+                        {
+                            if (Enum.TryParse<LogType>(logTypeFilter, true, out LogType parsed))
+                            {
+                                filterType = parsed;
+                            }
+                        }
+                        
+                        var logs = LogCapture.GetLogs(count, filterType);
+                        var logData = new List<object>();
+                        
+                        foreach (var log in logs)
+                        {
+                            logData.Add(new
+                            {
+                                message = log.message,
+                                stackTrace = log.stackTrace,
+                                logType = log.logType.ToString(),
+                                timestamp = log.timestamp.ToString("o")
+                            });
+                        }
+                        
+                        response = Response.SuccessResult(new
+                        {
+                            logs = logData,
+                            count = logData.Count,
+                            totalCaptured = logs.Count
+                        });
+                        break;
+                        
+                    case "clear_logs":
+                        LogCapture.ClearLogs();
+                        response = Response.SuccessResult(new
+                        {
+                            message = "Logs cleared successfully",
+                            timestamp = System.DateTime.UtcNow.ToString("o")
+                        });
+                        break;
+                        
+                    case "refresh_assets":
+                        // Trigger Unity to recompile and refresh assets
+                        AssetDatabase.Refresh();
+                        
+                        // Check if Unity is compiling
+                        bool isCompiling = EditorApplication.isCompiling;
+                        
+                        response = Response.SuccessResult(new
+                        {
+                            message = "Asset refresh triggered",
+                            isCompiling = isCompiling,
+                            timestamp = System.DateTime.UtcNow.ToString("o")
+                        });
                         break;
                         
                     default:
