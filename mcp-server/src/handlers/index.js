@@ -5,10 +5,20 @@ export { BaseToolHandler } from './BaseToolHandler.js';
 export { PingToolHandler } from './PingToolHandler.js';
 export { ReadLogsToolHandler } from './ReadLogsToolHandler.js';
 export { RefreshAssetsToolHandler } from './RefreshAssetsToolHandler.js';
+export { CreateGameObjectToolHandler } from './CreateGameObjectToolHandler.js';
+export { FindGameObjectToolHandler } from './FindGameObjectToolHandler.js';
+export { ModifyGameObjectToolHandler } from './ModifyGameObjectToolHandler.js';
+export { DeleteGameObjectToolHandler } from './DeleteGameObjectToolHandler.js';
+export { GetHierarchyToolHandler } from './GetHierarchyToolHandler.js';
 
 import { PingToolHandler } from './PingToolHandler.js';
 import { ReadLogsToolHandler } from './ReadLogsToolHandler.js';
 import { RefreshAssetsToolHandler } from './RefreshAssetsToolHandler.js';
+import { CreateGameObjectToolHandler } from './CreateGameObjectToolHandler.js';
+import { FindGameObjectToolHandler } from './FindGameObjectToolHandler.js';
+import { ModifyGameObjectToolHandler } from './ModifyGameObjectToolHandler.js';
+import { DeleteGameObjectToolHandler } from './DeleteGameObjectToolHandler.js';
+import { GetHierarchyToolHandler } from './GetHierarchyToolHandler.js';
 
 /**
  * Creates and returns all tool handlers
@@ -18,7 +28,7 @@ import { RefreshAssetsToolHandler } from './RefreshAssetsToolHandler.js';
 export function createHandlers(unityConnection) {
   const handlers = new Map();
   
-  // Register all handlers
+  // Core handlers
   const pingHandler = new PingToolHandler(unityConnection);
   handlers.set(pingHandler.name, pingHandler);
   
@@ -28,10 +38,21 @@ export function createHandlers(unityConnection) {
   const refreshAssetsHandler = new RefreshAssetsToolHandler(unityConnection);
   handlers.set(refreshAssetsHandler.name, refreshAssetsHandler);
   
-  // Future handlers will be added here:
-  // handlers.set('create_gameobject', new CreateGameObjectHandler(unityConnection));
-  // handlers.set('manage_scene', new ManageSceneHandler(unityConnection));
-  // etc.
+  // GameObject handlers
+  const createGameObjectHandler = new CreateGameObjectToolHandler(unityConnection);
+  handlers.set(createGameObjectHandler.name, createGameObjectHandler);
+  
+  const findGameObjectHandler = new FindGameObjectToolHandler(unityConnection);
+  handlers.set(findGameObjectHandler.name, findGameObjectHandler);
+  
+  const modifyGameObjectHandler = new ModifyGameObjectToolHandler(unityConnection);
+  handlers.set(modifyGameObjectHandler.name, modifyGameObjectHandler);
+  
+  const deleteGameObjectHandler = new DeleteGameObjectToolHandler(unityConnection);
+  handlers.set(deleteGameObjectHandler.name, deleteGameObjectHandler);
+  
+  const getHierarchyHandler = new GetHierarchyToolHandler(unityConnection);
+  handlers.set(getHierarchyHandler.name, getHierarchyHandler);
   
   return handlers;
 }

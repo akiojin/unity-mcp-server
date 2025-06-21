@@ -10,7 +10,9 @@ using UnityEngine;
 using UnityEditorMCP.Models;
 using UnityEditorMCP.Helpers;
 using UnityEditorMCP.Logging;
+using UnityEditorMCP.Handlers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace UnityEditorMCP.Core
 {
@@ -365,6 +367,31 @@ namespace UnityEditorMCP.Core
                             isCompiling = isCompiling,
                             timestamp = System.DateTime.UtcNow.ToString("o")
                         });
+                        break;
+                        
+                    case "create_gameobject":
+                        var createResult = GameObjectHandler.CreateGameObject(command.Parameters);
+                        response = Response.SuccessResult(createResult);
+                        break;
+                        
+                    case "find_gameobject":
+                        var findResult = GameObjectHandler.FindGameObjects(command.Parameters);
+                        response = Response.SuccessResult(findResult);
+                        break;
+                        
+                    case "modify_gameobject":
+                        var modifyResult = GameObjectHandler.ModifyGameObject(command.Parameters);
+                        response = Response.SuccessResult(modifyResult);
+                        break;
+                        
+                    case "delete_gameobject":
+                        var deleteResult = GameObjectHandler.DeleteGameObject(command.Parameters);
+                        response = Response.SuccessResult(deleteResult);
+                        break;
+                        
+                    case "get_hierarchy":
+                        var hierarchyResult = GameObjectHandler.GetHierarchy(command.Parameters);
+                        response = Response.SuccessResult(hierarchyResult);
                         break;
                         
                     default:

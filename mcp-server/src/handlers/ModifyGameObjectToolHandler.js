@@ -1,0 +1,147 @@
+import { BaseToolHandler } from './BaseToolHandler.js';
+
+/**
+ * Handler for the modify_gameobject tool
+ * Modifies properties of existing GameObjects
+ */
+export class ModifyGameObjectToolHandler extends BaseToolHandler {
+  constructor(unityConnection) {
+    super(
+      'modify_gameobject',
+      'Modify properties of an existing GameObject',
+      {
+        type: 'object',
+        properties: {
+          path: {
+            type: 'string',
+            description: 'Path to the GameObject to modify (required)'
+          },
+          name: {
+            type: 'string',
+            description: 'New name for the GameObject'
+          },
+          position: {
+            type: 'object',
+            description: 'New world position',
+            properties: {
+              x: { type: 'number' },
+              y: { type: 'number' },
+              z: { type: 'number' }
+            }
+          },
+          rotation: {
+            type: 'object',
+            description: 'New rotation in Euler angles',
+            properties: {
+              x: { type: 'number' },
+              y: { type: 'number' },
+              z: { type: 'number' }
+            }
+          },
+          scale: {
+            type: 'object',
+            description: 'New local scale',
+            properties: {
+              x: { type: 'number' },
+              y: { type: 'number' },
+              z: { type: 'number' }
+            }
+          },
+          active: {
+            type: 'boolean',
+            description: 'Set active state'
+          },
+          parentPath: {
+            type: ['string', 'null'],
+            description: 'Path to new parent GameObject (null to unparent)'
+          },
+          tag: {
+            type: 'string',
+            description: 'New tag'
+          },
+          layer: {
+            type: 'number',
+            description: 'New layer index (0-31)',
+            minimum: 0,
+            maximum: 31
+          }
+        },
+        required: ['path']
+      }
+    );
+    
+    this.unityConnection = unityConnection;
+  }
+
+  /**
+   * Validates the input parameters
+   * @param {object} params - Input parameters
+   * @throws {Error} If validation fails
+   */
+  validate(params) {
+    super.validate(params);
+    
+    // Path is required
+    if (!params.path || typeof params.path !== 'string') {
+      throw new Error('path parameter is required and must be a string');
+    }
+    
+    // At least one modification must be specified
+    const modifiableProps = ['name', 'position', 'rotation', 'scale', 'active', 'parentPath', 'tag', 'layer'];
+    const hasModification = modifiableProps.some(prop => params.hasOwnProperty(prop));
+    
+    if (!hasModification) {
+      throw new Error('At least one property to modify must be specified');
+    }
+    
+    // Validate vector3 properties
+    const validateVector3 = (obj, name) => {
+      if (obj && typeof obj === 'object') {
+        const keys = Object.keys(obj);
+        const validKeys = ['x', 'y', 'z'];
+        for (const key of keys) {
+          if (!validKeys.includes(key)) {
+            throw new Error(`${name} must only contain x, y, z properties`);
+          }
+          if (typeof obj[key] !== 'number') {
+            throw new Error(`${name}.${key} must be a number`);
+          }
+        }
+      }
+    };
+    
+    if (params.position) validateVector3(params.position, 'position');
+    if (params.rotation) validateVector3(params.rotation, 'rotation');
+    if (params.scale) validateVector3(params.scale, 'scale');
+    
+    // Validate layer
+    if (params.layer !== undefined) {
+      const layer = Number(params.layer);
+      if (isNaN(layer) || layer < 0 || layer > 31) {
+        throw new Error('layer must be a number between 0 and 31');
+      }
+    }
+  }
+
+  /**
+   * Executes the modify_gameobject command
+   * @param {object} params - Input parameters
+   * @returns {Promise<object>} Modified GameObject info
+   */
+  async execute(params) {
+    // Ensure connected
+    if (!this.unityConnection.isConnected()) {
+      await this.unityConnection.connect();
+    }
+    
+    // Send modify_gameobject command
+    const result = await this.unityConnection.sendCommand('modify_gameobject', params);
+    
+    // Check for errors from Unity
+    if (result.error) {
+      throw new Error(result.error);
+    }
+    
+    return result;
+  }
+}
