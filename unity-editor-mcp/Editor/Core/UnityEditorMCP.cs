@@ -218,14 +218,14 @@ namespace UnityEditorMCP.Core
                         }
                         else
                         {
-                            var errorResponse = Response.Error("Invalid command format", "PARSE_ERROR");
+                            var errorResponse = Response.Error("Invalid command format", "PARSE_ERROR", null);
                             var responseBytes = Encoding.UTF8.GetBytes(errorResponse);
                             await stream.WriteAsync(responseBytes, 0, responseBytes.Length, cancellationToken);
                         }
                     }
                     catch (JsonException ex)
                     {
-                        var errorResponse = Response.Error($"JSON parsing error: {ex.Message}", "JSON_ERROR");
+                        var errorResponse = Response.Error($"JSON parsing error: {ex.Message}", "JSON_ERROR", null);
                         var responseBytes = Encoding.UTF8.GetBytes(errorResponse);
                         await stream.WriteAsync(responseBytes, 0, responseBytes.Length, cancellationToken);
                     }
@@ -279,11 +279,17 @@ namespace UnityEditorMCP.Core
                 switch (command.Type?.ToLower())
                 {
                     case "ping":
-                        response = Response.Pong();
+                        var pongData = new
+                        {
+                            message = "pong",
+                            echo = command.Parameters?["message"]?.ToString(),
+                            timestamp = System.DateTime.UtcNow.ToString("o")
+                        };
+                        response = Response.Success(command.Id, pongData);
                         break;
                         
                     default:
-                        response = Response.Error($"Unknown command type: {command.Type}", "UNKNOWN_COMMAND");
+                        response = Response.Error(command.Id, $"Unknown command type: {command.Type}", "UNKNOWN_COMMAND");
                         break;
                 }
                 
@@ -302,7 +308,7 @@ namespace UnityEditorMCP.Core
                 {
                     if (client.Connected)
                     {
-                        var errorResponse = Response.Error($"Internal error: {ex.Message}", "INTERNAL_ERROR");
+                        var errorResponse = Response.Error(command.Id, $"Internal error: {ex.Message}", "INTERNAL_ERROR");
                         var responseBytes = Encoding.UTF8.GetBytes(errorResponse);
                         await client.GetStream().WriteAsync(responseBytes, 0, responseBytes.Length);
                     }
