@@ -124,34 +124,34 @@ Enable scene creation, loading, and management.
 - Multi-scene support
 - Build settings integration
 
-## Phase 4: Asset Management (Days 11-14)
+## Phase 4: Scene Analysis (Days 11-14)
 
 ### Goals
-Implement asset creation, prefab system, and folder management.
+Implement comprehensive scene inspection and analysis capabilities.
 
 ### Tasks
 - [ ] Unity Editor MCP
-  - [ ] Folder creation handler
-  - [ ] Prefab creation handler
-  - [ ] Prefab instantiation handler
-  - [ ] Asset deletion handler
-  - [ ] Asset listing handler
+  - [ ] GameObject inspection handler
+  - [ ] Scene analysis handler
+  - [ ] Component value reader
+  - [ ] Component search handler
+  - [ ] Reference analysis handler
 - [ ] Node.js Tools
-  - [ ] create_folder tool
-  - [ ] create_prefab tool
-  - [ ] instantiate_prefab tool
-  - [ ] delete_asset tool
-  - [ ] list_assets tool
+  - [ ] get_gameobject_details tool
+  - [ ] analyze_scene_contents tool
+  - [ ] get_component_values tool
+  - [ ] find_by_component tool
+  - [ ] get_object_references tool
 - [ ] Features
-  - [ ] Folder structure management
-  - [ ] Prefab creation from GameObjects
-  - [ ] Prefab instantiation with overrides
-  - [ ] Asset database refresh
+  - [ ] Deep GameObject inspection
+  - [ ] Component property serialization
+  - [ ] Scene statistics and analysis
+  - [ ] Object relationship tracking
 
 ### Deliverables
-- Complete asset management system
-- Prefab workflow
-- Folder organization tools
+- Complete scene analysis system
+- Component inspection tools
+- Object relationship analyzer
 
 ## Phase 5: Script Management (Days 15-18)
 
@@ -396,6 +396,14 @@ Prepare for public release and community adoption.
 - Multiplayer support
 - Cloud rendering
 - AI-assisted development
+
+## Notes on Phase Adjustments
+
+### Phase 4 Change (2025-06-22)
+- Original Phase 4 was "Asset Management" (prefabs, folders)
+- Changed to "Scene Analysis" based on user requirements
+- Scene Analysis provides deeper inspection capabilities
+- Asset Management will be considered for a later phase
 
 ## Conclusion
 This roadmap provides a structured approach to building Unity MCP with clear milestones and deliverables. The phased approach allows for iterative development while maintaining focus on core functionality first.
