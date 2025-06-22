@@ -1,4 +1,5 @@
 import { BaseToolHandler } from './BaseToolHandler.js';
+import { validateVector3, validateLayer, validateGameObjectPath } from '../utils/validators.js';
 
 /**
  * Handler for the modify_gameobject tool
@@ -82,9 +83,7 @@ export class ModifyGameObjectToolHandler extends BaseToolHandler {
     super.validate(params);
     
     // Path is required
-    if (!params.path || typeof params.path !== 'string') {
-      throw new Error('path parameter is required and must be a string');
-    }
+    validateGameObjectPath(params.path);
     
     // At least one modification must be specified
     const modifiableProps = ['name', 'position', 'rotation', 'scale', 'active', 'parentPath', 'tag', 'layer'];
@@ -95,31 +94,13 @@ export class ModifyGameObjectToolHandler extends BaseToolHandler {
     }
     
     // Validate vector3 properties
-    const validateVector3 = (obj, name) => {
-      if (obj && typeof obj === 'object') {
-        const keys = Object.keys(obj);
-        const validKeys = ['x', 'y', 'z'];
-        for (const key of keys) {
-          if (!validKeys.includes(key)) {
-            throw new Error(`${name} must only contain x, y, z properties`);
-          }
-          if (typeof obj[key] !== 'number') {
-            throw new Error(`${name}.${key} must be a number`);
-          }
-        }
-      }
-    };
-    
     if (params.position) validateVector3(params.position, 'position');
     if (params.rotation) validateVector3(params.rotation, 'rotation');
     if (params.scale) validateVector3(params.scale, 'scale');
     
     // Validate layer
     if (params.layer !== undefined) {
-      const layer = Number(params.layer);
-      if (isNaN(layer) || layer < 0 || layer > 31) {
-        throw new Error('layer must be a number between 0 and 31');
-      }
+      validateLayer(Number(params.layer));
     }
   }
 

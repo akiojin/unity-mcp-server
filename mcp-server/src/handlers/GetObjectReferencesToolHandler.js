@@ -9,12 +9,12 @@ export class GetObjectReferencesToolHandler extends BaseToolHandler {
     super(
       getObjectReferencesToolDefinition.name,
       getObjectReferencesToolDefinition.description,
-      getObjectReferencesToolDefinition.inputSchema,
-      unityConnection
+      getObjectReferencesToolDefinition.inputSchema
     );
+    this.unityConnection = unityConnection;
   }
 
-  async handleToolCall(args) {
+  async execute(args) {
     return getObjectReferencesHandler(this.unityConnection, args);
   }
 }

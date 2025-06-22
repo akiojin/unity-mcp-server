@@ -9,12 +9,12 @@ export class FindByComponentToolHandler extends BaseToolHandler {
     super(
       findByComponentToolDefinition.name,
       findByComponentToolDefinition.description,
-      findByComponentToolDefinition.inputSchema,
-      unityConnection
+      findByComponentToolDefinition.inputSchema
     );
+    this.unityConnection = unityConnection;
   }
 
-  async handleToolCall(args) {
+  async execute(args) {
     return findByComponentHandler(this.unityConnection, args);
   }
 }

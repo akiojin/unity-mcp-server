@@ -1,6 +1,8 @@
 /**
- * Central export for all tool handlers
+ * Central export and registration for all tool handlers
  */
+
+// Export all handlers
 export { BaseToolHandler } from './BaseToolHandler.js';
 export { PingToolHandler } from './PingToolHandler.js';
 export { ReadLogsToolHandler } from './ReadLogsToolHandler.js';
@@ -21,6 +23,7 @@ export { GetComponentValuesToolHandler } from './GetComponentValuesToolHandler.j
 export { FindByComponentToolHandler } from './FindByComponentToolHandler.js';
 export { GetObjectReferencesToolHandler } from './GetObjectReferencesToolHandler.js';
 
+// Import all handler classes at once
 import { PingToolHandler } from './PingToolHandler.js';
 import { ReadLogsToolHandler } from './ReadLogsToolHandler.js';
 import { RefreshAssetsToolHandler } from './RefreshAssetsToolHandler.js';
@@ -40,6 +43,35 @@ import { GetComponentValuesToolHandler } from './GetComponentValuesToolHandler.j
 import { FindByComponentToolHandler } from './FindByComponentToolHandler.js';
 import { GetObjectReferencesToolHandler } from './GetObjectReferencesToolHandler.js';
 
+// Handler registry - single source of truth
+const HANDLER_CLASSES = [
+  // Core handlers
+  PingToolHandler,
+  ReadLogsToolHandler,
+  RefreshAssetsToolHandler,
+  
+  // GameObject handlers
+  CreateGameObjectToolHandler,
+  FindGameObjectToolHandler,
+  ModifyGameObjectToolHandler,
+  DeleteGameObjectToolHandler,
+  GetHierarchyToolHandler,
+  
+  // Scene handlers
+  CreateSceneToolHandler,
+  LoadSceneToolHandler,
+  SaveSceneToolHandler,
+  ListScenesToolHandler,
+  GetSceneInfoToolHandler,
+  
+  // Scene Analysis handlers
+  GetGameObjectDetailsToolHandler,
+  AnalyzeSceneContentsToolHandler,
+  GetComponentValuesToolHandler,
+  FindByComponentToolHandler,
+  GetObjectReferencesToolHandler
+];
+
 /**
  * Creates and returns all tool handlers
  * @param {UnityConnection} unityConnection - Connection to Unity
@@ -48,63 +80,11 @@ import { GetObjectReferencesToolHandler } from './GetObjectReferencesToolHandler
 export function createHandlers(unityConnection) {
   const handlers = new Map();
   
-  // Core handlers
-  const pingHandler = new PingToolHandler(unityConnection);
-  handlers.set(pingHandler.name, pingHandler);
-  
-  const readLogsHandler = new ReadLogsToolHandler(unityConnection);
-  handlers.set(readLogsHandler.name, readLogsHandler);
-  
-  const refreshAssetsHandler = new RefreshAssetsToolHandler(unityConnection);
-  handlers.set(refreshAssetsHandler.name, refreshAssetsHandler);
-  
-  // GameObject handlers
-  const createGameObjectHandler = new CreateGameObjectToolHandler(unityConnection);
-  handlers.set(createGameObjectHandler.name, createGameObjectHandler);
-  
-  const findGameObjectHandler = new FindGameObjectToolHandler(unityConnection);
-  handlers.set(findGameObjectHandler.name, findGameObjectHandler);
-  
-  const modifyGameObjectHandler = new ModifyGameObjectToolHandler(unityConnection);
-  handlers.set(modifyGameObjectHandler.name, modifyGameObjectHandler);
-  
-  const deleteGameObjectHandler = new DeleteGameObjectToolHandler(unityConnection);
-  handlers.set(deleteGameObjectHandler.name, deleteGameObjectHandler);
-  
-  const getHierarchyHandler = new GetHierarchyToolHandler(unityConnection);
-  handlers.set(getHierarchyHandler.name, getHierarchyHandler);
-  
-  // Scene handlers
-  const createSceneHandler = new CreateSceneToolHandler(unityConnection);
-  handlers.set(createSceneHandler.name, createSceneHandler);
-  
-  const loadSceneHandler = new LoadSceneToolHandler(unityConnection);
-  handlers.set(loadSceneHandler.name, loadSceneHandler);
-  
-  const saveSceneHandler = new SaveSceneToolHandler(unityConnection);
-  handlers.set(saveSceneHandler.name, saveSceneHandler);
-  
-  const listScenesHandler = new ListScenesToolHandler(unityConnection);
-  handlers.set(listScenesHandler.name, listScenesHandler);
-  
-  const getSceneInfoHandler = new GetSceneInfoToolHandler(unityConnection);
-  handlers.set(getSceneInfoHandler.name, getSceneInfoHandler);
-  
-  // Scene Analysis handlers
-  const getGameObjectDetailsHandler = new GetGameObjectDetailsToolHandler(unityConnection);
-  handlers.set(getGameObjectDetailsHandler.name, getGameObjectDetailsHandler);
-  
-  const analyzeSceneContentsHandler = new AnalyzeSceneContentsToolHandler(unityConnection);
-  handlers.set(analyzeSceneContentsHandler.name, analyzeSceneContentsHandler);
-  
-  const getComponentValuesHandler = new GetComponentValuesToolHandler(unityConnection);
-  handlers.set(getComponentValuesHandler.name, getComponentValuesHandler);
-  
-  const findByComponentHandler = new FindByComponentToolHandler(unityConnection);
-  handlers.set(findByComponentHandler.name, findByComponentHandler);
-  
-  const getObjectReferencesHandler = new GetObjectReferencesToolHandler(unityConnection);
-  handlers.set(getObjectReferencesHandler.name, getObjectReferencesHandler);
+  // Instantiate all handlers from the registry
+  for (const HandlerClass of HANDLER_CLASSES) {
+    const handler = new HandlerClass(unityConnection);
+    handlers.set(handler.name, handler);
+  }
   
   return handlers;
 }

@@ -9,12 +9,12 @@ export class GetComponentValuesToolHandler extends BaseToolHandler {
     super(
       getComponentValuesToolDefinition.name,
       getComponentValuesToolDefinition.description,
-      getComponentValuesToolDefinition.inputSchema,
-      unityConnection
+      getComponentValuesToolDefinition.inputSchema
     );
+    this.unityConnection = unityConnection;
   }
 
-  async handleToolCall(args) {
+  async execute(args) {
     return getComponentValuesHandler(this.unityConnection, args);
   }
 }
