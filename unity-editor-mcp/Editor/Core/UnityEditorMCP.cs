@@ -424,6 +424,26 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, getGameObjectDetailsResult);
                         break;
                         
+                    case "analyze_scene_contents":
+                        var analyzeSceneResult = SceneAnalysisHandler.AnalyzeSceneContents(command.Parameters);
+                        response = Response.SuccessResult(command.Id, analyzeSceneResult);
+                        break;
+                        
+                    case "get_component_values":
+                        var getComponentValuesResult = SceneAnalysisHandler.GetComponentValues(command.Parameters);
+                        response = Response.SuccessResult(command.Id, getComponentValuesResult);
+                        break;
+                        
+                    case "find_by_component":
+                        var findByComponentResult = SceneAnalysisHandler.FindByComponent(command.Parameters);
+                        response = Response.SuccessResult(command.Id, findByComponentResult);
+                        break;
+                        
+                    case "get_object_references":
+                        var getObjectReferencesResult = SceneAnalysisHandler.GetObjectReferences(command.Parameters);
+                        response = Response.SuccessResult(command.Id, getObjectReferencesResult);
+                        break;
+                        
                     default:
                         // Use new format with error details
                         response = Response.ErrorResult(

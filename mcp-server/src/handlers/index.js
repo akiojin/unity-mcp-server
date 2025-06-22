@@ -16,6 +16,10 @@ export { SaveSceneToolHandler } from './SaveSceneToolHandler.js';
 export { ListScenesToolHandler } from './ListScenesToolHandler.js';
 export { GetSceneInfoToolHandler } from './GetSceneInfoToolHandler.js';
 export { GetGameObjectDetailsToolHandler } from './GetGameObjectDetailsToolHandler.js';
+export { AnalyzeSceneContentsToolHandler } from './AnalyzeSceneContentsToolHandler.js';
+export { GetComponentValuesToolHandler } from './GetComponentValuesToolHandler.js';
+export { FindByComponentToolHandler } from './FindByComponentToolHandler.js';
+export { GetObjectReferencesToolHandler } from './GetObjectReferencesToolHandler.js';
 
 import { PingToolHandler } from './PingToolHandler.js';
 import { ReadLogsToolHandler } from './ReadLogsToolHandler.js';
@@ -31,6 +35,10 @@ import { SaveSceneToolHandler } from './SaveSceneToolHandler.js';
 import { ListScenesToolHandler } from './ListScenesToolHandler.js';
 import { GetSceneInfoToolHandler } from './GetSceneInfoToolHandler.js';
 import { GetGameObjectDetailsToolHandler } from './GetGameObjectDetailsToolHandler.js';
+import { AnalyzeSceneContentsToolHandler } from './AnalyzeSceneContentsToolHandler.js';
+import { GetComponentValuesToolHandler } from './GetComponentValuesToolHandler.js';
+import { FindByComponentToolHandler } from './FindByComponentToolHandler.js';
+import { GetObjectReferencesToolHandler } from './GetObjectReferencesToolHandler.js';
 
 /**
  * Creates and returns all tool handlers
@@ -85,6 +93,18 @@ export function createHandlers(unityConnection) {
   // Scene Analysis handlers
   const getGameObjectDetailsHandler = new GetGameObjectDetailsToolHandler(unityConnection);
   handlers.set(getGameObjectDetailsHandler.name, getGameObjectDetailsHandler);
+  
+  const analyzeSceneContentsHandler = new AnalyzeSceneContentsToolHandler(unityConnection);
+  handlers.set(analyzeSceneContentsHandler.name, analyzeSceneContentsHandler);
+  
+  const getComponentValuesHandler = new GetComponentValuesToolHandler(unityConnection);
+  handlers.set(getComponentValuesHandler.name, getComponentValuesHandler);
+  
+  const findByComponentHandler = new FindByComponentToolHandler(unityConnection);
+  handlers.set(findByComponentHandler.name, findByComponentHandler);
+  
+  const getObjectReferencesHandler = new GetObjectReferencesToolHandler(unityConnection);
+  handlers.set(getObjectReferencesHandler.name, getObjectReferencesHandler);
   
   return handlers;
 }
