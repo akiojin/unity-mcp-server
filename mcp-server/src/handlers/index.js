@@ -15,6 +15,7 @@ export { LoadSceneToolHandler } from './LoadSceneToolHandler.js';
 export { SaveSceneToolHandler } from './SaveSceneToolHandler.js';
 export { ListScenesToolHandler } from './ListScenesToolHandler.js';
 export { GetSceneInfoToolHandler } from './GetSceneInfoToolHandler.js';
+export { GetGameObjectDetailsToolHandler } from './GetGameObjectDetailsToolHandler.js';
 
 import { PingToolHandler } from './PingToolHandler.js';
 import { ReadLogsToolHandler } from './ReadLogsToolHandler.js';
@@ -29,6 +30,7 @@ import { LoadSceneToolHandler } from './LoadSceneToolHandler.js';
 import { SaveSceneToolHandler } from './SaveSceneToolHandler.js';
 import { ListScenesToolHandler } from './ListScenesToolHandler.js';
 import { GetSceneInfoToolHandler } from './GetSceneInfoToolHandler.js';
+import { GetGameObjectDetailsToolHandler } from './GetGameObjectDetailsToolHandler.js';
 
 /**
  * Creates and returns all tool handlers
@@ -79,6 +81,10 @@ export function createHandlers(unityConnection) {
   
   const getSceneInfoHandler = new GetSceneInfoToolHandler(unityConnection);
   handlers.set(getSceneInfoHandler.name, getSceneInfoHandler);
+  
+  // Scene Analysis handlers
+  const getGameObjectDetailsHandler = new GetGameObjectDetailsToolHandler(unityConnection);
+  handlers.set(getGameObjectDetailsHandler.name, getGameObjectDetailsHandler);
   
   return handlers;
 }

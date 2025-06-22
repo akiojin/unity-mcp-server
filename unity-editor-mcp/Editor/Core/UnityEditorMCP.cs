@@ -419,6 +419,11 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, getSceneInfoResult);
                         break;
                         
+                    case "get_gameobject_details":
+                        var getGameObjectDetailsResult = SceneAnalysisHandler.GetGameObjectDetails(command.Parameters);
+                        response = Response.SuccessResult(command.Id, getGameObjectDetailsResult);
+                        break;
+                        
                     default:
                         // Use new format with error details
                         response = Response.ErrorResult(
