@@ -49,8 +49,22 @@ export async function analyzeSceneContentsHandler(unityConnection, args) {
         // Send command to Unity with provided parameters
         const result = await unityConnection.sendCommand('analyze_scene_contents', args);
 
-        // Handle Unity response
-        if (result.status === 'error') {
+        // The unityConnection.sendCommand already extracts the result field
+        // from the response, so we access properties directly on result
+        if (!result || typeof result === 'string') {
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `Failed to analyze scene: Invalid response format`
+                    }
+                ],
+                isError: true
+            };
+        }
+
+        // Check if result has error property (error response from Unity)
+        if (result.error) {
             return {
                 content: [
                     {
@@ -62,12 +76,12 @@ export async function analyzeSceneContentsHandler(unityConnection, args) {
             };
         }
 
-        // Success response
+        // Success response - result is already the unwrapped data
         return {
             content: [
                 {
                     type: 'text',
-                    text: result.result.summary || 'Scene analysis complete'
+                    text: result.summary || 'Scene analysis complete'
                 }
             ],
             isError: false

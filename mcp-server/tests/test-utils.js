@@ -20,39 +20,69 @@ export class MockUnityServer extends EventEmitter {
       this.server = net.createServer((socket) => {
         this.connections.add(socket);
         this.emit('connection', socket);
+        
+        let messageBuffer = Buffer.alloc(0);
 
         socket.on('data', async (data) => {
-          const request = JSON.parse(data.toString());
-          this.emit('request', request);
-
-          if (this.shouldTimeout) {
-            // Don't respond to simulate timeout
-            return;
-          }
-
-          // Simulate processing delay
-          if (this.responseDelay > 0) {
-            await new Promise(r => setTimeout(r, this.responseDelay));
-          }
-
-          // Get predefined response or create default
-          const response = this.responses.get(request.type) || {
-            id: request.id,
-            status: 'success',
-            result: {
-              id: -1000,
-              name: request.params.name || 'TestObject',
-              path: `/${request.params.name || 'TestObject'}`,
-              position: { x: 0, y: 0, z: 0 },
-              rotation: { x: 0, y: 0, z: 0 },
-              scale: { x: 1, y: 1, z: 1 },
-              tag: 'Untagged',
-              layer: 0,
-              isActive: true
+          // Append new data to buffer
+          messageBuffer = Buffer.concat([messageBuffer, data]);
+          
+          // Process complete messages
+          while (messageBuffer.length >= 4) {
+            // Read message length (first 4 bytes, big-endian)
+            const messageLength = messageBuffer.readInt32BE(0);
+            
+            // Check if we have the complete message
+            if (messageBuffer.length < 4 + messageLength) {
+              break; // Wait for more data
             }
-          };
+            
+            // Extract the message
+            const messageData = messageBuffer.slice(4, 4 + messageLength);
+            messageBuffer = messageBuffer.slice(4 + messageLength);
+            
+            try {
+              const request = JSON.parse(messageData.toString());
+              this.emit('request', request);
 
-          socket.write(JSON.stringify(response) + '\n');
+              if (this.shouldTimeout) {
+                // Don't respond to simulate timeout
+                continue;
+              }
+
+              // Simulate processing delay
+              if (this.responseDelay > 0) {
+                await new Promise(r => setTimeout(r, this.responseDelay));
+              }
+
+              // Get predefined response or create default
+              const response = this.responses.get(request.type) || {
+                id: request.id,
+                status: 'success',
+                result: {
+                  id: -1000 - parseInt(request.id),
+                  name: request.params.name || 'TestObject',
+                  path: `/${request.params.name || 'TestObject'}`,
+                  position: request.params.position || { x: 0, y: 0, z: 0 },
+                  rotation: request.params.rotation || { x: 0, y: 0, z: 0 },
+                  scale: request.params.scale || { x: 1, y: 1, z: 1 },
+                  tag: request.params.tag || 'Untagged',
+                  layer: request.params.layer || 0,
+                  isActive: true
+                }
+              };
+
+              // Send framed response
+              const responseStr = JSON.stringify(response);
+              const responseBuffer = Buffer.from(responseStr, 'utf8');
+              const lengthBuffer = Buffer.allocUnsafe(4);
+              lengthBuffer.writeInt32BE(responseBuffer.length, 0);
+              
+              socket.write(Buffer.concat([lengthBuffer, responseBuffer]));
+            } catch (err) {
+              console.error('MockUnityServer: Error processing request:', err);
+            }
+          }
         });
 
         socket.on('close', () => {

@@ -108,8 +108,22 @@ export async function getGameObjectDetailsHandler(unityConnection, args) {
         // Send command to Unity
         const result = await unityConnection.sendCommand('get_gameobject_details', args);
 
-        // Handle Unity response
-        if (result.status === 'error') {
+        // The unityConnection.sendCommand already extracts the result field
+        // from the response, so we access properties directly on result
+        if (!result || typeof result === 'string') {
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `Failed to get GameObject details: Invalid response format`
+                    }
+                ],
+                isError: true
+            };
+        }
+
+        // Check if result has error property (error response from Unity)
+        if (result.error) {
             return {
                 content: [
                     {
@@ -121,12 +135,12 @@ export async function getGameObjectDetailsHandler(unityConnection, args) {
             };
         }
 
-        // Success response
+        // Success response - result is already the unwrapped data
         return {
             content: [
                 {
                     type: 'text',
-                    text: result.result.summary || `GameObject details retrieved`
+                    text: result.summary || `GameObject details retrieved`
                 }
             ],
             isError: false

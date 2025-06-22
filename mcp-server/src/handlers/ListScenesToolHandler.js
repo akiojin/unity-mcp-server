@@ -44,13 +44,15 @@ export class ListScenesToolHandler extends BaseToolHandler {
     // Send command to Unity
     const result = await this.unityConnection.sendCommand('list_scenes', params);
     
+    // The unityConnection.sendCommand already extracts the result field
     // Check for Unity-side errors
-    if (result.status === 'error') {
+    if (result && result.error) {
       const error = new Error(result.error);
       error.code = 'UNITY_ERROR';
       throw error;
     }
     
-    return result.result;
+    // Return the result directly since it's already unwrapped
+    return result;
   }
 }

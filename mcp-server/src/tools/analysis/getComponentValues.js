@@ -79,8 +79,22 @@ export async function getComponentValuesHandler(unityConnection, args) {
         // Send command to Unity
         const result = await unityConnection.sendCommand('get_component_values', args);
 
-        // Handle Unity response
-        if (result.status === 'error') {
+        // The unityConnection.sendCommand already extracts the result field
+        // from the response, so we access properties directly on result
+        if (!result || typeof result === 'string') {
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `Failed to get component values: Invalid response format`
+                    }
+                ],
+                isError: true
+            };
+        }
+
+        // Check if result has error property (error response from Unity)
+        if (result.error) {
             return {
                 content: [
                     {
@@ -92,12 +106,12 @@ export async function getComponentValuesHandler(unityConnection, args) {
             };
         }
 
-        // Success response
+        // Success response - result is already the unwrapped data
         return {
             content: [
                 {
                     type: 'text',
-                    text: result.result.summary || `Component values retrieved`
+                    text: result.summary || `Component values retrieved`
                 }
             ],
             isError: false

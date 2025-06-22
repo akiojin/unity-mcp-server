@@ -5,7 +5,7 @@ export const config = {
   // Unity connection settings
   unity: {
     host: process.env.UNITY_HOST || 'localhost',
-    port: parseInt(process.env.UNITY_PORT) || 6400,
+    port: parseInt(process.env.UNITY_PORT, 10) || 6400,
     reconnectDelay: 1000, // Initial reconnect delay in ms
     maxReconnectDelay: 30000, // Maximum reconnect delay
     reconnectBackoffMultiplier: 2,
