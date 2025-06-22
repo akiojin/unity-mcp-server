@@ -10,6 +10,11 @@ export { FindGameObjectToolHandler } from './FindGameObjectToolHandler.js';
 export { ModifyGameObjectToolHandler } from './ModifyGameObjectToolHandler.js';
 export { DeleteGameObjectToolHandler } from './DeleteGameObjectToolHandler.js';
 export { GetHierarchyToolHandler } from './GetHierarchyToolHandler.js';
+export { CreateSceneToolHandler } from './CreateSceneToolHandler.js';
+export { LoadSceneToolHandler } from './LoadSceneToolHandler.js';
+export { SaveSceneToolHandler } from './SaveSceneToolHandler.js';
+export { ListScenesToolHandler } from './ListScenesToolHandler.js';
+export { GetSceneInfoToolHandler } from './GetSceneInfoToolHandler.js';
 
 import { PingToolHandler } from './PingToolHandler.js';
 import { ReadLogsToolHandler } from './ReadLogsToolHandler.js';
@@ -19,6 +24,11 @@ import { FindGameObjectToolHandler } from './FindGameObjectToolHandler.js';
 import { ModifyGameObjectToolHandler } from './ModifyGameObjectToolHandler.js';
 import { DeleteGameObjectToolHandler } from './DeleteGameObjectToolHandler.js';
 import { GetHierarchyToolHandler } from './GetHierarchyToolHandler.js';
+import { CreateSceneToolHandler } from './CreateSceneToolHandler.js';
+import { LoadSceneToolHandler } from './LoadSceneToolHandler.js';
+import { SaveSceneToolHandler } from './SaveSceneToolHandler.js';
+import { ListScenesToolHandler } from './ListScenesToolHandler.js';
+import { GetSceneInfoToolHandler } from './GetSceneInfoToolHandler.js';
 
 /**
  * Creates and returns all tool handlers
@@ -53,6 +63,22 @@ export function createHandlers(unityConnection) {
   
   const getHierarchyHandler = new GetHierarchyToolHandler(unityConnection);
   handlers.set(getHierarchyHandler.name, getHierarchyHandler);
+  
+  // Scene handlers
+  const createSceneHandler = new CreateSceneToolHandler(unityConnection);
+  handlers.set(createSceneHandler.name, createSceneHandler);
+  
+  const loadSceneHandler = new LoadSceneToolHandler(unityConnection);
+  handlers.set(loadSceneHandler.name, loadSceneHandler);
+  
+  const saveSceneHandler = new SaveSceneToolHandler(unityConnection);
+  handlers.set(saveSceneHandler.name, saveSceneHandler);
+  
+  const listScenesHandler = new ListScenesToolHandler(unityConnection);
+  handlers.set(listScenesHandler.name, listScenesHandler);
+  
+  const getSceneInfoHandler = new GetSceneInfoToolHandler(unityConnection);
+  handlers.set(getSceneInfoHandler.name, getSceneInfoHandler);
   
   return handlers;
 }

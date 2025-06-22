@@ -394,6 +394,31 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, hierarchyResult);
                         break;
                         
+                    case "create_scene":
+                        var createSceneResult = SceneHandler.CreateScene(command.Parameters);
+                        response = Response.SuccessResult(command.Id, createSceneResult);
+                        break;
+                        
+                    case "load_scene":
+                        var loadSceneResult = SceneHandler.LoadScene(command.Parameters);
+                        response = Response.SuccessResult(command.Id, loadSceneResult);
+                        break;
+                        
+                    case "save_scene":
+                        var saveSceneResult = SceneHandler.SaveScene(command.Parameters);
+                        response = Response.SuccessResult(command.Id, saveSceneResult);
+                        break;
+                        
+                    case "list_scenes":
+                        var listScenesResult = SceneHandler.ListScenes(command.Parameters);
+                        response = Response.SuccessResult(command.Id, listScenesResult);
+                        break;
+                        
+                    case "get_scene_info":
+                        var getSceneInfoResult = SceneHandler.GetSceneInfo(command.Parameters);
+                        response = Response.SuccessResult(command.Id, getSceneInfoResult);
+                        break;
+                        
                     default:
                         // Use new format with error details
                         response = Response.ErrorResult(
