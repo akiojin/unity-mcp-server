@@ -496,6 +496,27 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, getObjectReferencesResult);
                         break;
                         
+                    // Play Mode Control commands
+                    case "play_game":
+                        var playResult = PlayModeHandler.HandleCommand("play_game", command.Parameters);
+                        response = Response.SuccessResult(command.Id, playResult);
+                        break;
+                        
+                    case "pause_game":
+                        var pauseResult = PlayModeHandler.HandleCommand("pause_game", command.Parameters);
+                        response = Response.SuccessResult(command.Id, pauseResult);
+                        break;
+                        
+                    case "stop_game":
+                        var stopResult = PlayModeHandler.HandleCommand("stop_game", command.Parameters);
+                        response = Response.SuccessResult(command.Id, stopResult);
+                        break;
+                        
+                    case "get_editor_state":
+                        var stateResult = PlayModeHandler.HandleCommand("get_editor_state", command.Parameters);
+                        response = Response.SuccessResult(command.Id, stateResult);
+                        break;
+                        
                     default:
                         // Use new format with error details
                         response = Response.ErrorResult(

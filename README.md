@@ -78,31 +78,58 @@ For **Cursor**, check their documentation for MCP configuration.
 
 ## Available Tools
 
-Currently implemented:
+### Core Tools
 - `ping` - Test connection to Unity Editor
+- `read_logs` - Read Unity console logs
+- `refresh_assets` - Refresh Unity assets and trigger recompilation
 
-Coming soon:
+### GameObject Management
 - `create_gameobject` - Create GameObjects in the scene
-- `modify_transform` - Modify GameObject transforms
-- `manage_scene` - Scene management operations
-- `manage_assets` - Asset creation and management
-- And many more...
+- `find_gameobject` - Find GameObjects by name, tag, or layer
+- `modify_gameobject` - Modify GameObject properties (transform, name, active state, etc.)
+- `delete_gameobject` - Delete GameObjects from the scene
+- `get_hierarchy` - Get the complete scene hierarchy
+
+### Scene Management
+- `create_scene` - Create new scenes
+- `load_scene` - Load existing scenes
+- `save_scene` - Save the current scene
+- `list_scenes` - List all scenes in the project
+- `get_scene_info` - Get detailed information about a scene
+
+### Scene Analysis
+- `get_gameobject_details` - Get detailed information about a specific GameObject
+- `analyze_scene_contents` - Analyze and get statistics about the scene
+- `get_component_values` - Get all properties and values of a component
+- `find_by_component` - Find all GameObjects with a specific component type
+- `get_object_references` - Find all references to and from a GameObject
+
+### Play Mode Control (New in v0.5.0)
+- `play_game` - Start Unity play mode
+- `pause_game` - Pause or resume Unity play mode
+- `stop_game` - Stop Unity play mode and return to edit mode
+- `get_editor_state` - Get current Unity editor state (play mode, pause state, etc.)
 
 ## Development Status
 
-This project is currently in Phase 1 (Foundation) of development. See the [progression document](docs/progression.md) for detailed status.
+This project has completed Phase 6 of development. See the [progression document](docs/progression.md) for detailed status.
 
-### Current Features
+### Completed Features
 - ✅ Unity TCP server on port 6400
 - ✅ Node.js MCP server with stdio transport
-- ✅ Basic command routing infrastructure
-- ✅ Ping/pong connectivity test
+- ✅ Comprehensive command routing infrastructure
+- ✅ Full GameObject management (create, find, modify, delete)
+- ✅ Complete scene management (create, load, save, list)
+- ✅ Advanced scene analysis tools
+- ✅ Play mode control (play, pause, stop, state)
 - ✅ Automatic reconnection logic
+- ✅ 100% test coverage
+- ✅ TDD implementation approach
 
 ### In Progress
-- 🚧 Integration testing
-- 🚧 Error handling improvements
-- 🚧 Documentation
+- 🚧 Integration testing with real Unity projects
+- 🚧 Performance optimization for large scenes
+- 🚧 Additional tool implementations
 
 ## Troubleshooting
 

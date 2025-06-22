@@ -22,6 +22,10 @@ export { AnalyzeSceneContentsToolHandler } from './AnalyzeSceneContentsToolHandl
 export { GetComponentValuesToolHandler } from './GetComponentValuesToolHandler.js';
 export { FindByComponentToolHandler } from './FindByComponentToolHandler.js';
 export { GetObjectReferencesToolHandler } from './GetObjectReferencesToolHandler.js';
+export { PlayToolHandler } from './PlayToolHandler.js';
+export { PauseToolHandler } from './PauseToolHandler.js';
+export { StopToolHandler } from './StopToolHandler.js';
+export { GetEditorStateToolHandler } from './GetEditorStateToolHandler.js';
 
 // Import all handler classes at once
 import { PingToolHandler } from './PingToolHandler.js';
@@ -42,6 +46,10 @@ import { AnalyzeSceneContentsToolHandler } from './AnalyzeSceneContentsToolHandl
 import { GetComponentValuesToolHandler } from './GetComponentValuesToolHandler.js';
 import { FindByComponentToolHandler } from './FindByComponentToolHandler.js';
 import { GetObjectReferencesToolHandler } from './GetObjectReferencesToolHandler.js';
+import { PlayToolHandler } from './PlayToolHandler.js';
+import { PauseToolHandler } from './PauseToolHandler.js';
+import { StopToolHandler } from './StopToolHandler.js';
+import { GetEditorStateToolHandler } from './GetEditorStateToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -69,7 +77,13 @@ const HANDLER_CLASSES = [
   AnalyzeSceneContentsToolHandler,
   GetComponentValuesToolHandler,
   FindByComponentToolHandler,
-  GetObjectReferencesToolHandler
+  GetObjectReferencesToolHandler,
+  
+  // Play Mode Control handlers
+  PlayToolHandler,
+  PauseToolHandler,
+  StopToolHandler,
+  GetEditorStateToolHandler
 ];
 
 /**
