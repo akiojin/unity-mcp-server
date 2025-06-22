@@ -39,18 +39,70 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 // Handle tool execution
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
+  const requestTime = Date.now();
+  
+  logger.info(`[MCP] Received tool call request: ${name} at ${new Date(requestTime).toISOString()}`, { args });
   
   const handler = handlers.get(name);
   if (!handler) {
-    return {
-      status: 'error',
-      error: `Tool not found: ${name}`,
-      code: 'TOOL_NOT_FOUND'
-    };
+    logger.error(`[MCP] Tool not found: ${name}`);
+    throw new Error(`Tool not found: ${name}`);
   }
   
-  // Handler returns response in new format
-  return await handler.handle(args);
+  try {
+    logger.info(`[MCP] Starting handler execution for: ${name} at ${new Date().toISOString()}`);
+    const startTime = Date.now();
+    
+    // Handler returns response in our format
+    const result = await handler.handle(args);
+    
+    const duration = Date.now() - startTime;
+    const totalDuration = Date.now() - requestTime;
+    logger.info(`[MCP] Handler completed at ${new Date().toISOString()}: ${name}`, { 
+      handlerDuration: `${duration}ms`,
+      totalDuration: `${totalDuration}ms`,
+      status: result.status 
+    });
+    
+    // Convert to MCP format
+    if (result.status === 'error') {
+      logger.error(`[MCP] Handler returned error: ${name}`, { error: result.error, code: result.code });
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error: ${result.error}\nCode: ${result.code || 'UNKNOWN_ERROR'}${result.details ? '\nDetails: ' + JSON.stringify(result.details, null, 2) : ''}`
+          }
+        ]
+      };
+    }
+    
+    // Success response
+    logger.info(`[MCP] Returning success response for: ${name} at ${new Date().toISOString()}`);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result.result, null, 2)
+        }
+      ]
+    };
+  } catch (error) {
+    const errorTime = Date.now();
+    logger.error(`[MCP] Handler threw exception at ${new Date(errorTime).toISOString()}: ${name}`, { 
+      error: error.message, 
+      stack: error.stack,
+      duration: `${errorTime - requestTime}ms`
+    });
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error.message}`
+        }
+      ]
+    };
+  }
 });
 
 // Handle connection events

@@ -30,19 +30,19 @@ export const config = {
  * Logger utility
  */
 export const logger = {
-  info: (message) => {
+  info: (message, ...args) => {
     if (['info', 'debug'].includes(config.logging.level)) {
-      console.log(`${config.logging.prefix} ${message}`);
+      console.log(`${config.logging.prefix} ${message}`, ...args);
     }
   },
   
-  error: (message, error) => {
-    console.error(`${config.logging.prefix} ERROR: ${message}`, error || '');
+  error: (message, ...args) => {
+    console.error(`${config.logging.prefix} ERROR: ${message}`, ...args);
   },
   
-  debug: (message) => {
+  debug: (message, ...args) => {
     if (config.logging.level === 'debug') {
-      console.log(`${config.logging.prefix} DEBUG: ${message}`);
+      console.log(`${config.logging.prefix} DEBUG: ${message}`, ...args);
     }
   }
 };

@@ -173,27 +173,37 @@ export class UnityConnection extends EventEmitter {
    * @param {Buffer} data
    */
   handleData(data) {
+    logger.info(`[Unity] Received data: ${data.toString()}`);
     try {
       const response = JSON.parse(data.toString());
-      logger.debug(`Received response: ${JSON.stringify(response)}`);
+      logger.info(`[Unity] Parsed response:`, response);
       
       // Check if this is a response to a pending command
       if (response.id && this.pendingCommands.has(response.id)) {
+        logger.info(`[Unity] Found pending command for ID ${response.id}`);
         const pending = this.pendingCommands.get(response.id);
         this.pendingCommands.delete(response.id);
         
-        if (response.status === 'success') {
-          pending.resolve(response.data || {});
-        } else {
+        // Handle both old and new response formats
+        if (response.status === 'success' || response.success === true) {
+          logger.info(`[Unity] Command ${response.id} succeeded`);
+          pending.resolve(response.result || response.data || {});
+        } else if (response.status === 'error' || response.success === false) {
+          logger.error(`[Unity] Command ${response.id} failed:`, response.error);
           pending.reject(new Error(response.error || 'Command failed'));
+        } else {
+          // Unknown format
+          logger.warn(`[Unity] Command ${response.id} has unknown response format`);
+          pending.resolve(response);
         }
       } else {
         // Handle unsolicited messages
+        logger.info(`[Unity] Received unsolicited message:`, response);
         this.emit('message', response);
       }
     } catch (error) {
-      logger.error('Failed to parse response:', error.message);
-      logger.debug(`Raw data: ${data.toString()}`);
+      logger.error('[Unity] Failed to parse response:', error.message);
+      logger.error(`[Unity] Raw data: ${data.toString()}`);
     }
   }
 
@@ -204,7 +214,10 @@ export class UnityConnection extends EventEmitter {
    * @returns {Promise<any>} - Response from Unity
    */
   async sendCommand(type, params = {}) {
+    logger.info(`[Unity] sendCommand called: ${type}`, { connected: this.connected, params });
+    
     if (!this.connected) {
+      logger.error('[Unity] Cannot send command - not connected');
       throw new Error('Not connected to Unity');
     }
 
@@ -216,8 +229,11 @@ export class UnityConnection extends EventEmitter {
     };
 
     return new Promise((resolve, reject) => {
+      logger.info(`[Unity] Setting up command ${id} with timeout ${config.unity.commandTimeout}ms`);
+      
       // Set up timeout
       const timeout = setTimeout(() => {
+        logger.error(`[Unity] Command ${id} timed out after ${config.unity.commandTimeout}ms`);
         this.pendingCommands.delete(id);
         reject(new Error('Command timeout'));
       }, config.unity.commandTimeout);
@@ -225,24 +241,29 @@ export class UnityConnection extends EventEmitter {
       // Store pending command
       this.pendingCommands.set(id, {
         resolve: (data) => {
+          logger.info(`[Unity] Command ${id} resolved successfully`);
           clearTimeout(timeout);
           resolve(data);
         },
         reject: (error) => {
+          logger.error(`[Unity] Command ${id} rejected with error:`, error.message);
           clearTimeout(timeout);
           reject(error);
         }
       });
 
       // Send command
-      const json = JSON.stringify(command);
-      logger.debug(`Sending command: ${json}`);
+      const json = JSON.stringify(command) + '\n';
+      logger.info(`[Unity] Sending command ${id}: ${json.trim()}`);
       
       this.socket.write(json, (error) => {
         if (error) {
+          logger.error(`[Unity] Failed to write command ${id}:`, error.message);
           this.pendingCommands.delete(id);
           clearTimeout(timeout);
           reject(error);
+        } else {
+          logger.info(`[Unity] Command ${id} written successfully, waiting for response...`);
         }
       });
     });

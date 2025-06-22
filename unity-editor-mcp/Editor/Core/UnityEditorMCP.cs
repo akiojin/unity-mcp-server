@@ -221,14 +221,14 @@ namespace UnityEditorMCP.Core
                         }
                         else
                         {
-                            var errorResponse = Response.Error("Invalid command format", "PARSE_ERROR", null);
+                            var errorResponse = Response.ErrorResult("Invalid command format", "PARSE_ERROR", null);
                             var responseBytes = Encoding.UTF8.GetBytes(errorResponse);
                             await stream.WriteAsync(responseBytes, 0, responseBytes.Length, cancellationToken);
                         }
                     }
                     catch (JsonException ex)
                     {
-                        var errorResponse = Response.Error($"JSON parsing error: {ex.Message}", "JSON_ERROR", null);
+                        var errorResponse = Response.ErrorResult($"JSON parsing error: {ex.Message}", "JSON_ERROR", null);
                         var responseBytes = Encoding.UTF8.GetBytes(errorResponse);
                         await stream.WriteAsync(responseBytes, 0, responseBytes.Length, cancellationToken);
                     }
@@ -288,8 +288,8 @@ namespace UnityEditorMCP.Core
                             echo = command.Parameters?["message"]?.ToString(),
                             timestamp = System.DateTime.UtcNow.ToString("o")
                         };
-                        // Use new format
-                        response = Response.SuccessResult(pongData);
+                        // Use new format with command ID
+                        response = Response.SuccessResult(command.Id, pongData);
                         break;
                         
                     case "read_logs":
@@ -337,7 +337,7 @@ namespace UnityEditorMCP.Core
                             });
                         }
                         
-                        response = Response.SuccessResult(new
+                        response = Response.SuccessResult(command.Id, new
                         {
                             logs = logData,
                             count = logData.Count,
@@ -347,7 +347,7 @@ namespace UnityEditorMCP.Core
                         
                     case "clear_logs":
                         LogCapture.ClearLogs();
-                        response = Response.SuccessResult(new
+                        response = Response.SuccessResult(command.Id, new
                         {
                             message = "Logs cleared successfully",
                             timestamp = System.DateTime.UtcNow.ToString("o")
@@ -361,7 +361,7 @@ namespace UnityEditorMCP.Core
                         // Check if Unity is compiling
                         bool isCompiling = EditorApplication.isCompiling;
                         
-                        response = Response.SuccessResult(new
+                        response = Response.SuccessResult(command.Id, new
                         {
                             message = "Asset refresh triggered",
                             isCompiling = isCompiling,
@@ -371,32 +371,33 @@ namespace UnityEditorMCP.Core
                         
                     case "create_gameobject":
                         var createResult = GameObjectHandler.CreateGameObject(command.Parameters);
-                        response = Response.SuccessResult(createResult);
+                        response = Response.SuccessResult(command.Id, createResult);
                         break;
                         
                     case "find_gameobject":
                         var findResult = GameObjectHandler.FindGameObjects(command.Parameters);
-                        response = Response.SuccessResult(findResult);
+                        response = Response.SuccessResult(command.Id, findResult);
                         break;
                         
                     case "modify_gameobject":
                         var modifyResult = GameObjectHandler.ModifyGameObject(command.Parameters);
-                        response = Response.SuccessResult(modifyResult);
+                        response = Response.SuccessResult(command.Id, modifyResult);
                         break;
                         
                     case "delete_gameobject":
                         var deleteResult = GameObjectHandler.DeleteGameObject(command.Parameters);
-                        response = Response.SuccessResult(deleteResult);
+                        response = Response.SuccessResult(command.Id, deleteResult);
                         break;
                         
                     case "get_hierarchy":
                         var hierarchyResult = GameObjectHandler.GetHierarchy(command.Parameters);
-                        response = Response.SuccessResult(hierarchyResult);
+                        response = Response.SuccessResult(command.Id, hierarchyResult);
                         break;
                         
                     default:
                         // Use new format with error details
                         response = Response.ErrorResult(
+                            command.Id,
                             $"Unknown command type: {command.Type}", 
                             "UNKNOWN_COMMAND",
                             new { commandType = command.Type }
@@ -420,6 +421,7 @@ namespace UnityEditorMCP.Core
                     if (client.Connected)
                     {
                         var errorResponse = Response.ErrorResult(
+                            command.Id,
                             $"Internal error: {ex.Message}", 
                             "INTERNAL_ERROR",
                             new { 
