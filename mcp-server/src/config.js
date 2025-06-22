@@ -28,11 +28,19 @@ export const config = {
 
 /**
  * Logger utility
+ * IMPORTANT: In MCP servers, all stdout output must be JSON-RPC protocol messages.
+ * Logging must go to stderr to avoid breaking the protocol.
  */
 export const logger = {
   info: (message, ...args) => {
     if (['info', 'debug'].includes(config.logging.level)) {
-      console.log(`${config.logging.prefix} ${message}`, ...args);
+      console.error(`${config.logging.prefix} ${message}`, ...args);
+    }
+  },
+  
+  warn: (message, ...args) => {
+    if (['info', 'debug', 'warn'].includes(config.logging.level)) {
+      console.error(`${config.logging.prefix} WARN: ${message}`, ...args);
     }
   },
   
@@ -42,7 +50,7 @@ export const logger = {
   
   debug: (message, ...args) => {
     if (config.logging.level === 'debug') {
-      console.log(`${config.logging.prefix} DEBUG: ${message}`, ...args);
+      console.error(`${config.logging.prefix} DEBUG: ${message}`, ...args);
     }
   }
 };

@@ -130,6 +130,36 @@ describe('MCP Protocol Communication Tests', () => {
       assert.ok(toolNames.includes('ping'));
       assert.ok(toolNames.includes('read_logs'));
     });
+
+    it('should list resources (empty)', async () => {
+      const listRequest = {
+        jsonrpc: '2.0',
+        id: 2.1,
+        method: 'resources/list',
+        params: {}
+      };
+
+      const response = await sendMCPRequest(listRequest);
+      
+      assert.ok(response.result);
+      assert.ok(Array.isArray(response.result.resources));
+      assert.strictEqual(response.result.resources.length, 0);
+    });
+
+    it('should list prompts (empty)', async () => {
+      const listRequest = {
+        jsonrpc: '2.0',
+        id: 2.2,
+        method: 'prompts/list',
+        params: {}
+      };
+
+      const response = await sendMCPRequest(listRequest);
+      
+      assert.ok(response.result);
+      assert.ok(Array.isArray(response.result.prompts));
+      assert.strictEqual(response.result.prompts.length, 0);
+    });
   });
 
   describe('Tool Execution via MCP', () => {

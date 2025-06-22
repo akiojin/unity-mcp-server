@@ -6,7 +6,12 @@ import { getSceneInfoToolDefinition, getSceneInfoHandler } from '../tools/scene/
  */
 export class GetSceneInfoToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
-        super(getSceneInfoToolDefinition, unityConnection);
+        super(
+            getSceneInfoToolDefinition.name,
+            getSceneInfoToolDefinition.description,
+            getSceneInfoToolDefinition.inputSchema
+        );
+        this.unityConnection = unityConnection;
     }
 
     async execute(args) {

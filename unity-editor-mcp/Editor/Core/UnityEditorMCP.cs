@@ -185,6 +185,7 @@ namespace UnityEditorMCP.Core
                 
                 var buffer = new byte[4096];
                 var stream = client.GetStream();
+                var messageBuffer = new List<byte>();
                 
                 while (!cancellationToken.IsCancellationRequested && client.Connected)
                 {
@@ -195,42 +196,70 @@ namespace UnityEditorMCP.Core
                         break;
                     }
                     
-                    var json = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    Debug.Log($"[Unity Editor MCP] Received: {json}");
-                    
-                    try
+                    // Add received bytes to message buffer
+                    for (int i = 0; i < bytesRead; i++)
                     {
-                        // Handle special ping command
-                        if (json.Trim().ToLower() == "ping")
+                        messageBuffer.Add(buffer[i]);
+                    }
+                    
+                    // Process complete messages
+                    while (messageBuffer.Count >= 4)
+                    {
+                        // Read message length (first 4 bytes, big-endian)
+                        var lengthBytes = messageBuffer.GetRange(0, 4).ToArray();
+                        if (BitConverter.IsLittleEndian)
                         {
-                            var pongResponse = Response.Pong();
-                            var responseBytes = Encoding.UTF8.GetBytes(pongResponse);
-                            await stream.WriteAsync(responseBytes, 0, responseBytes.Length, cancellationToken);
-                            continue;
+                            Array.Reverse(lengthBytes);
                         }
+                        var messageLength = BitConverter.ToInt32(lengthBytes, 0);
                         
-                        // Parse command
-                        var command = JsonConvert.DeserializeObject<Command>(json);
-                        if (command != null)
+                        // Check if we have the complete message
+                        if (messageBuffer.Count >= 4 + messageLength)
                         {
-                            // Queue command for processing on main thread
-                            lock (queueLock)
+                            // Extract message
+                            var messageBytes = messageBuffer.GetRange(4, messageLength).ToArray();
+                            messageBuffer.RemoveRange(0, 4 + messageLength);
+                            
+                            var json = Encoding.UTF8.GetString(messageBytes);
+                            Debug.Log($"[Unity Editor MCP] Received command (length={messageLength}): {json}");
+                            
+                            try
                             {
-                                commandQueue.Enqueue((command, client));
+                                // Handle special ping command
+                                if (json.Trim().ToLower() == "ping")
+                                {
+                                    var pongResponse = Response.Pong();
+                                    await SendFramedMessage(stream, pongResponse, cancellationToken);
+                                    continue;
+                                }
+                                
+                                // Parse command
+                                var command = JsonConvert.DeserializeObject<Command>(json);
+                                if (command != null)
+                                {
+                                    // Queue command for processing on main thread
+                                    lock (queueLock)
+                                    {
+                                        commandQueue.Enqueue((command, client));
+                                    }
+                                }
+                                else
+                                {
+                                    var errorResponse = Response.ErrorResult("Invalid command format", "PARSE_ERROR", null);
+                                    await SendFramedMessage(stream, errorResponse, cancellationToken);
+                                }
+                            }
+                            catch (JsonException ex)
+                            {
+                                var errorResponse = Response.ErrorResult($"JSON parsing error: {ex.Message}", "JSON_ERROR", null);
+                                await SendFramedMessage(stream, errorResponse, cancellationToken);
                             }
                         }
                         else
                         {
-                            var errorResponse = Response.ErrorResult("Invalid command format", "PARSE_ERROR", null);
-                            var responseBytes = Encoding.UTF8.GetBytes(errorResponse);
-                            await stream.WriteAsync(responseBytes, 0, responseBytes.Length, cancellationToken);
+                            // Not enough data yet, wait for more
+                            break;
                         }
-                    }
-                    catch (JsonException ex)
-                    {
-                        var errorResponse = Response.ErrorResult($"JSON parsing error: {ex.Message}", "JSON_ERROR", null);
-                        var responseBytes = Encoding.UTF8.GetBytes(errorResponse);
-                        await stream.WriteAsync(responseBytes, 0, responseBytes.Length, cancellationToken);
                     }
                 }
             }
@@ -250,6 +279,29 @@ namespace UnityEditorMCP.Core
                 }
                 Debug.Log("[Unity Editor MCP] Client disconnected");
             }
+        }
+        
+        /// <summary>
+        /// Sends a framed message over the stream
+        /// </summary>
+        private static async Task SendFramedMessage(NetworkStream stream, string message, CancellationToken cancellationToken)
+        {
+            var messageBytes = Encoding.UTF8.GetBytes(message);
+            var lengthBytes = BitConverter.GetBytes(messageBytes.Length);
+            
+            // Convert to big-endian
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthBytes);
+            }
+            
+            Debug.Log($"[Unity Editor MCP] Sending response (length={messageBytes.Length}): {message}");
+            
+            // Write length prefix
+            await stream.WriteAsync(lengthBytes, 0, 4, cancellationToken);
+            // Write message
+            await stream.WriteAsync(messageBytes, 0, messageBytes.Length, cancellationToken);
+            await stream.FlushAsync(cancellationToken);
         }
         
         /// <summary>
@@ -274,7 +326,7 @@ namespace UnityEditorMCP.Core
         {
             try
             {
-                Debug.Log($"[Unity Editor MCP] Processing command: {command}");
+                Debug.Log($"[Unity Editor MCP] Processing command: {JsonConvert.SerializeObject(command)}");
                 
                 string response;
                 
@@ -458,8 +510,7 @@ namespace UnityEditorMCP.Core
                 // Send response
                 if (client.Connected)
                 {
-                    var responseBytes = Encoding.UTF8.GetBytes(response);
-                    await client.GetStream().WriteAsync(responseBytes, 0, responseBytes.Length);
+                    await SendFramedMessage(client.GetStream(), response, CancellationToken.None);
                 }
             }
             catch (Exception ex)
@@ -479,8 +530,7 @@ namespace UnityEditorMCP.Core
                                 stackTrace = ex.StackTrace
                             }
                         );
-                        var responseBytes = Encoding.UTF8.GetBytes(errorResponse);
-                        await client.GetStream().WriteAsync(responseBytes, 0, responseBytes.Length);
+                        await SendFramedMessage(client.GetStream(), errorResponse, CancellationToken.None);
                     }
                 }
                 catch

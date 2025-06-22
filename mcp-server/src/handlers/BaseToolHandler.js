@@ -42,20 +42,20 @@ export class BaseToolHandler {
    * @returns {Promise<object>} Standardized response
    */
   async handle(params = {}) {
-    console.log(`[Handler ${this.name}] Starting handle() with params:`, params);
+    console.error(`[Handler ${this.name}] Starting handle() with params:`, params);
     
     try {
       // Validate parameters
-      console.log(`[Handler ${this.name}] Validating parameters...`);
+      console.error(`[Handler ${this.name}] Validating parameters...`);
       this.validate(params);
-      console.log(`[Handler ${this.name}] Validation passed`);
+      console.error(`[Handler ${this.name}] Validation passed`);
       
       // Execute tool logic
-      console.log(`[Handler ${this.name}] Executing tool logic...`);
+      console.error(`[Handler ${this.name}] Executing tool logic...`);
       const startTime = Date.now();
       const result = await this.execute(params);
       const duration = Date.now() - startTime;
-      console.log(`[Handler ${this.name}] Execution completed in ${duration}ms`);
+      console.error(`[Handler ${this.name}] Execution completed in ${duration}ms`);
       
       // Return success response in new format
       return {

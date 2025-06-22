@@ -2,7 +2,9 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { 
   ListToolsRequestSchema, 
-  CallToolRequestSchema 
+  CallToolRequestSchema,
+  ListResourcesRequestSchema,
+  ListPromptsRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
 import { UnityConnection } from './unityConnection.js';
 import { createHandlers } from './handlers/index.js';
@@ -22,7 +24,9 @@ const server = new Server(
   },
   {
     capabilities: {
-      tools: {}
+      tools: {},
+      resources: {},
+      prompts: {}
     }
   }
 );
@@ -34,6 +38,20 @@ logger.info('Registering tools...');
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   const tools = Array.from(handlers.values()).map(handler => handler.getDefinition());
   return { tools };
+});
+
+// Handle resources listing
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  logger.debug('[MCP] Received resources/list request');
+  // Unity MCP server doesn't provide resources
+  return { resources: [] };
+});
+
+// Handle prompts listing
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  logger.debug('[MCP] Received prompts/list request');
+  // Unity MCP server doesn't provide prompts
+  return { prompts: [] };
 });
 
 // Handle tool execution
@@ -171,7 +189,9 @@ export async function createServer(customConfig = config) {
     },
     {
       capabilities: {
-        tools: {}
+        tools: {},
+        resources: {},
+        prompts: {}
       }
     }
   );
@@ -180,6 +200,14 @@ export async function createServer(customConfig = config) {
   testServer.setRequestHandler(ListToolsRequestSchema, async () => {
     const tools = Array.from(testHandlers.values()).map(handler => handler.getDefinition());
     return { tools };
+  });
+  
+  testServer.setRequestHandler(ListResourcesRequestSchema, async () => {
+    return { resources: [] };
+  });
+  
+  testServer.setRequestHandler(ListPromptsRequestSchema, async () => {
+    return { prompts: [] };
   });
   
   testServer.setRequestHandler(CallToolRequestSchema, async (request) => {

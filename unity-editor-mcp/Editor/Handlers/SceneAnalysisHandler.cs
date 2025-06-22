@@ -1204,8 +1204,8 @@ namespace UnityEditorMCP.Handlers
                     {
                         if (component == null) continue;
 
-                        var references = FindReferencesInComponent(component, targetObject, targetComponents);
-                        foreach (var reference in references)
+                        var componentRefs = FindReferencesInComponent(component, targetObject, targetComponents);
+                        foreach (var reference in componentRefs)
                         {
                             var refData = new Dictionary<string, object>();
                             refData["gameObject"] = go.name;
@@ -1255,8 +1255,8 @@ namespace UnityEditorMCP.Handlers
                             {
                                 if (component == null) continue;
 
-                                var references = FindReferencesInComponent(component, targetObject, targetComponents);
-                                foreach (var reference in references)
+                                var prefabRefs = FindReferencesInComponent(component, targetObject, targetComponents);
+                                foreach (var reference in prefabRefs)
                                 {
                                     var refData = new Dictionary<string, object>();
                                     refData["gameObject"] = prefab.name;

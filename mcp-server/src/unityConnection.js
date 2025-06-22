@@ -15,6 +15,7 @@ export class UnityConnection extends EventEmitter {
     this.commandId = 0;
     this.pendingCommands = new Map();
     this.isDisconnecting = false;
+    this.messageBuffer = Buffer.alloc(0);
   }
 
   /**
@@ -86,6 +87,9 @@ export class UnityConnection extends EventEmitter {
         this.connected = false;
         const wasSocket = this.socket;
         this.socket = null;
+        
+        // Clear message buffer
+        this.messageBuffer = Buffer.alloc(0);
         
         // Clear pending commands
         for (const [id, pending] of this.pendingCommands) {
@@ -173,37 +177,116 @@ export class UnityConnection extends EventEmitter {
    * @param {Buffer} data
    */
   handleData(data) {
-    logger.info(`[Unity] Received data: ${data.toString()}`);
-    try {
-      const response = JSON.parse(data.toString());
-      logger.info(`[Unity] Parsed response:`, response);
+    // Check if this is an unframed Unity debug log
+    if (data.length > 0 && !this.messageBuffer.length) {
+      const dataStr = data.toString('utf8');
+      if (dataStr.startsWith('[Unity Editor MCP]') || dataStr.startsWith('[Unity]')) {
+        logger.debug(`[Unity] Received unframed debug log: ${dataStr.trim()}`);
+        // Don't process unframed logs as messages
+        return;
+      }
+    }
+    
+    // Append new data to buffer
+    this.messageBuffer = Buffer.concat([this.messageBuffer, data]);
+    
+    // Process complete messages
+    while (this.messageBuffer.length >= 4) {
+      // Read message length (first 4 bytes, big-endian)
+      const messageLength = this.messageBuffer.readInt32BE(0);
       
-      // Check if this is a response to a pending command
-      if (response.id && this.pendingCommands.has(response.id)) {
-        logger.info(`[Unity] Found pending command for ID ${response.id}`);
-        const pending = this.pendingCommands.get(response.id);
-        this.pendingCommands.delete(response.id);
+      // Validate message length
+      if (messageLength < 0 || messageLength > 1024 * 1024) { // Max 1MB messages
+        logger.error(`[Unity] Invalid message length: ${messageLength}`);
         
-        // Handle both old and new response formats
-        if (response.status === 'success' || response.success === true) {
-          logger.info(`[Unity] Command ${response.id} succeeded`);
-          pending.resolve(response.result || response.data || {});
-        } else if (response.status === 'error' || response.success === false) {
-          logger.error(`[Unity] Command ${response.id} failed:`, response.error);
-          pending.reject(new Error(response.error || 'Command failed'));
+        // Try to recover by looking for valid framed message
+        // Look for a reasonable length value (positive, less than 10KB for typical responses)
+        let recoveryIndex = -1;
+        for (let i = 4; i < Math.min(this.messageBuffer.length - 4, 100); i++) {
+          const testLength = this.messageBuffer.readInt32BE(i);
+          if (testLength > 0 && testLength < 10240) {
+            // Check if this could be a valid JSON message
+            if (i + 4 + testLength <= this.messageBuffer.length) {
+              const testData = this.messageBuffer.slice(i + 4, i + 4 + testLength).toString('utf8');
+              if (testData.trim().startsWith('{')) {
+                recoveryIndex = i;
+                break;
+              }
+            }
+          }
+        }
+        
+        if (recoveryIndex > 0) {
+          logger.warn(`[Unity] Discarding ${recoveryIndex} bytes of invalid data`);
+          this.messageBuffer = this.messageBuffer.slice(recoveryIndex);
+          continue;
         } else {
-          // Unknown format
-          logger.warn(`[Unity] Command ${response.id} has unknown response format`);
-          pending.resolve(response);
+          // Can't recover, clear buffer
+          logger.error('[Unity] Unable to recover from invalid frame, clearing buffer');
+          this.messageBuffer = Buffer.alloc(0);
+          break;
+        }
+      }
+      
+      // Check if we have the complete message
+      if (this.messageBuffer.length >= 4 + messageLength) {
+        // Extract message
+        const messageData = this.messageBuffer.slice(4, 4 + messageLength);
+        this.messageBuffer = this.messageBuffer.slice(4 + messageLength);
+        
+        // Process the message
+        try {
+          const message = messageData.toString('utf8');
+          
+          // Skip non-JSON messages (like debug logs)
+          if (!message.trim().startsWith('{')) {
+            logger.warn(`[Unity] Skipping non-JSON message: ${message.substring(0, 50)}...`);
+            continue;
+          }
+          
+          logger.info(`[Unity] Received framed message: ${message}`);
+          
+          const response = JSON.parse(message);
+          logger.info(`[Unity] Parsed response:`, response);
+          
+          // Check if this is a response to a pending command
+          if (response.id && this.pendingCommands.has(response.id)) {
+            logger.info(`[Unity] Found pending command for ID ${response.id}`);
+            const pending = this.pendingCommands.get(response.id);
+            this.pendingCommands.delete(response.id);
+            
+            // Handle both old and new response formats
+            if (response.status === 'success' || response.success === true) {
+              logger.info(`[Unity] Command ${response.id} succeeded`);
+              pending.resolve(response.result || response.data || {});
+            } else if (response.status === 'error' || response.success === false) {
+              logger.error(`[Unity] Command ${response.id} failed:`, response.error);
+              pending.reject(new Error(response.error || 'Command failed'));
+            } else {
+              // Unknown format
+              logger.warn(`[Unity] Command ${response.id} has unknown response format`);
+              pending.resolve(response);
+            }
+          } else {
+            // Handle unsolicited messages
+            logger.info(`[Unity] Received unsolicited message:`, response);
+            this.emit('message', response);
+          }
+        } catch (error) {
+          logger.error('[Unity] Failed to parse response:', error.message);
+          logger.debug(`[Unity] Raw message: ${messageData.toString().substring(0, 200)}...`);
+          
+          // Check if this looks like a Unity log message
+          const messageStr = messageData.toString();
+          if (messageStr.includes('[Unity Editor MCP]')) {
+            logger.debug('[Unity] Received Unity log message instead of JSON response');
+            // Don't treat this as a critical error
+          }
         }
       } else {
-        // Handle unsolicited messages
-        logger.info(`[Unity] Received unsolicited message:`, response);
-        this.emit('message', response);
+        // Not enough data yet, wait for more
+        break;
       }
-    } catch (error) {
-      logger.error('[Unity] Failed to parse response:', error.message);
-      logger.error(`[Unity] Raw data: ${data.toString()}`);
     }
   }
 
@@ -252,11 +335,17 @@ export class UnityConnection extends EventEmitter {
         }
       });
 
-      // Send command
-      const json = JSON.stringify(command) + '\n';
-      logger.info(`[Unity] Sending command ${id}: ${json.trim()}`);
+      // Send command with framing
+      const json = JSON.stringify(command);
+      const messageBuffer = Buffer.from(json, 'utf8');
+      const lengthBuffer = Buffer.allocUnsafe(4);
+      lengthBuffer.writeInt32BE(messageBuffer.length, 0);
       
-      this.socket.write(json, (error) => {
+      const framedMessage = Buffer.concat([lengthBuffer, messageBuffer]);
+      
+      logger.info(`[Unity] Sending framed command ${id}: ${json}`);
+      
+      this.socket.write(framedMessage, (error) => {
         if (error) {
           logger.error(`[Unity] Failed to write command ${id}:`, error.message);
           this.pendingCommands.delete(id);
@@ -274,40 +363,8 @@ export class UnityConnection extends EventEmitter {
    * @returns {Promise<any>}
    */
   async ping() {
-    // Special handling for ping - send raw string
-    if (!this.connected) {
-      throw new Error('Not connected to Unity');
-    }
-
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Ping timeout'));
-      }, 5000);
-
-      // Set up one-time listener for pong response
-      const handlePong = (data) => {
-        try {
-          const response = JSON.parse(data.toString());
-          if (response.status === 'success' && response.data && response.data.message === 'pong') {
-            clearTimeout(timeout);
-            this.socket.removeListener('data', handlePong);
-            resolve(response.data);
-          }
-        } catch (error) {
-          // Ignore parsing errors for non-pong messages
-        }
-      };
-
-      this.socket.on('data', handlePong);
-      
-      this.socket.write('ping', (error) => {
-        if (error) {
-          clearTimeout(timeout);
-          this.socket.removeListener('data', handlePong);
-          reject(error);
-        }
-      });
-    });
+    // Use normal command sending for ping with proper framing
+    return this.sendCommand('ping', {});
   }
 
   /**
