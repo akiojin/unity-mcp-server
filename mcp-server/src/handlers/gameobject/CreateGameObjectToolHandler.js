@@ -1,5 +1,5 @@
-import { BaseToolHandler } from './BaseToolHandler.js';
-import { validateVector3, validateLayer } from '../utils/validators.js';
+import { BaseToolHandler } from '../BaseToolHandler.js';
+import { validateVector3, validateLayer } from '../../utils/validators.js';
 
 /**
  * Handler for the create_gameobject tool

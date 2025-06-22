@@ -3,10 +3,10 @@
   "version": "0.2.0",
   "description": "MCP server for Unity Editor integration",
   "type": "module",
-  "main": "src/server.js",
+  "main": "src/core/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
+    "start": "node src/core/server.js",
+    "dev": "node --watch src/core/server.js",
     "test": "node --experimental-test-coverage --test tests/**/*.test.js",
     "test:watch": "node --watch --test"
   },

@@ -1,5 +1,5 @@
-import { BaseToolHandler } from './BaseToolHandler.js';
-import { findByComponentToolDefinition, findByComponentHandler } from '../tools/analysis/findByComponent.js';
+import { BaseToolHandler } from '../BaseToolHandler.js';
+import { findByComponentToolDefinition, findByComponentHandler } from '../../tools/analysis/findByComponent.js';
 
 /**
  * Handler for the find_by_component tool

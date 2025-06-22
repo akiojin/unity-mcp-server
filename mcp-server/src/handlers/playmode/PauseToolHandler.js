@@ -1,13 +1,13 @@
-import { BaseToolHandler } from './BaseToolHandler.js';
+import { BaseToolHandler } from '../BaseToolHandler.js';
 
 /**
- * Handler for starting Unity play mode
+ * Handler for pausing/resuming Unity play mode
  */
-export class PlayToolHandler extends BaseToolHandler {
+export class PauseToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'play_game',
-      'Start Unity play mode to test the game',
+      'pause_game',
+      'Pause or resume Unity play mode',
       {
         type: 'object',
         properties: {},
@@ -18,7 +18,7 @@ export class PlayToolHandler extends BaseToolHandler {
   }
 
   /**
-   * Executes the play command
+   * Executes the pause/resume command
    * @param {object} params - Empty object for this command
    * @returns {Promise<object>} Play mode state
    */
@@ -28,8 +28,8 @@ export class PlayToolHandler extends BaseToolHandler {
       throw new Error('Unity connection not available');
     }
     
-    // Send play command to Unity
-    const result = await this.unityConnection.sendCommand('play_game', params);
+    // Send pause command to Unity
+    const result = await this.unityConnection.sendCommand('pause_game', params);
     
     // Check for Unity-side errors
     if (result.status === 'error') {

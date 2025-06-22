@@ -1,5 +1,5 @@
-import { BaseToolHandler } from './BaseToolHandler.js';
-import { getObjectReferencesToolDefinition, getObjectReferencesHandler } from '../tools/analysis/getObjectReferences.js';
+import { BaseToolHandler } from '../BaseToolHandler.js';
+import { getObjectReferencesToolDefinition, getObjectReferencesHandler } from '../../tools/analysis/getObjectReferences.js';
 
 /**
  * Handler for the get_object_references tool

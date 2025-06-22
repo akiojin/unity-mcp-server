@@ -1,4 +1,4 @@
-import { BaseToolHandler } from './BaseToolHandler.js';
+import { BaseToolHandler } from '../BaseToolHandler.js';
 
 /**
  * Handler for saving scenes in Unity

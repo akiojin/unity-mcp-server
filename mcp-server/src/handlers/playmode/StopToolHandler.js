@@ -1,13 +1,13 @@
-import { BaseToolHandler } from './BaseToolHandler.js';
+import { BaseToolHandler } from '../BaseToolHandler.js';
 
 /**
- * Handler for getting Unity editor state
+ * Handler for stopping Unity play mode
  */
-export class GetEditorStateToolHandler extends BaseToolHandler {
+export class StopToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'get_editor_state',
-      'Get current Unity editor state including play mode status',
+      'stop_game',
+      'Stop Unity play mode and return to edit mode',
       {
         type: 'object',
         properties: {},
@@ -18,9 +18,9 @@ export class GetEditorStateToolHandler extends BaseToolHandler {
   }
 
   /**
-   * Executes the get editor state command
+   * Executes the stop command
    * @param {object} params - Empty object for this command
-   * @returns {Promise<object>} Editor state information
+   * @returns {Promise<object>} Play mode state
    */
   async execute(params) {
     // Ensure connected
@@ -28,8 +28,8 @@ export class GetEditorStateToolHandler extends BaseToolHandler {
       throw new Error('Unity connection not available');
     }
     
-    // Send get state command to Unity
-    const result = await this.unityConnection.sendCommand('get_editor_state', params);
+    // Send stop command to Unity
+    const result = await this.unityConnection.sendCommand('stop_game', params);
     
     // Check for Unity-side errors
     if (result.status === 'error') {
@@ -38,7 +38,7 @@ export class GetEditorStateToolHandler extends BaseToolHandler {
       throw error;
     }
     
-    // Return the state information
+    // Return the result with state information
     return result;
   }
 }

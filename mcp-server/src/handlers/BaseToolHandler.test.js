@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { BaseToolHandler } from './BaseToolHandler.js';
+import { BaseToolHandler } from '../BaseToolHandler.js';
 
 // Create a test implementation of BaseToolHandler
 class TestToolHandler extends BaseToolHandler {

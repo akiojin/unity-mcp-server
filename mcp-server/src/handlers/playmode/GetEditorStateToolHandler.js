@@ -1,13 +1,13 @@
-import { BaseToolHandler } from './BaseToolHandler.js';
+import { BaseToolHandler } from '../BaseToolHandler.js';
 
 /**
- * Handler for pausing/resuming Unity play mode
+ * Handler for getting Unity editor state
  */
-export class PauseToolHandler extends BaseToolHandler {
+export class GetEditorStateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'pause_game',
-      'Pause or resume Unity play mode',
+      'get_editor_state',
+      'Get current Unity editor state including play mode status',
       {
         type: 'object',
         properties: {},
@@ -18,9 +18,9 @@ export class PauseToolHandler extends BaseToolHandler {
   }
 
   /**
-   * Executes the pause/resume command
+   * Executes the get editor state command
    * @param {object} params - Empty object for this command
-   * @returns {Promise<object>} Play mode state
+   * @returns {Promise<object>} Editor state information
    */
   async execute(params) {
     // Ensure connected
@@ -28,8 +28,8 @@ export class PauseToolHandler extends BaseToolHandler {
       throw new Error('Unity connection not available');
     }
     
-    // Send pause command to Unity
-    const result = await this.unityConnection.sendCommand('pause_game', params);
+    // Send get state command to Unity
+    const result = await this.unityConnection.sendCommand('get_editor_state', params);
     
     // Check for Unity-side errors
     if (result.status === 'error') {
@@ -38,7 +38,7 @@ export class PauseToolHandler extends BaseToolHandler {
       throw error;
     }
     
-    // Return the result with state information
+    // Return the state information
     return result;
   }
 }

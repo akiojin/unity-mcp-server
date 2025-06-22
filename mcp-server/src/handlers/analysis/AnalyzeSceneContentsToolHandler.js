@@ -1,18 +1,18 @@
-import { BaseToolHandler } from './BaseToolHandler.js';
-import { getGameObjectDetailsToolDefinition, getGameObjectDetailsHandler } from '../tools/analysis/getGameObjectDetails.js';
+import { BaseToolHandler } from '../BaseToolHandler.js';
+import { analyzeSceneContentsToolDefinition, analyzeSceneContentsHandler } from '../../tools/analysis/analyzeSceneContents.js';
 
 /**
- * Handler for get_gameobject_details tool
+ * Handler for analyze_scene_contents tool
  */
-export class GetGameObjectDetailsToolHandler extends BaseToolHandler {
+export class AnalyzeSceneContentsToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            getGameObjectDetailsToolDefinition.name,
-            getGameObjectDetailsToolDefinition.description,
-            getGameObjectDetailsToolDefinition.inputSchema
+            analyzeSceneContentsToolDefinition.name,
+            analyzeSceneContentsToolDefinition.description,
+            analyzeSceneContentsToolDefinition.inputSchema
         );
         this.unityConnection = unityConnection;
-        this.handler = getGameObjectDetailsHandler;
+        this.handler = analyzeSceneContentsHandler;
     }
 
     async execute(args) {

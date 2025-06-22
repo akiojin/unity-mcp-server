@@ -1,5 +1,5 @@
-import { BaseToolHandler } from './BaseToolHandler.js';
-import { getComponentValuesToolDefinition, getComponentValuesHandler } from '../tools/analysis/getComponentValues.js';
+import { BaseToolHandler } from '../BaseToolHandler.js';
+import { getComponentValuesToolDefinition, getComponentValuesHandler } from '../../tools/analysis/getComponentValues.js';
 
 /**
  * Handler for the get_component_values tool

@@ -1,4 +1,4 @@
-import { BaseToolHandler } from './BaseToolHandler.js';
+import { BaseToolHandler } from '../BaseToolHandler.js';
 
 /**
  * Handler for listing scenes in Unity

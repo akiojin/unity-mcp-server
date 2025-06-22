@@ -4,56 +4,66 @@
 
 // Export all handlers
 export { BaseToolHandler } from './BaseToolHandler.js';
-export { PingToolHandler } from './PingToolHandler.js';
-export { ReadLogsToolHandler } from './ReadLogsToolHandler.js';
-export { RefreshAssetsToolHandler } from './RefreshAssetsToolHandler.js';
-export { CreateGameObjectToolHandler } from './CreateGameObjectToolHandler.js';
-export { FindGameObjectToolHandler } from './FindGameObjectToolHandler.js';
-export { ModifyGameObjectToolHandler } from './ModifyGameObjectToolHandler.js';
-export { DeleteGameObjectToolHandler } from './DeleteGameObjectToolHandler.js';
-export { GetHierarchyToolHandler } from './GetHierarchyToolHandler.js';
-export { CreateSceneToolHandler } from './CreateSceneToolHandler.js';
-export { LoadSceneToolHandler } from './LoadSceneToolHandler.js';
-export { SaveSceneToolHandler } from './SaveSceneToolHandler.js';
-export { ListScenesToolHandler } from './ListScenesToolHandler.js';
-export { GetSceneInfoToolHandler } from './GetSceneInfoToolHandler.js';
-export { GetGameObjectDetailsToolHandler } from './GetGameObjectDetailsToolHandler.js';
-export { AnalyzeSceneContentsToolHandler } from './AnalyzeSceneContentsToolHandler.js';
-export { GetComponentValuesToolHandler } from './GetComponentValuesToolHandler.js';
-export { FindByComponentToolHandler } from './FindByComponentToolHandler.js';
-export { GetObjectReferencesToolHandler } from './GetObjectReferencesToolHandler.js';
-export { PlayToolHandler } from './PlayToolHandler.js';
-export { PauseToolHandler } from './PauseToolHandler.js';
-export { StopToolHandler } from './StopToolHandler.js';
-export { GetEditorStateToolHandler } from './GetEditorStateToolHandler.js';
+
+// System handlers
+export { PingToolHandler } from './system/PingToolHandler.js';
+export { ReadLogsToolHandler } from './system/ReadLogsToolHandler.js';
+export { RefreshAssetsToolHandler } from './system/RefreshAssetsToolHandler.js';
+
+// GameObject handlers
+export { CreateGameObjectToolHandler } from './gameobject/CreateGameObjectToolHandler.js';
+export { FindGameObjectToolHandler } from './gameobject/FindGameObjectToolHandler.js';
+export { ModifyGameObjectToolHandler } from './gameobject/ModifyGameObjectToolHandler.js';
+export { DeleteGameObjectToolHandler } from './gameobject/DeleteGameObjectToolHandler.js';
+export { GetHierarchyToolHandler } from './gameobject/GetHierarchyToolHandler.js';
+
+// Scene handlers
+export { CreateSceneToolHandler } from './scene/CreateSceneToolHandler.js';
+export { LoadSceneToolHandler } from './scene/LoadSceneToolHandler.js';
+export { SaveSceneToolHandler } from './scene/SaveSceneToolHandler.js';
+export { ListScenesToolHandler } from './scene/ListScenesToolHandler.js';
+export { GetSceneInfoToolHandler } from './scene/GetSceneInfoToolHandler.js';
+
+// Analysis handlers
+export { GetGameObjectDetailsToolHandler } from './analysis/GetGameObjectDetailsToolHandler.js';
+export { AnalyzeSceneContentsToolHandler } from './analysis/AnalyzeSceneContentsToolHandler.js';
+export { GetComponentValuesToolHandler } from './analysis/GetComponentValuesToolHandler.js';
+export { FindByComponentToolHandler } from './analysis/FindByComponentToolHandler.js';
+export { GetObjectReferencesToolHandler } from './analysis/GetObjectReferencesToolHandler.js';
+
+// PlayMode handlers
+export { PlayToolHandler } from './playmode/PlayToolHandler.js';
+export { PauseToolHandler } from './playmode/PauseToolHandler.js';
+export { StopToolHandler } from './playmode/StopToolHandler.js';
+export { GetEditorStateToolHandler } from './playmode/GetEditorStateToolHandler.js';
 
 // Import all handler classes at once
-import { PingToolHandler } from './PingToolHandler.js';
-import { ReadLogsToolHandler } from './ReadLogsToolHandler.js';
-import { RefreshAssetsToolHandler } from './RefreshAssetsToolHandler.js';
-import { CreateGameObjectToolHandler } from './CreateGameObjectToolHandler.js';
-import { FindGameObjectToolHandler } from './FindGameObjectToolHandler.js';
-import { ModifyGameObjectToolHandler } from './ModifyGameObjectToolHandler.js';
-import { DeleteGameObjectToolHandler } from './DeleteGameObjectToolHandler.js';
-import { GetHierarchyToolHandler } from './GetHierarchyToolHandler.js';
-import { CreateSceneToolHandler } from './CreateSceneToolHandler.js';
-import { LoadSceneToolHandler } from './LoadSceneToolHandler.js';
-import { SaveSceneToolHandler } from './SaveSceneToolHandler.js';
-import { ListScenesToolHandler } from './ListScenesToolHandler.js';
-import { GetSceneInfoToolHandler } from './GetSceneInfoToolHandler.js';
-import { GetGameObjectDetailsToolHandler } from './GetGameObjectDetailsToolHandler.js';
-import { AnalyzeSceneContentsToolHandler } from './AnalyzeSceneContentsToolHandler.js';
-import { GetComponentValuesToolHandler } from './GetComponentValuesToolHandler.js';
-import { FindByComponentToolHandler } from './FindByComponentToolHandler.js';
-import { GetObjectReferencesToolHandler } from './GetObjectReferencesToolHandler.js';
-import { PlayToolHandler } from './PlayToolHandler.js';
-import { PauseToolHandler } from './PauseToolHandler.js';
-import { StopToolHandler } from './StopToolHandler.js';
-import { GetEditorStateToolHandler } from './GetEditorStateToolHandler.js';
+import { PingToolHandler } from './system/PingToolHandler.js';
+import { ReadLogsToolHandler } from './system/ReadLogsToolHandler.js';
+import { RefreshAssetsToolHandler } from './system/RefreshAssetsToolHandler.js';
+import { CreateGameObjectToolHandler } from './gameobject/CreateGameObjectToolHandler.js';
+import { FindGameObjectToolHandler } from './gameobject/FindGameObjectToolHandler.js';
+import { ModifyGameObjectToolHandler } from './gameobject/ModifyGameObjectToolHandler.js';
+import { DeleteGameObjectToolHandler } from './gameobject/DeleteGameObjectToolHandler.js';
+import { GetHierarchyToolHandler } from './gameobject/GetHierarchyToolHandler.js';
+import { CreateSceneToolHandler } from './scene/CreateSceneToolHandler.js';
+import { LoadSceneToolHandler } from './scene/LoadSceneToolHandler.js';
+import { SaveSceneToolHandler } from './scene/SaveSceneToolHandler.js';
+import { ListScenesToolHandler } from './scene/ListScenesToolHandler.js';
+import { GetSceneInfoToolHandler } from './scene/GetSceneInfoToolHandler.js';
+import { GetGameObjectDetailsToolHandler } from './analysis/GetGameObjectDetailsToolHandler.js';
+import { AnalyzeSceneContentsToolHandler } from './analysis/AnalyzeSceneContentsToolHandler.js';
+import { GetComponentValuesToolHandler } from './analysis/GetComponentValuesToolHandler.js';
+import { FindByComponentToolHandler } from './analysis/FindByComponentToolHandler.js';
+import { GetObjectReferencesToolHandler } from './analysis/GetObjectReferencesToolHandler.js';
+import { PlayToolHandler } from './playmode/PlayToolHandler.js';
+import { PauseToolHandler } from './playmode/PauseToolHandler.js';
+import { StopToolHandler } from './playmode/StopToolHandler.js';
+import { GetEditorStateToolHandler } from './playmode/GetEditorStateToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
-  // Core handlers
+  // System handlers
   PingToolHandler,
   ReadLogsToolHandler,
   RefreshAssetsToolHandler,
@@ -72,14 +82,14 @@ const HANDLER_CLASSES = [
   ListScenesToolHandler,
   GetSceneInfoToolHandler,
   
-  // Scene Analysis handlers
+  // Analysis handlers
   GetGameObjectDetailsToolHandler,
   AnalyzeSceneContentsToolHandler,
   GetComponentValuesToolHandler,
   FindByComponentToolHandler,
   GetObjectReferencesToolHandler,
   
-  // Play Mode Control handlers
+  // PlayMode handlers
   PlayToolHandler,
   PauseToolHandler,
   StopToolHandler,

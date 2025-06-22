@@ -1,9 +1,9 @@
 import { describe, it, before, after, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import net from 'net';
-import { UnityConnection } from './unityConnection.js';
+import { UnityConnection } from '../core/unityConnection.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { logger } from './config.js';
+import { logger } from '../core/config.js';
 
 describe('Enhanced Integration Tests', () => {
   let mockUnityServer;

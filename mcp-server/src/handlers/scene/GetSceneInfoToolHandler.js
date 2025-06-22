@@ -1,5 +1,5 @@
-import { BaseToolHandler } from './BaseToolHandler.js';
-import { getSceneInfoToolDefinition, getSceneInfoHandler } from '../tools/scene/getSceneInfo.js';
+import { BaseToolHandler } from '../BaseToolHandler.js';
+import { getSceneInfoToolDefinition, getSceneInfoHandler } from '../../tools/scene/getSceneInfo.js';
 
 /**
  * Handler for get_scene_info tool

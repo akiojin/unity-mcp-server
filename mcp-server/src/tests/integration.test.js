@@ -1,7 +1,7 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import net from 'net';
-import { UnityConnection } from './unityConnection.js';
+import { UnityConnection } from '../core/unityConnection.js';
 
 describe('Integration Tests', () => {
   let mockUnityServer;
