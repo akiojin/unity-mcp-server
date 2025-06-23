@@ -61,6 +61,16 @@ export class SaveSceneToolHandler extends BaseToolHandler {
       throw error;
     }
     
+    // Handle undefined or null results from Unity
+    if (result.result === undefined || result.result === null) {
+      return {
+        status: 'success',
+        scenePath: params.scenePath || 'Current scene path',
+        saveAs: params.saveAs === true,
+        message: 'Scene save completed but Unity returned no details'
+      };
+    }
+    
     return result.result;
   }
 }

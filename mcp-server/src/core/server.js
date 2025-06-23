@@ -97,11 +97,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     
     // Success response
     logger.info(`[MCP] Returning success response for: ${name} at ${new Date().toISOString()}`);
+    
+    // Handle undefined or null results from handlers
+    let responseText;
+    if (result.result === undefined || result.result === null) {
+      responseText = JSON.stringify({
+        status: 'success',
+        message: 'Operation completed successfully but no details were returned',
+        tool: name
+      }, null, 2);
+    } else {
+      responseText = JSON.stringify(result.result, null, 2);
+    }
+    
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(result.result, null, 2)
+          text: responseText
         }
       ]
     };

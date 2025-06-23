@@ -76,6 +76,17 @@ export class LoadSceneToolHandler extends BaseToolHandler {
       throw error;
     }
     
+    // Handle undefined or null results from Unity
+    if (result.result === undefined || result.result === null) {
+      return {
+        status: 'success',
+        sceneName: params.sceneName || 'Unknown',
+        scenePath: params.scenePath || 'Unknown',
+        loadMode: params.loadMode || 'Single',
+        message: 'Scene operation completed but Unity returned no details'
+      };
+    }
+    
     return result.result;
   }
 }

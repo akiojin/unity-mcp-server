@@ -176,4 +176,34 @@ describe('LoadSceneToolHandler', () => {
     assert.ok(response.details.params.includes('scenePath'));
     assert.ok(response.details.params.includes('loadMode: "Single"'));
   });
+
+  it('should handle Unity returning undefined result (reproduces union error)', async () => {
+    // This test reproduces the union error where Unity returns success but undefined result
+    sendCommandSpy.mock.mockImplementation(() => Promise.resolve({
+      status: 'success',
+      result: undefined  // This causes the union error in MCP protocol
+    }));
+    
+    const response = await handler.handle({ sceneName: 'TestScene' });
+    
+    // The handler should still return success status
+    assert.equal(response.status, 'success');
+    // But result should be properly handled (not undefined)
+    assert.ok(response.result !== undefined);
+    // Should provide meaningful information even when Unity returns undefined
+    assert.ok(typeof response.result === 'object');
+  });
+
+  it('should handle Unity returning null result', async () => {
+    sendCommandSpy.mock.mockImplementation(() => Promise.resolve({
+      status: 'success',
+      result: null  // Another edge case
+    }));
+    
+    const response = await handler.handle({ sceneName: 'TestScene' });
+    
+    assert.equal(response.status, 'success');
+    assert.ok(response.result !== null);
+    assert.ok(typeof response.result === 'object');
+  });
 });

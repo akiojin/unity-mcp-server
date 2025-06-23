@@ -74,6 +74,18 @@ export class CreateSceneToolHandler extends BaseToolHandler {
       throw error;
     }
     
+    // Handle undefined or null results from Unity
+    if (result.result === undefined || result.result === null) {
+      return {
+        status: 'success',
+        sceneName: params.sceneName,
+        path: params.path || 'Assets/Scenes/',
+        loadScene: params.loadScene !== false,
+        addToBuildSettings: params.addToBuildSettings === true,
+        message: 'Scene creation completed but Unity returned no details'
+      };
+    }
+    
     return result.result;
   }
 }
