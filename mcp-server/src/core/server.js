@@ -246,11 +246,9 @@ export async function createServer(customConfig = config) {
   };
 }
 
-// Start the server if this is the main module
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
-    console.error('Fatal error:', error);
-    console.error('Stack trace:', error.stack);
-    process.exit(1);
-  });
-}
+// Start the server
+main().catch((error) => {
+  console.error('Fatal error:', error);
+  console.error('Stack trace:', error.stack);
+  process.exit(1);
+});
