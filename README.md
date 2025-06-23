@@ -1,6 +1,6 @@
 # Unity Editor MCP
 
-[![codecov](https://codecov.io/gh/ozankasikci/unity-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/ozankasikci/unity-mcp)
+[![codecov](https://codecov.io/gh/ozankasikci/unity-editor-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/ozankasikci/unity-mcp)
 
 Unity Editor MCP (Model Context Protocol) enables AI assistants like Claude and Cursor to interact directly with the Unity Editor, allowing for AI-assisted game development and automation.
 
