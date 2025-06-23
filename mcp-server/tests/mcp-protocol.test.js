@@ -19,7 +19,32 @@ describe('MCP Protocol Communication Tests', () => {
   after(async () => {
     await mockUnity.stop();
     if (mcpServer) {
-      mcpServer.kill();
+      // Close stdin first to signal the server to shutdown
+      mcpServer.stdin.end();
+      
+      // Give it a moment to shutdown gracefully
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Then kill the process
+      mcpServer.kill('SIGTERM');
+      
+      // Wait for process to actually exit
+      await new Promise((resolve) => {
+        if (mcpServer.exitCode !== null) {
+          resolve();
+          return;
+        }
+        
+        mcpServer.on('exit', resolve);
+        
+        // Force kill if it doesn't exit gracefully
+        setTimeout(() => {
+          if (mcpServer.exitCode === null) {
+            mcpServer.kill('SIGKILL');
+          }
+          resolve();
+        }, 1000);
+      });
     }
   });
 
@@ -57,11 +82,18 @@ describe('MCP Protocol Communication Tests', () => {
       });
       
       // Timeout after 5 seconds
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         console.error('Server stdout:', serverStdout);
         console.error('Server stderr:', serverStderr);
         reject(new Error('Server startup timeout'));
       }, 5000);
+      
+      // Clear timeout on resolve
+      const originalResolve = resolve;
+      resolve = () => {
+        clearTimeout(timeout);
+        originalResolve();
+      };
     });
   }
 
@@ -98,7 +130,13 @@ describe('MCP Protocol Communication Tests', () => {
       mcpServer.stdout.on('data', dataHandler);
 
       // Send request
-      mcpServer.stdin.write(JSON.stringify(request) + '\n');
+      try {
+        mcpServer.stdin.write(JSON.stringify(request) + '\n');
+      } catch (err) {
+        clearTimeout(timeout);
+        mcpServer.stdout.removeListener('data', dataHandler);
+        reject(new Error('Failed to send request: ' + err.message));
+      }
     });
   }
 
