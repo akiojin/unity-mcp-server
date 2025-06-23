@@ -83,4 +83,4 @@ coverage/
 # Build output
 dist/
 build/
-out/
+out/CLAUDE.md
