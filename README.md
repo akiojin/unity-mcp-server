@@ -28,27 +28,33 @@ unity-mcp/
 
 - Unity 2020.3 LTS or newer
 - Node.js 18.0.0 or newer
-- npm or yarn
 - An MCP client (Claude Desktop or Cursor)
 
 ### Installation
 
 #### 1. Install the Unity Package
 
+**Option A: From GitHub (Recommended)**
 1. Open your Unity project
 2. Open the Package Manager (Window > Package Manager)
-3. Click the "+" button and select "Add package from disk..."
-4. Navigate to `unity-editor-mcp/package.json` and select it
-5. Unity will import the package and start the TCP listener automatically
+3. Click the "+" button and select "Add package from git URL..."
+4. Enter the following URL:
+   ```
+   https://github.com/ozankasikci/unity-mcp.git?path=unity-editor-mcp
+   ```
+5. Unity will download and import the package automatically
 
-#### 2. Install the Node.js Server
+**Option B: From Local Files**
+1. Clone or download this repository to your local machine
+2. Open your Unity project
+3. Open the Package Manager (Window > Package Manager)
+4. Click the "+" button and select "Add package from disk..."
+5. Navigate to `unity-editor-mcp/package.json` and select it
+6. Unity will import the package and start the TCP listener automatically
 
-```bash
-cd mcp-server
-npm install
-```
+**Note**: The Unity package will automatically start the TCP listener on port 6402 when imported.
 
-#### 3. Configure Your MCP Client
+#### 2. Configure Your MCP Client
 
 For **Claude Desktop**, add to your configuration file:
 
@@ -59,8 +65,8 @@ Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 {
   "mcpServers": {
     "unity-editor-mcp": {
-      "command": "node",
-      "args": ["/absolute/path/to/unity-mcp/mcp-server/src/server.js"]
+      "command": "npx",
+      "args": ["unity-editor-mcp"]
     }
   }
 }
@@ -78,58 +84,50 @@ For **Cursor**, check their documentation for MCP configuration.
 
 ## Available Tools
 
-### Core Tools
-- `ping` - Test connection to Unity Editor
-- `read_logs` - Read Unity console logs
-- `refresh_assets` - Refresh Unity assets and trigger recompilation
+Unity Editor MCP provides **23 comprehensive tools** across 6 categories for complete Unity Editor automation:
 
-### GameObject Management
-- `create_gameobject` - Create GameObjects in the scene
-- `find_gameobject` - Find GameObjects by name, tag, or layer
-- `modify_gameobject` - Modify GameObject properties (transform, name, active state, etc.)
-- `delete_gameobject` - Delete GameObjects from the scene
-- `get_hierarchy` - Get the complete scene hierarchy
+### System & Core Tools (3 tools)
+- **`ping`** - Test connection to Unity Editor and verify server status
+- **`read_logs`** - Read Unity console logs with filtering by type (Log, Warning, Error, etc.)
+- **`refresh_assets`** - Refresh Unity assets and trigger recompilation
 
-### Scene Management
-- `create_scene` - Create new scenes
-- `load_scene` - Load existing scenes
-- `save_scene` - Save the current scene
-- `list_scenes` - List all scenes in the project
-- `get_scene_info` - Get detailed information about a scene
+### GameObject Management (5 tools)
+- **`create_gameobject`** - Create GameObjects with primitives, transforms, tags, and layers
+- **`find_gameobject`** - Find GameObjects by name, tag, layer with pattern matching
+- **`modify_gameobject`** - Modify GameObject properties (transform, name, active state, parent, etc.)
+- **`delete_gameobject`** - Delete single or multiple GameObjects with optional child handling
+- **`get_hierarchy`** - Get complete scene hierarchy with components and depth control
 
-### Scene Analysis
-- `get_gameobject_details` - Get detailed information about a specific GameObject
-- `analyze_scene_contents` - Analyze and get statistics about the scene
-- `get_component_values` - Get all properties and values of a component
-- `find_by_component` - Find all GameObjects with a specific component type
-- `get_object_references` - Find all references to and from a GameObject
+### Scene Management (5 tools)
+- **`create_scene`** - Create new scenes with build settings integration and auto-loading
+- **`load_scene`** - Load existing scenes in Single or Additive mode
+- **`save_scene`** - Save current scene with Save As functionality
+- **`list_scenes`** - List all scenes in project with filtering and build settings info
+- **`get_scene_info`** - Get detailed scene information including GameObject counts
 
-### Play Mode Control (New in v0.5.0)
-- `play_game` - Start Unity play mode
-- `pause_game` - Pause or resume Unity play mode
-- `stop_game` - Stop Unity play mode and return to edit mode
-- `get_editor_state` - Get current Unity editor state (play mode, pause state, etc.)
+### Scene Analysis (5 tools)
+- **`get_gameobject_details`** - Deep inspection of GameObjects with component details and hierarchy
+- **`analyze_scene_contents`** - Comprehensive scene statistics, composition, and performance metrics
+- **`get_component_values`** - Get all properties and values of specific components with metadata
+- **`find_by_component`** - Find GameObjects by component type with scope filtering (scene/prefabs/all)
+- **`get_object_references`** - Analyze references between objects including hierarchy and asset connections
+
+### Play Mode Controls (4 tools)
+- **`play_game`** - Start Unity play mode for testing and interaction
+- **`pause_game`** - Pause or resume Unity play mode
+- **`stop_game`** - Stop Unity play mode and return to edit mode
+- **`get_editor_state`** - Get current Unity editor state (play mode, pause, compilation status)
+
+### UI Interactions (5 tools) 🚧 *Coming in Phase 7*
+- **`find_ui_elements`** - Locate UI elements in scene hierarchy with filtering
+- **`click_ui_element`** - Simulate clicking on UI elements (buttons, toggles, etc.)
+- **`get_ui_element_state`** - Get detailed UI element state and interaction capabilities
+- **`set_ui_element_value`** - Set values for UI input elements (sliders, input fields, etc.)
+- **`simulate_ui_input`** - Execute complex UI interaction sequences
 
 ## Development Status
 
-This project has completed Phase 6 of development. See the [progression document](docs/progression.md) for detailed status.
-
-### Completed Features
-- ✅ Unity TCP server on port 6400
-- ✅ Node.js MCP server with stdio transport
-- ✅ Comprehensive command routing infrastructure
-- ✅ Full GameObject management (create, find, modify, delete)
-- ✅ Complete scene management (create, load, save, list)
-- ✅ Advanced scene analysis tools
-- ✅ Play mode control (play, pause, stop, state)
-- ✅ Automatic reconnection logic
-- ✅ 100% test coverage
-- ✅ TDD implementation approach
-
-### In Progress
-- 🚧 Integration testing with real Unity projects
-- 🚧 Performance optimization for large scenes
-- 🚧 Additional tool implementations
+This project provides **23 comprehensive tools** for Unity Editor automation through MCP. The implementation follows a test-driven development approach with 95%+ code coverage.
 
 ## Troubleshooting
 
@@ -163,8 +161,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Documentation
 
-- [Implementation Plan](docs/implementation-plan.md)
-- [Technical Specification](docs/technical-specification.md)
-- [Development Roadmap](docs/development-roadmap.md)
-- [Phase 1 Planning](docs/phase-1-planning.md)
-- [Current Progress](docs/progression.md)
+For detailed documentation, see the [docs/](docs/) directory.

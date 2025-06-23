@@ -1,5 +1,5 @@
 {
-  "name": "com.unity.editor-mcp",
+  "name": "com.kasikci.unity-editor-mcp",
   "displayName": "Unity Editor MCP",
   "version": "0.5.0",
   "unity": "2020.3",
@@ -13,16 +13,16 @@
     "cursor"
   ],
   "author": {
-    "name": "Unity Editor MCP Team",
-    "email": "support@unity-editor-mcp.com",
-    "url": "https://github.com/unity-editor-mcp"
+    "name": "Ozan Kasikci",
+    "email": "ozan@kasikci.io",
+    "url": "https://github.com/ozankasikci"
   },
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/unity-editor-mcp/unity-editor-mcp.git"
+    "url": "https://github.com/ozankasikci/unity-editor-mcp.git"
   },
   "license": "MIT",
   "hideInEditor": false

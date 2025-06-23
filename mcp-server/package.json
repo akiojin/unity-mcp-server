@@ -1,23 +1,32 @@
 {
-  "name": "unity-editor-mcp-server",
-  "version": "0.2.0",
-  "description": "MCP server for Unity Editor integration",
+  "name": "unity-editor-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Unity Editor integration - enables AI assistants to control Unity Editor",
   "type": "module",
   "main": "src/core/server.js",
+  "bin": {
+    "unity-editor-mcp": "src/core/server.js"
+  },
   "scripts": {
     "start": "node src/core/server.js",
     "dev": "node --watch src/core/server.js",
     "test": "node --experimental-test-coverage --test tests/**/*.test.js",
-    "test:watch": "node --watch --test"
+    "test:watch": "node --watch --test",
+    "prepublishOnly": "echo 'Skipping tests for now'"
   },
   "keywords": [
     "mcp",
     "unity",
-    "editor",
+    "unity-editor",
+    "model-context-protocol",
     "ai",
-    "automation"
+    "automation",
+    "claude",
+    "cursor",
+    "gamedev",
+    "unity3d"
   ],
-  "author": "Unity Editor MCP Team",
+  "author": "Ozan Kasıkçı <ozan@kasikci.io>",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0"
@@ -28,6 +37,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/unity-editor-mcp/unity-editor-mcp.git"
+    "url": "https://github.com/ozankasikci/unity-mcp.git",
+    "directory": "mcp-server"
+  },
+  "homepage": "https://github.com/ozankasikci/unity-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/ozankasikci/unity-mcp/issues"
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "preferGlobal": false,
+  "publishConfig": {
+    "access": "public"
   }
 }
