@@ -34,12 +34,13 @@ In Unity:
 
 ✨ Unity will automatically start the MCP server on port 6400
 
-#### Step 2: Configure Claude Desktop
+#### Step 2: Configure Your MCP Client
+
+**For Claude Desktop:**
 
 Add to your config file:
-
-**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`  
-**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`  
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
@@ -52,9 +53,13 @@ Add to your config file:
 }
 ```
 
+**For Cursor:**
+
+Add the same configuration to Cursor's MCP settings
+
 #### Step 3: Verify Connection
 
-1. **Restart Claude Desktop**
+1. **Restart your MCP client** (Claude Desktop or Cursor)
 2. Check Unity Console for: `[Unity Editor MCP] Client connected`
 3. You're ready to go! 🎮
 
