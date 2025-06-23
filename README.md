@@ -1,5 +1,7 @@
 # Unity Editor MCP
 
+![Test Coverage](https://img.shields.io/badge/coverage-pending-yellow)
+
 Unity Editor MCP (Model Context Protocol) enables AI assistants like Claude and Cursor to interact directly with the Unity Editor, allowing for AI-assisted game development and automation.
 
 ## 🚀 Key Features
@@ -100,7 +102,7 @@ Unity Editor MCP provides **23 comprehensive tools** across 6 categories for com
 - **`stop_game`** - Stop Unity play mode and return to edit mode
 - **`get_editor_state`** - Get current Unity editor state (play mode, pause, compilation status)
 
-### UI Interactions (5 tools) 🚧 *Coming in Phase 7*
+### UI Interactions (5 tools)
 - **`find_ui_elements`** - Locate UI elements in scene hierarchy with filtering
 - **`click_ui_element`** - Simulate clicking on UI elements (buttons, toggles, etc.)
 - **`get_ui_element_state`** - Get detailed UI element state and interaction capabilities
