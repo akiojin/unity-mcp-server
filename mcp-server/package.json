@@ -10,8 +10,8 @@
   "scripts": {
     "start": "node src/core/server.js",
     "dev": "node --watch src/core/server.js",
-    "test": "node --test tests/**/*.test.js",
-    "test:coverage": "c8 --reporter=lcov --reporter=text node --test tests/**/*.test.js",
+    "test": "node --test tests/",
+    "test:coverage": "c8 --reporter=lcov --reporter=text node --test tests/",
     "test:watch": "node --watch --test",
     "prepublishOnly": "echo 'Skipping tests for now'",
     "postinstall": "chmod +x bin/unity-editor-mcp || true"
