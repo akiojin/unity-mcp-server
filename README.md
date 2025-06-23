@@ -2,25 +2,17 @@
 
 Unity Editor MCP (Model Context Protocol) enables AI assistants like Claude and Cursor to interact directly with the Unity Editor, allowing for AI-assisted game development and automation.
 
-## Project Structure
+## 🚀 Key Features
 
-```
-unity-mcp/
-├── unity-editor-mcp/      # Unity package
-│   ├── package.json
-│   └── Editor/
-│       ├── Core/          # Main TCP server and command processing
-│       ├── Models/        # Data models (Command, McpStatus)
-│       └── Helpers/       # Utility classes (Response)
-├── mcp-server/            # Node.js MCP server
-│   ├── package.json
-│   └── src/
-│       ├── server.js      # Main server entry point
-│       ├── unityConnection.js  # TCP client for Unity
-│       ├── config.js      # Configuration
-│       └── tools/         # MCP tool implementations
-└── docs/                  # Documentation
-```
+- **🎮 GameObject Management**: Create primitives, modify transforms, manage hierarchy, and delete objects
+- **🔍 Smart Search**: Find GameObjects by name, tag, layer, or component type with exact/partial matching
+- **📊 Scene Analysis**: Analyze scene composition, component statistics, and prefab connections
+- **🎯 Component Inspection**: Get component values, find objects by component, trace references between objects
+- **🎬 Scene Control**: Create, load, save scenes, manage build settings, and work with multiple scenes
+- **🏃 Play Mode Testing**: Start, pause, and stop play mode, check editor state and compilation status
+- **📝 Console Integration**: Read Unity console logs filtered by type (Log, Warning, Error, Exception)
+- **🔄 Asset Management**: Refresh assets and trigger recompilation on demand
+
 
 ## Quick Start
 
