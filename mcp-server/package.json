@@ -1,18 +1,19 @@
 {
   "name": "unity-editor-mcp",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "MCP server for Unity Editor integration - enables AI assistants to control Unity Editor",
   "type": "module",
   "main": "src/core/server.js",
   "bin": {
-    "unity-editor-mcp": "src/core/server.js"
+    "unity-editor-mcp": "./bin/unity-editor-mcp"
   },
   "scripts": {
     "start": "node src/core/server.js",
     "dev": "node --watch src/core/server.js",
     "test": "node --experimental-test-coverage --test tests/**/*.test.js",
     "test:watch": "node --watch --test",
-    "prepublishOnly": "echo 'Skipping tests for now'"
+    "prepublishOnly": "echo 'Skipping tests for now'",
+    "postinstall": "chmod +x bin/unity-editor-mcp || true"
   },
   "keywords": [
     "mcp",
@@ -46,6 +47,7 @@
   },
   "files": [
     "src/",
+    "bin/",
     "README.md",
     "LICENSE"
   ],
