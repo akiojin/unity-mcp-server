@@ -16,25 +16,36 @@ Unity Editor MCP (Model Context Protocol) enables AI assistants like Claude and 
 
 ## 🚀 Quick Start
 
+<br/>
+
 ### Prerequisites
 
 - ✅ Unity 2020.3 LTS or newer
-- ✅ Node.js 18.0.0 or newer
+- ✅ Node.js 18.0.0 or newer  
 - ✅ Claude Desktop or Cursor
+
+<br/>
 
 ### Installation
 
-#### Step 1: Install Unity Package
+<br/>
+
+#### 📦 Step 1: Install Unity Package
 
 In Unity:
+
 1. Open **Window → Package Manager**
 2. Click **"+"** → **"Add package from git URL..."**
 3. Paste: `https://github.com/ozankasikci/unity-editor-mcp.git?path=unity-editor-mcp`
 4. Click **Add**
 
-✨ Unity will automatically start the MCP server on port 6400
+> ✨ Unity will automatically start the MCP server on port 6400
 
-#### Step 2: Configure Your MCP Client
+<br/>
+
+#### ⚙️ Step 2: Configure Your MCP Client
+
+<br/>
 
 **For Claude Desktop:**
 
@@ -53,11 +64,15 @@ Add to your config file:
 }
 ```
 
+<br/>
+
 **For Cursor:**
 
 Add the same configuration to Cursor's MCP settings
 
-#### Step 3: Verify Connection
+<br/>
+
+#### ✅ Step 3: Verify Connection
 
 1. **Restart your MCP client** (Claude Desktop or Cursor)
 2. Check Unity Console for: `[Unity Editor MCP] Client connected`
