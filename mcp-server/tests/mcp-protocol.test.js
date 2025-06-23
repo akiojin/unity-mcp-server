@@ -69,27 +69,33 @@ describe('MCP Protocol Communication Tests', () => {
     return new Promise((resolve, reject) => {
       let response = '';
       const timeout = setTimeout(() => {
+        mcpServer.stdout.removeListener('data', dataHandler);
         reject(new Error('Response timeout'));
       }, 10000);
 
-      mcpServer.stdout.on('data', (data) => {
+      const dataHandler = (data) => {
         response += data.toString();
         
         // Try to parse each line as JSON
         const lines = response.split('\n');
         for (const line of lines) {
-          if (line.trim() && line.includes('"id":' + request.id)) {
+          if (line.trim()) {
             try {
               const json = JSON.parse(line);
-              clearTimeout(timeout);
-              resolve(json);
-              return;
+              if (json.id === request.id) {
+                clearTimeout(timeout);
+                mcpServer.stdout.removeListener('data', dataHandler);
+                resolve(json);
+                return;
+              }
             } catch (e) {
               // Not complete JSON yet
             }
           }
         }
-      });
+      };
+
+      mcpServer.stdout.on('data', dataHandler);
 
       // Send request
       mcpServer.stdin.write(JSON.stringify(request) + '\n');
@@ -145,7 +151,7 @@ describe('MCP Protocol Communication Tests', () => {
     it('should list resources (empty)', async () => {
       const listRequest = {
         jsonrpc: '2.0',
-        id: 2.1,
+        id: 21,
         method: 'resources/list',
         params: {}
       };
@@ -160,7 +166,7 @@ describe('MCP Protocol Communication Tests', () => {
     it('should list prompts (empty)', async () => {
       const listRequest = {
         jsonrpc: '2.0',
-        id: 2.2,
+        id: 22,
         method: 'prompts/list',
         params: {}
       };
@@ -219,6 +225,7 @@ describe('MCP Protocol Communication Tests', () => {
     it('should handle Unity timeout gracefully', async function() {
       // Skip this test as it takes 30 seconds
       this.skip('Long timeout test - skipping for CI');
+      return;
       
       // Configure Unity to timeout
       mockUnity.setTimeout(true);

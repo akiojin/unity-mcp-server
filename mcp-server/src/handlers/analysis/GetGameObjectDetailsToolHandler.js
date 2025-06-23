@@ -1,4 +1,4 @@
-import { BaseToolHandler } from '../BaseToolHandler.js';
+import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { getGameObjectDetailsToolDefinition, getGameObjectDetailsHandler } from '../../tools/analysis/getGameObjectDetails.js';
 
 /**

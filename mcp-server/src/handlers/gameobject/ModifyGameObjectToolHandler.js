@@ -1,4 +1,4 @@
-import { BaseToolHandler } from '../BaseToolHandler.js';
+import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { validateVector3, validateLayer, validateGameObjectPath } from '../../utils/validators.js';
 
 /**

@@ -1,7 +1,7 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { GetHierarchyToolHandler } from './GetHierarchyToolHandler.js';
-import { createMockUnityConnection } from './test-helpers.js';
+import { createMockUnityConnection } from '../test-utils/test-helpers.js';
 
 describe('GetHierarchyToolHandler', () => {
   let handler;

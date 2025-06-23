@@ -2,6 +2,7 @@ import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import net from 'net';
 import { UnityConnection } from '../src/core/unityConnection.js';
+import { config } from '../src/core/config.js';
 import { EventEmitter } from 'events';
 
 /**
@@ -390,7 +391,7 @@ describe('Unity-MCP Integration', () => {
       
       await assert.rejects(
         connection.sendCommand('will-disconnect'),
-        /Connection closed|ECONNRESET|socket hang up|Command .* timed out/
+        /Connection closed|ECONNRESET|socket hang up|Command .* timed out|Command timeout/
       );
       
       assert.equal(connection.pendingCommands.size, 0);

@@ -3,7 +3,7 @@
  */
 
 // Export all handlers
-export { BaseToolHandler } from './BaseToolHandler.js';
+export { BaseToolHandler } from './base/BaseToolHandler.js';
 
 // System handlers
 export { PingToolHandler } from './system/PingToolHandler.js';

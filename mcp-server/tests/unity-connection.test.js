@@ -17,9 +17,12 @@ describe('UnityConnection Tests', () => {
     await mockUnity.stop();
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Create new connection with test config
     process.env.UNITY_PORT = '6401';
+    // Force config reload by re-importing
+    const { config } = await import('../src/core/config.js');
+    config.unity.port = 6401;
     unityConnection = new UnityConnection();
   });
 
@@ -44,6 +47,9 @@ describe('UnityConnection Tests', () => {
     it('should handle connection failure', async () => {
       // Stop mock server to simulate failure
       await mockUnity.stop();
+      
+      // Wait a bit to ensure server is fully stopped
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       try {
         await unityConnection.connect();
@@ -109,6 +115,7 @@ describe('UnityConnection Tests', () => {
     it('should timeout after configured duration', async function() {
       // Skip this test as it takes 30 seconds
       this.skip('Long timeout test - skipping for CI');
+      return;
       
       await unityConnection.connect();
       

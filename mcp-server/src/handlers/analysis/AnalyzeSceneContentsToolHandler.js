@@ -1,4 +1,4 @@
-import { BaseToolHandler } from '../BaseToolHandler.js';
+import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { analyzeSceneContentsToolDefinition, analyzeSceneContentsHandler } from '../../tools/analysis/analyzeSceneContents.js';
 
 /**

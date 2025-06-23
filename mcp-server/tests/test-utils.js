@@ -56,21 +56,32 @@ export class MockUnityServer extends EventEmitter {
               }
 
               // Get predefined response or create default
-              const response = this.responses.get(request.type) || {
-                id: request.id,
-                status: 'success',
-                result: {
-                  id: -1000 - parseInt(request.id),
-                  name: request.params.name || 'TestObject',
-                  path: `/${request.params.name || 'TestObject'}`,
-                  position: request.params.position || { x: 0, y: 0, z: 0 },
-                  rotation: request.params.rotation || { x: 0, y: 0, z: 0 },
-                  scale: request.params.scale || { x: 1, y: 1, z: 1 },
-                  tag: request.params.tag || 'Untagged',
-                  layer: request.params.layer || 0,
-                  isActive: true
+              let response = this.responses.get(request.type);
+              if (!response) {
+                if (request.type === 'test_error') {
+                  response = {
+                    id: request.id,
+                    status: 'error',
+                    error: 'Test error message'
+                  };
+                } else {
+                  response = {
+                    id: request.id,
+                    status: 'success',
+                    result: {
+                      id: -1000 - parseInt(request.id),
+                      name: request.params.name || 'TestObject',
+                      path: `/${request.params.name || 'TestObject'}`,
+                      position: request.params.position || { x: 0, y: 0, z: 0 },
+                      rotation: request.params.rotation || { x: 0, y: 0, z: 0 },
+                      scale: request.params.scale || { x: 1, y: 1, z: 1 },
+                      tag: request.params.tag || 'Untagged',
+                      layer: request.params.layer || 0,
+                      isActive: true
+                    }
+                  };
                 }
-              };
+              }
 
               // Send framed response
               const responseStr = JSON.stringify(response);

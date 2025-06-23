@@ -1,4 +1,4 @@
-import { BaseToolHandler } from '../BaseToolHandler.js';
+import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { getObjectReferencesToolDefinition, getObjectReferencesHandler } from '../../tools/analysis/getObjectReferences.js';
 
 /**
