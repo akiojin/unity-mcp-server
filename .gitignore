@@ -11,8 +11,8 @@
 *.mdb.meta
 
 # Unity meta files
-*.meta
-!*.*.meta
+# Don't ignore meta files in the Unity package
+!unity-editor-mcp/**/*.meta
 
 # Visual Studio cache directory
 .vs/
