@@ -14,65 +14,49 @@ Unity Editor MCP (Model Context Protocol) enables AI assistants like Claude and 
 - **🔄 Asset Management**: Refresh assets and trigger recompilation on demand
 
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Unity 2020.3 LTS or newer
-- Node.js 18.0.0 or newer
-- An MCP client (Claude Desktop or Cursor)
+- ✅ Unity 2020.3 LTS or newer
+- ✅ Node.js 18.0.0 or newer
+- ✅ Claude Desktop or Cursor
 
 ### Installation
 
-#### 1. Install the Unity Package
+#### Step 1: Install Unity Package
 
-**Option A: From GitHub (Recommended)**
-1. Open your Unity project
-2. Open the Package Manager (Window > Package Manager)
-3. Click the "+" button and select "Add package from git URL..."
-4. Enter the following URL:
-   ```
-   https://github.com/ozankasikci/unity-editor-mcp.git?path=unity-editor-mcp
-   ```
-5. Unity will download and import the package automatically
+In Unity:
+1. Open **Window → Package Manager**
+2. Click **"+"** → **"Add package from git URL..."**
+3. Paste: `https://github.com/ozankasikci/unity-editor-mcp.git?path=unity-editor-mcp`
+4. Click **Add**
 
-**Option B: From Local Files**
-1. Clone or download this repository to your local machine
-2. Open your Unity project
-3. Open the Package Manager (Window > Package Manager)
-4. Click the "+" button and select "Add package from disk..."
-5. Navigate to `unity-editor-mcp/package.json` and select it
-6. Unity will import the package and start the TCP listener automatically
+✨ Unity will automatically start the MCP server on port 6400
 
-**Note**: The Unity package will automatically start the TCP listener on port 6402 when imported.
+#### Step 2: Configure Claude Desktop
 
-#### 2. Configure Your MCP Client
+Add to your config file:
 
-For **Claude Desktop**, add to your configuration file:
-
-macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`  
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "unity-editor-mcp": {
       "command": "npx",
-      "args": ["unity-editor-mcp"]
+      "args": ["unity-editor-mcp@latest"]
     }
   }
 }
 ```
 
-For **Cursor**, check their documentation for MCP configuration.
+#### Step 3: Verify Connection
 
-### Testing the Connection
-
-1. Make sure Unity Editor is running with the package installed
-2. Start your MCP client (Claude or Cursor)
-3. The Unity console should show: `[Unity Editor MCP] Client connected`
-4. In your MCP client, you should see the `ping` tool available
-5. Try running the ping command to verify the connection
+1. **Restart Claude Desktop**
+2. Check Unity Console for: `[Unity Editor MCP] Client connected`
+3. You're ready to go! 🎮
 
 ## Available Tools
 
