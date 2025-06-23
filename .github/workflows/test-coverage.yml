@@ -30,7 +30,6 @@ jobs:
     - name: Run tests with coverage
       run: npm run test:coverage
       timeout-minutes: 5
-      continue-on-error: true
       env:
         NODE_ENV: test
         DISABLE_AUTO_RECONNECT: true
