@@ -1,0 +1,29 @@
+{
+  "include": [
+    "src/**/*.js"
+  ],
+  "exclude": [
+    "src/**/*.test.js",
+    "tests/**/*",
+    "node_modules/**/*",
+    "coverage/**/*"
+  ],
+  "reporter": [
+    "text",
+    "html",
+    "lcov"
+  ],
+  "reportDir": "coverage",
+  "tempDirectory": ".c8_temp",
+  "checkCoverage": true,
+  "branches": 80,
+  "functions": 80,
+  "lines": 80,
+  "statements": 80,
+  "watermarks": {
+    "lines": [50, 80],
+    "functions": [50, 80],
+    "branches": [50, 80],
+    "statements": [50, 80]
+  }
+}

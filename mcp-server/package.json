@@ -10,10 +10,18 @@
   "scripts": {
     "start": "node src/core/server.js",
     "dev": "node --watch src/core/server.js",
-    "test": "node --test tests/handler-execution.test.js tests/integration.test.js tests/mcp-protocol.test.js tests/unity-connection.test.js",
-    "test:coverage": "c8 --reporter=lcov --reporter=text node --test tests/handler-execution.test.js tests/integration.test.js tests/mcp-protocol.test.js tests/unity-connection.test.js",
-    "test:watch": "node --watch --test",
-    "prepublishOnly": "echo 'Skipping tests for now'",
+    "test": "node --test tests/unit/**/*.test.js tests/integration/*.test.js",
+    "test:unit": "node --test tests/unit/**/*.test.js",
+    "test:integration": "node --test tests/integration/*.test.js",
+    "test:e2e": "node --test tests/e2e/*.test.js",
+    "test:coverage": "c8 --reporter=lcov --reporter=text --reporter=html node --test tests/unit/**/*.test.js tests/integration/*.test.js",
+    "test:coverage:full": "c8 --reporter=lcov --reporter=text --reporter=html node --test tests/**/*.test.js",
+    "test:watch": "node --watch --test tests/unit/**/*.test.js",
+    "test:watch:all": "node --watch --test tests/**/*.test.js",
+    "test:performance": "node --test tests/performance/*.test.js",
+    "test:ci": "c8 --reporter=lcov node --test tests/unit/**/*.test.js tests/integration/*.test.js",
+    "test:verbose": "VERBOSE_TEST=true node --test tests/**/*.test.js",
+    "prepublishOnly": "npm run test:ci",
     "postinstall": "chmod +x bin/unity-editor-mcp || true"
   },
   "keywords": [
@@ -56,6 +64,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "c8": "^10.1.3"
+    "c8": "^10.1.3",
+    "nodemon": "^3.1.7"
   }
 }
