@@ -101,7 +101,7 @@ export class UnityConnection extends EventEmitter {
         this.emit('disconnected');
         
         // Attempt reconnection only if not intentionally disconnecting
-        if (!this.isDisconnecting) {
+        if (!this.isDisconnecting && process.env.DISABLE_AUTO_RECONNECT !== 'true') {
           this.scheduleReconnect();
         }
       });

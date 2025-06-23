@@ -14,6 +14,15 @@ describe('Unity-MCP Integration', () => {
   let serverPort;
   let connection;
   let clientSocket;
+  
+  // Disable auto-reconnect for tests
+  before(() => {
+    process.env.DISABLE_AUTO_RECONNECT = 'true';
+  });
+  
+  after(() => {
+    delete process.env.DISABLE_AUTO_RECONNECT;
+  });
 
   // Helper to create a framed message
   function createFramedMessage(obj) {
@@ -94,9 +103,17 @@ describe('Unity-MCP Integration', () => {
   });
 
   afterEach(async () => {
-    // Clean up connection
-    if (connection && connection.isConnected()) {
-      connection.disconnect();
+    // Clean up connection and any reconnect timers
+    if (connection) {
+      // Clear reconnect timer if exists
+      if (connection.reconnectTimer) {
+        clearTimeout(connection.reconnectTimer);
+        connection.reconnectTimer = null;
+      }
+      
+      if (connection.isConnected()) {
+        connection.disconnect();
+      }
     }
 
     // Close client socket if exists
@@ -147,6 +164,15 @@ describe('Unity-MCP Integration', () => {
           /ECONNRESET|Connection closed|Connection timeout/
         );
       } finally {
+        // Clean up the reject connection's reconnect timer
+        if (rejectConnection.reconnectTimer) {
+          clearTimeout(rejectConnection.reconnectTimer);
+          rejectConnection.reconnectTimer = null;
+        }
+        if (rejectConnection.isConnected()) {
+          rejectConnection.disconnect();
+        }
+        
         config.unity.port = originalPort;
         rejectServer.close();
       }

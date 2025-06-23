@@ -11,6 +11,9 @@ describe('Handler Execution Tests', () => {
   let originalConfig;
 
   before(async () => {
+    // Disable auto-reconnect for tests
+    process.env.DISABLE_AUTO_RECONNECT = 'true';
+    
     // Import config module dynamically to capture the original config
     const configModule = await import('../src/core/config.js');
     originalConfig = { ...configModule.config.unity };
@@ -28,6 +31,7 @@ describe('Handler Execution Tests', () => {
       unityConnection.disconnect();
     }
     await mockUnity.stop();
+    delete process.env.DISABLE_AUTO_RECONNECT;
     
     // Restore original config
     const configModule = await import('../src/core/config.js');
@@ -123,6 +127,12 @@ describe('Handler Execution Tests', () => {
                 `Unexpected error: ${result.error}`);
       assert.strictEqual(result.code, 'TOOL_ERROR');
       
+      // Clean up error connection
+      if (errorConnection.reconnectTimer) {
+        clearTimeout(errorConnection.reconnectTimer);
+        errorConnection.reconnectTimer = null;
+      }
+      
       // Restart for other tests
       await mockUnity.start();
     });
@@ -165,6 +175,12 @@ describe('Handler Execution Tests', () => {
       
       assert.strictEqual(result.status, 'error');
       assert.ok(result.details.stack); // Stack trace included in dev mode
+      
+      // Clean up error connection
+      if (errorConnection.reconnectTimer) {
+        clearTimeout(errorConnection.reconnectTimer);
+        errorConnection.reconnectTimer = null;
+      }
       
       delete process.env.NODE_ENV;
       await mockUnity.start();

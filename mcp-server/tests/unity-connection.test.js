@@ -8,6 +8,8 @@ describe('UnityConnection Tests', () => {
   let unityConnection;
 
   before(async () => {
+    // Disable auto-reconnect for tests
+    process.env.DISABLE_AUTO_RECONNECT = 'true';
     // Use different port to avoid conflicts
     mockUnity = new MockUnityServer(6401);
     await mockUnity.start();
@@ -15,6 +17,7 @@ describe('UnityConnection Tests', () => {
 
   after(async () => {
     await mockUnity.stop();
+    delete process.env.DISABLE_AUTO_RECONNECT;
   });
 
   beforeEach(async () => {
@@ -27,6 +30,11 @@ describe('UnityConnection Tests', () => {
   });
 
   afterEach(() => {
+    // Clear any pending reconnect timers
+    if (unityConnection.reconnectTimer) {
+      clearTimeout(unityConnection.reconnectTimer);
+      unityConnection.reconnectTimer = null;
+    }
     unityConnection.disconnect();
     delete process.env.UNITY_PORT;
   });
