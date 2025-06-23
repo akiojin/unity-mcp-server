@@ -1,6 +1,6 @@
 {
   "name": "unity-editor-mcp",
-  "version": "1.0.5",
+  "version": "1.0.8",
   "description": "MCP server for Unity Editor integration - enables AI assistants to control Unity Editor",
   "type": "module",
   "main": "src/core/server.js",
@@ -32,7 +32,6 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=18.0.0"
   },
@@ -56,3 +55,4 @@
     "access": "public"
   }
 }
+
