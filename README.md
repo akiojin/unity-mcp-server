@@ -109,10 +109,6 @@ Unity Editor MCP provides **23 comprehensive tools** across 6 categories for com
 - **`set_ui_element_value`** - Set values for UI input elements (sliders, input fields, etc.)
 - **`simulate_ui_input`** - Execute complex UI interaction sequences
 
-## Development Status
-
-This project provides **23 comprehensive tools** for Unity Editor automation through MCP. The implementation follows a test-driven development approach with 95%+ code coverage.
-
 ## Troubleshooting
 
 ### Unity TCP Listener Issues
@@ -142,7 +138,3 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
-
-## Documentation
-
-For detailed documentation, see the [docs/](docs/) directory.
