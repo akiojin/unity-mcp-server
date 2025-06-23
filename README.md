@@ -40,7 +40,7 @@ unity-mcp/
 3. Click the "+" button and select "Add package from git URL..."
 4. Enter the following URL:
    ```
-   https://github.com/ozankasikci/unity-mcp.git?path=unity-editor-mcp
+   https://github.com/ozankasikci/unity-editor-mcp.git?path=unity-editor-mcp
    ```
 5. Unity will download and import the package automatically
 
