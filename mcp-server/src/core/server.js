@@ -33,7 +33,7 @@ const server = new Server(
 );
 
 // Register MCP protocol handlers
-logger.info('Registering tools...');
+// Note: Do not log here as it breaks MCP protocol initialization
 
 // Handle tool listing
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -153,13 +153,13 @@ unityConnection.on('error', (error) => {
 // Initialize server
 async function main() {
   try {
-    logger.info('Starting Unity Editor MCP Server...');
-    
-    // Create transport
+    // Create transport - no logging before connection
     const transport = new StdioServerTransport();
     
     // Connect to transport
     await server.connect(transport);
+    
+    // Now safe to log after connection established
     logger.info('MCP server started successfully');
     
     // Attempt to connect to Unity
