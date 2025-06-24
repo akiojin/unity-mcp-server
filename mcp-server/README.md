@@ -4,10 +4,12 @@ MCP (Model Context Protocol) server for Unity Editor integration. Enables AI ass
 
 ## Features
 
-- **23 comprehensive tools** for Unity Editor automation
+- **33 comprehensive tools** for Unity Editor automation
 - **GameObject management** - Create, find, modify, delete GameObjects
 - **Scene management** - Create, load, save, list scenes  
 - **Scene analysis** - Deep inspection and component analysis
+- **UI interactions** - Find, click, and interact with UI elements
+- **Asset management** - Create and modify prefabs and materials
 - **Play mode controls** - Start, pause, stop Unity play mode
 - **System tools** - Console logs, asset refresh, connection testing
 
@@ -101,6 +103,20 @@ Add to your `claude_desktop_config.json`:
 - `pause_game` - Pause/resume play mode  
 - `stop_game` - Stop play mode
 - `get_editor_state` - Get editor state
+
+### UI Interactions (5 tools)
+- `find_ui_elements` - Find UI elements by type, tag, or name
+- `click_ui_element` - Click on UI buttons and interactive elements
+- `get_ui_element_state` - Get UI element properties and state
+- `set_ui_element_value` - Set values for input fields and sliders
+- `simulate_ui_input` - Simulate keyboard and mouse input on UI
+
+### Asset Management (5 tools)
+- `create_prefab` - Create prefabs from GameObjects
+- `modify_prefab` - Modify existing prefab properties
+- `instantiate_prefab` - Instantiate prefabs in the scene
+- `create_material` - Create new materials with shaders
+- `modify_material` - Modify material properties and textures
 
 ## Requirements
 
