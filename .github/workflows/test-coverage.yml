@@ -32,6 +32,7 @@ jobs:
       timeout-minutes: 5
       env:
         NODE_ENV: test
+        CI: true
         DISABLE_AUTO_RECONNECT: true
     
     - name: Upload coverage reports to Codecov

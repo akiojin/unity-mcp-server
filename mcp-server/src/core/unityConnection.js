@@ -29,6 +29,13 @@ export class UnityConnection extends EventEmitter {
         return;
       }
 
+      // Skip connection in CI/test environments
+      if (process.env.NODE_ENV === 'test' || process.env.CI === 'true') {
+        logger.info('Skipping Unity connection in test/CI environment');
+        reject(new Error('Unity connection disabled in test environment'));
+        return;
+      }
+
       logger.info(`Connecting to Unity at ${config.unity.host}:${config.unity.port}...`);
       
       this.socket = new net.Socket();
