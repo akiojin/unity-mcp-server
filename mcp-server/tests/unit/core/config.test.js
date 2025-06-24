@@ -44,12 +44,14 @@ describe('Config', () => {
     afterEach(() => {
       console.log = originalConsoleLog;
       console.error = originalConsoleError;
+      logOutput = [];
+      errorOutput = [];
     });
 
     it('should log info messages', () => {
       logger.info('Test info message');
-      assert.equal(logOutput.length, 1);
-      assert.match(logOutput[0], /\[Unity Editor MCP\] Test info message/);
+      assert.equal(errorOutput.length, 1);
+      assert.match(errorOutput[0], /\[Unity Editor MCP\] Test info message/);
     });
 
     it('should log error messages', () => {
@@ -68,6 +70,7 @@ describe('Config', () => {
     it('should not log debug messages when level is info', () => {
       logger.debug('Debug message');
       assert.equal(logOutput.length, 0);
+      assert.equal(errorOutput.length, 0);
     });
   });
 });

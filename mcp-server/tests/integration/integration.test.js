@@ -1,151 +1,66 @@
-import { describe, it, before, after } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import net from 'net';
+import { PingToolHandler } from '../../src/handlers/system/PingToolHandler.js';
+import { CreateGameObjectToolHandler } from '../../src/handlers/gameobject/CreateGameObjectToolHandler.js';
 import { UnityConnection } from '../../src/core/unityConnection.js';
 
 describe('Integration Tests', () => {
-  let mockUnityServer;
-  let serverPort;
-
-  before(async () => {
-    // Create a mock Unity TCP server
-    mockUnityServer = net.createServer((socket) => {
-      socket.on('data', (data) => {
-        const message = data.toString();
-        
-        // Handle ping
-        if (message === 'ping') {
-          const response = JSON.stringify({
-            status: 'success',
-            data: {
-              message: 'pong',
-              timestamp: new Date().toISOString()
-            }
-          });
-          socket.write(response);
-          return;
-        }
-
-        // Handle JSON commands
-        try {
-          const command = JSON.parse(message);
-          const response = {
-            id: command.id,
-            status: 'success',
-            data: {
-              echo: command.type,
-              params: command.params
-            }
-          };
-          socket.write(JSON.stringify(response));
-        } catch (e) {
-          const errorResponse = {
-            status: 'error',
-            error: 'Invalid command format'
-          };
-          socket.write(JSON.stringify(errorResponse));
-        }
-      });
-    });
-
-    // Start server on random port
-    await new Promise((resolve) => {
-      mockUnityServer.listen(0, 'localhost', () => {
-        serverPort = mockUnityServer.address().port;
-        resolve();
-      });
-    });
-  });
-
-  after(() => {
-    mockUnityServer.close();
-  });
-
-  describe('Unity Connection Integration', () => {
-    it('should connect to Unity server', async () => {
+  describe('Real Unity MCP Integration', () => {
+    it('should connect to Unity and ping successfully', async () => {
       const connection = new UnityConnection();
+      const handler = new PingToolHandler(connection);
       
-      // Override port for test
-      connection.socket = new net.Socket();
-      connection.socket.connect(serverPort, 'localhost');
-      
-      await new Promise((resolve, reject) => {
-        connection.socket.on('connect', () => {
-          connection.connected = true;
-          resolve();
-        });
-        connection.socket.on('error', reject);
-      });
-
-      assert.equal(connection.connected, true);
-      connection.disconnect();
+      try {
+        // This will connect to Unity if not already connected
+        const result = await handler.execute({ message: 'Integration test ping' });
+        
+        assert.equal(typeof result, 'object');
+        assert.equal(typeof result.message, 'string');
+        assert.equal(typeof result.echo, 'string');
+        assert.equal(typeof result.timestamp, 'string');
+        assert.equal(result.echo, 'Integration test ping');
+      } finally {
+        connection.disconnect();
+      }
     });
 
-    it('should send and receive ping', async () => {
+    it('should create a GameObject in Unity', async () => {
       const connection = new UnityConnection();
+      const handler = new CreateGameObjectToolHandler(connection);
       
-      // Connect to mock server
-      connection.socket = new net.Socket();
-      await new Promise((resolve, reject) => {
-        connection.socket.on('connect', () => {
-          connection.connected = true;
-          resolve();
-        });
-        connection.socket.on('error', reject);
-        connection.socket.connect(serverPort, 'localhost');
-      });
-
-      // Send ping
-      const pingPromise = new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Timeout')), 1000);
-        
-        connection.socket.on('data', (data) => {
-          clearTimeout(timeout);
-          try {
-            const response = JSON.parse(data.toString());
-            resolve(response);
-          } catch (e) {
-            reject(e);
-          }
+      try {
+        const result = await handler.execute({
+          name: 'IntegrationTestCube',
+          primitiveType: 'cube',
+          position: { x: 0, y: 0, z: 0 }
         });
         
-        connection.socket.write('ping');
-      });
-
-      const response = await pingPromise;
-      assert.equal(response.status, 'success');
-      assert.equal(response.data.message, 'pong');
-      assert(response.data.timestamp);
-
-      connection.disconnect();
+        assert.equal(typeof result, 'object');
+        assert.equal(typeof result.id, 'number');
+        assert.equal(result.name, 'IntegrationTestCube');
+        assert.equal(typeof result.path, 'string');
+        assert.deepEqual(result.position, { x: 0, y: 0, z: 0 });
+      } finally {
+        connection.disconnect();
+      }
     });
 
-    it('should send and receive commands', async () => {
+    it('should handle Unity errors gracefully', async () => {
       const connection = new UnityConnection();
+      const handler = new CreateGameObjectToolHandler(connection);
       
-      // Connect to mock server
-      connection.socket = new net.Socket();
-      await new Promise((resolve, reject) => {
-        connection.socket.on('connect', () => {
-          connection.connected = true;
-          resolve();
-        });
-        connection.socket.on('error', reject);
-        connection.socket.connect(serverPort, 'localhost');
-      });
-
-      // Set up data handler
-      connection.socket.on('data', (data) => {
-        connection.handleData(data);
-      });
-
-      // Send command
-      const result = await connection.sendCommand('test-command', { value: 42 });
-      
-      assert.equal(result.echo, 'test-command');
-      assert.deepEqual(result.params, { value: 42 });
-
-      connection.disconnect();
+      try {
+        // Try to create with invalid parameters that should cause Unity error
+        await assert.rejects(
+          async () => await handler.execute({
+            name: 'TestObject',
+            parentPath: '/NonExistentParent/Child/Deep/Nested/Path'
+          }),
+          /error|failed|not found/i
+        );
+      } finally {
+        connection.disconnect();
+      }
     });
   });
 });

@@ -129,13 +129,25 @@ describe('Server', () => {
       const handlers = createHandlers(unityConnection);
       
       assert.ok(handlers instanceof Map);
-      assert.equal(handlers.size, 18);
+      assert.equal(handlers.size, 32);
       
       // Check for some key handlers
       assert.ok(handlers.has('ping'));
       assert.ok(handlers.has('create_gameobject'));
       assert.ok(handlers.has('get_hierarchy'));
       assert.ok(handlers.has('analyze_scene_contents'));
+      // Check for UI handlers
+      assert.ok(handlers.has('find_ui_elements'));
+      assert.ok(handlers.has('click_ui_element'));
+      assert.ok(handlers.has('get_ui_element_state'));
+      assert.ok(handlers.has('set_ui_element_value'));
+      assert.ok(handlers.has('simulate_ui_input'));
+      // Check for Asset handlers
+      assert.ok(handlers.has('create_prefab'));
+      assert.ok(handlers.has('modify_prefab'));
+      assert.ok(handlers.has('instantiate_prefab'));
+      assert.ok(handlers.has('create_material'));
+      assert.ok(handlers.has('modify_material'));
     });
 
     it('should have handlers with correct structure', async () => {

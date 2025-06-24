@@ -37,6 +37,20 @@ export { PauseToolHandler } from './playmode/PauseToolHandler.js';
 export { StopToolHandler } from './playmode/StopToolHandler.js';
 export { GetEditorStateToolHandler } from './playmode/GetEditorStateToolHandler.js';
 
+// UI handlers
+export { FindUIElementsToolHandler } from './ui/FindUIElementsToolHandler.js';
+export { ClickUIElementToolHandler } from './ui/ClickUIElementToolHandler.js';
+export { GetUIElementStateToolHandler } from './ui/GetUIElementStateToolHandler.js';
+export { SetUIElementValueToolHandler } from './ui/SetUIElementValueToolHandler.js';
+export { SimulateUIInputToolHandler } from './ui/SimulateUIInputToolHandler.js';
+
+// Asset handlers
+export { CreatePrefabToolHandler } from './asset/CreatePrefabToolHandler.js';
+export { ModifyPrefabToolHandler } from './asset/ModifyPrefabToolHandler.js';
+export { InstantiatePrefabToolHandler } from './asset/InstantiatePrefabToolHandler.js';
+export { CreateMaterialToolHandler } from './asset/CreateMaterialToolHandler.js';
+export { ModifyMaterialToolHandler } from './asset/ModifyMaterialToolHandler.js';
+
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
 import { ReadLogsToolHandler } from './system/ReadLogsToolHandler.js';
@@ -60,6 +74,16 @@ import { PlayToolHandler } from './playmode/PlayToolHandler.js';
 import { PauseToolHandler } from './playmode/PauseToolHandler.js';
 import { StopToolHandler } from './playmode/StopToolHandler.js';
 import { GetEditorStateToolHandler } from './playmode/GetEditorStateToolHandler.js';
+import { FindUIElementsToolHandler } from './ui/FindUIElementsToolHandler.js';
+import { ClickUIElementToolHandler } from './ui/ClickUIElementToolHandler.js';
+import { GetUIElementStateToolHandler } from './ui/GetUIElementStateToolHandler.js';
+import { SetUIElementValueToolHandler } from './ui/SetUIElementValueToolHandler.js';
+import { SimulateUIInputToolHandler } from './ui/SimulateUIInputToolHandler.js';
+import { CreatePrefabToolHandler } from './asset/CreatePrefabToolHandler.js';
+import { ModifyPrefabToolHandler } from './asset/ModifyPrefabToolHandler.js';
+import { InstantiatePrefabToolHandler } from './asset/InstantiatePrefabToolHandler.js';
+import { CreateMaterialToolHandler } from './asset/CreateMaterialToolHandler.js';
+import { ModifyMaterialToolHandler } from './asset/ModifyMaterialToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -93,7 +117,21 @@ const HANDLER_CLASSES = [
   PlayToolHandler,
   PauseToolHandler,
   StopToolHandler,
-  GetEditorStateToolHandler
+  GetEditorStateToolHandler,
+  
+  // UI handlers
+  FindUIElementsToolHandler,
+  ClickUIElementToolHandler,
+  GetUIElementStateToolHandler,
+  SetUIElementValueToolHandler,
+  SimulateUIInputToolHandler,
+  
+  // Asset handlers
+  CreatePrefabToolHandler,
+  ModifyPrefabToolHandler,
+  InstantiatePrefabToolHandler,
+  CreateMaterialToolHandler,
+  ModifyMaterialToolHandler
 ];
 
 /**

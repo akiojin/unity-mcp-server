@@ -517,6 +517,58 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, stateResult);
                         break;
                         
+                    // UI Interaction commands
+                    case "find_ui_elements":
+                        var findUIResult = UIInteractionHandler.FindUIElements(command.Parameters);
+                        response = Response.SuccessResult(command.Id, findUIResult);
+                        break;
+                        
+                    case "click_ui_element":
+                        var clickUIResult = UIInteractionHandler.ClickUIElement(command.Parameters);
+                        response = Response.SuccessResult(command.Id, clickUIResult);
+                        break;
+                        
+                    case "get_ui_element_state":
+                        var getUIStateResult = UIInteractionHandler.GetUIElementState(command.Parameters);
+                        response = Response.SuccessResult(command.Id, getUIStateResult);
+                        break;
+                        
+                    case "set_ui_element_value":
+                        var setUIValueResult = UIInteractionHandler.SetUIElementValue(command.Parameters);
+                        response = Response.SuccessResult(command.Id, setUIValueResult);
+                        break;
+                        
+                    case "simulate_ui_input":
+                        var simulateUIResult = UIInteractionHandler.SimulateUIInput(command.Parameters);
+                        response = Response.SuccessResult(command.Id, simulateUIResult);
+                        break;
+                        
+                    // Asset Management commands
+                    case "create_prefab":
+                        var createPrefabResult = AssetManagementHandler.CreatePrefab(command.Parameters);
+                        response = Response.SuccessResult(command.Id, createPrefabResult);
+                        break;
+                        
+                    case "modify_prefab":
+                        var modifyPrefabResult = AssetManagementHandler.ModifyPrefab(command.Parameters);
+                        response = Response.SuccessResult(command.Id, modifyPrefabResult);
+                        break;
+                        
+                    case "instantiate_prefab":
+                        var instantiatePrefabResult = AssetManagementHandler.InstantiatePrefab(command.Parameters);
+                        response = Response.SuccessResult(command.Id, instantiatePrefabResult);
+                        break;
+                        
+                    case "create_material":
+                        var createMaterialResult = AssetManagementHandler.CreateMaterial(command.Parameters);
+                        response = Response.SuccessResult(command.Id, createMaterialResult);
+                        break;
+                        
+                    case "modify_material":
+                        var modifyMaterialResult = AssetManagementHandler.ModifyMaterial(command.Parameters);
+                        response = Response.SuccessResult(command.Id, modifyMaterialResult);
+                        break;
+                        
                     default:
                         // Use new format with error details
                         response = Response.ErrorResult(
