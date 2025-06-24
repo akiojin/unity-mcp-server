@@ -72,5 +72,85 @@ describe('Config', () => {
       assert.equal(logOutput.length, 0);
       assert.equal(errorOutput.length, 0);
     });
+
+    it('should log debug messages when level is debug', () => {
+      // Temporarily change log level
+      const originalLevel = config.logging.level;
+      config.logging.level = 'debug';
+      
+      logger.debug('Debug message');
+      assert.equal(errorOutput.length, 1);
+      assert.match(errorOutput[0], /\[Unity Editor MCP\] DEBUG: Debug message/);
+      
+      // Restore original level
+      config.logging.level = originalLevel;
+    });
+
+    it('should log warn messages when level is info', () => {
+      logger.warn('Warning message');
+      assert.equal(errorOutput.length, 1);
+      assert.match(errorOutput[0], /\[Unity Editor MCP\] WARN: Warning message/);
+    });
+
+    it('should log warn messages when level is warn', () => {
+      // Temporarily change log level
+      const originalLevel = config.logging.level;
+      config.logging.level = 'warn';
+      
+      logger.warn('Warning message');
+      assert.equal(errorOutput.length, 1);
+      assert.match(errorOutput[0], /\[Unity Editor MCP\] WARN: Warning message/);
+      
+      // Restore original level
+      config.logging.level = originalLevel;
+    });
+
+    it('should not log info messages when level is warn', () => {
+      // Temporarily change log level
+      const originalLevel = config.logging.level;
+      config.logging.level = 'warn';
+      
+      logger.info('Info message');
+      assert.equal(errorOutput.length, 0);
+      
+      // Restore original level
+      config.logging.level = originalLevel;
+    });
+
+    it('should handle multiple arguments in logger methods', () => {
+      logger.info('Message', { key: 'value' }, 123);
+      assert.equal(errorOutput.length, 1);
+      assert.match(errorOutput[0], /\[Unity Editor MCP\] Message/);
+      // Note: The logger uses console.error(...args) which joins them with spaces
+      // So the output will contain the stringified object and number
+      assert(errorOutput[0].includes('[object Object]') || errorOutput[0].includes('value'));
+      assert(errorOutput[0].includes('123'));
+    });
+
+    it('should always log error messages regardless of level', () => {
+      // Test with different log levels
+      const originalLevel = config.logging.level;
+      
+      config.logging.level = 'debug';
+      logger.error('Error message 1');
+      assert.equal(errorOutput.length, 1);
+      
+      errorOutput.length = 0; // Clear
+      config.logging.level = 'warn';
+      logger.error('Error message 2');
+      assert.equal(errorOutput.length, 1);
+      
+      // Restore original level
+      config.logging.level = originalLevel;
+    });
+
+    it('should handle error objects in logger.error', () => {
+      const error = new Error('Test error');
+      error.stack = 'Stack trace here';
+      
+      logger.error('Operation failed', error);
+      assert.equal(errorOutput.length, 1);
+      assert.match(errorOutput[0], /Operation failed/);
+    });
   });
 });

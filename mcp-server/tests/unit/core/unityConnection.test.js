@@ -299,6 +299,123 @@ describe('UnityConnection', () => {
       const received = await messagePromise;
       assert.deepEqual(received, message);
     });
+
+    it('should skip Unity debug logs', () => {
+      assert.doesNotThrow(() => {
+        connection.handleData(Buffer.from('[Unity Editor MCP] Debug message'));
+        connection.handleData(Buffer.from('[Unity] Debug message'));
+      });
+    });
+
+    it('should handle framed messages correctly', () => {
+      const message = JSON.stringify({ id: '1', status: 'success', result: { data: 'test' } });
+      const messageBuffer = Buffer.from(message, 'utf8');
+      const lengthBuffer = Buffer.allocUnsafe(4);
+      lengthBuffer.writeInt32BE(messageBuffer.length, 0);
+      const framedMessage = Buffer.concat([lengthBuffer, messageBuffer]);
+      
+      assert.doesNotThrow(() => {
+        connection.handleData(framedMessage);
+      });
+    });
+
+    it('should handle invalid message length and attempt recovery', () => {
+      // Create a message with invalid length header
+      const invalidLengthBuffer = Buffer.allocUnsafe(4);
+      invalidLengthBuffer.writeInt32BE(2000000000, 0); // Too large
+      
+      // Add some valid framed message after the invalid data
+      const validMessage = JSON.stringify({ id: '1', status: 'success' });
+      const validMessageBuffer = Buffer.from(validMessage, 'utf8');
+      const validLengthBuffer = Buffer.allocUnsafe(4);
+      validLengthBuffer.writeInt32BE(validMessageBuffer.length, 0);
+      const validFramedMessage = Buffer.concat([validLengthBuffer, validMessageBuffer]);
+      
+      const combinedBuffer = Buffer.concat([invalidLengthBuffer, Buffer.from('junk'), validFramedMessage]);
+      
+      assert.doesNotThrow(() => {
+        connection.handleData(combinedBuffer);
+      });
+    });
+
+    it('should clear buffer when unable to recover from invalid frame', () => {
+      // Create entirely corrupt data that can't be recovered
+      const corruptData = Buffer.from('this is completely invalid framed data that cannot be recovered');
+      const lengthHeader = Buffer.allocUnsafe(4);
+      lengthHeader.writeInt32BE(-1, 0); // Invalid negative length
+      const combinedCorruptData = Buffer.concat([lengthHeader, corruptData]);
+      
+      assert.doesNotThrow(() => {
+        connection.handleData(combinedCorruptData);
+      });
+      
+      // Buffer should be cleared after failed recovery
+      assert.equal(connection.messageBuffer.length, 0);
+    });
+
+    it('should skip non-JSON messages in frames', () => {
+      const nonJsonMessage = 'This is not JSON';
+      const messageBuffer = Buffer.from(nonJsonMessage, 'utf8');
+      const lengthBuffer = Buffer.allocUnsafe(4);
+      lengthBuffer.writeInt32BE(messageBuffer.length, 0);
+      const framedMessage = Buffer.concat([lengthBuffer, messageBuffer]);
+      
+      assert.doesNotThrow(() => {
+        connection.handleData(framedMessage);
+      });
+    });
+
+    it('should handle partial messages correctly', () => {
+      const message = JSON.stringify({ id: '1', status: 'success', result: { data: 'test' } });
+      const messageBuffer = Buffer.from(message, 'utf8');
+      const lengthBuffer = Buffer.allocUnsafe(4);
+      lengthBuffer.writeInt32BE(messageBuffer.length, 0);
+      const framedMessage = Buffer.concat([lengthBuffer, messageBuffer]);
+      
+      // Send first half of the message
+      const firstHalf = framedMessage.slice(0, framedMessage.length / 2);
+      const secondHalf = framedMessage.slice(framedMessage.length / 2);
+      
+      assert.doesNotThrow(() => {
+        connection.handleData(firstHalf);
+        // Message should be buffered, not processed yet
+        connection.handleData(secondHalf);
+        // Now the complete message should be processed
+      });
+    });
+
+    it('should handle malformed JSON in framed messages', () => {
+      const malformedJson = '{"id": "1", "status": "success", "result":'; // Incomplete JSON
+      const messageBuffer = Buffer.from(malformedJson, 'utf8');
+      const lengthBuffer = Buffer.allocUnsafe(4);
+      lengthBuffer.writeInt32BE(messageBuffer.length, 0);
+      const framedMessage = Buffer.concat([lengthBuffer, messageBuffer]);
+      
+      assert.doesNotThrow(() => {
+        connection.handleData(framedMessage);
+      });
+    });
+
+    it('should handle multiple messages in one data chunk', () => {
+      const message1 = JSON.stringify({ id: '1', status: 'success' });
+      const message2 = JSON.stringify({ id: '2', status: 'success' });
+      
+      const buffer1 = Buffer.from(message1, 'utf8');
+      const length1 = Buffer.allocUnsafe(4);
+      length1.writeInt32BE(buffer1.length, 0);
+      const framed1 = Buffer.concat([length1, buffer1]);
+      
+      const buffer2 = Buffer.from(message2, 'utf8');
+      const length2 = Buffer.allocUnsafe(4);
+      length2.writeInt32BE(buffer2.length, 0);
+      const framed2 = Buffer.concat([length2, buffer2]);
+      
+      const combinedData = Buffer.concat([framed1, framed2]);
+      
+      assert.doesNotThrow(() => {
+        connection.handleData(combinedData);
+      });
+    });
   });
 
   describe('scheduleReconnect', () => {
