@@ -2,6 +2,7 @@
  * Comprehensive test utilities and helpers
  */
 import { EventEmitter } from 'events';
+import { mock } from 'node:test';
 import { TEST_CONFIG, TEST_MESSAGES } from './test-config.js';
 
 /**
@@ -240,6 +241,48 @@ export class TestEnvironment {
     throw lastError;
   }
 }
+
+/**
+ * Factory function to create mock Unity connection with mocked methods
+ */
+export function createMockUnityConnection(options = {}) {
+  const mockConnection = {
+    sendCommand: mock.fn(async () => options.sendCommandResult || {}),
+    isConnected: mock.fn(() => true),
+    connect: mock.fn(async () => {}),
+    disconnect: mock.fn(async () => {}),
+    ...options
+  };
+  
+  return mockConnection;
+}
+
+/**
+ * Unity response constants for tests
+ */
+export const UNITY_RESPONSES = {
+  gameObject: (overrides = {}) => ({
+    id: -1000,
+    name: 'TestObject',
+    path: '/TestObject',
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
+    scale: { x: 1, y: 1, z: 1 },
+    layer: 0,
+    tag: 'Untagged',
+    active: true,
+    ...overrides
+  }),
+  SUCCESS: {
+    success: true,
+    message: 'Operation completed successfully'
+  },
+  ERROR: {
+    success: false,
+    error: 'Operation failed',
+    message: 'Test error message'
+  }
+};
 
 /**
  * Logging utilities for tests

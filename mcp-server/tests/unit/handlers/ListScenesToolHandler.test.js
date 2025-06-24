@@ -1,7 +1,7 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { ListScenesToolHandler } from '../../../src/handlers/scene/ListScenesToolHandler.js';
-import { createMockUnityConnection } from '../../../src/handlers/test-utils/test-helpers.js';
+import { createMockUnityConnection } from '../../utils/test-helpers.js';
 
 describe('ListScenesToolHandler', () => {
   let handler;

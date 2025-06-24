@@ -1,7 +1,7 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { ModifyGameObjectToolHandler } from '../../../src/handlers/gameobject/ModifyGameObjectToolHandler.js';
-import { createMockUnityConnection } from '../../../src/handlers/test-utils/test-helpers.js';
+import { createMockUnityConnection } from '../../utils/test-helpers.js';
 
 describe('ModifyGameObjectToolHandler', () => {
   let handler;
