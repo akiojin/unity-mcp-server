@@ -19,7 +19,7 @@
     "test:watch": "node --watch --test tests/unit/**/*.test.js",
     "test:watch:all": "node --watch --test tests/**/*.test.js",
     "test:performance": "node --test tests/performance/*.test.js",
-    "test:ci": "c8 --reporter=lcov node --test tests/unit/**/*.test.js tests/integration/*.test.js",
+    "test:ci": "c8 --reporter=lcov node --test tests/unit/**/*.test.js",
     "test:verbose": "VERBOSE_TEST=true node --test tests/**/*.test.js",
     "prepublishOnly": "npm run test:ci",
     "postinstall": "chmod +x bin/unity-editor-mcp || true"

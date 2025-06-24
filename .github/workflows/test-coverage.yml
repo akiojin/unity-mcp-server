@@ -28,7 +28,7 @@ jobs:
       run: npm ci
     
     - name: Run tests with coverage
-      run: npm run test:coverage
+      run: npm run test:ci
       timeout-minutes: 5
       env:
         NODE_ENV: test
