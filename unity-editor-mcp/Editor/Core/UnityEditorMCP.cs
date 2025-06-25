@@ -569,6 +569,21 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, modifyMaterialResult);
                         break;
                         
+                    case "open_prefab":
+                        var openPrefabResult = AssetManagementHandler.OpenPrefab(command.Parameters);
+                        response = Response.SuccessResult(command.Id, openPrefabResult);
+                        break;
+                        
+                    case "exit_prefab_mode":
+                        var exitPrefabModeResult = AssetManagementHandler.ExitPrefabMode(command.Parameters);
+                        response = Response.SuccessResult(command.Id, exitPrefabModeResult);
+                        break;
+                        
+                    case "save_prefab":
+                        var savePrefabResult = AssetManagementHandler.SavePrefab(command.Parameters);
+                        response = Response.SuccessResult(command.Id, savePrefabResult);
+                        break;
+                        
                     // Script Management commands
                     case "create_script":
                         var createScriptResult = ScriptHandler.CreateScript(command.Parameters);
@@ -624,6 +639,27 @@ namespace UnityEditorMCP.Core
                     case "analyze_screenshot":
                         var analyzeScreenshotResult = ScreenshotHandler.AnalyzeScreenshot(command.Parameters);
                         response = Response.SuccessResult(command.Id, analyzeScreenshotResult);
+                        break;
+                        
+                    // Component commands
+                    case "add_component":
+                        var addComponentResult = ComponentHandler.AddComponent(command.Parameters);
+                        response = Response.SuccessResult(command.Id, addComponentResult);
+                        break;
+                        
+                    case "remove_component":
+                        var removeComponentResult = ComponentHandler.RemoveComponent(command.Parameters);
+                        response = Response.SuccessResult(command.Id, removeComponentResult);
+                        break;
+                        
+                    case "modify_component":
+                        var modifyComponentResult = ComponentHandler.ModifyComponent(command.Parameters);
+                        response = Response.SuccessResult(command.Id, modifyComponentResult);
+                        break;
+                        
+                    case "list_components":
+                        var listComponentsResult = ComponentHandler.ListComponents(command.Parameters);
+                        response = Response.SuccessResult(command.Id, listComponentsResult);
                         break;
                         
                     default:

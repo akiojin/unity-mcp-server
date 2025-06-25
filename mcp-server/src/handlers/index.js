@@ -50,6 +50,9 @@ export { ModifyPrefabToolHandler } from './asset/ModifyPrefabToolHandler.js';
 export { InstantiatePrefabToolHandler } from './asset/InstantiatePrefabToolHandler.js';
 export { CreateMaterialToolHandler } from './asset/CreateMaterialToolHandler.js';
 export { ModifyMaterialToolHandler } from './asset/ModifyMaterialToolHandler.js';
+export { OpenPrefabToolHandler } from './asset/OpenPrefabToolHandler.js';
+export { ExitPrefabModeToolHandler } from './asset/ExitPrefabModeToolHandler.js';
+export { SavePrefabToolHandler } from './asset/SavePrefabToolHandler.js';
 
 // Scripting handlers
 export { CreateScriptToolHandler } from './scripting/CreateScriptToolHandler.js';
@@ -69,6 +72,13 @@ export { EnhancedReadLogsToolHandler } from './console/EnhancedReadLogsToolHandl
 // Screenshot handlers
 export { CaptureScreenshotToolHandler } from './screenshot/CaptureScreenshotToolHandler.js';
 export { AnalyzeScreenshotToolHandler } from './screenshot/AnalyzeScreenshotToolHandler.js';
+
+// Component handlers
+export { AddComponentToolHandler } from './component/AddComponentToolHandler.js';
+export { RemoveComponentToolHandler } from './component/RemoveComponentToolHandler.js';
+export { ModifyComponentToolHandler } from './component/ModifyComponentToolHandler.js';
+export { ListComponentsToolHandler } from './component/ListComponentsToolHandler.js';
+export { GetComponentTypesToolHandler } from './component/GetComponentTypesToolHandler.js';
 
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
@@ -103,6 +113,9 @@ import { ModifyPrefabToolHandler } from './asset/ModifyPrefabToolHandler.js';
 import { InstantiatePrefabToolHandler } from './asset/InstantiatePrefabToolHandler.js';
 import { CreateMaterialToolHandler } from './asset/CreateMaterialToolHandler.js';
 import { ModifyMaterialToolHandler } from './asset/ModifyMaterialToolHandler.js';
+import { OpenPrefabToolHandler } from './asset/OpenPrefabToolHandler.js';
+import { ExitPrefabModeToolHandler } from './asset/ExitPrefabModeToolHandler.js';
+import { SavePrefabToolHandler } from './asset/SavePrefabToolHandler.js';
 import { CreateScriptToolHandler } from './scripting/CreateScriptToolHandler.js';
 import { ReadScriptToolHandler } from './scripting/ReadScriptToolHandler.js';
 import { UpdateScriptToolHandler } from './scripting/UpdateScriptToolHandler.js';
@@ -114,6 +127,11 @@ import { ClearConsoleToolHandler } from './console/ClearConsoleToolHandler.js';
 import { EnhancedReadLogsToolHandler } from './console/EnhancedReadLogsToolHandler.js';
 import { CaptureScreenshotToolHandler } from './screenshot/CaptureScreenshotToolHandler.js';
 import { AnalyzeScreenshotToolHandler } from './screenshot/AnalyzeScreenshotToolHandler.js';
+import { AddComponentToolHandler } from './component/AddComponentToolHandler.js';
+import { RemoveComponentToolHandler } from './component/RemoveComponentToolHandler.js';
+import { ModifyComponentToolHandler } from './component/ModifyComponentToolHandler.js';
+import { ListComponentsToolHandler } from './component/ListComponentsToolHandler.js';
+import { GetComponentTypesToolHandler } from './component/GetComponentTypesToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -162,6 +180,9 @@ const HANDLER_CLASSES = [
   InstantiatePrefabToolHandler,
   CreateMaterialToolHandler,
   ModifyMaterialToolHandler,
+  OpenPrefabToolHandler,
+  ExitPrefabModeToolHandler,
+  SavePrefabToolHandler,
   
   // Scripting handlers
   CreateScriptToolHandler,
@@ -180,7 +201,14 @@ const HANDLER_CLASSES = [
   
   // Screenshot handlers
   CaptureScreenshotToolHandler,
-  AnalyzeScreenshotToolHandler
+  AnalyzeScreenshotToolHandler,
+  
+  // Component handlers
+  AddComponentToolHandler,
+  RemoveComponentToolHandler,
+  ModifyComponentToolHandler,
+  ListComponentsToolHandler,
+  GetComponentTypesToolHandler
 ];
 
 /**

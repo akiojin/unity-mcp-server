@@ -697,5 +697,254 @@ namespace UnityEditorMCP.Handlers
         }
 
         #endregion
+
+        /// <summary>
+        /// Opens a prefab in prefab mode for editing
+        /// </summary>
+        public static object OpenPrefab(JObject parameters)
+        {
+            try
+            {
+                // Parse parameters
+                string prefabPath = parameters["prefabPath"]?.ToString();
+                string focusObject = parameters["focusObject"]?.ToString();
+                bool isolateObject = parameters["isolateObject"]?.ToObject<bool>() ?? false;
+
+                // Validate prefab path
+                if (string.IsNullOrEmpty(prefabPath))
+                {
+                    return new { error = "prefabPath is required" };
+                }
+
+                // Load the prefab asset
+                GameObject prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                if (prefabAsset == null)
+                {
+                    return new { error = $"Prefab asset not found at path: {prefabPath}" };
+                }
+
+                // Check if asset is actually a prefab
+                if (!PrefabUtility.IsPartOfPrefabAsset(prefabAsset))
+                {
+                    return new { error = $"Asset at path is not a prefab: {prefabPath}" };
+                }
+
+                // Check if already in prefab mode with this prefab
+                var currentStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+                bool wasAlreadyOpen = false;
+                
+                if (currentStage != null && currentStage.assetPath == prefabPath)
+                {
+                    wasAlreadyOpen = true;
+                }
+                else
+                {
+                    // Open the prefab in prefab mode
+                    AssetDatabase.OpenAsset(prefabAsset);
+                    
+                    // Wait for prefab stage to be ready
+                    currentStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+                }
+
+                if (currentStage == null)
+                {
+                    return new { error = "Failed to enter prefab mode" };
+                }
+
+                GameObject prefabRoot = currentStage.prefabContentsRoot;
+                string focusedObjectPath = null;
+
+                // Focus on specific object if requested
+                if (!string.IsNullOrEmpty(focusObject) && prefabRoot != null)
+                {
+                    Transform focusTransform = prefabRoot.transform.Find(focusObject.TrimStart('/'));
+                    if (focusTransform != null)
+                    {
+                        Selection.activeGameObject = focusTransform.gameObject;
+                        EditorGUIUtility.PingObject(focusTransform.gameObject);
+                        focusedObjectPath = GetGameObjectPath(focusTransform.gameObject);
+
+                        if (isolateObject)
+                        {
+                            // Use scene visibility to isolate object
+                            UnityEditor.SceneVisibilityManager.instance.Isolate(focusTransform.gameObject, true);
+                        }
+                    }
+                }
+
+                return new
+                {
+                    success = true,
+                    prefabPath = prefabPath,
+                    isInPrefabMode = true,
+                    prefabContentsRoot = GetGameObjectPath(prefabRoot),
+                    focusedObject = focusedObjectPath,
+                    wasAlreadyOpen = wasAlreadyOpen,
+                    message = wasAlreadyOpen ? "Already editing this prefab" : "Prefab opened in prefab mode"
+                };
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AssetManagementHandler] Error in OpenPrefab: {e.Message}");
+                return new { error = $"Failed to open prefab: {e.Message}" };
+            }
+        }
+
+        /// <summary>
+        /// Exits prefab mode and optionally saves changes
+        /// </summary>
+        public static object ExitPrefabMode(JObject parameters)
+        {
+            try
+            {
+                // Parse parameters
+                bool saveChanges = parameters["saveChanges"]?.ToObject<bool>() ?? true;
+
+                // Check if in prefab mode
+                var currentStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+                if (currentStage == null)
+                {
+                    return new
+                    {
+                        success = true,
+                        wasInPrefabMode = false,
+                        message = "Not currently in prefab mode"
+                    };
+                }
+
+                string prefabPath = currentStage.assetPath;
+                bool changesSaved = false;
+
+                // Save changes if requested
+                if (saveChanges && currentStage.HasSceneBeenModified())
+                {
+                    try
+                    {
+                        PrefabUtility.SaveAsPrefabAsset(currentStage.prefabContentsRoot, prefabPath);
+                        changesSaved = true;
+                    }
+                    catch (Exception saveEx)
+                    {
+                        return new { error = $"Failed to save prefab changes: {saveEx.Message}" };
+                    }
+                }
+
+                // Exit prefab mode
+                UnityEditor.SceneManagement.StageUtility.GoBackToPreviousStage();
+
+                return new
+                {
+                    success = true,
+                    wasInPrefabMode = true,
+                    changesSaved = changesSaved,
+                    prefabPath = prefabPath,
+                    message = changesSaved ? "Exited prefab mode and saved changes" : "Exited prefab mode without saving changes"
+                };
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AssetManagementHandler] Error in ExitPrefabMode: {e.Message}");
+                return new { error = $"Failed to exit prefab mode: {e.Message}" };
+            }
+        }
+
+        /// <summary>
+        /// Saves current prefab changes or applies overrides from a prefab instance
+        /// </summary>
+        public static object SavePrefab(JObject parameters)
+        {
+            try
+            {
+                // Parse parameters
+                string gameObjectPath = parameters["gameObjectPath"]?.ToString();
+                bool includeChildren = parameters["includeChildren"]?.ToObject<bool>() ?? true;
+
+                // Check if in prefab mode
+                var currentStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+                
+                if (currentStage != null && string.IsNullOrEmpty(gameObjectPath))
+                {
+                    // Save current prefab in prefab mode
+                    string prefabPath = currentStage.assetPath;
+                    
+                    if (currentStage.HasSceneBeenModified())
+                    {
+                        PrefabUtility.SaveAsPrefabAsset(currentStage.prefabContentsRoot, prefabPath);
+                        
+                        return new
+                        {
+                            success = true,
+                            savedInPrefabMode = true,
+                            prefabPath = prefabPath,
+                            message = "Prefab changes saved successfully"
+                        };
+                    }
+                    else
+                    {
+                        return new
+                        {
+                            success = true,
+                            savedInPrefabMode = true,
+                            prefabPath = prefabPath,
+                            message = "No changes to save"
+                        };
+                    }
+                }
+                else if (!string.IsNullOrEmpty(gameObjectPath))
+                {
+                    // Save prefab instance overrides
+                    GameObject gameObject = GameObject.Find(gameObjectPath);
+                    if (gameObject == null)
+                    {
+                        return new { error = $"GameObject not found at path: {gameObjectPath}" };
+                    }
+
+                    // Check if it's a prefab instance
+                    if (!PrefabUtility.IsPartOfPrefabInstance(gameObject))
+                    {
+                        return new { error = $"GameObject is not a prefab instance: {gameObjectPath}" };
+                    }
+
+                    // Get prefab path
+                    string prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(gameObject);
+                    
+                    // Count overrides before applying
+                    var overrides = PrefabUtility.GetObjectOverrides(gameObject, includeChildren);
+                    int overrideCount = overrides.Count;
+
+                    // Apply overrides
+                    if (includeChildren)
+                    {
+                        PrefabUtility.ApplyPrefabInstance(gameObject, InteractionMode.UserAction);
+                    }
+                    else
+                    {
+                        // Apply only root object overrides
+                        PrefabUtility.ApplyObjectOverride(gameObject, PrefabUtility.GetCorrespondingObjectFromSource(gameObject), InteractionMode.UserAction);
+                    }
+
+                    return new
+                    {
+                        success = true,
+                        gameObjectPath = gameObjectPath,
+                        prefabPath = prefabPath,
+                        overridesApplied = overrideCount,
+                        includedChildren = includeChildren,
+                        message = $"Applied {overrideCount} overrides to prefab"
+                    };
+                }
+                else
+                {
+                    return new { error = "Not currently in prefab mode and no gameObjectPath specified" };
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AssetManagementHandler] Error in SavePrefab: {e.Message}");
+                return new { error = $"Failed to save prefab: {e.Message}" };
+            }
+        }
+
+        #endregion
     }
 }

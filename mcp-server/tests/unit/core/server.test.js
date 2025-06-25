@@ -129,7 +129,7 @@ describe('Server', () => {
       const handlers = createHandlers(unityConnection);
       
       assert.ok(handlers instanceof Map);
-      assert.equal(handlers.size, 32);
+      assert.equal(handlers.size, 51);
       
       // Check for some key handlers
       assert.ok(handlers.has('ping'));
@@ -139,6 +139,13 @@ describe('Server', () => {
       // Check for UI handlers
       assert.ok(handlers.has('find_ui_elements'));
       assert.ok(handlers.has('click_ui_element'));
+      
+      // Check for component handlers
+      assert.ok(handlers.has('add_component'));
+      assert.ok(handlers.has('remove_component'));
+      assert.ok(handlers.has('modify_component'));
+      assert.ok(handlers.has('list_components'));
+      assert.ok(handlers.has('get_component_types'));
       assert.ok(handlers.has('get_ui_element_state'));
       assert.ok(handlers.has('set_ui_element_value'));
       assert.ok(handlers.has('simulate_ui_input'));
