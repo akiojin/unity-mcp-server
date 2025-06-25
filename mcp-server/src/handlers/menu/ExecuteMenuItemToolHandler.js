@@ -42,12 +42,35 @@ export class ExecuteMenuItemToolHandler extends BaseToolHandler {
     this.unityConnection = unityConnection;
     
     // Define blacklisted menu items for safety
+    // Includes dialog-opening menus that cause MCP hanging
     this.blacklistedMenus = new Set([
+      // Application control
       'File/Quit',
-      'Edit/Preferences...',
+      
+      // Dialog-opening file operations (cause MCP hanging)
+      'File/Open Scene',
+      'File/New Scene', 
+      'File/Save Scene As...',
       'File/Build Settings...',
       'File/Build And Run',
-      'Assets/Delete'
+      
+      // Dialog-opening asset operations (cause MCP hanging)
+      'Assets/Import New Asset...',
+      'Assets/Import Package/Custom Package...',
+      'Assets/Export Package...',
+      'Assets/Delete',
+      
+      // Dialog-opening preferences and settings (cause MCP hanging)
+      'Edit/Preferences...',
+      'Edit/Project Settings...',
+      
+      // Dialog-opening window operations (may cause issues)
+      'Window/Package Manager',
+      'Window/Asset Store',
+      
+      // Scene view operations that may require focus (potential hanging)
+      'GameObject/Align With View',
+      'GameObject/Align View to Selected'
     ]);
     
     // Common menu aliases

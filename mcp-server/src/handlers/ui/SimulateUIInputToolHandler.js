@@ -8,6 +8,21 @@ export class SimulateUIInputToolHandler extends BaseToolHandler {
             {
                 type: 'object',
                 properties: {
+                    // Option 1: Simple single input
+                    elementPath: {
+                        type: 'string',
+                        description: 'Target UI element path (for simple input)'
+                    },
+                    inputType: {
+                        type: 'string',
+                        enum: ['click', 'doubleclick', 'rightclick', 'hover', 'focus', 'type'],
+                        description: 'Type of input to simulate (for simple input)'
+                    },
+                    inputData: {
+                        type: 'string',
+                        description: 'Data for input (e.g., text to type)'
+                    },
+                    // Option 2: Complex sequence
                     inputSequence: {
                         type: 'array',
                         items: {
@@ -24,7 +39,7 @@ export class SimulateUIInputToolHandler extends BaseToolHandler {
                             },
                             required: ['type', 'params']
                         },
-                        description: 'Array of input actions to perform'
+                        description: 'Array of input actions to perform (for complex input)'
                     },
                     waitBetween: {
                         type: 'number',
@@ -38,31 +53,56 @@ export class SimulateUIInputToolHandler extends BaseToolHandler {
                         default: true,
                         description: 'Validate UI state between actions'
                     }
-                },
-                required: ['inputSequence']
+                }
             }
         );
         this.unityConnection = unityConnection;
     }
 
     validate(params) {
-        // Call parent validation for required fields
-        super.validate(params);
+        // Check if using simple mode or complex mode
+        const hasSimpleParams = params.elementPath && params.inputType;
+        const hasComplexParams = params.inputSequence;
 
-        // Validate inputSequence is array
-        if (!Array.isArray(params.inputSequence)) {
-            throw new Error('inputSequence must be an array');
+        if (!hasSimpleParams && !hasComplexParams) {
+            throw new Error('Either (elementPath + inputType) or inputSequence is required');
         }
 
-        // Validate inputSequence is not empty
-        if (params.inputSequence.length === 0) {
-            throw new Error('inputSequence must contain at least one action');
+        if (hasSimpleParams && hasComplexParams) {
+            throw new Error('Cannot use both simple and complex input modes simultaneously');
         }
 
-        // Validate each action
-        for (const action of params.inputSequence) {
-            if (!action.type || !action.params) {
-                throw new Error('Each action must have type and params');
+        // Validate simple mode
+        if (hasSimpleParams) {
+            if (!params.elementPath || typeof params.elementPath !== 'string') {
+                throw new Error('elementPath must be a non-empty string');
+            }
+
+            const validInputTypes = ['click', 'doubleclick', 'rightclick', 'hover', 'focus', 'type'];
+            if (!validInputTypes.includes(params.inputType)) {
+                throw new Error(`inputType must be one of: ${validInputTypes.join(', ')}`);
+            }
+
+            if (params.inputType === 'type' && !params.inputData) {
+                throw new Error('inputData is required when inputType is "type"');
+            }
+        }
+
+        // Validate complex mode
+        if (hasComplexParams) {
+            if (!Array.isArray(params.inputSequence)) {
+                throw new Error('inputSequence must be an array');
+            }
+
+            if (params.inputSequence.length === 0) {
+                throw new Error('inputSequence must contain at least one action');
+            }
+
+            // Validate each action
+            for (const action of params.inputSequence) {
+                if (!action.type || !action.params) {
+                    throw new Error('Each action must have type and params');
+                }
             }
         }
 
@@ -77,6 +117,9 @@ export class SimulateUIInputToolHandler extends BaseToolHandler {
 
     async execute(params) {
         const {
+            elementPath,
+            inputType,
+            inputData,
             inputSequence,
             waitBetween = 100,
             validateState = true
@@ -87,8 +130,24 @@ export class SimulateUIInputToolHandler extends BaseToolHandler {
             await this.unityConnection.connect();
         }
 
+        let actualInputSequence;
+
+        // Handle simple mode - convert to sequence format
+        if (elementPath && inputType) {
+            actualInputSequence = [{
+                type: inputType,
+                params: {
+                    elementPath,
+                    inputData: inputData || null
+                }
+            }];
+        } else {
+            // Use provided sequence
+            actualInputSequence = inputSequence;
+        }
+
         const result = await this.unityConnection.sendCommand('simulate_ui_input', {
-            inputSequence,
+            inputSequence: actualInputSequence,
             waitBetween,
             validateState
         });
