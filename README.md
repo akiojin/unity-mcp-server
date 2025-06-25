@@ -78,7 +78,7 @@ Add the same configuration to Cursor's MCP settings
 
 ## Available Tools
 
-Unity Editor MCP provides **51 comprehensive tools** across 10 categories for complete Unity Editor automation:
+Unity Editor MCP provides **61 comprehensive tools** across 11 categories for complete Unity Editor automation:
 
 ### System & Core Tools (3 tools)
 - **`ping`** - Test connection to Unity Editor and verify server status
@@ -113,7 +113,7 @@ Unity Editor MCP provides **51 comprehensive tools** across 10 categories for co
 - **`find_by_component`** - Find GameObjects by component type with scope filtering (scene/prefabs/all)
 - **`get_object_references`** - Analyze references between objects including hierarchy and asset connections
 
-### Prefab Management (8 tools)
+### Asset Management (11 tools)
 - **`create_prefab`** - Create prefabs from GameObjects or empty templates with overwrite options
 - **`modify_prefab`** - Modify existing prefabs with property changes and instance updates
 - **`instantiate_prefab`** - Instantiate prefabs in scenes with transform and parenting options
@@ -122,6 +122,9 @@ Unity Editor MCP provides **51 comprehensive tools** across 10 categories for co
 - **`save_prefab`** - Save prefab changes in prefab mode or apply instance overrides to prefab assets
 - **`create_material`** - Create new materials with shader assignment and property configuration
 - **`modify_material`** - Modify existing materials with shader changes and property updates
+- **`manage_asset_import_settings`** - Manage Unity asset import settings (get, modify, apply presets, reimport)
+- **`manage_asset_database`** - Manage Unity Asset Database operations (find, info, create folders, move, copy, delete, refresh)
+- **`analyze_asset_dependencies`** - Analyze Unity asset dependencies (get dependencies, dependents, circular deps, unused assets, size impact)
 
 ### Script Management (6 tools)
 - **`create_script`** - Create new C# scripts with templates and namespace management
@@ -150,6 +153,16 @@ Unity Editor MCP provides **51 comprehensive tools** across 10 categories for co
 - **`enhanced_read_logs`** - Advanced log reading with search, filtering, and export capabilities
 - **`capture_screenshot`** - Take screenshots of Game View or Scene View with custom resolution and encoding
 - **`analyze_screenshot`** - Analyze screenshot content with basic image analysis capabilities
+
+### Editor Control & Automation (8 tools)
+- **`manage_tags`** - Manage Unity project tags (add, remove, list)
+- **`manage_layers`** - Manage Unity project layers (add, remove, list, convert index/name)
+- **`manage_selection`** - Manage Unity Editor selection (get, set, clear, get details)
+- **`manage_windows`** - Manage Unity Editor windows (list, focus, get state)
+- **`manage_tools`** - Manage Unity Editor tools and plugins (list, activate, deactivate, refresh)
+- **`start_compilation_monitoring`** - Start monitoring Unity compilation with real-time error detection
+- **`stop_compilation_monitoring`** - Stop compilation monitoring and get final status
+- **`get_compilation_state`** - Get current Unity compilation state and errors
 
 
 ## Troubleshooting

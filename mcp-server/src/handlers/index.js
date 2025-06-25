@@ -53,6 +53,9 @@ export { ModifyMaterialToolHandler } from './asset/ModifyMaterialToolHandler.js'
 export { OpenPrefabToolHandler } from './asset/OpenPrefabToolHandler.js';
 export { ExitPrefabModeToolHandler } from './asset/ExitPrefabModeToolHandler.js';
 export { SavePrefabToolHandler } from './asset/SavePrefabToolHandler.js';
+export { AssetImportSettingsToolHandler } from './asset/AssetImportSettingsToolHandler.js';
+export { AssetDatabaseToolHandler } from './asset/AssetDatabaseToolHandler.js';
+export { AssetDependencyToolHandler } from './asset/AssetDependencyToolHandler.js';
 
 // Scripting handlers
 export { CreateScriptToolHandler } from './scripting/CreateScriptToolHandler.js';
@@ -87,6 +90,10 @@ export { GetCompilationStateToolHandler } from './compilation/GetCompilationStat
 
 // Editor control handlers
 export { TagManagementToolHandler } from './editor/TagManagementToolHandler.js';
+export { LayerManagementToolHandler } from './editor/LayerManagementToolHandler.js';
+export { SelectionToolHandler } from './editor/SelectionToolHandler.js';
+export { WindowManagementToolHandler } from './editor/WindowManagementToolHandler.js';
+export { ToolManagementToolHandler } from './editor/ToolManagementToolHandler.js';
 
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
@@ -124,6 +131,9 @@ import { ModifyMaterialToolHandler } from './asset/ModifyMaterialToolHandler.js'
 import { OpenPrefabToolHandler } from './asset/OpenPrefabToolHandler.js';
 import { ExitPrefabModeToolHandler } from './asset/ExitPrefabModeToolHandler.js';
 import { SavePrefabToolHandler } from './asset/SavePrefabToolHandler.js';
+import { AssetImportSettingsToolHandler } from './asset/AssetImportSettingsToolHandler.js';
+import { AssetDatabaseToolHandler } from './asset/AssetDatabaseToolHandler.js';
+import { AssetDependencyToolHandler } from './asset/AssetDependencyToolHandler.js';
 import { CreateScriptToolHandler } from './scripting/CreateScriptToolHandler.js';
 import { ReadScriptToolHandler } from './scripting/ReadScriptToolHandler.js';
 import { UpdateScriptToolHandler } from './scripting/UpdateScriptToolHandler.js';
@@ -144,6 +154,10 @@ import { StartCompilationMonitoringToolHandler } from './compilation/StartCompil
 import { StopCompilationMonitoringToolHandler } from './compilation/StopCompilationMonitoringToolHandler.js';
 import { GetCompilationStateToolHandler } from './compilation/GetCompilationStateToolHandler.js';
 import { TagManagementToolHandler } from './editor/TagManagementToolHandler.js';
+import { LayerManagementToolHandler } from './editor/LayerManagementToolHandler.js';
+import { SelectionToolHandler } from './editor/SelectionToolHandler.js';
+import { WindowManagementToolHandler } from './editor/WindowManagementToolHandler.js';
+import { ToolManagementToolHandler } from './editor/ToolManagementToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -195,6 +209,9 @@ const HANDLER_CLASSES = [
   OpenPrefabToolHandler,
   ExitPrefabModeToolHandler,
   SavePrefabToolHandler,
+  AssetImportSettingsToolHandler,
+  AssetDatabaseToolHandler,
+  AssetDependencyToolHandler,
   
   // Scripting handlers
   CreateScriptToolHandler,
@@ -228,7 +245,11 @@ const HANDLER_CLASSES = [
   GetCompilationStateToolHandler,
   
   // Editor control handlers
-  TagManagementToolHandler
+  TagManagementToolHandler,
+  LayerManagementToolHandler,
+  SelectionToolHandler,
+  WindowManagementToolHandler,
+  ToolManagementToolHandler
 ];
 
 /**
