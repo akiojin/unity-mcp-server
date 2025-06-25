@@ -10,13 +10,18 @@ Unity Editor MCP (Model Context Protocol) enables AI assistants like Claude and 
 ## 🚀 Key Features
 
 - **🎮 GameObject Management**: Create primitives, modify transforms, manage hierarchy, and delete objects
+- **🔧 Component System**: Add, remove, modify, and list components on GameObjects with full property control
+- **🎭 Prefab Workflow**: Complete prefab mode editing - open, modify, save, and exit with override management
 - **🔍 Smart Search**: Find GameObjects by name, tag, layer, or component type with exact/partial matching
 - **📊 Scene Analysis**: Analyze scene composition, component statistics, and prefab connections
 - **🎯 Component Inspection**: Get component values, find objects by component, trace references between objects
 - **🎬 Scene Control**: Create, load, save scenes, manage build settings, and work with multiple scenes
 - **🏃 Play Mode Testing**: Start, pause, and stop play mode, check editor state and compilation status
-- **📝 Console Integration**: Read Unity console logs filtered by type (Log, Warning, Error, Exception)
-- **🔄 Asset Management**: Refresh assets and trigger recompilation on demand
+- **🖼️ Screenshot Capture**: Take screenshots of Game View or Scene View with analysis capabilities
+- **🎨 Asset Management**: Create and modify prefabs, materials, scripts with comprehensive property control
+- **🖱️ UI Automation**: Interact with Unity UI elements programmatically for testing and automation
+- **📝 Console Integration**: Read Unity console logs filtered by type with enhanced debugging features
+- **🔄 Editor Operations**: Refresh assets, execute menu items, and trigger recompilation
 
 
 ## 🚀 Quick Start
@@ -71,7 +76,7 @@ Add the same configuration to Cursor's MCP settings
 
 ## Available Tools
 
-Unity Editor MCP provides **23 comprehensive tools** across 6 categories for complete Unity Editor automation:
+Unity Editor MCP provides **51 comprehensive tools** across 10 categories for complete Unity Editor automation:
 
 ### System & Core Tools (3 tools)
 - **`ping`** - Test connection to Unity Editor and verify server status
@@ -84,6 +89,13 @@ Unity Editor MCP provides **23 comprehensive tools** across 6 categories for com
 - **`modify_gameobject`** - Modify GameObject properties (transform, name, active state, parent, etc.)
 - **`delete_gameobject`** - Delete single or multiple GameObjects with optional child handling
 - **`get_hierarchy`** - Get complete scene hierarchy with components and depth control
+
+### Component System (5 tools)
+- **`add_component`** - Add Unity components to GameObjects with initial property values
+- **`remove_component`** - Remove components from GameObjects with safety checks (prevents Transform removal)
+- **`modify_component`** - Modify component properties with support for nested properties using dot notation
+- **`list_components`** - List all components on a GameObject with type information and removability status
+- **`get_component_types`** - Discover available component types with filtering by category and addability
 
 ### Scene Management (5 tools)
 - **`create_scene`** - Create new scenes with build settings integration and auto-loading
@@ -99,18 +111,148 @@ Unity Editor MCP provides **23 comprehensive tools** across 6 categories for com
 - **`find_by_component`** - Find GameObjects by component type with scope filtering (scene/prefabs/all)
 - **`get_object_references`** - Analyze references between objects including hierarchy and asset connections
 
+### Prefab Management (8 tools)
+- **`create_prefab`** - Create prefabs from GameObjects or empty templates with overwrite options
+- **`modify_prefab`** - Modify existing prefabs with property changes and instance updates
+- **`instantiate_prefab`** - Instantiate prefabs in scenes with transform and parenting options
+- **`open_prefab`** - Open prefabs in Unity's prefab mode for detailed editing with focus and isolation
+- **`exit_prefab_mode`** - Exit prefab mode with optional save/discard changes
+- **`save_prefab`** - Save prefab changes in prefab mode or apply instance overrides to prefab assets
+- **`create_material`** - Create new materials with shader assignment and property configuration
+- **`modify_material`** - Modify existing materials with shader changes and property updates
+
+### Script Management (6 tools)
+- **`create_script`** - Create new C# scripts with templates and namespace management
+- **`read_script`** - Read script file contents with syntax highlighting information
+- **`update_script`** - Modify existing scripts with content replacement and validation
+- **`delete_script`** - Delete script files with dependency checking and confirmation
+- **`list_scripts`** - List all scripts in project with filtering and metadata
+- **`validate_script`** - Validate script syntax and check for compilation errors
+
 ### Play Mode Controls (4 tools)
 - **`play_game`** - Start Unity play mode for testing and interaction
 - **`pause_game`** - Pause or resume Unity play mode
 - **`stop_game`** - Stop Unity play mode and return to edit mode
 - **`get_editor_state`** - Get current Unity editor state (play mode, pause, compilation status)
 
-### UI Interactions (5 tools)
+### UI Automation (5 tools)
 - **`find_ui_elements`** - Locate UI elements in scene hierarchy with filtering
 - **`click_ui_element`** - Simulate clicking on UI elements (buttons, toggles, etc.)
 - **`get_ui_element_state`** - Get detailed UI element state and interaction capabilities
 - **`set_ui_element_value`** - Set values for UI input elements (sliders, input fields, etc.)
 - **`simulate_ui_input`** - Execute complex UI interaction sequences
+
+### Editor Operations (5 tools)
+- **`execute_menu_item`** - Execute Unity menu items programmatically with safety checks
+- **`clear_console`** - Clear Unity console logs with optional filtering
+- **`enhanced_read_logs`** - Advanced log reading with search, filtering, and export capabilities
+- **`capture_screenshot`** - Take screenshots of Game View or Scene View with custom resolution and encoding
+- **`analyze_screenshot`** - Analyze screenshot content with basic image analysis capabilities
+
+## 🆕 Latest Updates
+
+### Phase 11: Complete Component System (Latest)
+Unity Editor MCP now includes a comprehensive component manipulation system with 5 new tools:
+
+- **Dynamic Component Management**: Add, remove, and modify any Unity component type at runtime
+- **Smart Type Resolution**: Automatic component type discovery across all Unity assemblies
+- **Property Control**: Full property modification with support for nested properties using dot notation
+- **Validation & Safety**: Built-in safety checks (e.g., prevents Transform component removal)
+- **Component Discovery**: Explore available component types with filtering by category and addability
+
+### Enhanced Prefab Workflow
+New prefab mode tools for professional asset management:
+
+- **Prefab Mode Integration**: Open prefabs directly in Unity's prefab mode for isolated editing
+- **Override Management**: Apply instance overrides back to prefab assets efficiently
+- **Focus & Isolation**: Target specific objects within prefabs for precise editing
+- **Save Control**: Fine-grained control over saving changes or discarding modifications
+
+### Screenshot & Analysis System
+Capture and analyze Unity Editor content:
+
+- **Multi-View Capture**: Screenshot Game View, Scene View, or custom areas
+- **Flexible Encoding**: Base64 encoding for immediate processing or file export
+- **Analysis Ready**: Built-in image analysis for content verification and testing
+
+## 💡 Usage Examples
+
+### Component System Workflow
+```javascript
+// Discover available component types
+await mcp.call("get_component_types", { 
+  category: "Physics", 
+  onlyAddable: true 
+});
+
+// Add a Rigidbody component with initial properties
+await mcp.call("add_component", {
+  gameObjectPath: "/Player",
+  componentType: "Rigidbody",
+  properties: {
+    mass: 2.0,
+    drag: 0.5,
+    useGravity: true
+  }
+});
+
+// Modify component properties with nested access
+await mcp.call("modify_component", {
+  gameObjectPath: "/Player",
+  componentType: "Rigidbody",
+  properties: {
+    "constraints.freezePositionY": true,
+    mass: 5.0
+  }
+});
+```
+
+### Prefab Mode Workflow
+```javascript
+// Open prefab in prefab mode
+await mcp.call("open_prefab", {
+  prefabPath: "Assets/Prefabs/PlayerCharacter.prefab",
+  focusObject: "/Armature/Hips"
+});
+
+// Make modifications to the prefab...
+await mcp.call("add_component", {
+  gameObjectPath: "/PlayerCharacter/Weapon",
+  componentType: "AudioSource"
+});
+
+// Save and exit prefab mode
+await mcp.call("save_prefab", {});
+await mcp.call("exit_prefab_mode", { saveChanges: true });
+```
+
+### Complete Scene Setup
+```javascript
+// Create a new scene
+await mcp.call("create_scene", { 
+  sceneName: "GameLevel1",
+  loadScene: true 
+});
+
+// Create and configure a player GameObject
+await mcp.call("create_gameobject", {
+  name: "Player",
+  primitiveType: "capsule",
+  position: { x: 0, y: 1, z: 0 }
+});
+
+// Add physics components
+await mcp.call("add_component", {
+  gameObjectPath: "/Player",
+  componentType: "Rigidbody"
+});
+
+// Take a screenshot for verification
+await mcp.call("capture_screenshot", {
+  captureMode: "scene",
+  encodeAsBase64: true
+});
+```
 
 ## Troubleshooting
 
