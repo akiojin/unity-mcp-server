@@ -569,6 +569,52 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, modifyMaterialResult);
                         break;
                         
+                    // Script Management commands
+                    case "create_script":
+                        var createScriptResult = ScriptHandler.CreateScript(command.Parameters);
+                        response = Response.SuccessResult(command.Id, createScriptResult);
+                        break;
+                        
+                    case "read_script":
+                        var readScriptResult = ScriptHandler.ReadScript(command.Parameters);
+                        response = Response.SuccessResult(command.Id, readScriptResult);
+                        break;
+                        
+                    case "update_script":
+                        var updateScriptResult = ScriptHandler.UpdateScript(command.Parameters);
+                        response = Response.SuccessResult(command.Id, updateScriptResult);
+                        break;
+                        
+                    case "delete_script":
+                        var deleteScriptResult = ScriptHandler.DeleteScript(command.Parameters);
+                        response = Response.SuccessResult(command.Id, deleteScriptResult);
+                        break;
+                        
+                    case "list_scripts":
+                        var listScriptsResult = ScriptHandler.ListScripts(command.Parameters);
+                        response = Response.SuccessResult(command.Id, listScriptsResult);
+                        break;
+                        
+                    case "validate_script":
+                        var validateScriptResult = ScriptHandler.ValidateScript(command.Parameters);
+                        response = Response.SuccessResult(command.Id, validateScriptResult);
+                        break;
+                        
+                    case "execute_menu_item":
+                        var executeMenuResult = MenuHandler.ExecuteMenuItem(command.Parameters);
+                        response = Response.SuccessResult(command.Id, executeMenuResult);
+                        break;
+                        
+                    case "clear_console":
+                        var clearConsoleResult = ConsoleHandler.ClearConsole(command.Parameters);
+                        response = Response.SuccessResult(command.Id, clearConsoleResult);
+                        break;
+                        
+                    case "enhanced_read_logs":
+                        var enhancedReadLogsResult = ConsoleHandler.EnhancedReadLogs(command.Parameters);
+                        response = Response.SuccessResult(command.Id, enhancedReadLogsResult);
+                        break;
+                        
                     default:
                         // Use new format with error details
                         response = Response.ErrorResult(

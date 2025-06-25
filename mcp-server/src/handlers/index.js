@@ -51,6 +51,21 @@ export { InstantiatePrefabToolHandler } from './asset/InstantiatePrefabToolHandl
 export { CreateMaterialToolHandler } from './asset/CreateMaterialToolHandler.js';
 export { ModifyMaterialToolHandler } from './asset/ModifyMaterialToolHandler.js';
 
+// Scripting handlers
+export { CreateScriptToolHandler } from './scripting/CreateScriptToolHandler.js';
+export { ReadScriptToolHandler } from './scripting/ReadScriptToolHandler.js';
+export { UpdateScriptToolHandler } from './scripting/UpdateScriptToolHandler.js';
+export { DeleteScriptToolHandler } from './scripting/DeleteScriptToolHandler.js';
+export { ListScriptsToolHandler } from './scripting/ListScriptsToolHandler.js';
+export { ValidateScriptToolHandler } from './scripting/ValidateScriptToolHandler.js';
+
+// Menu handlers
+export { ExecuteMenuItemToolHandler } from './menu/ExecuteMenuItemToolHandler.js';
+
+// Console handlers
+export { ClearConsoleToolHandler } from './console/ClearConsoleToolHandler.js';
+export { EnhancedReadLogsToolHandler } from './console/EnhancedReadLogsToolHandler.js';
+
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
 import { ReadLogsToolHandler } from './system/ReadLogsToolHandler.js';
@@ -84,6 +99,15 @@ import { ModifyPrefabToolHandler } from './asset/ModifyPrefabToolHandler.js';
 import { InstantiatePrefabToolHandler } from './asset/InstantiatePrefabToolHandler.js';
 import { CreateMaterialToolHandler } from './asset/CreateMaterialToolHandler.js';
 import { ModifyMaterialToolHandler } from './asset/ModifyMaterialToolHandler.js';
+import { CreateScriptToolHandler } from './scripting/CreateScriptToolHandler.js';
+import { ReadScriptToolHandler } from './scripting/ReadScriptToolHandler.js';
+import { UpdateScriptToolHandler } from './scripting/UpdateScriptToolHandler.js';
+import { DeleteScriptToolHandler } from './scripting/DeleteScriptToolHandler.js';
+import { ListScriptsToolHandler } from './scripting/ListScriptsToolHandler.js';
+import { ValidateScriptToolHandler } from './scripting/ValidateScriptToolHandler.js';
+import { ExecuteMenuItemToolHandler } from './menu/ExecuteMenuItemToolHandler.js';
+import { ClearConsoleToolHandler } from './console/ClearConsoleToolHandler.js';
+import { EnhancedReadLogsToolHandler } from './console/EnhancedReadLogsToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -131,7 +155,22 @@ const HANDLER_CLASSES = [
   ModifyPrefabToolHandler,
   InstantiatePrefabToolHandler,
   CreateMaterialToolHandler,
-  ModifyMaterialToolHandler
+  ModifyMaterialToolHandler,
+  
+  // Scripting handlers
+  CreateScriptToolHandler,
+  ReadScriptToolHandler,
+  UpdateScriptToolHandler,
+  DeleteScriptToolHandler,
+  ListScriptsToolHandler,
+  ValidateScriptToolHandler,
+  
+  // Menu handlers
+  ExecuteMenuItemToolHandler,
+  
+  // Console handlers
+  ClearConsoleToolHandler,
+  EnhancedReadLogsToolHandler
 ];
 
 /**
