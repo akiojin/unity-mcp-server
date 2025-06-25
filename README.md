@@ -78,7 +78,7 @@ Add the same configuration to Cursor's MCP settings
 
 ## Available Tools
 
-Unity Editor MCP provides **61 comprehensive tools** across 11 categories for complete Unity Editor automation:
+Unity Editor MCP provides **62 comprehensive tools** across 11 categories for complete Unity Editor automation:
 
 ### System & Core Tools (3 tools)
 - **`ping`** - Test connection to Unity Editor and verify server status
