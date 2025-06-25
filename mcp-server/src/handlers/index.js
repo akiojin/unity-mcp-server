@@ -85,6 +85,9 @@ export { StartCompilationMonitoringToolHandler } from './compilation/StartCompil
 export { StopCompilationMonitoringToolHandler } from './compilation/StopCompilationMonitoringToolHandler.js';
 export { GetCompilationStateToolHandler } from './compilation/GetCompilationStateToolHandler.js';
 
+// Editor control handlers
+export { TagManagementToolHandler } from './editor/TagManagementToolHandler.js';
+
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
 import { ReadLogsToolHandler } from './system/ReadLogsToolHandler.js';
@@ -140,6 +143,7 @@ import { GetComponentTypesToolHandler } from './component/GetComponentTypesToolH
 import { StartCompilationMonitoringToolHandler } from './compilation/StartCompilationMonitoringToolHandler.js';
 import { StopCompilationMonitoringToolHandler } from './compilation/StopCompilationMonitoringToolHandler.js';
 import { GetCompilationStateToolHandler } from './compilation/GetCompilationStateToolHandler.js';
+import { TagManagementToolHandler } from './editor/TagManagementToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -221,7 +225,10 @@ const HANDLER_CLASSES = [
   // Compilation handlers
   StartCompilationMonitoringToolHandler,
   StopCompilationMonitoringToolHandler,
-  GetCompilationStateToolHandler
+  GetCompilationStateToolHandler,
+  
+  // Editor control handlers
+  TagManagementToolHandler
 ];
 
 /**
