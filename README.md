@@ -149,32 +149,6 @@ Unity Editor MCP provides **51 comprehensive tools** across 10 categories for co
 - **`capture_screenshot`** - Take screenshots of Game View or Scene View with custom resolution and encoding
 - **`analyze_screenshot`** - Analyze screenshot content with basic image analysis capabilities
 
-## 🆕 Latest Updates
-
-### Phase 11: Complete Component System (Latest)
-Unity Editor MCP now includes a comprehensive component manipulation system with 5 new tools:
-
-- **Dynamic Component Management**: Add, remove, and modify any Unity component type at runtime
-- **Smart Type Resolution**: Automatic component type discovery across all Unity assemblies
-- **Property Control**: Full property modification with support for nested properties using dot notation
-- **Validation & Safety**: Built-in safety checks (e.g., prevents Transform component removal)
-- **Component Discovery**: Explore available component types with filtering by category and addability
-
-### Enhanced Prefab Workflow
-New prefab mode tools for professional asset management:
-
-- **Prefab Mode Integration**: Open prefabs directly in Unity's prefab mode for isolated editing
-- **Override Management**: Apply instance overrides back to prefab assets efficiently
-- **Focus & Isolation**: Target specific objects within prefabs for precise editing
-- **Save Control**: Fine-grained control over saving changes or discarding modifications
-
-### Screenshot & Analysis System
-Capture and analyze Unity Editor content:
-
-- **Multi-View Capture**: Screenshot Game View, Scene View, or custom areas
-- **Flexible Encoding**: Base64 encoding for immediate processing or file export
-- **Analysis Ready**: Built-in image analysis for content verification and testing
-
 ## 💡 Usage Examples
 
 ### Component System Workflow
