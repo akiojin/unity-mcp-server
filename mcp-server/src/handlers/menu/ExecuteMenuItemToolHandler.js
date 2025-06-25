@@ -81,14 +81,15 @@ export class ExecuteMenuItemToolHandler extends BaseToolHandler {
       throw new Error('menuPath cannot be empty');
     }
 
-    // Validate menu path format (should contain at least one slash)
-    if (!menuPath.includes('/') || menuPath.startsWith('/') || menuPath.endsWith('/')) {
-      throw new Error('menuPath must be in format "Category/MenuItem" (e.g., "Assets/Refresh")');
+    // Safety check for blacklisted items with security normalization (BEFORE format validation)
+    if (safetyCheck && this.isMenuPathBlacklisted(menuPath)) {
+      throw new Error(`Menu item is blacklisted for safety: ${menuPath}. Use safetyCheck: false to override.`);
     }
 
-    // Safety check for blacklisted items
-    if (safetyCheck && this.blacklistedMenus.has(menuPath)) {
-      throw new Error(`Menu item is blacklisted for safety: ${menuPath}. Use safetyCheck: false to override.`);
+    // Validate menu path format (should contain at least one slash) - after normalization for security
+    const normalizedForValidation = this.normalizeMenuPath(menuPath);
+    if (!normalizedForValidation.includes('/') || normalizedForValidation.startsWith('/') || normalizedForValidation.endsWith('/')) {
+      throw new Error('menuPath must be in format "Category/MenuItem" (e.g., "Assets/Refresh")');
     }
 
     // Validate action if provided
@@ -209,5 +210,74 @@ export class ExecuteMenuItemToolHandler extends BaseToolHandler {
    */
   addToBlacklist(menuPath) {
     this.blacklistedMenus.add(menuPath);
+  }
+
+  /**
+   * Securely checks if a menu path is blacklisted using normalized comparison
+   * Prevents bypass attacks using case changes, whitespace, Unicode, etc.
+   * @param {string} menuPath - The menu path to check
+   * @returns {boolean} True if the path is blacklisted
+   */
+  isMenuPathBlacklisted(menuPath) {
+    // Normalize the input path to prevent bypass attacks
+    const normalizedPath = this.normalizeMenuPath(menuPath);
+    
+    // Check against normalized blacklist entries
+    for (const blacklistedItem of this.blacklistedMenus) {
+      const normalizedBlacklistItem = this.normalizeMenuPath(blacklistedItem);
+      if (normalizedPath === normalizedBlacklistItem) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * Normalizes a menu path to prevent security bypass attacks
+   * @param {string} menuPath - The raw menu path
+   * @returns {string} The normalized path
+   */
+  normalizeMenuPath(menuPath) {
+    if (!menuPath || typeof menuPath !== 'string') {
+      return '';
+    }
+
+    // Step 1: Remove zero-width and invisible Unicode characters
+    let normalized = menuPath.replace(/[\u200B-\u200D\uFEFF\u00AD\u034F\u061C\u180E\u2060-\u2069]/g, '');
+    
+    // Step 2: Normalize Unicode to canonical form (handles homograph attacks)
+    normalized = normalized.normalize('NFC');
+    
+    // Step 3: Convert to lowercase for case-insensitive comparison
+    normalized = normalized.toLowerCase();
+    
+    // Step 4: Trim whitespace and remove all internal whitespace (security bypass prevention)
+    normalized = normalized.trim().replace(/\s+/g, '');
+    
+    // Step 5: Normalize path separators (convert backslashes to forward slashes)
+    normalized = normalized.replace(/\\/g, '/');
+    
+    // Step 6: Remove duplicate path separators
+    normalized = normalized.replace(/\/+/g, '/');
+    
+    // Step 7: Handle common homograph substitutions for ASCII characters
+    const homographMap = {
+      // Cyrillic lookalikes
+      'а': 'a', 'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'х': 'x', 'у': 'y',
+      'і': 'i', 'ј': 'j', 'ѕ': 's', 'һ': 'h', 'ց': 'q', 'ԁ': 'd', 'ɡ': 'g',
+      // Greek lookalikes
+      'α': 'a', 'β': 'b', 'γ': 'g', 'δ': 'd', 'ε': 'e', 'ζ': 'z', 'η': 'h',
+      'θ': 'o', 'ι': 'i', 'κ': 'k', 'λ': 'l', 'μ': 'm', 'ν': 'n', 'ξ': 'x',
+      'ο': 'o', 'π': 'p', 'ρ': 'p', 'σ': 's', 'τ': 't', 'υ': 'u', 'φ': 'f',
+      'χ': 'x', 'ψ': 'y', 'ω': 'w'
+    };
+    
+    // Replace homographs
+    for (const [homograph, ascii] of Object.entries(homographMap)) {
+      normalized = normalized.replace(new RegExp(homograph, 'g'), ascii);
+    }
+    
+    return normalized;
   }
 }
