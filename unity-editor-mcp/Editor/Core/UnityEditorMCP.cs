@@ -615,6 +615,17 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, enhancedReadLogsResult);
                         break;
                         
+                    // Screenshot commands
+                    case "capture_screenshot":
+                        var captureScreenshotResult = ScreenshotHandler.CaptureScreenshot(command.Parameters);
+                        response = Response.SuccessResult(command.Id, captureScreenshotResult);
+                        break;
+                        
+                    case "analyze_screenshot":
+                        var analyzeScreenshotResult = ScreenshotHandler.AnalyzeScreenshot(command.Parameters);
+                        response = Response.SuccessResult(command.Id, analyzeScreenshotResult);
+                        break;
+                        
                     default:
                         // Use new format with error details
                         response = Response.ErrorResult(

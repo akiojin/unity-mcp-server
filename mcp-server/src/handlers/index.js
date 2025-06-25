@@ -66,6 +66,10 @@ export { ExecuteMenuItemToolHandler } from './menu/ExecuteMenuItemToolHandler.js
 export { ClearConsoleToolHandler } from './console/ClearConsoleToolHandler.js';
 export { EnhancedReadLogsToolHandler } from './console/EnhancedReadLogsToolHandler.js';
 
+// Screenshot handlers
+export { CaptureScreenshotToolHandler } from './screenshot/CaptureScreenshotToolHandler.js';
+export { AnalyzeScreenshotToolHandler } from './screenshot/AnalyzeScreenshotToolHandler.js';
+
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
 import { ReadLogsToolHandler } from './system/ReadLogsToolHandler.js';
@@ -108,6 +112,8 @@ import { ValidateScriptToolHandler } from './scripting/ValidateScriptToolHandler
 import { ExecuteMenuItemToolHandler } from './menu/ExecuteMenuItemToolHandler.js';
 import { ClearConsoleToolHandler } from './console/ClearConsoleToolHandler.js';
 import { EnhancedReadLogsToolHandler } from './console/EnhancedReadLogsToolHandler.js';
+import { CaptureScreenshotToolHandler } from './screenshot/CaptureScreenshotToolHandler.js';
+import { AnalyzeScreenshotToolHandler } from './screenshot/AnalyzeScreenshotToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -170,7 +176,11 @@ const HANDLER_CLASSES = [
   
   // Console handlers
   ClearConsoleToolHandler,
-  EnhancedReadLogsToolHandler
+  EnhancedReadLogsToolHandler,
+  
+  // Screenshot handlers
+  CaptureScreenshotToolHandler,
+  AnalyzeScreenshotToolHandler
 ];
 
 /**
