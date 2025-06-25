@@ -80,6 +80,11 @@ export { ModifyComponentToolHandler } from './component/ModifyComponentToolHandl
 export { ListComponentsToolHandler } from './component/ListComponentsToolHandler.js';
 export { GetComponentTypesToolHandler } from './component/GetComponentTypesToolHandler.js';
 
+// Compilation handlers
+export { StartCompilationMonitoringToolHandler } from './compilation/StartCompilationMonitoringToolHandler.js';
+export { StopCompilationMonitoringToolHandler } from './compilation/StopCompilationMonitoringToolHandler.js';
+export { GetCompilationStateToolHandler } from './compilation/GetCompilationStateToolHandler.js';
+
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
 import { ReadLogsToolHandler } from './system/ReadLogsToolHandler.js';
@@ -132,6 +137,9 @@ import { RemoveComponentToolHandler } from './component/RemoveComponentToolHandl
 import { ModifyComponentToolHandler } from './component/ModifyComponentToolHandler.js';
 import { ListComponentsToolHandler } from './component/ListComponentsToolHandler.js';
 import { GetComponentTypesToolHandler } from './component/GetComponentTypesToolHandler.js';
+import { StartCompilationMonitoringToolHandler } from './compilation/StartCompilationMonitoringToolHandler.js';
+import { StopCompilationMonitoringToolHandler } from './compilation/StopCompilationMonitoringToolHandler.js';
+import { GetCompilationStateToolHandler } from './compilation/GetCompilationStateToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -208,7 +216,12 @@ const HANDLER_CLASSES = [
   RemoveComponentToolHandler,
   ModifyComponentToolHandler,
   ListComponentsToolHandler,
-  GetComponentTypesToolHandler
+  GetComponentTypesToolHandler,
+  
+  // Compilation handlers
+  StartCompilationMonitoringToolHandler,
+  StopCompilationMonitoringToolHandler,
+  GetCompilationStateToolHandler
 ];
 
 /**
