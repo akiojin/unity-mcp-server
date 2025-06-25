@@ -133,29 +133,32 @@ export class ListScriptsToolHandler extends BaseToolHandler {
     const response = await this.unityConnection.sendCommand('list_scripts', commandParams);
 
     // Handle Unity response
-    if (response.success === false) {
+    if (response.success === false || response.status === 'error') {
       throw new Error(response.error || 'Failed to list scripts');
     }
 
+    // Handle nested data structure from Unity
+    const data = response.data || response;
+
     // Build result object
     const result = {
-      scripts: response.scripts || [],
-      totalCount: response.totalCount || 0,
-      message: response.message || 'Scripts listed successfully'
+      scripts: data.scripts || [],
+      totalCount: data.totalCount || 0,
+      message: data.message || 'Scripts listed successfully'
     };
 
     // Include optional metadata if available
-    if (response.hasMore !== undefined) {
-      result.hasMore = response.hasMore;
+    if (data.hasMore !== undefined) {
+      result.hasMore = data.hasMore;
     }
-    if (response.nextOffset !== undefined) {
-      result.nextOffset = response.nextOffset;
+    if (data.nextOffset !== undefined) {
+      result.nextOffset = data.nextOffset;
     }
-    if (response.typeDistribution) {
-      result.typeDistribution = response.typeDistribution;
+    if (data.typeDistribution) {
+      result.typeDistribution = data.typeDistribution;
     }
-    if (response.searchTime !== undefined) {
-      result.searchTime = response.searchTime;
+    if (data.searchTime !== undefined) {
+      result.searchTime = data.searchTime;
     }
 
     return result;

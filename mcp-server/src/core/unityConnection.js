@@ -265,7 +265,22 @@ export class UnityConnection extends EventEmitter {
             // Handle both old and new response formats
             if (response.status === 'success' || response.success === true) {
               logger.info(`[Unity] Command ${response.id} succeeded`);
-              pending.resolve(response.result || response.data || {});
+              
+              let result = response.result || response.data || {};
+              
+              // If result is a string, try to parse it as JSON
+              if (typeof result === 'string') {
+                try {
+                  result = JSON.parse(result);
+                  logger.info(`[Unity] Parsed string result as JSON:`, result);
+                } catch (parseError) {
+                  logger.warn(`[Unity] Failed to parse result as JSON: ${parseError.message}`);
+                  // Keep the original string value
+                }
+              }
+              
+              logger.info(`[Unity] Command ${response.id} resolved successfully`);
+              pending.resolve(result);
             } else if (response.status === 'error' || response.success === false) {
               logger.error(`[Unity] Command ${response.id} failed:`, response.error);
               pending.reject(new Error(response.error || 'Command failed'));

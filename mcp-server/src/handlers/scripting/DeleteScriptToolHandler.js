@@ -116,34 +116,37 @@ export class DeleteScriptToolHandler extends BaseToolHandler {
     const response = await this.unityConnection.sendCommand('delete_script', commandParams);
 
     // Handle Unity response
-    if (response.success === false) {
+    if (response.success === false || response.status === 'error') {
       throw new Error(response.error || 'Failed to delete script');
     }
 
+    // Handle nested data structure from Unity
+    const data = response.data || response;
+
     // Build result object
     const result = {
-      message: response.message || 'Script deleted successfully'
+      message: data.message || 'Script deleted successfully'
     };
 
     // Handle single or multiple deletions
-    if (response.deletedPaths && Array.isArray(response.deletedPaths)) {
-      result.deletedPaths = response.deletedPaths;
-    } else if (response.scriptPath) {
-      result.scriptPath = response.scriptPath;
+    if (data.deletedPaths && Array.isArray(data.deletedPaths)) {
+      result.deletedPaths = data.deletedPaths;
+    } else if (data.scriptPath) {
+      result.scriptPath = data.scriptPath;
     }
 
     // Include optional metadata if available
-    if (response.backupPath) {
-      result.backupPath = response.backupPath;
+    if (data.backupPath) {
+      result.backupPath = data.backupPath;
     }
-    if (response.fileSize !== undefined) {
-      result.fileSize = response.fileSize;
+    if (data.fileSize !== undefined) {
+      result.fileSize = data.fileSize;
     }
-    if (response.lastModified) {
-      result.lastModified = response.lastModified;
+    if (data.lastModified) {
+      result.lastModified = data.lastModified;
     }
-    if (response.deletedCount !== undefined) {
-      result.deletedCount = response.deletedCount;
+    if (data.deletedCount !== undefined) {
+      result.deletedCount = data.deletedCount;
     }
 
     return result;

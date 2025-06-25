@@ -112,13 +112,16 @@ export class CreateScriptToolHandler extends BaseToolHandler {
     const response = await this.unityConnection.sendCommand('create_script', commandParams);
 
     // Handle Unity response
-    if (response.success === false) {
+    if (response.success === false || response.status === 'error') {
       throw new Error(response.error || 'Failed to create script');
     }
 
+    // Handle nested data structure from Unity
+    const data = response.data || response;
+    
     return {
-      scriptPath: response.scriptPath,
-      message: response.message || 'Script created successfully'
+      scriptPath: data.scriptPath,
+      message: data.message || 'Script created successfully'
     };
   }
 

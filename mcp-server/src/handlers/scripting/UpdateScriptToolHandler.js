@@ -133,28 +133,31 @@ export class UpdateScriptToolHandler extends BaseToolHandler {
     const response = await this.unityConnection.sendCommand('update_script', commandParams);
 
     // Handle Unity response
-    if (response.success === false) {
+    if (response.success === false || response.status === 'error') {
       throw new Error(response.error || 'Failed to update script');
     }
 
+    // Handle nested data structure from Unity
+    const data = response.data || response;
+
     // Build result object
     const result = {
-      scriptPath: response.scriptPath,
-      message: response.message || 'Script updated successfully'
+      scriptPath: data.scriptPath,
+      message: data.message || 'Script updated successfully'
     };
 
     // Include optional metadata if available
-    if (response.linesChanged !== undefined) {
-      result.linesChanged = response.linesChanged;
+    if (data.linesChanged !== undefined) {
+      result.linesChanged = data.linesChanged;
     }
-    if (response.backupPath) {
-      result.backupPath = response.backupPath;
+    if (data.backupPath) {
+      result.backupPath = data.backupPath;
     }
-    if (response.previousSize !== undefined) {
-      result.previousSize = response.previousSize;
+    if (data.previousSize !== undefined) {
+      result.previousSize = data.previousSize;
     }
-    if (response.newSize !== undefined) {
-      result.newSize = response.newSize;
+    if (data.newSize !== undefined) {
+      result.newSize = data.newSize;
     }
 
     return result;

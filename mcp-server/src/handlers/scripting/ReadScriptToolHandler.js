@@ -109,29 +109,32 @@ export class ReadScriptToolHandler extends BaseToolHandler {
     const response = await this.unityConnection.sendCommand('read_script', commandParams);
 
     // Handle Unity response
-    if (response.success === false) {
+    if (response.success === false || response.status === 'error') {
       throw new Error(response.error || 'Failed to read script');
     }
 
+    // Handle nested data structure from Unity
+    const data = response.data || response;
+
     // Build result object
     const result = {
-      scriptContent: response.scriptContent,
-      scriptPath: response.scriptPath
+      scriptContent: data.scriptContent,
+      scriptPath: data.scriptPath
     };
 
     // Include metadata if requested and available
     if (includeMetadata) {
-      if (response.lastModified) {
-        result.lastModified = response.lastModified;
+      if (data.lastModified) {
+        result.lastModified = data.lastModified;
       }
-      if (response.lineCount !== undefined) {
-        result.lineCount = response.lineCount;
+      if (data.lineCount !== undefined) {
+        result.lineCount = data.lineCount;
       }
-      if (response.fileSize !== undefined) {
-        result.fileSize = response.fileSize;
+      if (data.fileSize !== undefined) {
+        result.fileSize = data.fileSize;
       }
-      if (response.encoding) {
-        result.encoding = response.encoding;
+      if (data.encoding) {
+        result.encoding = data.encoding;
       }
     }
 

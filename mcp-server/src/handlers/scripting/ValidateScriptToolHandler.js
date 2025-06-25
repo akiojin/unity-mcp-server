@@ -130,33 +130,36 @@ export class ValidateScriptToolHandler extends BaseToolHandler {
     const response = await this.unityConnection.sendCommand('validate_script', commandParams);
 
     // Handle Unity response
-    if (response.success === false) {
+    if (response.success === false || response.status === 'error') {
       throw new Error(response.error || 'Failed to validate script');
     }
 
+    // Handle nested data structure from Unity
+    const data = response.data || response;
+
     // Build result object
     const result = {
-      isValid: response.isValid,
-      errors: response.errors || [],
-      warnings: response.warnings || [],
-      message: response.message || 'Script validation completed'
+      isValid: data.isValid,
+      errors: data.errors || [],
+      warnings: data.warnings || [],
+      message: data.message || 'Script validation completed'
     };
 
     // Include optional data if available
-    if (response.suggestions && Array.isArray(response.suggestions)) {
-      result.suggestions = response.suggestions;
+    if (data.suggestions && Array.isArray(data.suggestions)) {
+      result.suggestions = data.suggestions;
     }
-    if (response.scriptPath) {
-      result.scriptPath = response.scriptPath;
+    if (data.scriptPath) {
+      result.scriptPath = data.scriptPath;
     }
-    if (response.statistics) {
-      result.statistics = response.statistics;
+    if (data.statistics) {
+      result.statistics = data.statistics;
     }
-    if (response.validationTime !== undefined) {
-      result.validationTime = response.validationTime;
+    if (data.validationTime !== undefined) {
+      result.validationTime = data.validationTime;
     }
-    if (response.unityVersion) {
-      result.unityVersion = response.unityVersion;
+    if (data.unityVersion) {
+      result.unityVersion = data.unityVersion;
     }
 
     return result;

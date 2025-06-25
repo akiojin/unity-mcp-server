@@ -57,12 +57,37 @@ export class MockUnityServer extends EventEmitter {
 
               // Get predefined response or create default
               let response = this.responses.get(request.type);
+              
+              // If response is a function, call it with the request
+              if (typeof response === 'function') {
+                const result = response(request.params, request);
+                response = {
+                  id: request.id,
+                  status: result.success === false ? 'error' : 'success',
+                  ...(result.success === false ? { error: result.error } : { result })
+                };
+              }
+              
               if (!response) {
                 if (request.type === 'test_error') {
                   response = {
                     id: request.id,
                     status: 'error',
                     error: 'Test error message'
+                  };
+                } else if (request.type === 'execute_menu_item') {
+                  // Default response for menu execution
+                  response = {
+                    id: request.id,
+                    status: 'success',
+                    result: {
+                      success: true,
+                      menuPath: request.params.menuPath,
+                      message: `Menu item executed successfully: ${request.params.menuPath}`,
+                      executed: true,
+                      executionTime: 25,
+                      menuExists: true
+                    }
                   };
                 } else {
                   response = {
@@ -126,6 +151,10 @@ export class MockUnityServer extends EventEmitter {
 
   setResponse(commandType, response) {
     this.responses.set(commandType, response);
+  }
+
+  setHandler(commandType, handlerFn) {
+    this.responses.set(commandType, handlerFn);
   }
 
   setResponseDelay(ms) {
