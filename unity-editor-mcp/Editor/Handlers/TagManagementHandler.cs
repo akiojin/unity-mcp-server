@@ -102,9 +102,13 @@ namespace UnityEditorMCP.Handlers
                     return new { error = $"Tag \"{tagName}\" is reserved and cannot be added" };
                 }
 
-                // Add the tag
-                var newTags = new List<string>(currentTags) { tagName };
-                InternalEditorUtility.tags = newTags.ToArray();
+                // Add the tag using SerializedObject approach
+                var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+                var tagsProp = tagManager.FindProperty("tags");
+                
+                tagsProp.InsertArrayElementAtIndex(tagsProp.arraySize);
+                tagsProp.GetArrayElementAtIndex(tagsProp.arraySize - 1).stringValue = tagName;
+                tagManager.ApplyModifiedProperties();
 
                 // Force refresh of the tags
                 AssetDatabase.Refresh();
@@ -115,7 +119,7 @@ namespace UnityEditorMCP.Handlers
                     action = "add",
                     tagName = tagName,
                     message = $"Tag \"{tagName}\" added successfully",
-                    tagsCount = newTags.Count
+                    tagsCount = InternalEditorUtility.tags.Length
                 };
             }
             catch (Exception e)
@@ -157,9 +161,19 @@ namespace UnityEditorMCP.Handlers
                     Debug.LogWarning($"[TagManagementHandler] Removing tag '{tagName}' while {gameObjectsWithTag.Length} GameObjects are still using it");
                 }
 
-                // Remove the tag
-                var newTags = currentTags.Where(t => t != tagName).ToArray();
-                InternalEditorUtility.tags = newTags;
+                // Remove the tag using SerializedObject approach
+                var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+                var tagsProp = tagManager.FindProperty("tags");
+                
+                for (int i = 0; i < tagsProp.arraySize; i++)
+                {
+                    if (tagsProp.GetArrayElementAtIndex(i).stringValue == tagName)
+                    {
+                        tagsProp.DeleteArrayElementAtIndex(i);
+                        break;
+                    }
+                }
+                tagManager.ApplyModifiedProperties();
 
                 // Force refresh of the tags
                 AssetDatabase.Refresh();
@@ -170,7 +184,7 @@ namespace UnityEditorMCP.Handlers
                     action = "remove",
                     tagName = tagName,
                     message = $"Tag \"{tagName}\" removed successfully",
-                    tagsCount = newTags.Length,
+                    tagsCount = InternalEditorUtility.tags.Length,
                     gameObjectsAffected = gameObjectsWithTag.Length
                 };
             }

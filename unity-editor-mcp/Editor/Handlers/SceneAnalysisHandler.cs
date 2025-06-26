@@ -1482,7 +1482,7 @@ namespace UnityEditorMCP.Handlers
                     if (fieldValue == null) continue;
 
                     // Direct GameObject reference
-                    if (fieldValue == targetObject)
+                    if (ReferenceEquals(fieldValue, targetObject))
                     {
                         references.Add((field.Name, "direct"));
                     }

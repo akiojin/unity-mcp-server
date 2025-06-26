@@ -3,8 +3,6 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json.Linq;
-using System.Collections;
-using Unity.EditorCoroutines.Editor;
 
 namespace UnityEditorMCP.Handlers
 {

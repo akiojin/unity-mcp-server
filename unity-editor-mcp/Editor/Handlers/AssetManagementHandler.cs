@@ -816,7 +816,7 @@ namespace UnityEditorMCP.Handlers
                 bool changesSaved = false;
 
                 // Save changes if requested
-                if (saveChanges && currentStage.HasSceneBeenModified())
+                if (saveChanges && currentStage.scene.isDirty)
                 {
                     try
                     {
@@ -867,7 +867,7 @@ namespace UnityEditorMCP.Handlers
                     // Save current prefab in prefab mode
                     string prefabPath = currentStage.assetPath;
                     
-                    if (currentStage.HasSceneBeenModified())
+                    if (currentStage.scene.isDirty)
                     {
                         PrefabUtility.SaveAsPrefabAsset(currentStage.prefabContentsRoot, prefabPath);
                         
@@ -920,7 +920,7 @@ namespace UnityEditorMCP.Handlers
                     else
                     {
                         // Apply only root object overrides
-                        PrefabUtility.ApplyObjectOverride(gameObject, PrefabUtility.GetCorrespondingObjectFromSource(gameObject), InteractionMode.UserAction);
+                        PrefabUtility.ApplyObjectOverride(gameObject, AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(gameObject)), InteractionMode.UserAction);
                     }
 
                     return new
@@ -944,7 +944,5 @@ namespace UnityEditorMCP.Handlers
                 return new { error = $"Failed to save prefab: {e.Message}" };
             }
         }
-
-        #endregion
     }
 }

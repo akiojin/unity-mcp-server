@@ -44,7 +44,6 @@ namespace UnityEditorMCP.Handlers
                     // Subscribe to compilation events
                     CompilationPipeline.compilationStarted += OnCompilationStarted;
                     CompilationPipeline.compilationFinished += OnCompilationFinished;
-                    CompilationPipeline.assemblyCompilationStarted += OnAssemblyCompilationStarted;
                     CompilationPipeline.assemblyCompilationFinished += OnAssemblyCompilationFinished;
                     
                     isMonitoring = true;
@@ -77,7 +76,6 @@ namespace UnityEditorMCP.Handlers
                     // Unsubscribe from compilation events
                     CompilationPipeline.compilationStarted -= OnCompilationStarted;
                     CompilationPipeline.compilationFinished -= OnCompilationFinished;
-                    CompilationPipeline.assemblyCompilationStarted -= OnAssemblyCompilationStarted;
                     CompilationPipeline.assemblyCompilationFinished -= OnAssemblyCompilationFinished;
                     
                     isMonitoring = false;
@@ -315,13 +313,6 @@ namespace UnityEditorMCP.Handlers
             EditorApplication.delayCall += () => CaptureCompilationResults();
         }
 
-        /// <summary>
-        /// Event handler for assembly compilation started
-        /// </summary>
-        private static void OnAssemblyCompilationStarted(string assemblyName, CompilerMessage[] messages)
-        {
-            Debug.Log($"[CompilationHandler] Assembly compilation started: {assemblyName}");
-        }
 
         /// <summary>
         /// Event handler for assembly compilation finished
