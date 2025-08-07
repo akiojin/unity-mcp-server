@@ -16,6 +16,10 @@ services:
       - GITHUB_PERSONAL_ACCESS_TOKEN
       - GITHUB_USERNAME
       - DOCKER_HOST=unix:///var/run/docker.sock
+      - UNITY_HOST=host.docker.internal
+      - UNITY_PORT=6400
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     stdin_open: true
     tty: true
     restart: unless-stopped
