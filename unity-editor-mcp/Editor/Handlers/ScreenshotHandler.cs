@@ -79,7 +79,13 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
-                // Get the Game View
+                // Try to capture from main camera if in Play Mode
+                if (EditorApplication.isPlaying && Camera.main != null)
+                {
+                    return CaptureFromCamera(Camera.main, outputPath, width, height, "game", encodeAsBase64);
+                }
+                
+                // Otherwise try to get Game View and capture it
                 var gameViewType = typeof(Editor).Assembly.GetType("UnityEditor.GameView");
                 var gameView = EditorWindow.GetWindow(gameViewType, false);
                 
@@ -91,67 +97,53 @@ namespace UnityEditorMCP.Handlers
                 // Focus the Game View
                 gameView.Focus();
                 
-                // Get current resolution
-                var currentResolution = GetGameViewResolution();
+                // Use reflection to get the Game View's render size
+                var renderSize = GetGameViewRenderSize(gameView);
+                int captureWidth = width > 0 ? width : renderSize.x;
+                int captureHeight = height > 0 ? height : renderSize.y;
                 
-                // Determine capture resolution
-                int captureWidth = width > 0 ? width : currentResolution.x;
-                int captureHeight = height > 0 ? height : currentResolution.y;
+                // Create RenderTexture and capture
+                byte[] imageBytes = CaptureWindowImmediate(captureWidth, captureHeight);
                 
-                // Take screenshot using ScreenCapture
-                string tempPath = Path.GetTempFileName() + ".png";
-                ScreenCapture.CaptureScreenshot(tempPath);
-                
-                // Wait for file to be written
-                System.Threading.Thread.Sleep(100);
-                
-                // Read and process the screenshot
-                if (File.Exists(tempPath))
+                if (imageBytes == null || imageBytes.Length == 0)
                 {
-                    byte[] imageBytes = File.ReadAllBytes(tempPath);
-                    
-                    // Save to final location
-                    File.WriteAllBytes(outputPath, imageBytes);
-                    File.Delete(tempPath);
-                    
-                    // Refresh asset database
-                    AssetDatabase.Refresh();
-                    
-                    var result = new
+                    return new { error = "Failed to capture Game View - no image data" };
+                }
+                
+                // Save to file
+                File.WriteAllBytes(outputPath, imageBytes);
+                AssetDatabase.Refresh();
+                
+                var result = new
+                {
+                    success = true,
+                    path = outputPath,
+                    width = captureWidth,
+                    height = captureHeight,
+                    captureMode = "game",
+                    includeUI = includeUI,
+                    fileSize = imageBytes.Length,
+                    message = "Game View screenshot captured successfully"
+                };
+                
+                // Add base64 if requested
+                if (encodeAsBase64)
+                {
+                    return new
                     {
-                        success = true,
-                        path = outputPath,
-                        width = captureWidth,
-                        height = captureHeight,
-                        captureMode = "game",
-                        includeUI = includeUI,
-                        fileSize = imageBytes.Length,
-                        message = "Game View screenshot captured successfully"
+                        result.success,
+                        result.path,
+                        result.width,
+                        result.height,
+                        result.captureMode,
+                        result.includeUI,
+                        result.fileSize,
+                        result.message,
+                        base64Data = Convert.ToBase64String(imageBytes)
                     };
-                    
-                    // Add base64 if requested
-                    if (encodeAsBase64)
-                    {
-                        return new
-                        {
-                            result.success,
-                            result.path,
-                            result.width,
-                            result.height,
-                            result.captureMode,
-                            result.includeUI,
-                            result.fileSize,
-                            result.message,
-                            base64Data = Convert.ToBase64String(imageBytes)
-                        };
-                    }
-                    
-                    return result;
                 }
-                else
-                {
-                    return new { error = "Failed to capture screenshot - file not created" };
-                }
+                
+                return result;
             }
             catch (Exception ex)
             {
@@ -502,6 +494,187 @@ namespace UnityEditorMCP.Handlers
         private static bool IsValidCaptureMode(string mode)
         {
             return mode == "game" || mode == "scene" || mode == "window";
+        }
+        
+        /// <summary>
+        /// Captures from a specific camera using RenderTexture
+        /// </summary>
+        private static object CaptureFromCamera(Camera camera, string outputPath, int width, int height, string captureMode, bool encodeAsBase64)
+        {
+            try
+            {
+                // Determine capture resolution
+                int captureWidth = width > 0 ? width : camera.pixelWidth;
+                int captureHeight = height > 0 ? height : camera.pixelHeight;
+                
+                // Create RenderTexture
+                RenderTexture renderTexture = new RenderTexture(captureWidth, captureHeight, 24);
+                RenderTexture previousTarget = camera.targetTexture;
+                
+                // Set camera to render to our texture
+                camera.targetTexture = renderTexture;
+                camera.Render();
+                
+                // Read pixels from render texture
+                RenderTexture.active = renderTexture;
+                Texture2D screenshot = new Texture2D(captureWidth, captureHeight, TextureFormat.RGB24, false);
+                screenshot.ReadPixels(new Rect(0, 0, captureWidth, captureHeight), 0, 0);
+                screenshot.Apply();
+                
+                // Restore camera settings
+                camera.targetTexture = previousTarget;
+                RenderTexture.active = null;
+                
+                // Encode to PNG
+                byte[] imageBytes = screenshot.EncodeToPNG();
+                
+                // Cleanup
+                UnityEngine.Object.DestroyImmediate(renderTexture);
+                UnityEngine.Object.DestroyImmediate(screenshot);
+                
+                if (imageBytes == null || imageBytes.Length == 0)
+                {
+                    return new { error = "Failed to encode screenshot" };
+                }
+                
+                // Save to file
+                File.WriteAllBytes(outputPath, imageBytes);
+                AssetDatabase.Refresh();
+                
+                var result = new
+                {
+                    success = true,
+                    path = outputPath,
+                    width = captureWidth,
+                    height = captureHeight,
+                    captureMode = captureMode,
+                    fileSize = imageBytes.Length,
+                    message = $"Screenshot captured successfully from {camera.name}"
+                };
+                
+                // Add base64 if requested
+                if (encodeAsBase64)
+                {
+                    return new
+                    {
+                        result.success,
+                        result.path,
+                        result.width,
+                        result.height,
+                        result.captureMode,
+                        result.fileSize,
+                        result.message,
+                        base64Data = Convert.ToBase64String(imageBytes)
+                    };
+                }
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new { error = $"Failed to capture from camera: {ex.Message}" };
+            }
+        }
+        
+        /// <summary>
+        /// Gets the Game View render size using reflection
+        /// </summary>
+        private static Vector2Int GetGameViewRenderSize(EditorWindow gameView)
+        {
+            try
+            {
+                var gameViewType = gameView.GetType();
+                var prop = gameViewType.GetProperty("currentGameViewSize", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    
+                if (prop != null)
+                {
+                    var size = prop.GetValue(gameView);
+                    if (size != null)
+                    {
+                        var widthProp = size.GetType().GetProperty("width");
+                        var heightProp = size.GetType().GetProperty("height");
+                        
+                        if (widthProp != null && heightProp != null)
+                        {
+                            int width = (int)widthProp.GetValue(size);
+                            int height = (int)heightProp.GetValue(size);
+                            return new Vector2Int(width, height);
+                        }
+                    }
+                }
+                
+                // Fallback to window position size
+                return new Vector2Int((int)gameView.position.width, (int)gameView.position.height);
+            }
+            catch
+            {
+                // Default resolution if reflection fails
+                return new Vector2Int(1920, 1080);
+            }
+        }
+        
+        /// <summary>
+        /// Captures the current window immediately using screen capture
+        /// </summary>
+        private static byte[] CaptureWindowImmediate(int width, int height)
+        {
+            try
+            {
+                // Create a render texture for immediate capture
+                RenderTexture renderTexture = new RenderTexture(width, height, 24);
+                
+                // Try to capture from main camera
+                Camera camera = Camera.main;
+                if (camera == null)
+                {
+                    // Try to find any active camera
+                    camera = Camera.current;
+                    if (camera == null)
+                    {
+                        var cameras = Camera.allCameras;
+                        if (cameras.Length > 0)
+                        {
+                            camera = cameras[0];
+                        }
+                    }
+                }
+                
+                if (camera != null)
+                {
+                    RenderTexture previousTarget = camera.targetTexture;
+                    camera.targetTexture = renderTexture;
+                    camera.Render();
+                    camera.targetTexture = previousTarget;
+                }
+                else
+                {
+                    // No camera available, return null
+                    UnityEngine.Object.DestroyImmediate(renderTexture);
+                    return null;
+                }
+                
+                // Read pixels
+                RenderTexture.active = renderTexture;
+                Texture2D screenshot = new Texture2D(width, height, TextureFormat.RGB24, false);
+                screenshot.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                screenshot.Apply();
+                
+                // Cleanup render texture
+                RenderTexture.active = null;
+                UnityEngine.Object.DestroyImmediate(renderTexture);
+                
+                // Encode to PNG
+                byte[] imageBytes = screenshot.EncodeToPNG();
+                UnityEngine.Object.DestroyImmediate(screenshot);
+                
+                return imageBytes;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to capture window immediately: {ex.Message}");
+                return null;
+            }
         }
     }
 }
