@@ -40,6 +40,11 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
           nameOnly: {
             type: 'boolean',
             description: 'Return only names and paths for minimal data size (default: false)'
+          },
+          maxObjects: {
+            type: 'number',
+            description: 'Maximum number of objects to include in response (default: 1000, -1 for unlimited)',
+            minimum: -1
           }
         },
         required: []
@@ -62,6 +67,14 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
       const depth = Number(params.maxDepth);
       if (isNaN(depth) || depth < -1) {
         throw new Error('maxDepth must be -1 or a positive number');
+      }
+    }
+    
+    // Validate maxObjects
+    if (params.maxObjects !== undefined) {
+      const maxObjects = Number(params.maxObjects);
+      if (isNaN(maxObjects) || maxObjects < -1) {
+        throw new Error('maxObjects must be -1 or a positive number');
       }
     }
   }

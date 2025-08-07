@@ -45,8 +45,20 @@ describe('GetHierarchyToolHandler', () => {
         "includeTransform": false,
         "includeTags": false,
         "includeLayers": false,
-        "nameOnly": true
+        "nameOnly": true,
+        "maxObjects": 1000
       }));
+    });
+
+    it('should pass with valid maxObjects values', () => {
+      assert.doesNotThrow(() => handler.validate({ "maxObjects": -1 }));
+      assert.doesNotThrow(() => handler.validate({ "maxObjects": 0 }));
+      assert.doesNotThrow(() => handler.validate({ "maxObjects": 100 }));
+    });
+
+    it('should throw with invalid maxObjects values', () => {
+      assert.throws(() => handler.validate({ "maxObjects": -2 }), /maxObjects must be -1 or a positive number/);
+      assert.throws(() => handler.validate({ "maxObjects": "invalid" }), /maxObjects must be -1 or a positive number/);
     });
 
   });

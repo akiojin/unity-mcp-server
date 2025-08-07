@@ -469,6 +469,13 @@ namespace UnityEditorMCP.Handlers
         /// <summary>
         /// Gets the scene hierarchy
         /// </summary>
+        // Helper class for tracking object count during hierarchy traversal
+        private class ObjectCounter
+        {
+            public int MaxObjects { get; set; }
+            public int CurrentCount { get; set; }
+        }
+
         public static object GetHierarchy(JObject parameters)
         {
             try
@@ -480,26 +487,47 @@ namespace UnityEditorMCP.Handlers
                 bool includeTags = parameters["includeTags"]?.ToObject<bool>() ?? false;
                 bool includeLayers = parameters["includeLayers"]?.ToObject<bool>() ?? false;
                 bool nameOnly = parameters["nameOnly"]?.ToObject<bool>() ?? false;
+                int maxObjects = parameters["maxObjects"]?.ToObject<int>() ?? 1000;
                 
                 // Get root GameObjects
                 GameObject[] rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
                 
-                // Build hierarchy
+                // Build hierarchy with object count tracking
                 List<object> hierarchy = new List<object>();
+                var objectCounter = new ObjectCounter { MaxObjects = maxObjects, CurrentCount = 0 };
+                
                 foreach (var root in rootObjects)
                 {
                     if (!includeInactive && !root.activeInHierarchy)
                         continue;
+                    
+                    // Check if we've hit the object limit
+                    if (objectCounter.MaxObjects > 0 && objectCounter.CurrentCount >= objectCounter.MaxObjects)
+                        break;
                         
-                    hierarchy.Add(BuildHierarchyNode(root, 0, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly));
+                    var node = BuildHierarchyNode(root, 0, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly, objectCounter);
+                    if (node != null)
+                    {
+                        hierarchy.Add(node);
+                    }
                 }
                 
-                return new
+                var result = new Dictionary<string, object>
                 {
-                    sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
-                    objectCount = hierarchy.Count,
-                    hierarchy = hierarchy
+                    ["sceneName"] = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
+                    ["objectCount"] = hierarchy.Count,
+                    ["hierarchy"] = hierarchy
                 };
+                
+                // Add truncation info if we hit the limit
+                if (objectCounter.MaxObjects > 0 && objectCounter.CurrentCount >= objectCounter.MaxObjects)
+                {
+                    result["truncated"] = true;
+                    result["maxObjectsReached"] = objectCounter.MaxObjects;
+                    result["message"] = $"Hierarchy truncated at {objectCounter.MaxObjects} objects to prevent response size overflow";
+                }
+                
+                return result;
             }
             catch (Exception ex)
             {
@@ -510,8 +538,16 @@ namespace UnityEditorMCP.Handlers
         /// <summary>
         /// Builds a hierarchy node for a GameObject
         /// </summary>
-        private static object BuildHierarchyNode(GameObject obj, int currentDepth, int maxDepth, bool includeInactive, bool includeComponents, bool includeTransform, bool includeTags, bool includeLayers, bool nameOnly)
+        private static object BuildHierarchyNode(GameObject obj, int currentDepth, int maxDepth, bool includeInactive, bool includeComponents, bool includeTransform, bool includeTags, bool includeLayers, bool nameOnly, ObjectCounter counter)
         {
+            // Check object limit before processing
+            if (counter.MaxObjects > 0 && counter.CurrentCount >= counter.MaxObjects)
+            {
+                return null;
+            }
+            
+            counter.CurrentCount++;
+            
             // Name only mode - minimal data
             if (nameOnly)
             {
@@ -521,7 +557,7 @@ namespace UnityEditorMCP.Handlers
                     ["path"] = GetGameObjectPath(obj)
                 };
                 
-                // Add children if within depth limit
+                // Add children if within depth limit and object limit
                 if (maxDepth < 0 || currentDepth < maxDepth)
                 {
                     List<object> children = new List<object>();
@@ -529,8 +565,16 @@ namespace UnityEditorMCP.Handlers
                     {
                         if (!includeInactive && !child.gameObject.activeInHierarchy)
                             continue;
+                        
+                        // Check object limit before adding child
+                        if (counter.MaxObjects > 0 && counter.CurrentCount >= counter.MaxObjects)
+                            break;
                             
-                        children.Add(BuildHierarchyNode(child.gameObject, currentDepth + 1, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly));
+                        var childNode = BuildHierarchyNode(child.gameObject, currentDepth + 1, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly, counter);
+                        if (childNode != null)
+                        {
+                            children.Add(childNode);
+                        }
                     }
                     
                     if (children.Count > 0)
@@ -588,7 +632,7 @@ namespace UnityEditorMCP.Handlers
                 node["components"] = componentList;
             }
             
-            // Add children if within depth limit
+            // Add children if within depth limit and object limit
             if (maxDepth < 0 || currentDepth < maxDepth)
             {
                 List<object> children = new List<object>();
@@ -596,8 +640,16 @@ namespace UnityEditorMCP.Handlers
                 {
                     if (!includeInactive && !child.gameObject.activeInHierarchy)
                         continue;
+                    
+                    // Check object limit before adding child
+                    if (counter.MaxObjects > 0 && counter.CurrentCount >= counter.MaxObjects)
+                        break;
                         
-                    children.Add(BuildHierarchyNode(child.gameObject, currentDepth + 1, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly));
+                    var childNode = BuildHierarchyNode(child.gameObject, currentDepth + 1, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly, counter);
+                    if (childNode != null)
+                    {
+                        children.Add(childNode);
+                    }
                 }
                 
                 if (children.Count > 0)
