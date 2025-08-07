@@ -222,6 +222,7 @@ namespace UnityEditorMCP.Handlers
                     Type logEntryType = typeof(EditorApplication).Assembly.GetType("UnityEditor.LogEntry");
                     object logEntryInstance = Activator.CreateInstance(logEntryType);
 
+
                     // Process entries (newest first by default)
                     for (int i = totalEntries - 1; i >= 0 && logs.Count < count; i--)
                     {
@@ -423,21 +424,22 @@ namespace UnityEditorMCP.Handlers
         /// </summary>
         private static LogType GetLogTypeFromMode(int mode)
         {
-            if ((mode & (ModeBitError | ModeBitScriptingError | ModeBitException | ModeBitScriptingException)) != 0)
+            // Check for Exception first (most specific)
+            if ((mode & (ModeBitException | ModeBitScriptingException)) != 0)
             {
-                return LogType.Error;
+                return LogType.Exception;
             }
             else if ((mode & (ModeBitAssert | ModeBitScriptingAssertion)) != 0)
             {
                 return LogType.Assert;
             }
+            else if ((mode & (ModeBitError | ModeBitScriptingError)) != 0)
+            {
+                return LogType.Error;
+            }
             else if ((mode & (ModeBitWarning | ModeBitScriptingWarning)) != 0)
             {
                 return LogType.Warning;
-            }
-            else if ((mode & ModeBitException) != 0)
-            {
-                return LogType.Exception;
             }
             else
             {
