@@ -144,7 +144,6 @@ namespace UnityEditorMCP.Handlers
                 
                 var result = new
                 {
-                    success = true,
                     path = outputPath,
                     width = captureWidth,
                     height = captureHeight,
@@ -159,7 +158,6 @@ namespace UnityEditorMCP.Handlers
                 {
                     return new
                     {
-                        result.success,
                         result.path,
                         result.width,
                         result.height,
@@ -235,7 +233,6 @@ namespace UnityEditorMCP.Handlers
                 
                 var result = new
                 {
-                    success = true,
                     path = outputPath,
                     width = captureWidth,
                     height = captureHeight,
@@ -251,7 +248,6 @@ namespace UnityEditorMCP.Handlers
                 {
                     return new
                     {
-                        result.success,
                         result.path,
                         result.width,
                         result.height,
@@ -311,12 +307,7 @@ namespace UnityEditorMCP.Handlers
                 
                 // Note: Direct window capture is limited in Unity Editor
                 // This is a placeholder for the approach
-                return new
-                {
-                    success = false,
-                    error = "Direct window capture is not fully supported. Use 'game' or 'scene' mode instead.",
-                    note = "Window capture requires platform-specific implementation"
-                };
+                return new { error = "Direct window capture is not fully supported. Use 'game' or 'scene' mode instead." };
             }
             catch (Exception ex)
             {
@@ -571,7 +562,6 @@ namespace UnityEditorMCP.Handlers
                 
                 var result = new
                 {
-                    success = true,
                     path = outputPath,
                     width = captureWidth,
                     height = captureHeight,
@@ -585,7 +575,6 @@ namespace UnityEditorMCP.Handlers
                 {
                     return new
                     {
-                        result.success,
                         result.path,
                         result.width,
                         result.height,
