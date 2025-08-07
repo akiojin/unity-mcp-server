@@ -24,6 +24,22 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
           includeComponents: {
             type: 'boolean',
             description: 'Include component information (default: false)'
+          },
+          includeTransform: {
+            type: 'boolean',
+            description: 'Include transform information (default: false)'
+          },
+          includeTags: {
+            type: 'boolean',
+            description: 'Include tag information (default: false)'
+          },
+          includeLayers: {
+            type: 'boolean',
+            description: 'Include layer information (default: false)'
+          },
+          nameOnly: {
+            type: 'boolean',
+            description: 'Return only names and paths for minimal data size (default: false)'
           }
         },
         required: []

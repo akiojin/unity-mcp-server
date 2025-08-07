@@ -476,6 +476,10 @@ namespace UnityEditorMCP.Handlers
                 bool includeInactive = parameters["includeInactive"]?.ToObject<bool>() ?? true;
                 int maxDepth = parameters["maxDepth"]?.ToObject<int>() ?? -1;
                 bool includeComponents = parameters["includeComponents"]?.ToObject<bool>() ?? false;
+                bool includeTransform = parameters["includeTransform"]?.ToObject<bool>() ?? false;
+                bool includeTags = parameters["includeTags"]?.ToObject<bool>() ?? false;
+                bool includeLayers = parameters["includeLayers"]?.ToObject<bool>() ?? false;
+                bool nameOnly = parameters["nameOnly"]?.ToObject<bool>() ?? false;
                 
                 // Get root GameObjects
                 GameObject[] rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
@@ -487,7 +491,7 @@ namespace UnityEditorMCP.Handlers
                     if (!includeInactive && !root.activeInHierarchy)
                         continue;
                         
-                    hierarchy.Add(BuildHierarchyNode(root, 0, maxDepth, includeInactive, includeComponents));
+                    hierarchy.Add(BuildHierarchyNode(root, 0, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly));
                 }
                 
                 return new
@@ -506,22 +510,68 @@ namespace UnityEditorMCP.Handlers
         /// <summary>
         /// Builds a hierarchy node for a GameObject
         /// </summary>
-        private static object BuildHierarchyNode(GameObject obj, int currentDepth, int maxDepth, bool includeInactive, bool includeComponents)
+        private static object BuildHierarchyNode(GameObject obj, int currentDepth, int maxDepth, bool includeInactive, bool includeComponents, bool includeTransform, bool includeTags, bool includeLayers, bool nameOnly)
         {
+            // Name only mode - minimal data
+            if (nameOnly)
+            {
+                var minimalNode = new Dictionary<string, object>
+                {
+                    ["name"] = obj.name,
+                    ["path"] = GetGameObjectPath(obj)
+                };
+                
+                // Add children if within depth limit
+                if (maxDepth < 0 || currentDepth < maxDepth)
+                {
+                    List<object> children = new List<object>();
+                    foreach (Transform child in obj.transform)
+                    {
+                        if (!includeInactive && !child.gameObject.activeInHierarchy)
+                            continue;
+                            
+                        children.Add(BuildHierarchyNode(child.gameObject, currentDepth + 1, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly));
+                    }
+                    
+                    if (children.Count > 0)
+                    {
+                        minimalNode["children"] = children;
+                    }
+                }
+                
+                return minimalNode;
+            }
+            
+            // Standard mode - build node with requested data
             var node = new Dictionary<string, object>
             {
                 ["name"] = obj.name,
                 ["path"] = GetGameObjectPath(obj),
-                ["isActive"] = obj.activeSelf,
-                ["tag"] = obj.tag,
-                ["layer"] = obj.layer,
-                ["transform"] = new
+                ["isActive"] = obj.activeSelf
+            };
+            
+            // Add tag if requested
+            if (includeTags)
+            {
+                node["tag"] = obj.tag;
+            }
+            
+            // Add layer if requested
+            if (includeLayers)
+            {
+                node["layer"] = obj.layer;
+            }
+            
+            // Add transform if requested
+            if (includeTransform)
+            {
+                node["transform"] = new
                 {
                     position = new { x = obj.transform.position.x, y = obj.transform.position.y, z = obj.transform.position.z },
                     rotation = new { x = obj.transform.rotation.eulerAngles.x, y = obj.transform.rotation.eulerAngles.y, z = obj.transform.rotation.eulerAngles.z },
                     scale = new { x = obj.transform.localScale.x, y = obj.transform.localScale.y, z = obj.transform.localScale.z }
-                }
-            };
+                };
+            }
             
             // Add components if requested
             if (includeComponents)
@@ -547,7 +597,7 @@ namespace UnityEditorMCP.Handlers
                     if (!includeInactive && !child.gameObject.activeInHierarchy)
                         continue;
                         
-                    children.Add(BuildHierarchyNode(child.gameObject, currentDepth + 1, maxDepth, includeInactive, includeComponents));
+                    children.Add(BuildHierarchyNode(child.gameObject, currentDepth + 1, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly));
                 }
                 
                 if (children.Count > 0)

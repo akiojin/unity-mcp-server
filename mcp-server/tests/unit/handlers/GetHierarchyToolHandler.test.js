@@ -40,6 +40,15 @@ describe('GetHierarchyToolHandler', () => {
       assert.doesNotThrow(() => handler.validate({"includeComponents":true}));
     });
 
+    it('should pass with new optimization parameters', () => {
+      assert.doesNotThrow(() => handler.validate({
+        "includeTransform": false,
+        "includeTags": false,
+        "includeLayers": false,
+        "nameOnly": true
+      }));
+    });
+
   });
 
   describe('execute', () => {
