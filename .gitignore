@@ -1,4 +1,5 @@
 *.local.json
+.serena/cache/
 
 # Unity generated
 [Ll]ibrary/
