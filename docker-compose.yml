@@ -9,6 +9,9 @@ services:
       - ./.docker/bash_history:/root/.bash_history
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
+      - NPM_USER
+      - NPM_EMAIL
+      - NPM_PASS
       - GITHUB_TOKEN
       - GITHUB_PERSONAL_ACCESS_TOKEN
       - GITHUB_USERNAME
