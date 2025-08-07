@@ -1,0 +1,46 @@
+{
+  "mcpServers": {
+    "context7": {
+      "type": "sse",
+      "url": "https://mcp.context7.com/sse"
+    },
+    "google-search": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-gemini-google-search"
+      ],
+      "env": {}
+    },
+    "markitdown": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "markitdown-mcp"
+      ]
+    },
+    "textlint": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "textlint",
+        "--mcp"
+      ],
+      "env": {}
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "$(pwd)"
+      ]
+    }
+  }
+}

@@ -1,0 +1,26 @@
+services:
+  unity-editor-mcp:
+    build: .
+    container_name: unity-editor-mcp
+    volumes:
+      - .:/unity-editor-mcp
+      - ssh_keys:/root/.ssh
+      - claude_config:/root/.claude
+      - ./.docker/bash_history:/root/.bash_history
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - GITHUB_TOKEN
+      - GITHUB_PERSONAL_ACCESS_TOKEN
+      - GITHUB_USERNAME
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    working_dir: /unity-editor-mcp
+
+volumes:
+  # 必要最小限の設定のみ永続化
+  ssh_keys:
+    driver: local
+  claude_config:
+    driver: local

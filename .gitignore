@@ -1,3 +1,5 @@
+*.local.json
+
 # Unity generated
 [Ll]ibrary/
 [Tt]emp/
