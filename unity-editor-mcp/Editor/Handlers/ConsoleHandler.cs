@@ -26,16 +26,22 @@ namespace UnityEditorMCP.Handlers
         private static FieldInfo _instanceIdField;
 
         // Mode bits for log type detection
-        private const int ModeBitError = 1 << 0;
-        private const int ModeBitAssert = 1 << 1;
-        private const int ModeBitWarning = 1 << 2;
-        private const int ModeBitLog = 1 << 3;
-        private const int ModeBitException = 1 << 4;
-        private const int ModeBitScriptingError = 1 << 9;
-        private const int ModeBitScriptingWarning = 1 << 10;
-        private const int ModeBitScriptingLog = 1 << 11;
-        private const int ModeBitScriptingException = 1 << 18;
-        private const int ModeBitScriptingAssertion = 1 << 22;
+        // These values are based on Unity's internal LogEntry mode field
+        private const int ModeBitError = 1 << 0;          // 0x00000001
+        private const int ModeBitAssert = 1 << 1;         // 0x00000002
+        private const int ModeBitWarning = 1 << 2;        // 0x00000004
+        private const int ModeBitLog = 1 << 3;            // 0x00000008
+        private const int ModeBitFatal = 1 << 4;          // 0x00000010 (Fatal/Exception)
+        
+        // Additional flags for scripting logs
+        private const int ModeBitScriptingError = 1 << 9;      // 0x00000200
+        private const int ModeBitScriptingWarning = 1 << 10;   // 0x00000400
+        private const int ModeBitScriptingLog = 1 << 11;       // 0x00000800
+        private const int ModeBitScriptingException = 1 << 18;  // 0x00040000
+        private const int ModeBitScriptingAssertion = 1 << 22;  // 0x00400000
+        
+        // Alternative Exception bit (sometimes used)
+        private const int ModeBitException = ModeBitFatal;
 
         static ConsoleHandler()
         {
@@ -222,6 +228,10 @@ namespace UnityEditorMCP.Handlers
                     Type logEntryType = typeof(EditorApplication).Assembly.GetType("UnityEditor.LogEntry");
                     object logEntryInstance = Activator.CreateInstance(logEntryType);
 
+                    // Debug logging to investigate the issue
+                    Debug.Log($"[ConsoleHandler.ReadConsole] Starting log collection. Total entries: {totalEntries}, Requested count: {count}");
+                    Debug.Log($"[ConsoleHandler.ReadConsole] Filter types requested: {string.Join(", ", logTypes)}");
+
 
                     // Process entries (newest first by default)
                     for (int i = totalEntries - 1; i >= 0 && logs.Count < count; i--)
@@ -241,6 +251,13 @@ namespace UnityEditorMCP.Handlers
                         LogType logType = GetLogTypeFromMode(mode);
                         string logTypeString = logType.ToString();
 
+                        // Debug: Log first few entries to understand mode values
+                        if (i >= totalEntries - 10)
+                        {
+                            string truncatedMsg = message.Length > 50 ? message.Substring(0, 50) + "..." : message;
+                            Debug.Log($"[ConsoleHandler] Entry {i}: Mode=0x{mode:X8}, Type={logTypeString}, Msg={truncatedMsg}");
+                        }
+
                         // Update statistics
                         switch (logType)
                         {
@@ -253,7 +270,13 @@ namespace UnityEditorMCP.Handlers
 
                         // Filter by type
                         if (!logTypes.Contains(logTypeString))
+                        {
+                            if (i >= totalEntries - 10)
+                            {
+                                Debug.Log($"[ConsoleHandler] Filtered out: Type '{logTypeString}' not in requested types: {string.Join(", ", logTypes)}");
+                            }
                             continue;
+                        }
 
                         // Filter by text
                         if (!string.IsNullOrEmpty(filterText) && 
@@ -313,6 +336,9 @@ namespace UnityEditorMCP.Handlers
                         statistics = statistics
                     };
                 }
+
+                // Debug: Log final results
+                Debug.Log($"[ConsoleHandler.ReadConsole] Completed. Found {logs.Count} logs matching filters. Statistics: Errors={statistics["errors"]}, Warnings={statistics["warnings"]}, Logs={statistics["logs"]}, Asserts={statistics["asserts"]}, Exceptions={statistics["exceptions"]}");
 
                 return result;
             }
@@ -424,23 +450,35 @@ namespace UnityEditorMCP.Handlers
         /// </summary>
         private static LogType GetLogTypeFromMode(int mode)
         {
-            // Check for Exception first (most specific)
-            if ((mode & (ModeBitException | ModeBitScriptingException)) != 0)
+            // Debug: Log the mode value for investigation
+            if (mode != 0 && (mode & 0xFFFFFF00) != 0)
+            {
+                // Log unusual mode values for debugging
+                Debug.Log($"[ConsoleHandler.GetLogTypeFromMode] Analyzing mode: 0x{mode:X8}");
+            }
+            
+            // Check for Fatal/Exception first (most specific)
+            // Fatal bit (1 << 4) is often used for exceptions
+            if ((mode & ModeBitFatal) != 0 || (mode & ModeBitScriptingException) != 0)
             {
                 return LogType.Exception;
             }
+            // Check for Assert
             else if ((mode & (ModeBitAssert | ModeBitScriptingAssertion)) != 0)
             {
                 return LogType.Assert;
             }
+            // Check for Error
             else if ((mode & (ModeBitError | ModeBitScriptingError)) != 0)
             {
                 return LogType.Error;
             }
+            // Check for Warning
             else if ((mode & (ModeBitWarning | ModeBitScriptingWarning)) != 0)
             {
                 return LogType.Warning;
             }
+            // Default to Log for everything else
             else
             {
                 return LogType.Log;
