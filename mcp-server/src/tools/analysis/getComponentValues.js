@@ -3,7 +3,7 @@
  */
 export const getComponentValuesToolDefinition = {
     name: 'get_component_values',
-    description: 'Get all properties and values of a specific component',
+    description: 'Get all properties and values of a specific component (works in both scene and prefab mode)',
     inputSchema: {
         type: 'object',
         properties: {

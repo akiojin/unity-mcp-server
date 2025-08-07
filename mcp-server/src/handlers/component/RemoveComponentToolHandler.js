@@ -7,7 +7,7 @@ export class RemoveComponentToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'remove_component',
-      'Remove a component from a GameObject in Unity',
+      'Remove a component from a GameObject in Unity (works in both scene and prefab mode)',
       {
         type: 'object',
         properties: {

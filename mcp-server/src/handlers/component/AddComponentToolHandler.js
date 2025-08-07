@@ -7,7 +7,7 @@ export class AddComponentToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'add_component',
-      'Add a component to a GameObject in Unity',
+      'Add a component to a GameObject in Unity (works in both scene and prefab mode)',
       {
         type: 'object',
         properties: {

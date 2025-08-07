@@ -7,7 +7,7 @@ export class ListComponentsToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'list_components',
-      'List all components on a GameObject in Unity',
+      'List all components on a GameObject in Unity (works in both scene and prefab mode)',
       {
         type: 'object',
         properties: {

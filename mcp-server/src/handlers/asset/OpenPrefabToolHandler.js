@@ -7,7 +7,7 @@ export class OpenPrefabToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'open_prefab',
-      'Open a prefab asset in prefab mode for editing',
+      'Open a prefab asset in prefab mode for editing. Once in prefab mode, use component tools (list_components, add_component, etc.) to inspect and modify components.',
       {
         type: 'object',
         properties: {
@@ -108,6 +108,12 @@ export class OpenPrefabToolHandler extends BaseToolHandler {
           prefabPath: 'Assets/Prefabs/Enemies/Boss.prefab',
           focusObject: '/Armature/Hips/Spine',
           isolateObject: true
+        }
+      },
+      openForComponentWork: {
+        description: 'Open prefab for component inspection and modification (use with component tools like list_components, add_component, etc.)',
+        params: {
+          prefabPath: 'Assets/Prefabs/Weapons/Sword.prefab'
         }
       }
     };
