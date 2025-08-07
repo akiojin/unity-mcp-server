@@ -162,7 +162,7 @@ namespace UnityEditorMCP.Handlers
         /// </summary>
         /// <param name="parameters">Command parameters</param>
         /// <returns>Filtered logs</returns>
-        public static object EnhancedReadLogs(JObject parameters)
+        public static object ReadConsole(JObject parameters)
         {
             try
             {

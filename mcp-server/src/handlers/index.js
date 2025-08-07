@@ -7,7 +7,6 @@ export { BaseToolHandler } from './base/BaseToolHandler.js';
 
 // System handlers
 export { PingToolHandler } from './system/PingToolHandler.js';
-export { ReadLogsToolHandler } from './system/ReadLogsToolHandler.js';
 export { RefreshAssetsToolHandler } from './system/RefreshAssetsToolHandler.js';
 
 // GameObject handlers
@@ -70,7 +69,7 @@ export { ExecuteMenuItemToolHandler } from './menu/ExecuteMenuItemToolHandler.js
 
 // Console handlers
 export { ClearConsoleToolHandler } from './console/ClearConsoleToolHandler.js';
-export { EnhancedReadLogsToolHandler } from './console/EnhancedReadLogsToolHandler.js';
+export { ReadConsoleToolHandler } from './console/ReadConsoleToolHandler.js';
 
 // Screenshot handlers
 export { CaptureScreenshotToolHandler } from './screenshot/CaptureScreenshotToolHandler.js';
@@ -97,7 +96,6 @@ export { ToolManagementToolHandler } from './editor/ToolManagementToolHandler.js
 
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
-import { ReadLogsToolHandler } from './system/ReadLogsToolHandler.js';
 import { RefreshAssetsToolHandler } from './system/RefreshAssetsToolHandler.js';
 import { CreateGameObjectToolHandler } from './gameobject/CreateGameObjectToolHandler.js';
 import { FindGameObjectToolHandler } from './gameobject/FindGameObjectToolHandler.js';
@@ -142,7 +140,7 @@ import { ListScriptsToolHandler } from './scripting/ListScriptsToolHandler.js';
 import { ValidateScriptToolHandler } from './scripting/ValidateScriptToolHandler.js';
 import { ExecuteMenuItemToolHandler } from './menu/ExecuteMenuItemToolHandler.js';
 import { ClearConsoleToolHandler } from './console/ClearConsoleToolHandler.js';
-import { EnhancedReadLogsToolHandler } from './console/EnhancedReadLogsToolHandler.js';
+import { ReadConsoleToolHandler } from './console/ReadConsoleToolHandler.js';
 import { CaptureScreenshotToolHandler } from './screenshot/CaptureScreenshotToolHandler.js';
 import { AnalyzeScreenshotToolHandler } from './screenshot/AnalyzeScreenshotToolHandler.js';
 import { AddComponentToolHandler } from './component/AddComponentToolHandler.js';
@@ -163,7 +161,6 @@ import { ToolManagementToolHandler } from './editor/ToolManagementToolHandler.js
 const HANDLER_CLASSES = [
   // System handlers
   PingToolHandler,
-  ReadLogsToolHandler,
   RefreshAssetsToolHandler,
   
   // GameObject handlers
@@ -226,7 +223,7 @@ const HANDLER_CLASSES = [
   
   // Console handlers
   ClearConsoleToolHandler,
-  EnhancedReadLogsToolHandler,
+  ReadConsoleToolHandler,
   
   // Screenshot handlers
   CaptureScreenshotToolHandler,

@@ -3,10 +3,10 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 /**
  * Handler for reading Unity Editor console logs with advanced filtering
  */
-export class EnhancedReadLogsToolHandler extends BaseToolHandler {
+export class ReadConsoleToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'enhanced_read_logs',
+      'read_console',
       'Read Unity console logs with advanced filtering',
       {
         type: 'object',
@@ -216,7 +216,7 @@ export class EnhancedReadLogsToolHandler extends BaseToolHandler {
     }
 
     // Send command to Unity
-    const response = await this.unityConnection.sendCommand('enhanced_read_logs', commandParams);
+    const response = await this.unityConnection.sendCommand('read_console', commandParams);
 
     // Handle Unity response
     if (response.success === false) {
