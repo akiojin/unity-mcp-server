@@ -345,58 +345,7 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, pongData);
                         break;
                         
-                    case "read_logs":
-                        // Parse parameters
-                        int count = 100;
-                        string logTypeFilter = null;
-                        
-                        if (command.Parameters != null)
-                        {
-                            if (command.Parameters.ContainsKey("count"))
-                            {
-                                if (int.TryParse(command.Parameters["count"].ToString(), out int parsedCount))
-                                {
-                                    count = Math.Min(Math.Max(parsedCount, 1), 1000); // Clamp between 1 and 1000
-                                }
-                            }
-                            
-                            if (command.Parameters.ContainsKey("logType"))
-                            {
-                                logTypeFilter = command.Parameters["logType"].ToString();
-                            }
-                        }
-                        
-                        // Get logs
-                        LogType? filterType = null;
-                        if (!string.IsNullOrEmpty(logTypeFilter))
-                        {
-                            if (Enum.TryParse<LogType>(logTypeFilter, true, out LogType parsed))
-                            {
-                                filterType = parsed;
-                            }
-                        }
-                        
-                        var logs = LogCapture.GetLogs(count, filterType);
-                        var logData = new List<object>();
-                        
-                        foreach (var log in logs)
-                        {
-                            logData.Add(new
-                            {
-                                message = log.message,
-                                stackTrace = log.stackTrace,
-                                logType = log.logType.ToString(),
-                                timestamp = log.timestamp.ToString("o")
-                            });
-                        }
-                        
-                        response = Response.SuccessResult(command.Id, new
-                        {
-                            logs = logData,
-                            count = logData.Count,
-                            totalCaptured = logs.Count
-                        });
-                        break;
+
                         
                     case "clear_logs":
                         LogCapture.ClearLogs();
@@ -626,9 +575,9 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, clearConsoleResult);
                         break;
                         
-                    case "enhanced_read_logs":
-                        var enhancedReadLogsResult = ConsoleHandler.EnhancedReadLogs(command.Parameters);
-                        response = Response.SuccessResult(command.Id, enhancedReadLogsResult);
+                    case "read_console":
+                        var readConsoleResult = ConsoleHandler.ReadConsole(command.Parameters);
+                        response = Response.SuccessResult(command.Id, readConsoleResult);
                         break;
                         
                     // Screenshot commands
