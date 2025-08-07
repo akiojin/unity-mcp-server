@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using UnityEditor;
 
 namespace UnityEditorMCP.Helpers
 {
@@ -120,6 +121,19 @@ namespace UnityEditorMCP.Helpers
         // ===== New Format Methods (Phase 1.1) =====
         
         /// <summary>
+        /// Gets the current editor state
+        /// </summary>
+        /// <returns>Dictionary containing editor state information</returns>
+        private static Dictionary<string, object> GetCurrentEditorState()
+        {
+            return new Dictionary<string, object>
+            {
+                ["isPlaying"] = EditorApplication.isPlaying,
+                ["isPaused"] = EditorApplication.isPaused
+            };
+        }
+        
+        /// <summary>
         /// Creates a standardized success response (new format)
         /// </summary>
         /// <param name="result">The result data</param>
@@ -129,7 +143,8 @@ namespace UnityEditorMCP.Helpers
             var response = new Dictionary<string, object>
             {
                 ["status"] = "success",
-                ["result"] = result
+                ["result"] = result,
+                ["editorState"] = GetCurrentEditorState()
             };
             
             return JsonConvert.SerializeObject(response);
@@ -147,7 +162,8 @@ namespace UnityEditorMCP.Helpers
             {
                 ["id"] = id,
                 ["status"] = "success",
-                ["result"] = result
+                ["result"] = result,
+                ["editorState"] = GetCurrentEditorState()
             };
             
             return JsonConvert.SerializeObject(response);
