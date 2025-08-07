@@ -13,16 +13,16 @@
     "cursor"
   ],
   "author": {
-    "name": "Ozan Kasikci",
-    "email": "ozan@kasikci.io",
-    "url": "https://github.com/ozankasikci"
+    "name": "akiojin",
+    "email": "akio-jinsenji@cloud-creative-studios.com",
+    "url": "https://github.com/akiojin"
   },
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ozankasikci/unity-editor-mcp.git"
+    "url": "https://github.com/akiojin/unity-editor-mcp.git"
   },
   "license": "MIT",
   "hideInEditor": false
