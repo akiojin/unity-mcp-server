@@ -8,7 +8,7 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'get_hierarchy',
-      'Get the Unity scene hierarchy',
+      'Get the Unity scene hierarchy. IMPORTANT: Large hierarchies can cause MCP response size limit errors (>25,000 tokens). Use maxObjects parameter to limit response size (recommended: 10-50 for detailed info, 100-500 for name-only mode).',
       {
         type: 'object',
         properties: {
@@ -23,11 +23,11 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
           },
           includeComponents: {
             type: 'boolean',
-            description: 'Include component information (default: false)'
+            description: 'Include component information (default: false). WARNING: Significantly increases response size - use with small maxObjects values.'
           },
           includeTransform: {
             type: 'boolean',
-            description: 'Include transform information (default: false)'
+            description: 'Include transform information (default: false). WARNING: Increases response size - use with small maxObjects values.'
           },
           includeTags: {
             type: 'boolean',
@@ -39,11 +39,11 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
           },
           nameOnly: {
             type: 'boolean',
-            description: 'Return only names and paths for minimal data size (default: false)'
+            description: 'Return only names and paths for minimal data size (default: false). RECOMMENDED for large hierarchies to reduce token usage.'
           },
           maxObjects: {
             type: 'number',
-            description: 'Maximum number of objects to include in response (default: 1000, -1 for unlimited)',
+            description: 'Maximum number of objects to include in response (default: 1000, -1 for unlimited). CRITICAL: Start with small values (10-50) to avoid MCP token limits. Use 100-500 for nameOnly mode.',
             minimum: -1
           }
         },
