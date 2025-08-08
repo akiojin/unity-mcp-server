@@ -550,13 +550,16 @@ namespace UnityEditorMCP.Handlers
         /// </summary>
         private static object BuildHierarchyNode(GameObject obj, int currentDepth, int maxDepth, bool includeInactive, bool includeComponents, bool includeTransform, bool includeTags, bool includeLayers, bool nameOnly, ObjectCounter counter)
         {
-            // Check object limit before processing
-            if (counter.MaxObjects > 0 && counter.CurrentCount >= counter.MaxObjects)
+            // Increment counter first
+            counter.CurrentCount++;
+            
+            // Check object limit after incrementing
+            if (counter.MaxObjects > 0 && counter.CurrentCount > counter.MaxObjects)
             {
+                // Decrement counter since we're not processing this object
+                counter.CurrentCount--;
                 return null;
             }
-            
-            counter.CurrentCount++;
             
             // Name only mode - minimal data
             if (nameOnly)
