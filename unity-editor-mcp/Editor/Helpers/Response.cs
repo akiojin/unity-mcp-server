@@ -126,10 +126,30 @@ namespace UnityEditorMCP.Helpers
         /// <returns>Dictionary containing editor state information</returns>
         private static Dictionary<string, object> GetCurrentEditorState()
         {
+            // Get package version from assembly info or git commit
+            string version = "unknown";
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            if (assembly != null)
+            {
+                // Try to get version from assembly location (PackageCache path)
+                var location = assembly.Location;
+                if (!string.IsNullOrEmpty(location) && location.Contains("PackageCache"))
+                {
+                    // Extract version from path like: com.unity.editor-mcp@58e9f7fddd01
+                    var match = System.Text.RegularExpressions.Regex.Match(location, @"com\.unity\.editor-mcp@([^/\\]+)");
+                    if (match.Success)
+                    {
+                        version = match.Groups[1].Value;
+                    }
+                }
+            }
+            
             return new Dictionary<string, object>
             {
                 ["isPlaying"] = EditorApplication.isPlaying,
-                ["isPaused"] = EditorApplication.isPaused
+                ["isPaused"] = EditorApplication.isPaused,
+                ["mcpVersion"] = version,
+                ["timestamp"] = System.DateTime.UtcNow.ToString("o")
             };
         }
         
