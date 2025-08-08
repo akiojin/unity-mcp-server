@@ -42,6 +42,9 @@ namespace UnityEditorMCP.Handlers
         
         // Alternative Exception bit (sometimes used)
         private const int ModeBitException = ModeBitFatal;
+        
+        // Debug flag for logging mode bit analysis
+        private static bool _debugModeBits = true;
 
         static ConsoleHandler()
         {
@@ -242,8 +245,11 @@ namespace UnityEditorMCP.Handlers
                         if (string.IsNullOrEmpty(message))
                             continue;
 
-                        // Determine log type
-                        LogType logType = GetLogTypeFromMode(mode);
+                        // Extract stack trace early for Assert detection
+                        string fullStackTrace = ExtractStackTrace(message);
+                        
+                        // Determine log type (pass stack trace for better detection)
+                        LogType logType = GetLogTypeFromMode(mode, message, fullStackTrace);
                         string logTypeString = logType.ToString();
 
                         // Update statistics
@@ -265,11 +271,11 @@ namespace UnityEditorMCP.Handlers
                             message.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) < 0)
                             continue;
 
-                        // Extract stack trace if present
+                        // Extract stack trace if present (using fullStackTrace from earlier)
                         string stackTrace = null;
                         if (includeStackTrace)
                         {
-                            stackTrace = ExtractStackTrace(message);
+                            stackTrace = fullStackTrace;
                             if (!string.IsNullOrEmpty(stackTrace))
                             {
                                 message = message.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)[0];
@@ -425,24 +431,82 @@ namespace UnityEditorMCP.Handlers
         }
 
         /// <summary>
-        /// Gets LogType from mode bits
+        /// Gets LogType from mode bits, message content, and stack trace
         /// </summary>
-        private static LogType GetLogTypeFromMode(int mode)
+        private static LogType GetLogTypeFromMode(int mode, string message = null, string stackTrace = null)
         {
+            // Log mode bits for debugging (only for specific messages)
+            if (_debugModeBits && !string.IsNullOrEmpty(message))
+            {
+                // Check if this is one of the problematic assert messages
+                if (message.Contains("InputSystemActions") && 
+                    (message.Contains(".Disable() has not been called") || message.Contains("This will cause a leak")))
+                {
+                    Debug.Log($"[ConsoleHandler] Debug - Assert message detected: '{message.Split('\n')[0]}', Mode bits: 0x{mode:X8}");
+                }
+            }
+            
+            // Special handling for Assert messages that may have different mode values
+            // Check stack trace for Assert patterns (more reliable than message)
+            if (!string.IsNullOrEmpty(stackTrace))
+            {
+                // Check for UnityEngine.Debug:Assert in stack trace
+                if (stackTrace.Contains("UnityEngine.Debug:Assert"))
+                {
+                    if (_debugModeBits)
+                    {
+                        Debug.Log($"[ConsoleHandler] Stack trace indicates Assert (UnityEngine.Debug:Assert found), Mode: 0x{mode:X8}");
+                    }
+                    return LogType.Assert;
+                }
+            }
+            
+            // Also check message content for Assert patterns
+            if (!string.IsNullOrEmpty(message))
+            {
+                // Check for explicit Assert patterns in the message
+                if (message.Contains("UnityEngine.Debug:Assert") || 
+                    (message.Contains("Assertion failed") || message.Contains("Assert(")))
+                {
+                    if (_debugModeBits)
+                    {
+                        Debug.Log($"[ConsoleHandler] Message pattern indicates Assert, Mode: 0x{mode:X8}");
+                    }
+                    return LogType.Assert;
+                }
+            }
+            
             // Check for Fatal/Exception first (most specific)
             // Fatal bit (1 << 4) is often used for exceptions
             if ((mode & ModeBitFatal) != 0 || (mode & ModeBitScriptingException) != 0)
             {
+                // Additional check: some Asserts may have Fatal bit set
+                if (!string.IsNullOrEmpty(message) && message.Contains("UnityEngine.Debug:Assert"))
+                {
+                    return LogType.Assert;
+                }
                 return LogType.Exception;
             }
-            // Check for Assert
-            else if ((mode & (ModeBitAssert | ModeBitScriptingAssertion)) != 0)
+            // Check for Assert - expanded check for various Assert patterns
+            else if ((mode & (ModeBitAssert | ModeBitScriptingAssertion)) != 0 ||
+                     (mode & 0x00000002) != 0 ||  // Direct check for bit 1
+                     (mode & 0x00400000) != 0)     // Direct check for bit 22
             {
                 return LogType.Assert;
             }
             // Check for Error
             else if ((mode & (ModeBitError | ModeBitScriptingError)) != 0)
             {
+                // Double check: some Asserts may be misclassified as Errors
+                if (!string.IsNullOrEmpty(message) && 
+                    (message.Contains("UnityEngine.Debug:Assert") || message.Contains("Assertion")))
+                {
+                    if (_debugModeBits)
+                    {
+                        Debug.Log($"[ConsoleHandler] Reclassifying Error as Assert based on message, Mode: 0x{mode:X8}");
+                    }
+                    return LogType.Assert;
+                }
                 return LogType.Error;
             }
             // Check for Warning
@@ -450,9 +514,23 @@ namespace UnityEditorMCP.Handlers
             {
                 return LogType.Warning;
             }
-            // Default to Log for everything else
+            // Check for regular Log
+            else if ((mode & (ModeBitLog | ModeBitScriptingLog)) != 0)
+            {
+                return LogType.Log;
+            }
+            // Default case - try to infer from message if available
             else
             {
+                if (!string.IsNullOrEmpty(message))
+                {
+                    if (message.Contains("UnityEngine.Debug:Assert") || message.Contains("Assertion"))
+                        return LogType.Assert;
+                    if (message.Contains("Exception") || message.Contains("Error"))
+                        return LogType.Error;
+                    if (message.Contains("Warning"))
+                        return LogType.Warning;
+                }
                 return LogType.Log;
             }
         }
