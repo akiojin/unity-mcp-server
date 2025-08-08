@@ -18,7 +18,7 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
           },
           maxDepth: {
             type: 'number',
-            description: 'Maximum depth to traverse (-1 for unlimited, default: -1)',
+            description: 'Maximum depth to traverse. 0=root objects only, 1=root+children, 2=root+children+grandchildren, etc. (-1 for unlimited, default: -1)',
             minimum: -1
           },
           includeComponents: {
