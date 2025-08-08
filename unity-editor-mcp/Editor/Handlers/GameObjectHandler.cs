@@ -491,6 +491,7 @@ namespace UnityEditorMCP.Handlers
                 
                 // Get root GameObjects
                 GameObject[] rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
+                Debug.Log($"[GetHierarchy] maxObjects={maxObjects}, rootObjects.Length={rootObjects.Length}");
                 
                 // Build hierarchy with object count tracking
                 List<object> hierarchy = new List<object>();
@@ -503,12 +504,21 @@ namespace UnityEditorMCP.Handlers
                     
                     // Check if we've hit the object limit
                     if (objectCounter.MaxObjects > 0 && objectCounter.CurrentCount >= objectCounter.MaxObjects)
+                    {
+                        Debug.Log($"[GetHierarchy] Hit object limit at {objectCounter.CurrentCount} objects");
                         break;
+                    }
                         
                     var node = BuildHierarchyNode(root, 0, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly, objectCounter);
                     if (node != null)
                     {
                         hierarchy.Add(node);
+                        Debug.Log($"[GetHierarchy] Added node: {root.name}, Current count: {objectCounter.CurrentCount}");
+                    }
+                    else
+                    {
+                        Debug.Log($"[GetHierarchy] Node was null for: {root.name}, Breaking loop");
+                        break;
                     }
                 }
                 
