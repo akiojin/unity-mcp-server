@@ -135,11 +135,16 @@ namespace UnityEditorMCP.Helpers
                 var location = assembly.Location;
                 if (!string.IsNullOrEmpty(location) && location.Contains("PackageCache"))
                 {
-                    // Extract version from path like: com.unity.editor-mcp@58e9f7fddd01
-                    var match = System.Text.RegularExpressions.Regex.Match(location, @"com\.unity\.editor-mcp@([^/\\]+)");
+                    // Extract version from path like: com.unity.editor-mcp@6fc0fff318a9
+                    var match = System.Text.RegularExpressions.Regex.Match(location, @"com\.unity\.editor-mcp@([a-f0-9]+)");
                     if (match.Success)
                     {
                         version = match.Groups[1].Value;
+                    }
+                    else
+                    {
+                        // Debug: include the path for troubleshooting
+                        version = $"debug_path:{location}";
                     }
                 }
             }
