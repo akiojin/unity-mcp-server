@@ -44,7 +44,7 @@ namespace UnityEditorMCP.Handlers
         private const int ModeBitException = ModeBitFatal;
         
         // Debug flag for logging mode bit analysis
-        private static bool _debugModeBits = true;
+        private static bool _debugModeBits = false;
 
         static ConsoleHandler()
         {
@@ -246,10 +246,17 @@ namespace UnityEditorMCP.Handlers
                             continue;
 
                         // Extract stack trace early for Assert detection
+                        // Note: For some logs, the entire message IS the stack trace
                         string fullStackTrace = ExtractStackTrace(message);
                         
-                        // Determine log type (pass stack trace for better detection)
-                        LogType logType = GetLogTypeFromMode(mode, message, fullStackTrace);
+                        // Check if message itself contains stack trace indicators
+                        bool messageContainsStackTrace = message.Contains("\n") && 
+                            (message.Contains("UnityEngine.Debug:Assert") || 
+                             message.Contains("(at ") || 
+                             message.Contains(".cs:"));
+                        
+                        // Determine log type (pass both stack trace and flag)
+                        LogType logType = GetLogTypeFromMode(mode, message, fullStackTrace, messageContainsStackTrace);
                         string logTypeString = logType.ToString();
 
                         // Update statistics
@@ -433,7 +440,7 @@ namespace UnityEditorMCP.Handlers
         /// <summary>
         /// Gets LogType from mode bits, message content, and stack trace
         /// </summary>
-        private static LogType GetLogTypeFromMode(int mode, string message = null, string stackTrace = null)
+        private static LogType GetLogTypeFromMode(int mode, string message = null, string stackTrace = null, bool messageContainsStackTrace = false)
         {
             // Log mode bits for debugging (only for specific messages)
             if (_debugModeBits && !string.IsNullOrEmpty(message))
@@ -456,6 +463,20 @@ namespace UnityEditorMCP.Handlers
                     if (_debugModeBits)
                     {
                         Debug.Log($"[ConsoleHandler] Stack trace indicates Assert (UnityEngine.Debug:Assert found), Mode: 0x{mode:X8}");
+                    }
+                    return LogType.Assert;
+                }
+            }
+            
+            // If message contains stack trace info, check it directly
+            if (messageContainsStackTrace && !string.IsNullOrEmpty(message))
+            {
+                // The message itself contains the stack trace
+                if (message.Contains("UnityEngine.Debug:Assert"))
+                {
+                    if (_debugModeBits)
+                    {
+                        Debug.Log($"[ConsoleHandler] Message contains Assert stack trace, Mode: 0x{mode:X8}");
                     }
                     return LogType.Assert;
                 }
