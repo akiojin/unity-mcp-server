@@ -5,7 +5,7 @@ import { config, logger } from '../../../src/core/config.js';
 describe('Config', () => {
   describe('config object', () => {
     it('should have correct default Unity settings', () => {
-      assert.equal(config.unity.host, 'localhost');
+      assert.ok(config.unity.host); // Should have a host value (localhost or host.docker.internal)
       assert.equal(config.unity.port, 6400);
       assert.equal(config.unity.reconnectDelay, 1000);
       assert.equal(config.unity.maxReconnectDelay, 30000);

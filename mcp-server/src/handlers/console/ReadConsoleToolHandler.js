@@ -23,7 +23,7 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
             description: 'Filter by log types (default: ["All"])',
             items: {
               type: 'string',
-              enum: ['Log', 'Warning', 'Error', 'Assert', 'Exception', 'All']
+              enum: ['Log', 'Warning', 'Error', 'Assert', 'Exception', 'ErrorsAndExceptions', 'All']
             },
             default: ['All']
           },
@@ -101,7 +101,7 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
         throw new Error('logTypes must be an array');
       }
       
-      const validTypes = ['Log', 'Warning', 'Error', 'Assert', 'Exception', 'All'];
+      const validTypes = ['Log', 'Warning', 'Error', 'Assert', 'Exception', 'ErrorsAndExceptions', 'All'];
       for (const type of logTypes) {
         if (!validTypes.includes(type)) {
           throw new Error(`Invalid log type: ${type}. Must be one of: ${validTypes.join(', ')}`);
@@ -189,6 +189,21 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
       groupBy = 'none'
     } = params;
 
+    // Expand ErrorsAndExceptions to include both Error and Exception types
+    let expandedLogTypes = logTypes;
+    if (logTypes.includes('ErrorsAndExceptions')) {
+      expandedLogTypes = logTypes.reduce((acc, type) => {
+        if (type === 'ErrorsAndExceptions') {
+          acc.push('Error', 'Exception');
+        } else {
+          acc.push(type);
+        }
+        return acc;
+      }, []);
+      // Remove duplicates
+      expandedLogTypes = [...new Set(expandedLogTypes)];
+    }
+
     // Ensure connection to Unity
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
@@ -197,7 +212,7 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
     // Prepare command parameters
     const commandParams = {
       count,
-      logTypes,
+      logTypes: expandedLogTypes,
       includeStackTrace,
       format,
       sortOrder,
