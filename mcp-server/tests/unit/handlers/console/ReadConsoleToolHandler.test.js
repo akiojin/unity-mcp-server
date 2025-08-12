@@ -202,13 +202,13 @@ describe('ReadConsoleToolHandler', () => {
       assert.equal(result.count, 4);
     });
 
-    it('should expand ErrorsAndExceptions to Error and Exception types', async () => {
+    it('should expand ErrorsAndExceptions to Error, Exception, and Assert types', async () => {
       await handler.execute({
         logTypes: ['ErrorsAndExceptions']
       });
 
       const params = mockUnityConnection.sendCommand.mock.calls[0].arguments[1];
-      assert.deepEqual(params.logTypes, ['Error', 'Exception']);
+      assert.deepEqual(params.logTypes, ['Error', 'Exception', 'Assert']);
     });
 
     it('should expand ErrorsAndExceptions and preserve other log types', async () => {
@@ -217,25 +217,28 @@ describe('ReadConsoleToolHandler', () => {
       });
 
       const params = mockUnityConnection.sendCommand.mock.calls[0].arguments[1];
-      // Should expand ErrorsAndExceptions to Error and Exception, then deduplicate
+      // Should expand ErrorsAndExceptions to Error, Exception, and Assert, then deduplicate
       assert.ok(params.logTypes.includes('Log'));
       assert.ok(params.logTypes.includes('Error'));
       assert.ok(params.logTypes.includes('Exception'));
+      assert.ok(params.logTypes.includes('Assert'));
       assert.ok(params.logTypes.includes('Warning'));
       assert.ok(!params.logTypes.includes('ErrorsAndExceptions'));
     });
 
     it('should remove duplicates when expanding ErrorsAndExceptions', async () => {
       await handler.execute({
-        logTypes: ['Error', 'ErrorsAndExceptions', 'Exception']
+        logTypes: ['Error', 'ErrorsAndExceptions', 'Exception', 'Assert']
       });
 
       const params = mockUnityConnection.sendCommand.mock.calls[0].arguments[1];
-      // Should have Error and Exception only once each
+      // Should have Error, Exception, and Assert only once each
       const errorCount = params.logTypes.filter(type => type === 'Error').length;
       const exceptionCount = params.logTypes.filter(type => type === 'Exception').length;
+      const assertCount = params.logTypes.filter(type => type === 'Assert').length;
       assert.equal(errorCount, 1);
       assert.equal(exceptionCount, 1);
+      assert.equal(assertCount, 1);
     });
 
     it('should handle multiple ErrorsAndExceptions entries', async () => {
@@ -248,6 +251,7 @@ describe('ReadConsoleToolHandler', () => {
       assert.ok(params.logTypes.includes('Log'));
       assert.ok(params.logTypes.includes('Error'));
       assert.ok(params.logTypes.includes('Exception'));
+      assert.ok(params.logTypes.includes('Assert'));
       assert.ok(!params.logTypes.includes('ErrorsAndExceptions'));
       // Should not have duplicates
       assert.equal(params.logTypes.length, [...new Set(params.logTypes)].length);

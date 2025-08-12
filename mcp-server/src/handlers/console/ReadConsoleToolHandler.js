@@ -189,12 +189,13 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
       groupBy = 'none'
     } = params;
 
-    // Expand ErrorsAndExceptions to include both Error and Exception types
+    // Expand ErrorsAndExceptions to include Error, Exception, and Assert types
     let expandedLogTypes = logTypes;
     if (logTypes.includes('ErrorsAndExceptions')) {
       expandedLogTypes = logTypes.reduce((acc, type) => {
         if (type === 'ErrorsAndExceptions') {
-          acc.push('Error', 'Exception');
+          // Include Error, Exception, and Assert as Unity logs exceptions as Assert type
+          acc.push('Error', 'Exception', 'Assert');
         } else {
           acc.push(type);
         }
