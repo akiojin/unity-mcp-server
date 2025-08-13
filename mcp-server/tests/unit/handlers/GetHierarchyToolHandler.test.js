@@ -57,6 +57,10 @@ describe('GetHierarchyToolHandler', () => {
       }));
     });
 
+    it('should default maxDepth to 0 when not specified', () => {
+      assert.doesNotThrow(() => handler.validate({}));
+    });
+
     it('should pass with valid maxObjects values', () => {
       assert.doesNotThrow(() => handler.validate({ "maxObjects": -1 }));
       assert.doesNotThrow(() => handler.validate({ "maxObjects": 0 }));

@@ -482,7 +482,7 @@ namespace UnityEditorMCP.Handlers
             {
                 string rootPath = parameters["rootPath"]?.ToString();
                 bool includeInactive = parameters["includeInactive"]?.ToObject<bool>() ?? true;
-                int maxDepth = parameters["maxDepth"]?.ToObject<int>() ?? -1;
+                int maxDepth = parameters["maxDepth"]?.ToObject<int>() ?? 0;
                 bool includeComponents = parameters["includeComponents"]?.ToObject<bool>() ?? false;
                 bool includeTransform = parameters["includeTransform"]?.ToObject<bool>() ?? false;
                 bool includeTags = parameters["includeTags"]?.ToObject<bool>() ?? false;
