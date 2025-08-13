@@ -178,15 +178,15 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
    */
   async execute(params) {
     const {
-      count = 100,
-      logTypes = ['All'],
+      count,
+      logTypes,
       filterText,
-      includeStackTrace = false,
-      format = 'compact',
+      includeStackTrace,
+      format,
       sinceTimestamp,
       untilTimestamp,
-      sortOrder = 'newest',
-      groupBy = 'none'
+      sortOrder,
+      groupBy
     } = params;
 
     // Expand ErrorsAndExceptions to include Error, Exception, and Assert types

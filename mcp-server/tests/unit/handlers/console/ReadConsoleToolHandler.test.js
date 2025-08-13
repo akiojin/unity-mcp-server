@@ -183,8 +183,15 @@ describe('ReadConsoleToolHandler', () => {
   });
 
   describe('execute', () => {
-    it('should read logs with default settings', async () => {
-      const result = await handler.execute({});
+    it('should read logs with specified settings', async () => {
+      const result = await handler.execute({
+        count: 100,
+        logTypes: ['All'],
+        includeStackTrace: false,
+        format: 'compact',
+        sortOrder: 'newest',
+        groupBy: 'none'
+      });
 
       assert.equal(mockUnityConnection.sendCommand.mock.calls.length, 1);
       assert.equal(mockUnityConnection.sendCommand.mock.calls[0].arguments[0], 'read_console');

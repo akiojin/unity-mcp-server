@@ -91,7 +91,7 @@ namespace UnityEditorMCP.Handlers
                 string scriptPath = parameters["scriptPath"]?.ToString();
                 string scriptName = parameters["scriptName"]?.ToString();
                 string searchPath = parameters["searchPath"]?.ToString() ?? "Assets/";
-                bool includeMetadata = parameters["includeMetadata"]?.ToObject<bool>() ?? true;
+                bool includeMetadata = parameters["includeMetadata"]?.ToObject<bool>() ?? false;
 
                 string fullPath;
                 string relativePath;
@@ -363,7 +363,7 @@ namespace UnityEditorMCP.Handlers
                 string scriptType = parameters["scriptType"]?.ToString();
                 string sortBy = parameters["sortBy"]?.ToString() ?? "name";
                 string sortOrder = parameters["sortOrder"]?.ToString() ?? "asc";
-                bool includeMetadata = parameters["includeMetadata"]?.ToObject<bool>() ?? true;
+                bool includeMetadata = parameters["includeMetadata"]?.ToObject<bool>() ?? false;
                 int maxResults = parameters["maxResults"]?.ToObject<int>() ?? 100;
 
                 searchPath = NormalizePath(searchPath);
@@ -479,8 +479,8 @@ namespace UnityEditorMCP.Handlers
                 string scriptContent = parameters["scriptContent"]?.ToString();
                 string scriptName = parameters["scriptName"]?.ToString();
                 string searchPath = parameters["searchPath"]?.ToString() ?? "Assets/";
-                bool checkSyntax = parameters["checkSyntax"]?.ToObject<bool>() ?? true;
-                bool checkUnityCompatibility = parameters["checkUnityCompatibility"]?.ToObject<bool>() ?? true;
+                bool checkSyntax = parameters["checkSyntax"]?.ToObject<bool>() ?? false;
+                bool checkUnityCompatibility = parameters["checkUnityCompatibility"]?.ToObject<bool>() ?? false;
                 bool suggestImprovements = parameters["suggestImprovements"]?.ToObject<bool>() ?? false;
 
                 string content;

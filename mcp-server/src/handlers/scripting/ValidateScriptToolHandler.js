@@ -98,10 +98,10 @@ export class ValidateScriptToolHandler extends BaseToolHandler {
       scriptPath,
       scriptContent,
       scriptName,
-      searchPath = 'Assets/',
-      checkSyntax = false,
-      checkUnityCompatibility = false,
-      suggestImprovements = false
+      searchPath,
+      checkSyntax,
+      checkUnityCompatibility,
+      suggestImprovements
     } = params;
 
     // Ensure connection to Unity

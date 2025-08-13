@@ -98,13 +98,13 @@ export class ListScriptsToolHandler extends BaseToolHandler {
    */
   async execute(params) {
     const {
-      searchPath = 'Assets/',
+      searchPath,
       pattern,
       scriptType,
-      sortBy = 'name',
-      sortOrder = 'asc',
-      includeMetadata = false,
-      maxResults = 100
+      sortBy,
+      sortOrder,
+      includeMetadata,
+      maxResults
     } = params;
 
     // Ensure connection to Unity

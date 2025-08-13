@@ -95,11 +95,11 @@ export class ClearConsoleToolHandler extends BaseToolHandler {
    */
   async execute(params) {
     const {
-      clearOnPlay = false,
-      clearOnRecompile = false,
-      clearOnBuild = false,
-      preserveWarnings = false,
-      preserveErrors = false
+      clearOnPlay,
+      clearOnRecompile,
+      clearOnBuild,
+      preserveWarnings,
+      preserveErrors
     } = params;
 
     // Ensure connection to Unity

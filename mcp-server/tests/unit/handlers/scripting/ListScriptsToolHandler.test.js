@@ -148,8 +148,14 @@ describe('ListScriptsToolHandler', () => {
   });
 
   describe('execute', () => {
-    it('should list all scripts with default parameters', async () => {
-      const result = await handler.execute({});
+    it('should list all scripts with specified parameters', async () => {
+      const result = await handler.execute({
+        searchPath: 'Assets/',
+        sortBy: 'name',
+        sortOrder: 'asc',
+        includeMetadata: false,
+        maxResults: 100
+      });
 
       assert.equal(mockUnityConnection.sendCommand.mock.calls.length, 1);
       assert.equal(mockUnityConnection.sendCommand.mock.calls[0].arguments[0], 'list_scripts');

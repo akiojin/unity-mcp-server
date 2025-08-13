@@ -104,7 +104,7 @@ namespace UnityEditorMCP.Handlers
             try
             {
                 // Parse parameters
-                bool includeMessages = parameters["includeMessages"]?.ToObject<bool>() ?? true;
+                bool includeMessages = parameters["includeMessages"]?.ToObject<bool>() ?? false;
                 int maxMessages = parameters["maxMessages"]?.ToObject<int>() ?? 50;
 
                 // Get current compilation state

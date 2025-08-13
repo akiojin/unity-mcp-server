@@ -83,8 +83,8 @@ export class ReadScriptToolHandler extends BaseToolHandler {
     const {
       scriptPath,
       scriptName,
-      searchPath = 'Assets/',
-      includeMetadata = false
+      searchPath,
+      includeMetadata
     } = params;
 
     // Ensure connection to Unity

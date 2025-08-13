@@ -127,8 +127,14 @@ describe('ClearConsoleToolHandler', () => {
   });
 
   describe('execute', () => {
-    it('should clear console with default settings', async () => {
-      const result = await handler.execute({});
+    it('should clear console with specified settings', async () => {
+      const result = await handler.execute({
+        clearOnPlay: false,
+        clearOnRecompile: false,
+        clearOnBuild: false,
+        preserveWarnings: false,
+        preserveErrors: false
+      });
 
       assert.equal(mockUnityConnection.sendCommand.mock.calls.length, 1);
       assert.equal(mockUnityConnection.sendCommand.mock.calls[0].arguments[0], 'clear_console');

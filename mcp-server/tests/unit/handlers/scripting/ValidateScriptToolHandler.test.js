@@ -141,9 +141,10 @@ describe('ValidateScriptToolHandler', () => {
       
       const params = mockUnityConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.scriptPath, 'Assets/Scripts/TestScript.cs');
-      assert.equal(params.checkSyntax, false);
-      assert.equal(params.checkUnityCompatibility, false);
-      assert.equal(params.suggestImprovements, false);
+      // These should be undefined as no defaults are applied in execute
+      assert.equal(params.checkSyntax, undefined);
+      assert.equal(params.checkUnityCompatibility, undefined);
+      assert.equal(params.suggestImprovements, undefined);
 
       assert.equal(result.isValid, true);
       assert.ok(Array.isArray(result.errors));

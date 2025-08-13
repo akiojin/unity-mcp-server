@@ -488,7 +488,7 @@ namespace UnityEditorMCP.Handlers
                 bool includeTags = parameters["includeTags"]?.ToObject<bool>() ?? false;
                 bool includeLayers = parameters["includeLayers"]?.ToObject<bool>() ?? false;
                 bool nameOnly = parameters["nameOnly"]?.ToObject<bool>() ?? false;
-                int maxObjects = parameters["maxObjects"]?.ToObject<int>() ?? 1000;
+                int maxObjects = parameters["maxObjects"]?.ToObject<int>() ?? 100;
                 
                 // Build hierarchy with object count tracking
                 List<object> hierarchy = new List<object>();

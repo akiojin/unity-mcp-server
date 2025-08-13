@@ -112,9 +112,9 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Extract parameters
-                bool clearOnPlay = parameters["clearOnPlay"]?.ToObject<bool>() ?? true;
-                bool clearOnRecompile = parameters["clearOnRecompile"]?.ToObject<bool>() ?? true;
-                bool clearOnBuild = parameters["clearOnBuild"]?.ToObject<bool>() ?? true;
+                bool clearOnPlay = parameters["clearOnPlay"]?.ToObject<bool>() ?? false;
+                bool clearOnRecompile = parameters["clearOnRecompile"]?.ToObject<bool>() ?? false;
+                bool clearOnBuild = parameters["clearOnBuild"]?.ToObject<bool>() ?? false;
                 bool preserveWarnings = parameters["preserveWarnings"]?.ToObject<bool>() ?? false;
                 bool preserveErrors = parameters["preserveErrors"]?.ToObject<bool>() ?? false;
 
@@ -188,8 +188,8 @@ namespace UnityEditorMCP.Handlers
                 int count = parameters["count"]?.ToObject<int>() ?? 100;
                 var logTypes = (parameters["logTypes"] as JArray)?.Select(t => t.ToString()).ToList() ?? new List<string> { "All" };
                 string filterText = parameters["filterText"]?.ToString();
-                bool includeStackTrace = parameters["includeStackTrace"]?.ToObject<bool>() ?? true;
-                string format = parameters["format"]?.ToString() ?? "detailed";
+                bool includeStackTrace = parameters["includeStackTrace"]?.ToObject<bool>() ?? false;
+                string format = parameters["format"]?.ToString() ?? "compact";
                 string sinceTimestamp = parameters["sinceTimestamp"]?.ToString();
                 string untilTimestamp = parameters["untilTimestamp"]?.ToString();
                 string sortOrder = parameters["sortOrder"]?.ToString() ?? "newest";
