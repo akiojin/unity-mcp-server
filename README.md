@@ -89,7 +89,7 @@ Unity Editor MCP provides **61 comprehensive tools** across 11 categories for co
 - **`find_gameobject`** - Find GameObjects by name, tag, layer with pattern matching
 - **`modify_gameobject`** - Modify GameObject properties (transform, name, active state, parent, etc.)
 - **`delete_gameobject`** - Delete single or multiple GameObjects with optional child handling
-- **`get_hierarchy`** - Get complete scene hierarchy with components and depth control
+- **`get_hierarchy`** - Get complete scene hierarchy with components and depth control, supports rootPath to start from specific GameObject
 
 ### Component System (5 tools)
 - **`add_component`** - Add Unity components to GameObjects with initial property values
