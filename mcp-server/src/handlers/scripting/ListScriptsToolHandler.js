@@ -39,7 +39,7 @@ export class ListScriptsToolHandler extends BaseToolHandler {
           },
           includeMetadata: {
             type: 'boolean',
-            default: true,
+            default: false,
             description: 'Include file metadata (size, modification date, etc.)'
           },
           maxResults: {
@@ -103,7 +103,7 @@ export class ListScriptsToolHandler extends BaseToolHandler {
       scriptType,
       sortBy = 'name',
       sortOrder = 'asc',
-      includeMetadata = true,
+      includeMetadata = false,
       maxResults = 100
     } = params;
 

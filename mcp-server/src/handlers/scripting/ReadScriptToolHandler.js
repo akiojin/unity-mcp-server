@@ -26,7 +26,7 @@ export class ReadScriptToolHandler extends BaseToolHandler {
           },
           includeMetadata: {
             type: 'boolean',
-            default: true,
+            default: false,
             description: 'Whether to include file metadata (line count, size, etc.)'
           }
         },
@@ -84,7 +84,7 @@ export class ReadScriptToolHandler extends BaseToolHandler {
       scriptPath,
       scriptName,
       searchPath = 'Assets/',
-      includeMetadata = true
+      includeMetadata = false
     } = params;
 
     // Ensure connection to Unity

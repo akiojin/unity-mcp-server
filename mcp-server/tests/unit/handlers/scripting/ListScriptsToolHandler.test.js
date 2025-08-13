@@ -156,7 +156,7 @@ describe('ListScriptsToolHandler', () => {
       
       const params = mockUnityConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.searchPath, 'Assets/');
-      assert.equal(params.includeMetadata, true);
+      assert.equal(params.includeMetadata, false);
       assert.equal(params.sortBy, 'name');
       assert.equal(params.sortOrder, 'asc');
 

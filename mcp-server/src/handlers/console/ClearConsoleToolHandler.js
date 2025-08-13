@@ -13,17 +13,17 @@ export class ClearConsoleToolHandler extends BaseToolHandler {
         properties: {
           clearOnPlay: {
             type: 'boolean',
-            default: true,
+            default: false,
             description: 'Clear console when entering play mode'
           },
           clearOnRecompile: {
             type: 'boolean',
-            default: true,
+            default: false,
             description: 'Clear console on script recompilation'
           },
           clearOnBuild: {
             type: 'boolean',
-            default: true,
+            default: false,
             description: 'Clear console when building'
           },
           preserveWarnings: {
@@ -95,9 +95,9 @@ export class ClearConsoleToolHandler extends BaseToolHandler {
    */
   async execute(params) {
     const {
-      clearOnPlay = true,
-      clearOnRecompile = true,
-      clearOnBuild = true,
+      clearOnPlay = false,
+      clearOnRecompile = false,
+      clearOnBuild = false,
       preserveWarnings = false,
       preserveErrors = false
     } = params;

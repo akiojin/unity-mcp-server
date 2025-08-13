@@ -13,7 +13,7 @@ export class GetCompilationStateToolHandler extends BaseToolHandler {
         properties: {
           includeMessages: {
             type: 'boolean',
-            description: 'Include detailed compilation messages (default: true)'
+            description: 'Include detailed compilation messages (default: false)'
           },
           maxMessages: {
             type: 'number',

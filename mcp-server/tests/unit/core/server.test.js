@@ -129,7 +129,7 @@ describe('Server', () => {
       const handlers = createHandlers(unityConnection);
       
       assert.ok(handlers instanceof Map);
-      assert.equal(handlers.size, 62);
+      assert.equal(handlers.size, 61);
       
       // Check for some key handlers
       assert.ok(handlers.has('ping'));

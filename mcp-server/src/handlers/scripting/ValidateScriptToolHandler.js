@@ -30,12 +30,12 @@ export class ValidateScriptToolHandler extends BaseToolHandler {
           },
           checkSyntax: {
             type: 'boolean',
-            default: true,
+            default: false,
             description: 'Check for syntax errors'
           },
           checkUnityCompatibility: {
             type: 'boolean',
-            default: true,
+            default: false,
             description: 'Check for Unity API compatibility'
           },
           suggestImprovements: {
@@ -99,8 +99,8 @@ export class ValidateScriptToolHandler extends BaseToolHandler {
       scriptContent,
       scriptName,
       searchPath = 'Assets/',
-      checkSyntax = true,
-      checkUnityCompatibility = true,
+      checkSyntax = false,
+      checkUnityCompatibility = false,
       suggestImprovements = false
     } = params;
 

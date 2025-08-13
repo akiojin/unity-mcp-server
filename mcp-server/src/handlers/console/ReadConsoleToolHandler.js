@@ -34,13 +34,13 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
           includeStackTrace: {
             type: 'boolean',
             description: 'Include stack traces in results',
-            default: true
+            default: false
           },
           format: {
             type: 'string',
             description: 'Output format for logs',
             enum: ['detailed', 'compact', 'json', 'plain'],
-            default: 'detailed'
+            default: 'compact'
           },
           sinceTimestamp: {
             type: 'string',
@@ -181,8 +181,8 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
       count = 100,
       logTypes = ['All'],
       filterText,
-      includeStackTrace = true,
-      format = 'detailed',
+      includeStackTrace = false,
+      format = 'compact',
       sinceTimestamp,
       untilTimestamp,
       sortOrder = 'newest',

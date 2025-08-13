@@ -46,11 +46,11 @@ describe('ClearConsoleToolHandler', () => {
     it('should define boolean properties with defaults', () => {
       const schema = handler.inputSchema;
       assert.equal(schema.properties.clearOnPlay.type, 'boolean');
-      assert.equal(schema.properties.clearOnPlay.default, true);
+      assert.equal(schema.properties.clearOnPlay.default, false);
       assert.equal(schema.properties.clearOnRecompile.type, 'boolean');
-      assert.equal(schema.properties.clearOnRecompile.default, true);
+      assert.equal(schema.properties.clearOnRecompile.default, false);
       assert.equal(schema.properties.clearOnBuild.type, 'boolean');
-      assert.equal(schema.properties.clearOnBuild.default, true);
+      assert.equal(schema.properties.clearOnBuild.default, false);
       assert.equal(schema.properties.preserveWarnings.type, 'boolean');
       assert.equal(schema.properties.preserveWarnings.default, false);
       assert.equal(schema.properties.preserveErrors.type, 'boolean');
@@ -134,9 +134,9 @@ describe('ClearConsoleToolHandler', () => {
       assert.equal(mockUnityConnection.sendCommand.mock.calls[0].arguments[0], 'clear_console');
       
       const params = mockUnityConnection.sendCommand.mock.calls[0].arguments[1];
-      assert.equal(params.clearOnPlay, true);
-      assert.equal(params.clearOnRecompile, true);
-      assert.equal(params.clearOnBuild, true);
+      assert.equal(params.clearOnPlay, false);
+      assert.equal(params.clearOnRecompile, false);
+      assert.equal(params.clearOnBuild, false);
       assert.equal(params.preserveWarnings, false);
       assert.equal(params.preserveErrors, false);
 

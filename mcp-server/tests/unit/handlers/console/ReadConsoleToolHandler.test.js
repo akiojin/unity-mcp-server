@@ -192,8 +192,8 @@ describe('ReadConsoleToolHandler', () => {
       const params = mockUnityConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.count, 100);
       assert.deepEqual(params.logTypes, ['All']);
-      assert.equal(params.includeStackTrace, true);
-      assert.equal(params.format, 'detailed');
+      assert.equal(params.includeStackTrace, false);
+      assert.equal(params.format, 'compact');
       assert.equal(params.sortOrder, 'newest');
       assert.equal(params.groupBy, 'none');
 
