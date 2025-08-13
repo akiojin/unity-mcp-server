@@ -47,7 +47,7 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
           },
           maxObjects: {
             type: 'number',
-            description: 'Maximum number of objects to include in response (default: 100, -1 for unlimited). CRITICAL: Start with small values (10-50) to avoid MCP token limits. Use 100-500 for nameOnly mode.',
+            description: 'Maximum number of objects to include in response. Unity default: 100 (-1 for unlimited). RECOMMENDED: 10-50 for detailed info, 100-500 for nameOnly mode to avoid MCP token limits',
             minimum: -1
           }
         },

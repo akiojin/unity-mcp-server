@@ -13,7 +13,7 @@ export class GetCompilationStateToolHandler extends BaseToolHandler {
         properties: {
           includeMessages: {
             type: 'boolean',
-            description: 'Include detailed compilation messages (default: false)'
+            description: 'Include detailed compilation messages. Unity default: false. Set to true for debugging compilation issues'
           },
           maxMessages: {
             type: 'number',

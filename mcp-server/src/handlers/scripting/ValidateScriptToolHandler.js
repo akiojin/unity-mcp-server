@@ -31,12 +31,12 @@ export class ValidateScriptToolHandler extends BaseToolHandler {
           checkSyntax: {
             type: 'boolean',
             default: false,
-            description: 'Check for syntax errors'
+            description: 'Check for syntax errors. Unity default: false. Set to true for code validation before compilation'
           },
           checkUnityCompatibility: {
             type: 'boolean',
             default: false,
-            description: 'Check for Unity API compatibility'
+            description: 'Check for Unity API compatibility. Unity default: false. Set to true to verify Unity-specific code usage'
           },
           suggestImprovements: {
             type: 'boolean',

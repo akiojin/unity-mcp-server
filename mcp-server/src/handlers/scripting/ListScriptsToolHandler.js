@@ -40,7 +40,7 @@ export class ListScriptsToolHandler extends BaseToolHandler {
           includeMetadata: {
             type: 'boolean',
             default: false,
-            description: 'Include file metadata (size, modification date, etc.)'
+            description: 'Include file metadata (size, modification date, etc.). Unity default: false. Set to true for detailed file analysis'
           },
           maxResults: {
             type: 'number',

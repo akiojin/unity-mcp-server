@@ -14,17 +14,17 @@ export class ClearConsoleToolHandler extends BaseToolHandler {
           clearOnPlay: {
             type: 'boolean',
             default: false,
-            description: 'Clear console when entering play mode'
+            description: 'Clear console when entering play mode. Unity default: false. Set to true for cleaner testing sessions'
           },
           clearOnRecompile: {
             type: 'boolean',
             default: false,
-            description: 'Clear console on script recompilation'
+            description: 'Clear console on script recompilation. Unity default: false. Set to true to focus on current compilation errors'
           },
           clearOnBuild: {
             type: 'boolean',
             default: false,
-            description: 'Clear console when building'
+            description: 'Clear console when building. Unity default: false. Set to true for clean build logs'
           },
           preserveWarnings: {
             type: 'boolean',

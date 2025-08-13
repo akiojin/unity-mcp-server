@@ -33,12 +33,12 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
           },
           includeStackTrace: {
             type: 'boolean',
-            description: 'Include stack traces in results',
+            description: 'Include stack traces in results. Unity default: false (set to true for debugging)',
             default: false
           },
           format: {
             type: 'string',
-            description: 'Output format for logs',
+            description: 'Output format for logs. Unity default: compact. RECOMMENDED: compact for general use, detailed for debugging',
             enum: ['detailed', 'compact', 'json', 'plain'],
             default: 'compact'
           },

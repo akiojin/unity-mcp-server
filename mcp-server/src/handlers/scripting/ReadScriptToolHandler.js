@@ -27,7 +27,7 @@ export class ReadScriptToolHandler extends BaseToolHandler {
           includeMetadata: {
             type: 'boolean',
             default: false,
-            description: 'Whether to include file metadata (line count, size, etc.)'
+            description: 'Whether to include file metadata (line count, size, etc.). Unity default: false. Set to true for file statistics'
           }
         },
         required: []
