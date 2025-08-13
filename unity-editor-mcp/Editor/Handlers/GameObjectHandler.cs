@@ -490,8 +490,6 @@ namespace UnityEditorMCP.Handlers
                 bool nameOnly = parameters["nameOnly"]?.ToObject<bool>() ?? false;
                 int maxObjects = parameters["maxObjects"]?.ToObject<int>() ?? 1000;
                 
-                GameObject[] rootObjects;
-                
                 // Build hierarchy with object count tracking
                 List<object> hierarchy = new List<object>();
                 var objectCounter = new ObjectCounter { MaxObjects = maxObjects, CurrentCount = 0 };
