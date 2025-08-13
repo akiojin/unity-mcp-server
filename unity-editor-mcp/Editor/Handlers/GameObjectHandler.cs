@@ -480,6 +480,7 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                string rootPath = parameters["rootPath"]?.ToString();
                 bool includeInactive = parameters["includeInactive"]?.ToObject<bool>() ?? true;
                 int maxDepth = parameters["maxDepth"]?.ToObject<int>() ?? -1;
                 bool includeComponents = parameters["includeComponents"]?.ToObject<bool>() ?? false;
@@ -489,9 +490,28 @@ namespace UnityEditorMCP.Handlers
                 bool nameOnly = parameters["nameOnly"]?.ToObject<bool>() ?? false;
                 int maxObjects = parameters["maxObjects"]?.ToObject<int>() ?? 1000;
                 
-                // Get root GameObjects
-                GameObject[] rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
-                Debug.Log($"[GetHierarchy] maxObjects={maxObjects}, rootObjects.Length={rootObjects.Length}");
+                GameObject[] rootObjects;
+                
+                // Check if a specific root path is provided
+                if (!string.IsNullOrEmpty(rootPath))
+                {
+                    // Find the specified GameObject
+                    GameObject rootObject = GameObject.Find(rootPath);
+                    if (rootObject == null)
+                    {
+                        return new { error = $"GameObject not found at path: {rootPath}" };
+                    }
+                    
+                    // Use the specified GameObject as the single root
+                    rootObjects = new GameObject[] { rootObject };
+                    Debug.Log($"[GetHierarchy] Using rootPath={rootPath}, maxObjects={maxObjects}");
+                }
+                else
+                {
+                    // Get root GameObjects from the scene
+                    rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
+                    Debug.Log($"[GetHierarchy] maxObjects={maxObjects}, rootObjects.Length={rootObjects.Length}");
+                }
                 
                 // Build hierarchy with object count tracking
                 List<object> hierarchy = new List<object>();

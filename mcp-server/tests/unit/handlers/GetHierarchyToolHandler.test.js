@@ -40,6 +40,13 @@ describe('GetHierarchyToolHandler', () => {
       assert.doesNotThrow(() => handler.validate({"includeComponents":true}));
     });
 
+    it('should pass with rootPath parameter', () => {
+      assert.doesNotThrow(() => handler.validate({
+        "rootPath": "/Player/Character",
+        "includeComponents": true
+      }));
+    });
+
     it('should pass with new optimization parameters', () => {
       assert.doesNotThrow(() => handler.validate({
         "includeTransform": false,
@@ -70,6 +77,19 @@ describe('GetHierarchyToolHandler', () => {
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
       assert.equal(result.sceneName, "TestScene");
       assert.equal(result.objectCount, 2);
+    });
+
+    it('should execute with rootPath parameter', async () => {
+      const result = await handler.execute({
+        "rootPath": "/Player",
+        "includeComponents": true
+      });
+      
+      assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
+      const [command, params] = mockConnection.sendCommand.mock.calls[0].arguments;
+      assert.equal(command, 'get_hierarchy');
+      assert.equal(params.rootPath, '/Player');
+      assert.equal(params.includeComponents, true);
     });
 
     it('should connect if not connected', async () => {

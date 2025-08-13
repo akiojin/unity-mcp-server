@@ -12,6 +12,10 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
       {
         type: 'object',
         properties: {
+          rootPath: {
+            type: 'string',
+            description: 'Path to GameObject to use as root for hierarchy (e.g., "/Player" or "/Canvas/UI"). If not specified, gets entire scene hierarchy from root.'
+          },
           includeInactive: {
             type: 'boolean',
             description: 'Include inactive GameObjects (default: true)'
