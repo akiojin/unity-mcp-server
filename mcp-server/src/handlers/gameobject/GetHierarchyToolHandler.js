@@ -14,7 +14,7 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
         properties: {
           rootPath: {
             type: 'string',
-            description: 'Path to GameObject to use as root for hierarchy (e.g., "/Player" or "/Canvas/UI"). If not specified, gets entire scene hierarchy from root.'
+            description: 'Path to GameObject whose children will be the root of the returned hierarchy (e.g., "/Team_0" returns Team_0\'s children). If not specified, returns scene root objects.'
           },
           includeInactive: {
             type: 'boolean',
@@ -22,7 +22,7 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
           },
           maxDepth: {
             type: 'number',
-            description: 'Maximum depth to traverse. 0=root objects only (default), 1=root+children, 2=root+children+grandchildren, etc. (-1 for unlimited)',
+            description: 'Maximum depth to traverse from the root. 0=immediate children only (default), 1=children+grandchildren, 2=children+grandchildren+great-grandchildren, etc. (-1 for unlimited)',
             minimum: -1
           },
           includeComponents: {

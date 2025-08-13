@@ -492,6 +492,10 @@ namespace UnityEditorMCP.Handlers
                 
                 GameObject[] rootObjects;
                 
+                // Build hierarchy with object count tracking
+                List<object> hierarchy = new List<object>();
+                var objectCounter = new ObjectCounter { MaxObjects = maxObjects, CurrentCount = 0 };
+                
                 // Check if a specific root path is provided
                 if (!string.IsNullOrEmpty(rootPath))
                 {
@@ -502,43 +506,63 @@ namespace UnityEditorMCP.Handlers
                         return new { error = $"GameObject not found at path: {rootPath}" };
                     }
                     
-                    // Use the specified GameObject as the single root
-                    rootObjects = new GameObject[] { rootObject };
-                    Debug.Log($"[GetHierarchy] Using rootPath={rootPath}, maxObjects={maxObjects}");
+                    Debug.Log($"[GetHierarchy] Using rootPath={rootPath}, maxObjects={maxObjects}, getting children at depth 0");
+                    
+                    // When rootPath is specified, start from its children (depth 0 = direct children)
+                    foreach (Transform child in rootObject.transform)
+                    {
+                        if (!includeInactive && !child.gameObject.activeInHierarchy)
+                            continue;
+                        
+                        // Check if we've hit the object limit
+                        if (objectCounter.MaxObjects > 0 && objectCounter.CurrentCount >= objectCounter.MaxObjects)
+                        {
+                            Debug.Log($"[GetHierarchy] Hit object limit at {objectCounter.CurrentCount} objects");
+                            break;
+                        }
+                        
+                        var node = BuildHierarchyNode(child.gameObject, 0, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly, objectCounter);
+                        if (node != null)
+                        {
+                            hierarchy.Add(node);
+                            Debug.Log($"[GetHierarchy] Added child node: {child.name}, Current count: {objectCounter.CurrentCount}");
+                        }
+                        else
+                        {
+                            Debug.Log($"[GetHierarchy] Node was null for: {child.name}, Breaking loop");
+                            break;
+                        }
+                    }
                 }
                 else
                 {
                     // Get root GameObjects from the scene
-                    rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
-                    Debug.Log($"[GetHierarchy] maxObjects={maxObjects}, rootObjects.Length={rootObjects.Length}");
-                }
-                
-                // Build hierarchy with object count tracking
-                List<object> hierarchy = new List<object>();
-                var objectCounter = new ObjectCounter { MaxObjects = maxObjects, CurrentCount = 0 };
-                
-                foreach (var root in rootObjects)
-                {
-                    if (!includeInactive && !root.activeInHierarchy)
-                        continue;
+                    GameObject[] rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
+                    Debug.Log($"[GetHierarchy] No rootPath, using scene roots. maxObjects={maxObjects}, rootObjects.Length={rootObjects.Length}");
                     
-                    // Check if we've hit the object limit
-                    if (objectCounter.MaxObjects > 0 && objectCounter.CurrentCount >= objectCounter.MaxObjects)
+                    foreach (var root in rootObjects)
                     {
-                        Debug.Log($"[GetHierarchy] Hit object limit at {objectCounter.CurrentCount} objects");
-                        break;
-                    }
+                        if (!includeInactive && !root.activeInHierarchy)
+                            continue;
                         
-                    var node = BuildHierarchyNode(root, 0, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly, objectCounter);
-                    if (node != null)
-                    {
-                        hierarchy.Add(node);
-                        Debug.Log($"[GetHierarchy] Added node: {root.name}, Current count: {objectCounter.CurrentCount}");
-                    }
-                    else
-                    {
-                        Debug.Log($"[GetHierarchy] Node was null for: {root.name}, Breaking loop");
-                        break;
+                        // Check if we've hit the object limit
+                        if (objectCounter.MaxObjects > 0 && objectCounter.CurrentCount >= objectCounter.MaxObjects)
+                        {
+                            Debug.Log($"[GetHierarchy] Hit object limit at {objectCounter.CurrentCount} objects");
+                            break;
+                        }
+                            
+                        var node = BuildHierarchyNode(root, 0, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly, objectCounter);
+                        if (node != null)
+                        {
+                            hierarchy.Add(node);
+                            Debug.Log($"[GetHierarchy] Added root node: {root.name}, Current count: {objectCounter.CurrentCount}");
+                        }
+                        else
+                        {
+                            Debug.Log($"[GetHierarchy] Node was null for: {root.name}, Breaking loop");
+                            break;
+                        }
                     }
                 }
                 

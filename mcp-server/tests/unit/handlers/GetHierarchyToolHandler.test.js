@@ -85,15 +85,27 @@ describe('GetHierarchyToolHandler', () => {
 
     it('should execute with rootPath parameter', async () => {
       const result = await handler.execute({
-        "rootPath": "/Player",
+        "rootPath": "/Team_0",
         "includeComponents": true
       });
       
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
       const [command, params] = mockConnection.sendCommand.mock.calls[0].arguments;
       assert.equal(command, 'get_hierarchy');
-      assert.equal(params.rootPath, '/Player');
+      assert.equal(params.rootPath, '/Team_0');
       assert.equal(params.includeComponents, true);
+    });
+
+    it('should handle rootPath with maxDepth 0 to get immediate children', async () => {
+      const result = await handler.execute({
+        "rootPath": "/Team_0",
+        "maxDepth": 0
+      });
+      
+      assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
+      const [command, params] = mockConnection.sendCommand.mock.calls[0].arguments;
+      assert.equal(params.rootPath, '/Team_0');
+      assert.equal(params.maxDepth, 0);
     });
 
     it('should connect if not connected', async () => {
