@@ -7,7 +7,7 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'capture_screenshot',
-      'Capture screenshots from Unity Editor (Game View, Scene View, or specific windows)',
+      'Capture screenshots from Unity Editor (Game View, Scene View, Explorer mode, or specific windows)',
       {
         type: 'object',
         properties: {
@@ -17,9 +17,9 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
           },
           captureMode: {
             type: 'string',
-            enum: ['game', 'scene', 'window'],
+            enum: ['game', 'scene', 'window', 'explorer'],
             default: 'game',
-            description: 'What to capture: game (Game View), scene (Scene View), or window (specific editor window)'
+            description: 'What to capture: game (Game View), scene (Scene View), explorer (LLM exploration mode), or window (specific editor window)'
           },
           width: {
             type: 'number',
@@ -42,6 +42,167 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
             type: 'boolean',
             default: false,
             description: 'Return the screenshot data as base64 encoded string'
+          },
+          explorerSettings: {
+            type: 'object',
+            description: 'Settings for explorer mode (LLM exploration)',
+            properties: {
+              target: {
+                type: 'object',
+                description: 'Target configuration for explorer mode',
+                properties: {
+                  type: {
+                    type: 'string',
+                    enum: ['gameObject', 'tag', 'area', 'position'],
+                    description: 'Type of target: gameObject (by name), tag (by tag), area (center + radius), position (manual)'
+                  },
+                  name: {
+                    type: 'string',
+                    description: 'Name of the GameObject to target (for gameObject type)'
+                  },
+                  tag: {
+                    type: 'string',
+                    description: 'Tag to search for GameObjects (for tag type)'
+                  },
+                  center: {
+                    type: 'object',
+                    description: 'Center position for area type',
+                    properties: {
+                      x: { type: 'number' },
+                      y: { type: 'number' },
+                      z: { type: 'number' }
+                    }
+                  },
+                  radius: {
+                    type: 'number',
+                    description: 'Radius for area type'
+                  },
+                  includeChildren: {
+                    type: 'boolean',
+                    default: true,
+                    description: 'Include children when calculating bounds'
+                  }
+                }
+              },
+              camera: {
+                type: 'object',
+                description: 'Camera configuration for explorer mode',
+                properties: {
+                  position: {
+                    type: 'object',
+                    description: 'Camera position',
+                    properties: {
+                      x: { type: 'number' },
+                      y: { type: 'number' },
+                      z: { type: 'number' }
+                    }
+                  },
+                  lookAt: {
+                    type: 'object',
+                    description: 'Point to look at',
+                    properties: {
+                      x: { type: 'number' },
+                      y: { type: 'number' },
+                      z: { type: 'number' }
+                    }
+                  },
+                  rotation: {
+                    type: 'object',
+                    description: 'Camera rotation in Euler angles',
+                    properties: {
+                      x: { type: 'number' },
+                      y: { type: 'number' },
+                      z: { type: 'number' }
+                    }
+                  },
+                  fieldOfView: {
+                    type: 'number',
+                    default: 60,
+                    description: 'Field of view in degrees'
+                  },
+                  nearClip: {
+                    type: 'number',
+                    default: 0.3,
+                    description: 'Near clipping plane'
+                  },
+                  farClip: {
+                    type: 'number',
+                    default: 1000,
+                    description: 'Far clipping plane'
+                  },
+                  autoFrame: {
+                    type: 'boolean',
+                    default: true,
+                    description: 'Automatically frame the target'
+                  },
+                  padding: {
+                    type: 'number',
+                    default: 0.2,
+                    description: 'Padding for auto-framing (0-1)'
+                  },
+                  offset: {
+                    type: 'object',
+                    description: 'Offset from calculated position',
+                    properties: {
+                      x: { type: 'number' },
+                      y: { type: 'number' },
+                      z: { type: 'number' }
+                    }
+                  },
+                  width: {
+                    type: 'number',
+                    default: 1920,
+                    description: 'Resolution width for explorer capture'
+                  },
+                  height: {
+                    type: 'number',
+                    default: 1080,
+                    description: 'Resolution height for explorer capture'
+                  }
+                }
+              },
+              display: {
+                type: 'object',
+                description: 'Display settings for explorer mode',
+                properties: {
+                  backgroundColor: {
+                    type: 'object',
+                    description: 'Background color',
+                    properties: {
+                      r: { type: 'number', default: 0.2 },
+                      g: { type: 'number', default: 0.2 },
+                      b: { type: 'number', default: 0.2 },
+                      a: { type: 'number', default: 1 }
+                    }
+                  },
+                  layers: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    description: 'Layer names to include in rendering'
+                  },
+                  showGizmos: {
+                    type: 'boolean',
+                    default: false,
+                    description: 'Show gizmos in the capture'
+                  },
+                  showColliders: {
+                    type: 'boolean',
+                    default: false,
+                    description: 'Show colliders in the capture'
+                  },
+                  showBounds: {
+                    type: 'boolean',
+                    default: false,
+                    description: 'Show object bounds'
+                  },
+                  highlightTarget: {
+                    type: 'boolean',
+                    default: false,
+                    description: 'Highlight the target object'
+                  }
+                }
+              }
+            }
           }
         },
         required: []
@@ -57,16 +218,60 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
    * @throws {Error} If validation fails
    */
   validate(params) {
-    const { captureMode = 'game', windowName, outputPath } = params;
+    const { captureMode = 'game', windowName, outputPath, explorerSettings } = params;
 
     // Validate capture mode
-    if (!['game', 'scene', 'window'].includes(captureMode)) {
-      throw new Error('captureMode must be one of: game, scene, window');
+    if (!['game', 'scene', 'window', 'explorer'].includes(captureMode)) {
+      throw new Error('captureMode must be one of: game, scene, window, explorer');
     }
 
     // Window mode requires windowName
     if (captureMode === 'window' && !windowName) {
       throw new Error('windowName is required when captureMode is "window"');
+    }
+
+    // Explorer mode validation
+    if (captureMode === 'explorer' && explorerSettings) {
+      const { target, camera, display } = explorerSettings;
+      
+      // Validate target settings
+      if (target) {
+        const { type } = target;
+        if (type && !['gameObject', 'tag', 'area', 'position'].includes(type)) {
+          throw new Error('target.type must be one of: gameObject, tag, area, position');
+        }
+        
+        if (type === 'gameObject' && !target.name) {
+          throw new Error('target.name is required when target.type is "gameObject"');
+        }
+        
+        if (type === 'tag' && !target.tag) {
+          throw new Error('target.tag is required when target.type is "tag"');
+        }
+        
+        if (type === 'area' && !target.center) {
+          throw new Error('target.center is required when target.type is "area"');
+        }
+      }
+      
+      // Validate camera settings
+      if (camera) {
+        if (camera.fieldOfView !== undefined && (camera.fieldOfView < 1 || camera.fieldOfView > 179)) {
+          throw new Error('camera.fieldOfView must be between 1 and 179');
+        }
+        
+        if (camera.padding !== undefined && (camera.padding < 0 || camera.padding > 1)) {
+          throw new Error('camera.padding must be between 0 and 1');
+        }
+        
+        if (camera.width !== undefined && (camera.width < 1 || camera.width > 8192)) {
+          throw new Error('camera.width must be between 1 and 8192');
+        }
+        
+        if (camera.height !== undefined && (camera.height < 1 || camera.height > 8192)) {
+          throw new Error('camera.height must be between 1 and 8192');
+        }
+      }
     }
 
     // Validate output path if provided
@@ -80,13 +285,15 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
       }
     }
 
-    // Validate dimensions if provided
-    if (params.width !== undefined && (params.width < 0 || params.width > 8192)) {
-      throw new Error('width must be between 0 and 8192');
-    }
-    
-    if (params.height !== undefined && (params.height < 0 || params.height > 8192)) {
-      throw new Error('height must be between 0 and 8192');
+    // Validate dimensions if provided (for non-explorer modes)
+    if (captureMode !== 'explorer') {
+      if (params.width !== undefined && (params.width < 0 || params.width > 8192)) {
+        throw new Error('width must be between 0 and 8192');
+      }
+      
+      if (params.height !== undefined && (params.height < 0 || params.height > 8192)) {
+        throw new Error('height must be between 0 and 8192');
+      }
     }
   }
 
@@ -146,7 +353,7 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
   getExamples() {
     return {
       captureGameView: {
-        description: 'Capture the Game View',
+        description: 'Capture the Game View (user perspective)',
         params: {
           captureMode: 'game',
           includeUI: true
@@ -173,6 +380,68 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
         params: {
           captureMode: 'window',
           windowName: 'Console'
+        }
+      },
+      explorerCaptureGameObject: {
+        description: 'Explorer mode: Capture a specific GameObject (LLM perspective)',
+        params: {
+          captureMode: 'explorer',
+          explorerSettings: {
+            target: {
+              type: 'gameObject',
+              name: 'Player',
+              includeChildren: true
+            },
+            camera: {
+              autoFrame: true,
+              padding: 0.2
+            }
+          }
+        }
+      },
+      explorerCaptureByTag: {
+        description: 'Explorer mode: Capture all objects with a specific tag',
+        params: {
+          captureMode: 'explorer',
+          explorerSettings: {
+            target: {
+              type: 'tag',
+              tag: 'Enemy'
+            },
+            camera: {
+              autoFrame: true
+            }
+          }
+        }
+      },
+      explorerCaptureArea: {
+        description: 'Explorer mode: Capture a specific area from above',
+        params: {
+          captureMode: 'explorer',
+          explorerSettings: {
+            target: {
+              type: 'area',
+              center: { x: 0, y: 0, z: 0 },
+              radius: 20
+            }
+          }
+        }
+      },
+      explorerManualCamera: {
+        description: 'Explorer mode: Manual camera positioning',
+        params: {
+          captureMode: 'explorer',
+          explorerSettings: {
+            camera: {
+              position: { x: 10, y: 5, z: -10 },
+              lookAt: { x: 0, y: 0, z: 0 },
+              fieldOfView: 45
+            },
+            display: {
+              backgroundColor: { r: 0.1, g: 0.1, b: 0.2 },
+              layers: ['Default', 'Player', 'Enemies']
+            }
+          }
         }
       }
     };

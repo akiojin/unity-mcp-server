@@ -1,14 +1,30 @@
 # Unity MCP Screenshot System
 
 ## Overview
-The Unity MCP Screenshot System enables capturing and analyzing screenshots from Unity Editor through MCP. This feature supports capturing Game View, Scene View, and provides basic image analysis capabilities with hooks for AI-powered vision analysis.
+The Unity MCP Screenshot System enables capturing and analyzing screenshots from Unity Editor through MCP. This feature supports two main modes:
+1. **User Perspective**: Capturing actual views (Game View, Scene View) as the user sees them
+2. **LLM Explorer Mode**: AI-controlled camera for exploring scenes independently
+
+The system provides basic image analysis capabilities with hooks for AI-powered vision analysis.
 
 ## Features
 
-### Screenshot Capture
+### Screenshot Capture Modes
+
+#### User Perspective Modes
 - **Game View Capture**: Capture the game as it appears during play or edit mode
 - **Scene View Capture**: Capture the editor's 3D scene view with camera position data
 - **Window Capture**: (Placeholder) Capture specific Unity Editor windows
+
+#### LLM Explorer Mode (New)
+- **Independent Camera**: Creates temporary camera without affecting user's view
+- **Target-based Capture**: Focus on specific GameObjects, tags, or areas
+- **Auto-framing**: Automatically positions camera to frame targets
+- **Manual Control**: Direct camera positioning and orientation
+- **Layer Filtering**: Capture only specific layers
+- **Custom Backgrounds**: Set background colors for clarity
+
+### Common Features
 - **Custom Resolution**: Specify width and height for screenshots
 - **Base64 Encoding**: Get screenshot data as base64 for immediate processing
 - **Automatic Timestamping**: Auto-generated filenames with timestamps
@@ -43,12 +59,37 @@ Located at: `mcp-server/src/handlers/screenshot/CaptureScreenshotToolHandler.js`
 ```javascript
 {
   outputPath: string,      // Path to save screenshot (optional)
-  captureMode: string,     // "game", "scene", or "window"
-  width: number,          // Custom width (optional)
-  height: number,         // Custom height (optional)
+  captureMode: string,     // "game", "scene", "window", or "explorer"
+  width: number,          // Custom width (optional, not for explorer mode)
+  height: number,         // Custom height (optional, not for explorer mode)
   includeUI: boolean,     // Include UI in Game View (default: true)
   windowName: string,     // Window name for window mode
-  encodeAsBase64: boolean // Return as base64 (default: false)
+  encodeAsBase64: boolean, // Return as base64 (default: false)
+  explorerSettings: {      // Settings for explorer mode (optional)
+    target: {              // Target configuration
+      type: string,        // "gameObject", "tag", "area", or "position"
+      name: string,        // GameObject name (for gameObject type)
+      tag: string,         // Tag name (for tag type)
+      center: Vector3,     // Center position (for area type)
+      radius: number,      // Radius (for area type)
+      includeChildren: boolean // Include children in bounds calculation
+    },
+    camera: {              // Camera configuration
+      position: Vector3,   // Manual camera position
+      lookAt: Vector3,     // Point to look at
+      rotation: Vector3,   // Euler angles rotation
+      fieldOfView: number, // FOV in degrees (default: 60)
+      autoFrame: boolean,  // Auto-frame target (default: true)
+      padding: number,     // Framing padding 0-1 (default: 0.2)
+      width: number,       // Resolution width (default: 1920)
+      height: number       // Resolution height (default: 1080)
+    },
+    display: {             // Display settings
+      backgroundColor: Color, // Background color
+      layers: string[],    // Layer names to render
+      highlightTarget: boolean // Highlight target (placeholder)
+    }
+  }
 }
 ```
 
@@ -67,9 +108,11 @@ Located at: `mcp-server/src/handlers/screenshot/AnalyzeScreenshotToolHandler.js`
 
 ## Usage Examples
 
-### Capture Game View Screenshot
+### User Perspective Captures
+
+#### Capture Game View Screenshot
 ```javascript
-// Basic Game View capture
+// Basic Game View capture (what user sees)
 const result = await mcp.tools.capture_screenshot({
   captureMode: 'game',
   includeUI: true
@@ -77,9 +120,9 @@ const result = await mcp.tools.capture_screenshot({
 // Result: { path: "Assets/Screenshots/screenshot_game_2025-06-25.png", width: 1920, height: 1080 }
 ```
 
-### Capture Scene View with Custom Resolution
+#### Capture Scene View with Custom Resolution
 ```javascript
-// HD Scene View capture
+// HD Scene View capture (editor camera view)
 const result = await mcp.tools.capture_screenshot({
   captureMode: 'scene',
   width: 1920,
@@ -87,6 +130,82 @@ const result = await mcp.tools.capture_screenshot({
   outputPath: 'Assets/Screenshots/scene_hd.png'
 });
 // Includes camera position and rotation data
+```
+
+### LLM Explorer Mode Captures
+
+#### Auto-frame a GameObject
+```javascript
+// LLM explores and captures a specific GameObject
+const result = await mcp.tools.capture_screenshot({
+  captureMode: 'explorer',
+  explorerSettings: {
+    target: {
+      type: 'gameObject',
+      name: 'Player',
+      includeChildren: true
+    },
+    camera: {
+      autoFrame: true,
+      padding: 0.3
+    }
+  }
+});
+// Camera automatically positions to frame the Player
+```
+
+#### Capture Objects by Tag
+```javascript
+// Find and frame all enemies
+const result = await mcp.tools.capture_screenshot({
+  captureMode: 'explorer',
+  explorerSettings: {
+    target: {
+      type: 'tag',
+      tag: 'Enemy'
+    },
+    camera: {
+      autoFrame: true
+    }
+  }
+});
+// Frames all GameObjects tagged as "Enemy"
+```
+
+#### Manual Camera Control
+```javascript
+// LLM positions camera manually
+const result = await mcp.tools.capture_screenshot({
+  captureMode: 'explorer',
+  explorerSettings: {
+    camera: {
+      position: { x: 0, y: 50, z: 0 },
+      lookAt: { x: 0, y: 0, z: 0 },
+      fieldOfView: 90
+    },
+    display: {
+      backgroundColor: { r: 0, g: 0, b: 0 },
+      layers: ['Default', 'Player']
+    }
+  }
+});
+// Top-down view with black background, showing only specific layers
+```
+
+#### Capture Area Overview
+```javascript
+// Survey a specific area
+const result = await mcp.tools.capture_screenshot({
+  captureMode: 'explorer',
+  explorerSettings: {
+    target: {
+      type: 'area',
+      center: { x: 10, y: 0, z: 10 },
+      radius: 25
+    }
+  }
+});
+// Automatically positions camera to capture the specified area
 ```
 
 ### Capture and Analyze in One Workflow
@@ -127,6 +246,13 @@ const analysis = await mcp.tools.analyze_screenshot({
 - Creates RenderTexture for custom resolution
 - Captures editor gizmos and handles
 - Includes camera transform data in response
+
+### Explorer Mode Capture
+- Creates temporary `MCP_ExplorerCamera` GameObject
+- Configures camera independently of user's view
+- Auto-calculates optimal position for targets
+- Cleans up camera after capture
+- No impact on game state or user's camera
 
 ### Color Analysis
 - Samples pixels at intervals for performance

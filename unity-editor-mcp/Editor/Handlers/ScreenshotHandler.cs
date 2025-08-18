@@ -61,6 +61,10 @@ namespace UnityEditorMCP.Handlers
                     case "window":
                         result = CaptureEditorWindow(outputPath, windowName, encodeAsBase64);
                         break;
+                    case "explorer":
+                        JObject explorerSettings = parameters["explorerSettings"] as JObject;
+                        result = CaptureExplorerView(outputPath, explorerSettings, encodeAsBase64);
+                        break;
                 }
                 
                 return result;
@@ -316,6 +320,221 @@ namespace UnityEditorMCP.Handlers
         }
         
         /// <summary>
+        /// Captures using LLM Explorer mode - allows AI to explore the scene freely
+        /// </summary>
+        private static object CaptureExplorerView(string outputPath, JObject explorerSettings, bool encodeAsBase64)
+        {
+            try
+            {
+                Debug.Log("[ScreenshotHandler] CaptureExplorerView called");
+                
+                // Parse explorer settings
+                JObject targetSettings = explorerSettings?["target"] as JObject;
+                JObject cameraSettings = explorerSettings?["camera"] as JObject;
+                JObject displaySettings = explorerSettings?["display"] as JObject;
+                
+                // Create temporary explorer camera
+                GameObject tempCameraObj = new GameObject("MCP_ExplorerCamera");
+                Camera explorerCamera = tempCameraObj.AddComponent<Camera>();
+                
+                try
+                {
+                    // Configure camera defaults
+                    explorerCamera.clearFlags = CameraClearFlags.SolidColor;
+                    explorerCamera.backgroundColor = ParseColor(displaySettings?["backgroundColor"], new Color(0.2f, 0.2f, 0.2f));
+                    explorerCamera.fieldOfView = cameraSettings?["fieldOfView"]?.ToObject<float>() ?? 60f;
+                    explorerCamera.nearClipPlane = cameraSettings?["nearClip"]?.ToObject<float>() ?? 0.3f;
+                    explorerCamera.farClipPlane = cameraSettings?["farClip"]?.ToObject<float>() ?? 1000f;
+                    
+                    // Set camera position and rotation
+                    bool positionSet = false;
+                    
+                    // Check for target-based positioning
+                    if (targetSettings != null)
+                    {
+                        string targetType = targetSettings["type"]?.ToString() ?? "position";
+                        
+                        if (targetType == "gameObject")
+                        {
+                            string targetName = targetSettings["name"]?.ToString();
+                            if (!string.IsNullOrEmpty(targetName))
+                            {
+                                GameObject target = GameObject.Find(targetName);
+                                if (target != null)
+                                {
+                                    bool autoFrame = cameraSettings?["autoFrame"]?.ToObject<bool>() ?? true;
+                                    if (autoFrame)
+                                    {
+                                        positionSet = AutoFrameTarget(explorerCamera, target, targetSettings);
+                                    }
+                                }
+                                else
+                                {
+                                    Debug.LogWarning($"[ScreenshotHandler] Target GameObject '{targetName}' not found");
+                                }
+                            }
+                        }
+                        else if (targetType == "tag")
+                        {
+                            string tag = targetSettings["tag"]?.ToString();
+                            if (!string.IsNullOrEmpty(tag))
+                            {
+                                GameObject[] targets = GameObject.FindGameObjectsWithTag(tag);
+                                if (targets.Length > 0)
+                                {
+                                    positionSet = AutoFrameTargets(explorerCamera, targets, targetSettings);
+                                }
+                            }
+                        }
+                        else if (targetType == "area")
+                        {
+                            JObject center = targetSettings["center"] as JObject;
+                            float radius = targetSettings["radius"]?.ToObject<float>() ?? 10f;
+                            if (center != null)
+                            {
+                                Vector3 centerPos = ParseVector3(center);
+                                positionSet = FrameArea(explorerCamera, centerPos, radius);
+                            }
+                        }
+                    }
+                    
+                    // If not positioned by target, use manual camera settings
+                    if (!positionSet && cameraSettings != null)
+                    {
+                        JObject position = cameraSettings["position"] as JObject;
+                        JObject lookAt = cameraSettings["lookAt"] as JObject;
+                        JObject rotation = cameraSettings["rotation"] as JObject;
+                        
+                        if (position != null)
+                        {
+                            explorerCamera.transform.position = ParseVector3(position);
+                            positionSet = true;
+                        }
+                        
+                        if (lookAt != null)
+                        {
+                            Vector3 lookAtPos = ParseVector3(lookAt);
+                            explorerCamera.transform.LookAt(lookAtPos);
+                        }
+                        else if (rotation != null)
+                        {
+                            explorerCamera.transform.eulerAngles = ParseVector3(rotation);
+                        }
+                    }
+                    
+                    // Default position if nothing was set
+                    if (!positionSet)
+                    {
+                        explorerCamera.transform.position = new Vector3(0, 10, -10);
+                        explorerCamera.transform.LookAt(Vector3.zero);
+                    }
+                    
+                    // Configure display options
+                    if (displaySettings != null)
+                    {
+                        // Set culling mask if specified
+                        JArray layers = displaySettings["layers"] as JArray;
+                        if (layers != null)
+                        {
+                            int cullingMask = 0;
+                            foreach (var layer in layers)
+                            {
+                                int layerIndex = LayerMask.NameToLayer(layer.ToString());
+                                if (layerIndex >= 0)
+                                {
+                                    cullingMask |= (1 << layerIndex);
+                                }
+                            }
+                            if (cullingMask != 0)
+                            {
+                                explorerCamera.cullingMask = cullingMask;
+                            }
+                        }
+                        
+                        // Highlight target if requested
+                        bool highlightTarget = displaySettings["highlightTarget"]?.ToObject<bool>() ?? false;
+                        if (highlightTarget && targetSettings != null)
+                        {
+                            HighlightTargets(targetSettings);
+                        }
+                    }
+                    
+                    // Determine capture resolution
+                    int width = cameraSettings?["width"]?.ToObject<int>() ?? 1920;
+                    int height = cameraSettings?["height"]?.ToObject<int>() ?? 1080;
+                    
+                    // Create render texture and capture
+                    RenderTexture renderTexture = new RenderTexture(width, height, 24);
+                    explorerCamera.targetTexture = renderTexture;
+                    explorerCamera.Render();
+                    
+                    // Read pixels
+                    RenderTexture.active = renderTexture;
+                    Texture2D screenshot = new Texture2D(width, height, TextureFormat.RGB24, false);
+                    screenshot.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                    screenshot.Apply();
+                    
+                    // Cleanup render texture
+                    RenderTexture.active = null;
+                    explorerCamera.targetTexture = null;
+                    UnityEngine.Object.DestroyImmediate(renderTexture);
+                    
+                    // Encode to PNG
+                    byte[] imageBytes = screenshot.EncodeToPNG();
+                    UnityEngine.Object.DestroyImmediate(screenshot);
+                    
+                    // Save to file
+                    File.WriteAllBytes(outputPath, imageBytes);
+                    AssetDatabase.Refresh();
+                    
+                    var result = new
+                    {
+                        path = outputPath,
+                        width = width,
+                        height = height,
+                        captureMode = "explorer",
+                        fileSize = imageBytes.Length,
+                        cameraPosition = new { x = explorerCamera.transform.position.x, y = explorerCamera.transform.position.y, z = explorerCamera.transform.position.z },
+                        cameraRotation = new { x = explorerCamera.transform.eulerAngles.x, y = explorerCamera.transform.eulerAngles.y, z = explorerCamera.transform.eulerAngles.z },
+                        message = "Explorer view screenshot captured successfully"
+                    };
+                    
+                    // Add base64 if requested
+                    if (encodeAsBase64)
+                    {
+                        return new
+                        {
+                            result.path,
+                            result.width,
+                            result.height,
+                            result.captureMode,
+                            result.fileSize,
+                            result.cameraPosition,
+                            result.cameraRotation,
+                            result.message,
+                            base64Data = Convert.ToBase64String(imageBytes)
+                        };
+                    }
+                    
+                    return result;
+                }
+                finally
+                {
+                    // Always cleanup the temporary camera
+                    if (tempCameraObj != null)
+                    {
+                        UnityEngine.Object.DestroyImmediate(tempCameraObj);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[ScreenshotHandler] Error in CaptureExplorerView: {ex.Message}");
+                return new { error = $"Failed to capture explorer view: {ex.Message}" };
+            }
+        }
+        
+        /// <summary>
         /// Analyzes a screenshot for content
         /// </summary>
         public static object AnalyzeScreenshot(JObject parameters)
@@ -512,7 +731,7 @@ namespace UnityEditorMCP.Handlers
         /// </summary>
         private static bool IsValidCaptureMode(string mode)
         {
-            return mode == "game" || mode == "scene" || mode == "window";
+            return mode == "game" || mode == "scene" || mode == "window" || mode == "explorer";
         }
         
         /// <summary>
@@ -718,6 +937,186 @@ namespace UnityEditorMCP.Handlers
                 Debug.LogError($"[ScreenshotHandler] Stack trace: {ex.StackTrace}");
                 return null;
             }
+        }
+        
+        /// <summary>
+        /// Auto-frames a single target GameObject
+        /// </summary>
+        private static bool AutoFrameTarget(Camera camera, GameObject target, JObject settings)
+        {
+            try
+            {
+                // Get bounds of the target
+                Bounds bounds = GetGameObjectBounds(target, settings?["includeChildren"]?.ToObject<bool>() ?? true);
+                
+                if (bounds.size == Vector3.zero)
+                {
+                    // No renderer found, use transform position
+                    bounds = new Bounds(target.transform.position, Vector3.one * 2f);
+                }
+                
+                // Calculate camera position to frame the target
+                float padding = settings?["camera"]?["padding"]?.ToObject<float>() ?? 0.2f;
+                float distance = CalculateOptimalDistance(camera, bounds, padding);
+                
+                // Position camera
+                Vector3 offset = settings?["camera"]?["offset"] != null ? 
+                    ParseVector3(settings["camera"]["offset"] as JObject) : 
+                    new Vector3(0, bounds.size.y * 0.5f, -distance);
+                    
+                camera.transform.position = bounds.center + offset;
+                camera.transform.LookAt(bounds.center);
+                
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// Auto-frames multiple target GameObjects
+        /// </summary>
+        private static bool AutoFrameTargets(Camera camera, GameObject[] targets, JObject settings)
+        {
+            try
+            {
+                if (targets.Length == 0) return false;
+                
+                // Calculate combined bounds
+                Bounds combinedBounds = GetGameObjectBounds(targets[0], true);
+                for (int i = 1; i < targets.Length; i++)
+                {
+                    Bounds targetBounds = GetGameObjectBounds(targets[i], true);
+                    combinedBounds.Encapsulate(targetBounds);
+                }
+                
+                // Frame the combined bounds
+                float padding = settings?["camera"]?["padding"]?.ToObject<float>() ?? 0.2f;
+                float distance = CalculateOptimalDistance(camera, combinedBounds, padding);
+                
+                Vector3 offset = new Vector3(0, combinedBounds.size.y * 0.5f, -distance);
+                camera.transform.position = combinedBounds.center + offset;
+                camera.transform.LookAt(combinedBounds.center);
+                
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// Frames a specific area
+        /// </summary>
+        private static bool FrameArea(Camera camera, Vector3 center, float radius)
+        {
+            try
+            {
+                float distance = radius * 2.5f; // Approximate distance for good framing
+                camera.transform.position = center + new Vector3(0, radius, -distance);
+                camera.transform.LookAt(center);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// Gets the bounds of a GameObject including children if specified
+        /// </summary>
+        private static Bounds GetGameObjectBounds(GameObject obj, bool includeChildren)
+        {
+            Renderer renderer = includeChildren ? 
+                obj.GetComponentInChildren<Renderer>() : 
+                obj.GetComponent<Renderer>();
+                
+            if (renderer != null)
+            {
+                Bounds bounds = renderer.bounds;
+                
+                if (includeChildren)
+                {
+                    Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+                    foreach (var r in renderers)
+                    {
+                        bounds.Encapsulate(r.bounds);
+                    }
+                }
+                
+                return bounds;
+            }
+            
+            // No renderer, use collider
+            Collider collider = includeChildren ? 
+                obj.GetComponentInChildren<Collider>() : 
+                obj.GetComponent<Collider>();
+                
+            if (collider != null)
+            {
+                return collider.bounds;
+            }
+            
+            // No collider either, return position-based bounds
+            return new Bounds(obj.transform.position, Vector3.one);
+        }
+        
+        /// <summary>
+        /// Calculates optimal camera distance to frame bounds
+        /// </summary>
+        private static float CalculateOptimalDistance(Camera camera, Bounds bounds, float padding)
+        {
+            float maxExtent = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
+            float minDistance = (maxExtent * (1f + padding)) / (2f * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad));
+            return Mathf.Max(minDistance, 1f); // Minimum 1 unit distance
+        }
+        
+        /// <summary>
+        /// Highlights target objects temporarily
+        /// </summary>
+        private static void HighlightTargets(JObject targetSettings)
+        {
+            // This is a placeholder for highlight functionality
+            // In a full implementation, you might:
+            // 1. Add outline shaders
+            // 2. Change material colors temporarily
+            // 3. Add gizmos or wireframe overlays
+            Debug.Log("[ScreenshotHandler] Target highlighting requested but not yet implemented");
+        }
+        
+        /// <summary>
+        /// Parses a Vector3 from JObject
+        /// </summary>
+        private static Vector3 ParseVector3(JObject obj)
+        {
+            if (obj == null) return Vector3.zero;
+            
+            float x = obj["x"]?.ToObject<float>() ?? 0f;
+            float y = obj["y"]?.ToObject<float>() ?? 0f;
+            float z = obj["z"]?.ToObject<float>() ?? 0f;
+            
+            return new Vector3(x, y, z);
+        }
+        
+        /// <summary>
+        /// Parses a Color from JObject
+        /// </summary>
+        private static Color ParseColor(JToken colorToken, Color defaultColor)
+        {
+            if (colorToken == null || colorToken.Type != JTokenType.Object)
+                return defaultColor;
+                
+            JObject colorObj = colorToken as JObject;
+            float r = colorObj["r"]?.ToObject<float>() ?? defaultColor.r;
+            float g = colorObj["g"]?.ToObject<float>() ?? defaultColor.g;
+            float b = colorObj["b"]?.ToObject<float>() ?? defaultColor.b;
+            float a = colorObj["a"]?.ToObject<float>() ?? 1f;
+            
+            return new Color(r, g, b, a);
         }
     }
 }
