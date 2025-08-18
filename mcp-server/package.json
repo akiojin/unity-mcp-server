@@ -37,7 +37,7 @@
     "gamedev",
     "unity3d"
   ],
-  "author": "Ozan Kasıkçı <ozan@kasikci.io>",
+  "author": "Akio Jinsenji <akio-jinsenji@cloud-creative-studios.com>",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0"
