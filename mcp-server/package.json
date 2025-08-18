@@ -47,12 +47,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ozankasikci/unity-mcp.git",
+    "url": "https://github.com/akiojin/unity-mcp.git",
     "directory": "mcp-server"
   },
-  "homepage": "https://github.com/ozankasikci/unity-mcp#readme",
+  "homepage": "https://github.com/akiojin/unity-mcp#readme",
   "bugs": {
-    "url": "https://github.com/ozankasikci/unity-mcp/issues"
+    "url": "https://github.com/akiojin/unity-mcp/issues"
   },
   "files": [
     "src/",
