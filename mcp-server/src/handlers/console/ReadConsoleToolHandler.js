@@ -23,7 +23,7 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
             description: 'Filter by log types (default: ["All"])',
             items: {
               type: 'string',
-              enum: ['Log', 'Warning', 'Error', 'Assert', 'Exception', 'ErrorsAndExceptions', 'All']
+              enum: ['Info', 'Warning', 'Error', 'All']
             },
             default: ['All']
           },
@@ -101,10 +101,11 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
         throw new Error('logTypes must be an array');
       }
       
-      const validTypes = ['Log', 'Warning', 'Error', 'Assert', 'Exception', 'ErrorsAndExceptions', 'All'];
+      const validTypes = ['Info', 'Warning', 'Error', 'All'];
       for (const type of logTypes) {
         if (!validTypes.includes(type)) {
-          throw new Error(`Invalid log type: ${type}. Must be one of: ${validTypes.join(', ')}`);
+          // Invalid types are treated as 'All' later, so just log a warning
+          console.warn(`Invalid log type: ${type}. Will be treated as 'All'.`);
         }
       }
     }
@@ -189,18 +190,34 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
       groupBy
     } = params;
 
-    // Expand ErrorsAndExceptions to include Error, Exception, and Assert types
-    let expandedLogTypes = logTypes;
-    if (logTypes.includes('ErrorsAndExceptions')) {
-      expandedLogTypes = logTypes.reduce((acc, type) => {
-        if (type === 'ErrorsAndExceptions') {
-          // Include Error, Exception, and Assert as Unity logs exceptions as Assert type
-          acc.push('Error', 'Exception', 'Assert');
-        } else {
-          acc.push(type);
+    // Convert simplified log types to Unity log types
+    let expandedLogTypes = [];
+    
+    if (!logTypes || logTypes.length === 0 || logTypes.includes('All')) {
+      // Default to all types
+      expandedLogTypes = ['Log', 'Warning', 'Error', 'Exception', 'Assert'];
+    } else {
+      // Expand each simplified type to Unity types
+      logTypes.forEach(type => {
+        switch(type) {
+          case 'Info':
+            expandedLogTypes.push('Log');
+            break;
+          case 'Warning':
+            expandedLogTypes.push('Warning');
+            break;
+          case 'Error':
+            // Error includes all error-related types
+            expandedLogTypes.push('Error', 'Exception', 'Assert');
+            break;
+          case 'All':
+          default:
+            // Treat unknown types as 'All'
+            expandedLogTypes.push('Log', 'Warning', 'Error', 'Exception', 'Assert');
+            break;
         }
-        return acc;
-      }, []);
+      });
+      
       // Remove duplicates
       expandedLogTypes = [...new Set(expandedLogTypes)];
     }
