@@ -687,6 +687,17 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, assetDependencyResult);
                         break;
                         
+                    // Project Settings commands
+                    case "get_project_settings":
+                        var getSettingsResult = ProjectSettingsHandler.GetProjectSettings(command.Parameters);
+                        response = Response.SuccessResult(command.Id, getSettingsResult);
+                        break;
+                        
+                    case "update_project_settings":
+                        var updateSettingsResult = ProjectSettingsHandler.UpdateProjectSettings(command.Parameters);
+                        response = Response.SuccessResult(command.Id, updateSettingsResult);
+                        break;
+                        
                     default:
                         // Use new format with error details
                         response = Response.ErrorResult(

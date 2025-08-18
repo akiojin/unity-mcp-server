@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2025-08-18
+
+### Added
+- **Project Settings Management**: New functionality to read and update Unity Project Settings
+  - `get_project_settings`: Read various project settings categories (Player, Graphics, Quality, Physics, Audio, etc.)
+  - `update_project_settings`: Safely update project settings with confirmation requirement
+  - Include-style boolean parameters for consistent API design
+  - Support for all major Unity settings categories
+  - Safety confirmation required for all updates to prevent accidental changes
+
 ## [2.3.1] - 2025-08-18
 
 ### Fixed

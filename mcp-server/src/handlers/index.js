@@ -95,6 +95,10 @@ export { SelectionToolHandler } from './editor/SelectionToolHandler.js';
 export { WindowManagementToolHandler } from './editor/WindowManagementToolHandler.js';
 export { ToolManagementToolHandler } from './editor/ToolManagementToolHandler.js';
 
+// Settings handlers
+export { GetProjectSettingsToolHandler } from './settings/GetProjectSettingsToolHandler.js';
+export { UpdateProjectSettingsToolHandler } from './settings/UpdateProjectSettingsToolHandler.js';
+
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
 import { RefreshAssetsToolHandler } from './system/RefreshAssetsToolHandler.js';
@@ -158,6 +162,8 @@ import { LayerManagementToolHandler } from './editor/LayerManagementToolHandler.
 import { SelectionToolHandler } from './editor/SelectionToolHandler.js';
 import { WindowManagementToolHandler } from './editor/WindowManagementToolHandler.js';
 import { ToolManagementToolHandler } from './editor/ToolManagementToolHandler.js';
+import { GetProjectSettingsToolHandler } from './settings/GetProjectSettingsToolHandler.js';
+import { UpdateProjectSettingsToolHandler } from './settings/UpdateProjectSettingsToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -250,7 +256,11 @@ const HANDLER_CLASSES = [
   LayerManagementToolHandler,
   SelectionToolHandler,
   WindowManagementToolHandler,
-  ToolManagementToolHandler
+  ToolManagementToolHandler,
+  
+  // Settings handlers
+  GetProjectSettingsToolHandler,
+  UpdateProjectSettingsToolHandler
 ];
 
 /**
