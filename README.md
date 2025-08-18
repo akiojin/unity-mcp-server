@@ -78,7 +78,7 @@ Add the same configuration to Cursor's MCP settings
 
 ## Available Tools
 
-Unity Editor MCP provides **69 comprehensive tools** across 12 categories for complete Unity Editor automation:
+Unity Editor MCP provides **70 comprehensive tools** across 13 categories for complete Unity Editor automation:
 
 ### System & Core Tools (2 tools)
 - **`ping`** - Test connection to Unity Editor and verify server status
@@ -148,13 +148,32 @@ Unity Editor MCP provides **69 comprehensive tools** across 12 categories for co
 - **`set_ui_element_value`** - Set values for UI input elements (sliders, input fields, etc.)
 - **`simulate_ui_input`** - Execute complex UI interaction sequences
 
-### Input System Simulation (6 tools) 🆕
-- **`simulate_keyboard`** - Simulate keyboard input (press, release, type text, key combos)
-- **`simulate_mouse`** - Simulate mouse input (move, click, drag, scroll)
-- **`simulate_gamepad`** - Simulate gamepad/controller input (buttons, sticks, triggers, d-pad)
-- **`simulate_touch`** - Simulate touch input (tap, swipe, pinch, multi-touch)
-- **`input_system`** - Main handler for Input System operations
+### Input System Simulation (5 tools) 🆕
+- **`simulate_keyboard`** - Simulate keyboard input with full control
+  - Key press/release events with timing control
+  - Text typing simulation with realistic delays
+  - Key combinations and modifiers (Ctrl, Alt, Shift)
+  - Support for special keys (arrows, function keys, etc.)
+- **`simulate_mouse`** - Simulate mouse input for testing and automation
+  - Mouse movement to specific positions or deltas
+  - Click events (left, right, middle button)
+  - Drag operations with customizable duration
+  - Scroll wheel simulation (vertical/horizontal)
+- **`simulate_gamepad`** - Simulate gamepad/controller input
+  - Button press/release for all standard buttons
+  - Analog stick movement with dead zones
+  - Trigger input with pressure sensitivity
+  - D-pad directional input
+- **`simulate_touch`** - Simulate touch input for mobile testing
+  - Single and multi-touch gestures
+  - Swipe gestures with direction and speed
+  - Pinch-to-zoom with customizable parameters
+  - Touch and hold operations
 - **`get_current_input_state`** - Get current state of all input devices
+  - Keyboard key states and active modifiers
+  - Mouse position and button states
+  - Gamepad button and analog values
+  - Active touch points and gestures
 
 ### Editor Operations (5 tools)
 - **`execute_menu_item`** - Execute Unity menu items programmatically with safety checks
@@ -173,6 +192,20 @@ Unity Editor MCP provides **69 comprehensive tools** across 12 categories for co
 - **`stop_compilation_monitoring`** - Stop compilation monitoring and get final status
 - **`get_compilation_state`** - Get current Unity compilation state and errors
 
+### Project Settings Management (2 tools) 🆕
+- **`get_project_settings`** - Read Unity project settings with granular control over categories
+  - Player settings (company name, product name, version)
+  - Graphics settings (color space, render pipeline)
+  - Quality settings (anti-aliasing, shadows, VSync)
+  - Physics/Physics2D settings (gravity, solver iterations)
+  - Audio settings (speaker mode, DSP buffer size)
+  - Time settings (fixed timestep, time scale)
+  - Build settings (scenes in build, target platform)
+  - Tags and layers configuration
+- **`update_project_settings`** - Safely update project settings with confirmation requirement
+  - Requires explicit confirmation to prevent accidental changes
+  - Supports partial updates to specific categories
+  - Validates all changes before applying
 
 ## Troubleshooting
 

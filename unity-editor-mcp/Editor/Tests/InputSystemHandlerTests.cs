@@ -1,12 +1,16 @@
 #if UNITY_EDITOR && ENABLE_INPUT_SYSTEM
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 using UnityEditor;
 using Newtonsoft.Json.Linq;
 using System.Collections;
 using UnityEditorMCP.Handlers;
+
+// Conditionally include Input System namespace only if available
+#pragma warning disable CS0234 // Type or namespace does not exist
+using UnityEngine.InputSystem;
+#pragma warning restore CS0234
 
 namespace UnityEditorMCP.Tests
 {

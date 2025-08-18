@@ -4,8 +4,28 @@ Unity Editor MCP provides comprehensive Input System simulation capabilities, al
 
 ## Prerequisites
 
-- Unity Input System package must be installed in your project
-- The feature is only available in Editor mode (not in builds)
+⚠️ **Important Requirements:**
+
+1. **Unity Input System Package Installation**
+   - Unity Input System package must be installed in your project
+   - Install via Package Manager: Window → Package Manager → Unity Registry → Input System
+   - Or add via manifest.json: `"com.unity.inputsystem": "1.7.0"` (or latest version)
+
+2. **Player Settings Configuration**
+   - Go to Edit → Project Settings → Player
+   - Under "Configuration" → "Active Input Handling", select one of:
+     - **"Input System Package (New)"** - For projects using only new Input System
+     - **"Both"** - For projects using both legacy and new Input System
+   - Unity will prompt to restart after changing this setting
+
+3. **Editor Mode Only**
+   - Input simulation features are only available in Unity Editor
+   - Not available in built applications for security reasons
+   - Features are conditionally compiled with `UNITY_EDITOR && ENABLE_INPUT_SYSTEM`
+
+4. **Unity Version**
+   - Unity 2020.3 LTS or newer recommended
+   - Earlier versions may have limited Input System support
 
 ## Available Tools
 
@@ -390,9 +410,29 @@ await simulate_gamepad({
 ## Troubleshooting
 
 ### Input not working?
-1. Ensure Unity Input System package is installed
-2. Check Player Settings → Active Input Handling is set to "Input System Package (New)" or "Both"
-3. Verify the game is in Play Mode if testing gameplay
+
+1. **Check Package Installation**
+   - Open Package Manager (Window → Package Manager)
+   - Switch to "Unity Registry" or "In Project"
+   - Verify "Input System" package is installed
+   - If not installed, click "Install"
+
+2. **Verify Player Settings**
+   - Go to Edit → Project Settings → Player
+   - Under Configuration → Active Input Handling
+   - Must be set to "Input System Package (New)" or "Both"
+   - If set to "Input Manager (Old)", the features won't work
+   - Restart Unity after changing this setting
+
+3. **Check Compilation**
+   - Look for compilation errors in Unity Console
+   - If you see "CS0234: The type or namespace name 'InputSystem' does not exist"
+     - This indicates the Input System package is not installed
+   - Clear any existing compilation errors before testing
+
+4. **Play Mode Requirements**
+   - For gameplay testing, ensure Unity is in Play Mode
+   - Some features may work in Edit Mode for UI testing
 
 ### Keys stuck?
 - Use `get_current_input_state` to check which keys are pressed

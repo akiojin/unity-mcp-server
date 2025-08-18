@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [Node.js Server 2.6.0] - 2025-01-18
+
+### Fixed
+- Assembly definition to work correctly without Unity Input System package
+- Compilation errors when Unity Input System is not installed using pragma warnings
+
+### Changed
+- Use only Unity official ENABLE_INPUT_SYSTEM preprocessor definition
+- Enhanced documentation with detailed prerequisites for Input System features
+
+## [Unity Package 2.2.0] - 2025-01-18
+
+### Added
+- Conditional compilation support for Unity Input System package
+- Fallback handler when Input System package is not installed
+- Comprehensive documentation for Input System prerequisites and troubleshooting
+
+### Fixed
+- Input System handler to work correctly without package installed
+
+## [Node.js Server 2.5.0] - 2025-08-18
+
+### Added
+- Input System Simulation tools (5 new tools)
+  - `simulate_keyboard` - Full keyboard input simulation
+  - `simulate_mouse` - Mouse movement and interaction simulation
+  - `simulate_gamepad` - Gamepad/controller input simulation
+  - `simulate_touch` - Touch gesture simulation
+  - `get_current_input_state` - Query current input device states
+
+### Updated
+- Comprehensive tool documentation in README
+- Total tool count now at 70 tools across 13 categories
+
+## [Unity Package 2.1.0] - 2025-08-18
+
+### Added
+- Input System handlers for keyboard, mouse, gamepad, and touch simulation
+- Support for Unity's Input System package
+
+### Changed
+- Version aligned with Node.js server features
+
 ## [Unity Package 2.0.3] - 2025-08-18
 
 ### Fixed

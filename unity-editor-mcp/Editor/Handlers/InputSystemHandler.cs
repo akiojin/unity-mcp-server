@@ -3,11 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEditor;
+using Newtonsoft.Json.Linq;
+
+// Conditionally include Input System namespaces only if available
+// This prevents compilation errors when the package is not installed
+#pragma warning disable CS0234 // Type or namespace does not exist
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Controls;
-using UnityEditor;
-using Newtonsoft.Json.Linq;
+#pragma warning restore CS0234
 
 namespace UnityEditorMCP.Handlers
 {
