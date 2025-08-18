@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [Node.js Server 2.6.0] - 2025-01-18
+## [Node.js Server 2.6.0] - 2025-08-18
 
 ### Fixed
 - Assembly definition to work correctly without Unity Input System package
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use only Unity official ENABLE_INPUT_SYSTEM preprocessor definition
 - Enhanced documentation with detailed prerequisites for Input System features
 
-## [Unity Package 2.2.0] - 2025-01-18
+## [Unity Package 2.2.0] - 2025-08-18
 
 ### Added
 - Conditional compilation support for Unity Input System package
