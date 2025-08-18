@@ -2,7 +2,8 @@
     "name": "UnityEditorMCP.Editor",
     "rootNamespace": "UnityEditorMCP",
     "references": [
-        "Newtonsoft.Json"
+        "Newtonsoft.Json",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor"
@@ -13,6 +14,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "",
+            "define": "UNITY_INPUT_SYSTEM_PACKAGE"
+        }
+    ],
     "noEngineReferences": false
 }

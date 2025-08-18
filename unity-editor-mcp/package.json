@@ -18,7 +18,8 @@
     "url": "https://github.com/akiojin"
   },
   "dependencies": {
-    "com.unity.nuget.newtonsoft-json": "3.2.1"
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.inputsystem": "1.14.2"
   },
   "repository": {
     "type": "git",
