@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [Unity Package 2.0.2] - 2025-08-18
+
+### Fixed
+- Fixed syntax errors in TagManagementHandler.cs with conditional compilation directives
+- Moved conditional compilation outside of object initializers to avoid CS1003/CS1025 errors
+
 ## [Unity Package 2.0.1] - 2025-08-18
 
 ### Changed

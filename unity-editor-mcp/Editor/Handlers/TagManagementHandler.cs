@@ -125,17 +125,19 @@ namespace UnityEditorMCP.Handlers
                 // Force refresh of the tags
                 AssetDatabase.Refresh();
 
+                #if UNITY_6000_0_OR_NEWER
+                int tagsCount = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().Count();
+                #else
+                int tagsCount = InternalEditorUtility.tags.Length;
+                #endif
+
                 return new
                 {
                     success = true,
                     action = "add",
                     tagName = tagName,
                     message = $"Tag \"{tagName}\" added successfully",
-                    #if UNITY_6000_0_OR_NEWER
-                    tagsCount = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().Count()
-                    #else
-                    tagsCount = InternalEditorUtility.tags.Length
-                    #endif
+                    tagsCount = tagsCount
                 };
             }
             catch (Exception e)
@@ -198,17 +200,19 @@ namespace UnityEditorMCP.Handlers
                 // Force refresh of the tags
                 AssetDatabase.Refresh();
 
+                #if UNITY_6000_0_OR_NEWER
+                int tagsCount = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().Count();
+                #else
+                int tagsCount = InternalEditorUtility.tags.Length;
+                #endif
+
                 return new
                 {
                     success = true,
                     action = "remove",
                     tagName = tagName,
                     message = $"Tag \"{tagName}\" removed successfully",
-                    #if UNITY_6000_0_OR_NEWER
-                    tagsCount = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().Count()
-                    #else
-                    tagsCount = InternalEditorUtility.tags.Length
-                    #endif,
+                    tagsCount = tagsCount,
                     gameObjectsAffected = gameObjectsWithTag.Length
                 };
             }
