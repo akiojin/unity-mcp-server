@@ -457,6 +457,62 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, getAnimatorRuntimeInfoResult);
                         break;
                         
+                    // Input Actions commands
+                    case "get_input_actions_state":
+                        var getInputActionsStateResult = InputActionsHandler.GetInputActionsState(command.Parameters);
+                        response = Response.SuccessResult(command.Id, getInputActionsStateResult);
+                        break;
+                        
+                    case "analyze_input_actions_asset":
+                        var analyzeInputActionsResult = InputActionsHandler.AnalyzeInputActionsAsset(command.Parameters);
+                        response = Response.SuccessResult(command.Id, analyzeInputActionsResult);
+                        break;
+                        
+                    case "create_action_map":
+                        var createActionMapResult = InputActionsHandler.CreateActionMap(command.Parameters);
+                        response = Response.SuccessResult(command.Id, createActionMapResult);
+                        break;
+                        
+                    case "remove_action_map":
+                        var removeActionMapResult = InputActionsHandler.RemoveActionMap(command.Parameters);
+                        response = Response.SuccessResult(command.Id, removeActionMapResult);
+                        break;
+                        
+                    case "add_input_action":
+                        var addInputActionResult = InputActionsHandler.AddInputAction(command.Parameters);
+                        response = Response.SuccessResult(command.Id, addInputActionResult);
+                        break;
+                        
+                    case "remove_input_action":
+                        var removeInputActionResult = InputActionsHandler.RemoveInputAction(command.Parameters);
+                        response = Response.SuccessResult(command.Id, removeInputActionResult);
+                        break;
+                        
+                    case "add_input_binding":
+                        var addInputBindingResult = InputActionsHandler.AddInputBinding(command.Parameters);
+                        response = Response.SuccessResult(command.Id, addInputBindingResult);
+                        break;
+                        
+                    case "remove_input_binding":
+                        var removeInputBindingResult = InputActionsHandler.RemoveInputBinding(command.Parameters);
+                        response = Response.SuccessResult(command.Id, removeInputBindingResult);
+                        break;
+                        
+                    case "remove_all_bindings":
+                        var removeAllBindingsResult = InputActionsHandler.RemoveAllBindings(command.Parameters);
+                        response = Response.SuccessResult(command.Id, removeAllBindingsResult);
+                        break;
+                        
+                    case "create_composite_binding":
+                        var createCompositeBindingResult = InputActionsHandler.CreateCompositeBinding(command.Parameters);
+                        response = Response.SuccessResult(command.Id, createCompositeBindingResult);
+                        break;
+                        
+                    case "manage_control_schemes":
+                        var manageControlSchemesResult = InputActionsHandler.ManageControlSchemes(command.Parameters);
+                        response = Response.SuccessResult(command.Id, manageControlSchemesResult);
+                        break;
+                        
                     // Play Mode Control commands
                     case "play_game":
                         var playResult = PlayModeHandler.HandleCommand("play_game", command.Parameters);

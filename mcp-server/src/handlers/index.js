@@ -30,6 +30,7 @@ export { GetComponentValuesToolHandler } from './analysis/GetComponentValuesTool
 export { FindByComponentToolHandler } from './analysis/FindByComponentToolHandler.js';
 export { GetObjectReferencesToolHandler } from './analysis/GetObjectReferencesToolHandler.js';
 export { GetAnimatorStateToolHandler, GetAnimatorRuntimeInfoToolHandler } from './analysis/GetAnimatorStateToolHandler.js';
+export { GetInputActionsStateToolHandler, AnalyzeInputActionsAssetToolHandler } from './analysis/GetInputActionsStateToolHandler.js';
 
 // PlayMode handlers
 export { PlayToolHandler } from './playmode/PlayToolHandler.js';
@@ -50,6 +51,17 @@ export { KeyboardSimulationHandler } from './input/KeyboardSimulationHandler.js'
 export { MouseSimulationHandler } from './input/MouseSimulationHandler.js';
 export { GamepadSimulationHandler } from './input/GamepadSimulationHandler.js';
 export { TouchSimulationHandler } from './input/TouchSimulationHandler.js';
+export { 
+    CreateActionMapToolHandler,
+    RemoveActionMapToolHandler,
+    AddInputActionToolHandler,
+    RemoveInputActionToolHandler,
+    AddInputBindingToolHandler,
+    RemoveInputBindingToolHandler,
+    RemoveAllBindingsToolHandler,
+    CreateCompositeBindingToolHandler,
+    ManageControlSchemesToolHandler 
+} from './input/InputActionsEditorToolHandler.js';
 
 // Asset handlers
 export { CreatePrefabToolHandler } from './asset/CreatePrefabToolHandler.js';
@@ -125,6 +137,7 @@ import { GetComponentValuesToolHandler } from './analysis/GetComponentValuesTool
 import { FindByComponentToolHandler } from './analysis/FindByComponentToolHandler.js';
 import { GetObjectReferencesToolHandler } from './analysis/GetObjectReferencesToolHandler.js';
 import { GetAnimatorStateToolHandler, GetAnimatorRuntimeInfoToolHandler } from './analysis/GetAnimatorStateToolHandler.js';
+import { GetInputActionsStateToolHandler, AnalyzeInputActionsAssetToolHandler } from './analysis/GetInputActionsStateToolHandler.js';
 import { PlayToolHandler } from './playmode/PlayToolHandler.js';
 import { PauseToolHandler } from './playmode/PauseToolHandler.js';
 import { StopToolHandler } from './playmode/StopToolHandler.js';
@@ -139,6 +152,17 @@ import { KeyboardSimulationHandler } from './input/KeyboardSimulationHandler.js'
 import { MouseSimulationHandler } from './input/MouseSimulationHandler.js';
 import { GamepadSimulationHandler } from './input/GamepadSimulationHandler.js';
 import { TouchSimulationHandler } from './input/TouchSimulationHandler.js';
+import { 
+    CreateActionMapToolHandler,
+    RemoveActionMapToolHandler,
+    AddInputActionToolHandler,
+    RemoveInputActionToolHandler,
+    AddInputBindingToolHandler,
+    RemoveInputBindingToolHandler,
+    RemoveAllBindingsToolHandler,
+    CreateCompositeBindingToolHandler,
+    ManageControlSchemesToolHandler 
+} from './input/InputActionsEditorToolHandler.js';
 import { CreatePrefabToolHandler } from './asset/CreatePrefabToolHandler.js';
 import { ModifyPrefabToolHandler } from './asset/ModifyPrefabToolHandler.js';
 import { InstantiatePrefabToolHandler } from './asset/InstantiatePrefabToolHandler.js';
@@ -205,6 +229,8 @@ const HANDLER_CLASSES = [
   GetObjectReferencesToolHandler,
   GetAnimatorStateToolHandler,
   GetAnimatorRuntimeInfoToolHandler,
+  GetInputActionsStateToolHandler,
+  AnalyzeInputActionsAssetToolHandler,
   
   // PlayMode handlers
   PlayToolHandler,
@@ -225,6 +251,15 @@ const HANDLER_CLASSES = [
   MouseSimulationHandler,
   GamepadSimulationHandler,
   TouchSimulationHandler,
+  CreateActionMapToolHandler,
+  RemoveActionMapToolHandler,
+  AddInputActionToolHandler,
+  RemoveInputActionToolHandler,
+  AddInputBindingToolHandler,
+  RemoveInputBindingToolHandler,
+  RemoveAllBindingsToolHandler,
+  CreateCompositeBindingToolHandler,
+  ManageControlSchemesToolHandler,
   
   // Asset handlers
   CreatePrefabToolHandler,
