@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 
 #pragma warning disable CS0234
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Utilities;
 #pragma warning restore CS0234
 
 namespace UnityEditorMCP.Handlers
