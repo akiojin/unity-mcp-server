@@ -1,8 +1,8 @@
 {
   "name": "com.unity.editor-mcp",
   "displayName": "Unity Editor MCP",
-  "version": "1.4.2",
-  "unity": "2020.3",
+  "version": "2.0.0",
+  "unity": "6000.0",
   "description": "Unity Editor integration with Model Context Protocol (MCP) for AI-assisted development",
   "keywords": [
     "mcp",

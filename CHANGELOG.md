@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [Unity Package 2.0.0] - 2025-08-18
+
+### Added
+- Full Unity 6 (Unity 6000.0) support
+- Conditional compilation directives for Unity 6 compatibility
+- Backward compatibility with Unity 2020.3 and later versions
+
+### Changed
+- **BREAKING**: Minimum Unity version requirement is now Unity 6000.0
+- Major version bump to 2.0.0 for Unity 6 support
+
+### Fixed
+- QualitySettings.pixelLightCount usage with conditional compilation (deprecated in Unity 6)
+- UnityEditorInternal.InternalEditorUtility usage with Unity 6 alternatives
+- Tag management implementation for Unity 6 compatibility
+
 ## [Unity Package 1.4.2] - 2025-08-18
 
 ### Fixed

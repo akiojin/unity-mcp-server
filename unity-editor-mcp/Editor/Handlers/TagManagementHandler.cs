@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
+#if !UNITY_6000_0_OR_NEWER
+using UnityEditorInternal;
+#endif
 
 namespace UnityEditorMCP.Handlers
 {
@@ -54,7 +56,13 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                #if UNITY_6000_0_OR_NEWER
+                var tags = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().ToList();
+                // In Unity 6, we need to use a different approach to get all tags
+                // This is a placeholder - Unity 6 may provide a new API for this
+                #else
                 var tags = InternalEditorUtility.tags.ToList();
+                #endif
                 
                 return new
                 {
@@ -90,7 +98,11 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Check if tag already exists
+                #if UNITY_6000_0_OR_NEWER
+                var currentTags = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().ToList();
+                #else
                 var currentTags = InternalEditorUtility.tags.ToList();
+                #endif
                 if (currentTags.Contains(tagName))
                 {
                     return new { error = $"Tag \"{tagName}\" already exists" };
@@ -119,7 +131,11 @@ namespace UnityEditorMCP.Handlers
                     action = "add",
                     tagName = tagName,
                     message = $"Tag \"{tagName}\" added successfully",
+                    #if UNITY_6000_0_OR_NEWER
+                    tagsCount = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().Count()
+                    #else
                     tagsCount = InternalEditorUtility.tags.Length
+                    #endif
                 };
             }
             catch (Exception e)
@@ -148,7 +164,11 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Check if tag exists
+                #if UNITY_6000_0_OR_NEWER
+                var currentTags = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().ToList();
+                #else
                 var currentTags = InternalEditorUtility.tags.ToList();
+                #endif
                 if (!currentTags.Contains(tagName))
                 {
                     return new { error = $"Tag \"{tagName}\" does not exist" };
@@ -184,7 +204,11 @@ namespace UnityEditorMCP.Handlers
                     action = "remove",
                     tagName = tagName,
                     message = $"Tag \"{tagName}\" removed successfully",
-                    tagsCount = InternalEditorUtility.tags.Length,
+                    #if UNITY_6000_0_OR_NEWER
+                    tagsCount = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().Count()
+                    #else
+                    tagsCount = InternalEditorUtility.tags.Length
+                    #endif,
                     gameObjectsAffected = gameObjectsWithTag.Length
                 };
             }

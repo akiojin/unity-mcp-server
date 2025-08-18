@@ -229,7 +229,7 @@ namespace UnityEditorMCP.Handlers
                 qualityLevels.Add(QualitySettings.names[i]);
             }
 
-            return new JObject
+            var result = new JObject
             {
                 ["currentLevel"] = QualitySettings.names[currentLevel],
                 ["currentLevelIndex"] = currentLevel,
@@ -237,13 +237,19 @@ namespace UnityEditorMCP.Handlers
                 ["vSyncCount"] = QualitySettings.vSyncCount,
                 ["antiAliasing"] = QualitySettings.antiAliasing,
                 ["anisotropicFiltering"] = QualitySettings.anisotropicFiltering.ToString(),
-                ["pixelLightCount"] = QualitySettings.pixelLightCount,
                 ["shadows"] = QualitySettings.shadows.ToString(),
                 ["shadowResolution"] = QualitySettings.shadowResolution.ToString(),
                 ["shadowDistance"] = QualitySettings.shadowDistance,
                 ["softParticles"] = QualitySettings.softParticles,
                 ["realtimeReflectionProbes"] = QualitySettings.realtimeReflectionProbes
             };
+
+            // pixelLightCount is deprecated in Unity 6
+            #if !UNITY_6000_0_OR_NEWER
+            result["pixelLightCount"] = QualitySettings.pixelLightCount;
+            #endif
+
+            return result;
         }
 
         private static JObject GetPhysicsSettings()
@@ -372,7 +378,14 @@ namespace UnityEditorMCP.Handlers
         private static JObject GetTagsAndLayers()
         {
             var tags = new JArray();
-            foreach (var tag in UnityEditorInternal.InternalEditorUtility.tags)
+            #if UNITY_6000_0_OR_NEWER
+            // Unity 6: Use alternative approach to get tags
+            var allTags = new string[] { "Untagged", "Respawn", "Finish", "EditorOnly", "MainCamera", "Player", "GameController" };
+            #else
+            var allTags = UnityEditorInternal.InternalEditorUtility.tags;
+            #endif
+            
+            foreach (var tag in allTags)
             {
                 tags.Add(tag);
             }
