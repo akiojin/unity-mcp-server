@@ -78,7 +78,7 @@ Add the same configuration to Cursor's MCP settings
 
 ## Available Tools
 
-Unity Editor MCP provides **63 comprehensive tools** across 11 categories for complete Unity Editor automation:
+Unity Editor MCP provides **69 comprehensive tools** across 12 categories for complete Unity Editor automation:
 
 ### System & Core Tools (2 tools)
 - **`ping`** - Test connection to Unity Editor and verify server status
@@ -147,6 +147,14 @@ Unity Editor MCP provides **63 comprehensive tools** across 11 categories for co
 - **`get_ui_element_state`** - Get detailed UI element state and interaction capabilities
 - **`set_ui_element_value`** - Set values for UI input elements (sliders, input fields, etc.)
 - **`simulate_ui_input`** - Execute complex UI interaction sequences
+
+### Input System Simulation (6 tools) 🆕
+- **`simulate_keyboard`** - Simulate keyboard input (press, release, type text, key combos)
+- **`simulate_mouse`** - Simulate mouse input (move, click, drag, scroll)
+- **`simulate_gamepad`** - Simulate gamepad/controller input (buttons, sticks, triggers, d-pad)
+- **`simulate_touch`** - Simulate touch input (tap, swipe, pinch, multi-touch)
+- **`input_system`** - Main handler for Input System operations
+- **`get_current_input_state`** - Get current state of all input devices
 
 ### Editor Operations (5 tools)
 - **`execute_menu_item`** - Execute Unity menu items programmatically with safety checks

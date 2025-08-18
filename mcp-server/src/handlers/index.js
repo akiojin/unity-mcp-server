@@ -44,6 +44,13 @@ export { GetUIElementStateToolHandler } from './ui/GetUIElementStateToolHandler.
 export { SetUIElementValueToolHandler } from './ui/SetUIElementValueToolHandler.js';
 export { SimulateUIInputToolHandler } from './ui/SimulateUIInputToolHandler.js';
 
+// Input System handlers
+export { InputSystemHandler } from './input/InputSystemHandler.js';
+export { KeyboardSimulationHandler } from './input/KeyboardSimulationHandler.js';
+export { MouseSimulationHandler } from './input/MouseSimulationHandler.js';
+export { GamepadSimulationHandler } from './input/GamepadSimulationHandler.js';
+export { TouchSimulationHandler } from './input/TouchSimulationHandler.js';
+
 // Asset handlers
 export { CreatePrefabToolHandler } from './asset/CreatePrefabToolHandler.js';
 export { ModifyPrefabToolHandler } from './asset/ModifyPrefabToolHandler.js';
@@ -206,6 +213,13 @@ const HANDLER_CLASSES = [
   GetUIElementStateToolHandler,
   SetUIElementValueToolHandler,
   SimulateUIInputToolHandler,
+  
+  // Input System handlers
+  InputSystemHandler,
+  KeyboardSimulationHandler,
+  MouseSimulationHandler,
+  GamepadSimulationHandler,
+  TouchSimulationHandler,
   
   // Asset handlers
   CreatePrefabToolHandler,

@@ -504,6 +504,39 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, simulateUIResult);
                         break;
                         
+                    // Input System commands
+                    #if ENABLE_INPUT_SYSTEM
+                    case "simulate_keyboard_input":
+                        var keyboardResult = InputSystemHandler.SimulateKeyboardInput(command.Parameters);
+                        response = Response.SuccessResult(command.Id, keyboardResult);
+                        break;
+                        
+                    case "simulate_mouse_input":
+                        var mouseResult = InputSystemHandler.SimulateMouseInput(command.Parameters);
+                        response = Response.SuccessResult(command.Id, mouseResult);
+                        break;
+                        
+                    case "simulate_gamepad_input":
+                        var gamepadResult = InputSystemHandler.SimulateGamepadInput(command.Parameters);
+                        response = Response.SuccessResult(command.Id, gamepadResult);
+                        break;
+                        
+                    case "simulate_touch_input":
+                        var touchResult = InputSystemHandler.SimulateTouchInput(command.Parameters);
+                        response = Response.SuccessResult(command.Id, touchResult);
+                        break;
+                        
+                    case "create_input_sequence":
+                        var sequenceResult = InputSystemHandler.CreateInputSequence(command.Parameters);
+                        response = Response.SuccessResult(command.Id, sequenceResult);
+                        break;
+                        
+                    case "get_current_input_state":
+                        var inputStateResult = InputSystemHandler.GetCurrentInputState(command.Parameters);
+                        response = Response.SuccessResult(command.Id, inputStateResult);
+                        break;
+                    #endif
+                        
                     // Asset Management commands
                     case "create_prefab":
                         var createPrefabResult = AssetManagementHandler.CreatePrefab(command.Parameters);
