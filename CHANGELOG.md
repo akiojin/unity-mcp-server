@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [Unity Package 1.4.2] - 2025-08-18
+
+### Fixed
+- Removed obsolete PlayerSettings.GetSerializedObject() call
+- Removed unsupported GraphicsSettings.realtimeGICPUUsage property
+- Replaced obsolete Physics2D.autoSimulation with Physics2D.simulationMode
+
 ## [2.4.3] - 2025-08-18
 
 ### Fixed

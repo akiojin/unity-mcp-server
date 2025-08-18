@@ -160,7 +160,6 @@ namespace UnityEditorMCP.Handlers
 
                 // Save changes
                 AssetDatabase.SaveAssets();
-                EditorUtility.SetDirty(PlayerSettings.GetSerializedObject());
 
                 return new
                 {
@@ -209,7 +208,6 @@ namespace UnityEditorMCP.Handlers
             return new JObject
             {
                 ["colorSpace"] = PlayerSettings.colorSpace.ToString(),
-                ["realtimeGICPUUsage"] = UnityEngine.Rendering.GraphicsSettings.realtimeGICPUUsage.ToString(),
                 ["renderPipelineAsset"] = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset?.name ?? "Built-in",
                 ["transparencySortMode"] = UnityEngine.Rendering.GraphicsSettings.transparencySortMode.ToString(),
                 ["transparencySortAxis"] = new JObject
@@ -286,7 +284,7 @@ namespace UnityEditorMCP.Handlers
                 ["maxTranslationSpeed"] = Physics2D.maxTranslationSpeed,
                 ["maxRotationSpeed"] = Physics2D.maxRotationSpeed,
                 ["defaultContactOffset"] = Physics2D.defaultContactOffset,
-                ["autoSimulation"] = Physics2D.autoSimulation,
+                ["simulationMode"] = Physics2D.simulationMode.ToString(),
                 ["queriesHitTriggers"] = Physics2D.queriesHitTriggers,
                 ["queriesStartInColliders"] = Physics2D.queriesStartInColliders,
                 ["reuseCollisionCallbacks"] = Physics2D.reuseCollisionCallbacks
