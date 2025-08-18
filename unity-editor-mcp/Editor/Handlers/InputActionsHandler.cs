@@ -623,45 +623,36 @@ namespace UnityEditorMCP.Handlers
                     return new { error = $"Action '{actionName}' not found in map '{mapName}'" };
                 }
 
-                // Add composite binding
-                // Note: CompositeSyntax doesn't have WithName/WithGroups methods
-                // The composite name is set via the compositeType parameter
-                var composite = action.AddCompositeBinding(compositeType);
-                
-                // Add parts based on composite type
+                // Add composite binding with parts using the With() method
+                // CompositeSyntax.With() is the correct API for adding composite parts
                 if (compositeType == "2DVector")
                 {
-                    var upBinding = action.AddBinding(bindings["up"]?.ToString() ?? "")
-                        .WithName("up");
-                    if (!string.IsNullOrEmpty(groups))
-                        upBinding.WithGroups(groups);
-                        
-                    var downBinding = action.AddBinding(bindings["down"]?.ToString() ?? "")
-                        .WithName("down");
-                    if (!string.IsNullOrEmpty(groups))
-                        downBinding.WithGroups(groups);
-                        
-                    var leftBinding = action.AddBinding(bindings["left"]?.ToString() ?? "")
-                        .WithName("left");
-                    if (!string.IsNullOrEmpty(groups))
-                        leftBinding.WithGroups(groups);
-                        
-                    var rightBinding = action.AddBinding(bindings["right"]?.ToString() ?? "")
-                        .WithName("right");
-                    if (!string.IsNullOrEmpty(groups))
-                        rightBinding.WithGroups(groups);
+                    var composite = action.AddCompositeBinding("2DVector");
+                    
+                    // Add each part using With(name, binding, groups, processors)
+                    if (bindings["up"] != null)
+                        composite = composite.With("up", bindings["up"].ToString(), groups);
+                    if (bindings["down"] != null)
+                        composite = composite.With("down", bindings["down"].ToString(), groups);
+                    if (bindings["left"] != null)
+                        composite = composite.With("left", bindings["left"].ToString(), groups);
+                    if (bindings["right"] != null)
+                        composite = composite.With("right", bindings["right"].ToString(), groups);
                 }
                 else if (compositeType == "1DAxis")
                 {
-                    var negBinding = action.AddBinding(bindings["negative"]?.ToString() ?? "")
-                        .WithName("negative");
-                    if (!string.IsNullOrEmpty(groups))
-                        negBinding.WithGroups(groups);
-                        
-                    var posBinding = action.AddBinding(bindings["positive"]?.ToString() ?? "")
-                        .WithName("positive");
-                    if (!string.IsNullOrEmpty(groups))
-                        posBinding.WithGroups(groups);
+                    var composite = action.AddCompositeBinding("1DAxis");
+                    
+                    // Add each part using With(name, binding, groups, processors)
+                    if (bindings["negative"] != null)
+                        composite = composite.With("negative", bindings["negative"].ToString(), groups);
+                    if (bindings["positive"] != null)
+                        composite = composite.With("positive", bindings["positive"].ToString(), groups);
+                }
+                else
+                {
+                    // For other composite types, just create the composite without parts
+                    action.AddCompositeBinding(compositeType);
                 }
 
                 EditorUtility.SetDirty(asset);
