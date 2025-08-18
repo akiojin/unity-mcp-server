@@ -774,7 +774,7 @@ namespace UnityEditorMCP.Handlers
             {
                 touch.position.WriteValueIntoEvent(new Vector2(x, y), beginEvent);
                 touch.phase.WriteValueIntoEvent(UnityEngine.InputSystem.TouchPhase.Began, beginEvent);
-                touch.isInProgress.WriteValueIntoEvent(true, beginEvent);
+                // Note: isInProgress is automatically handled by the Input System based on phase
                 InputSystem.QueueEvent(beginEvent);
             }
             
@@ -782,7 +782,7 @@ namespace UnityEditorMCP.Handlers
             using (StateEvent.From(touchscreen, out var endEvent))
             {
                 touch.phase.WriteValueIntoEvent(UnityEngine.InputSystem.TouchPhase.Ended, endEvent);
-                touch.isInProgress.WriteValueIntoEvent(false, endEvent);
+                // Note: isInProgress is automatically handled by the Input System based on phase
                 InputSystem.QueueEvent(endEvent);
             }
             
@@ -814,7 +814,7 @@ namespace UnityEditorMCP.Handlers
             {
                 touch.position.WriteValueIntoEvent(new Vector2(startX, startY), beginEvent);
                 touch.phase.WriteValueIntoEvent(UnityEngine.InputSystem.TouchPhase.Began, beginEvent);
-                touch.isInProgress.WriteValueIntoEvent(true, beginEvent);
+                // Note: isInProgress is automatically handled by the Input System based on phase
                 InputSystem.QueueEvent(beginEvent);
             }
             
@@ -830,7 +830,7 @@ namespace UnityEditorMCP.Handlers
             using (StateEvent.From(touchscreen, out var endEvent))
             {
                 touch.phase.WriteValueIntoEvent(UnityEngine.InputSystem.TouchPhase.Ended, endEvent);
-                touch.isInProgress.WriteValueIntoEvent(false, endEvent);
+                // Note: isInProgress is automatically handled by the Input System based on phase
                 InputSystem.QueueEvent(endEvent);
             }
             
@@ -871,11 +871,11 @@ namespace UnityEditorMCP.Handlers
             {
                 touch1.position.WriteValueIntoEvent(center + offset1Start, beginEvent);
                 touch1.phase.WriteValueIntoEvent(UnityEngine.InputSystem.TouchPhase.Began, beginEvent);
-                touch1.isInProgress.WriteValueIntoEvent(true, beginEvent);
+                // Note: isInProgress is automatically handled by the Input System based on phase
                 
                 touch2.position.WriteValueIntoEvent(center + offset2Start, beginEvent);
                 touch2.phase.WriteValueIntoEvent(UnityEngine.InputSystem.TouchPhase.Began, beginEvent);
-                touch2.isInProgress.WriteValueIntoEvent(true, beginEvent);
+                // Note: isInProgress is automatically handled by the Input System based on phase
                 
                 InputSystem.QueueEvent(beginEvent);
             }
@@ -896,10 +896,10 @@ namespace UnityEditorMCP.Handlers
             using (StateEvent.From(touchscreen, out var endEvent))
             {
                 touch1.phase.WriteValueIntoEvent(UnityEngine.InputSystem.TouchPhase.Ended, endEvent);
-                touch1.isInProgress.WriteValueIntoEvent(false, endEvent);
+                // Note: isInProgress is automatically handled by the Input System based on phase
                 
                 touch2.phase.WriteValueIntoEvent(UnityEngine.InputSystem.TouchPhase.Ended, endEvent);
-                touch2.isInProgress.WriteValueIntoEvent(false, endEvent);
+                // Note: isInProgress is automatically handled by the Input System based on phase
                 
                 InputSystem.QueueEvent(endEvent);
             }
@@ -948,14 +948,14 @@ namespace UnityEditorMCP.Handlers
                         {
                             case "began":
                                 touchPhase = UnityEngine.InputSystem.TouchPhase.Began;
-                                touch.isInProgress.WriteValueIntoEvent(true, eventPtr);
+                                // Note: isInProgress is automatically handled by the Input System based on phase
                                 break;
                             case "moved":
                                 touchPhase = UnityEngine.InputSystem.TouchPhase.Moved;
                                 break;
                             case "ended":
                                 touchPhase = UnityEngine.InputSystem.TouchPhase.Ended;
-                                touch.isInProgress.WriteValueIntoEvent(false, eventPtr);
+                                // Note: isInProgress is automatically handled by the Input System based on phase
                                 break;
                             default:
                                 touchPhase = UnityEngine.InputSystem.TouchPhase.Stationary;
@@ -1165,7 +1165,11 @@ namespace UnityEditorMCP.Handlers
             for (int i = 0; i < touchscreen.touches.Count; i++)
             {
                 var touch = touchscreen.touches[i];
-                if (touch.isInProgress.ReadValue())
+                // Check if touch is active based on phase (Began, Moved, or Stationary)
+                var currentPhase = touch.phase.ReadValue();
+                if (currentPhase != UnityEngine.InputSystem.TouchPhase.None && 
+                    currentPhase != UnityEngine.InputSystem.TouchPhase.Ended &&
+                    currentPhase != UnityEngine.InputSystem.TouchPhase.Canceled)
                 {
                     activeTouches.Add(new
                     {
