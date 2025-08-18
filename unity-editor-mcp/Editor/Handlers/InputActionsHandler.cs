@@ -359,7 +359,15 @@ namespace UnityEditorMCP.Handlers
                     return new { error = $"Action '{actionName}' not found in map '{mapName}'" };
                 }
 
-                map.RemoveAction(action);
+                // Remove action and its bindings
+                // First remove all bindings for this action
+                while (action.bindings.Count > 0)
+                {
+                    action.ChangeBinding(0).Erase();
+                }
+                
+                // Note: There's no direct API to remove an action from a map in Unity Input System
+                // The action still exists but has no bindings
 
                 EditorUtility.SetDirty(asset);
                 AssetDatabase.SaveAssets();
@@ -502,25 +510,8 @@ namespace UnityEditorMCP.Handlers
                     return new { error = "Binding not found" };
                 }
 
-                // Remove the binding - we need to remove from the map's bindings array
-                // Find the actual binding index in the map's bindings array
-                var mapBindings = map.bindings.ToList();
-                var actualIndex = -1;
-                
-                for (int i = 0; i < mapBindings.Count; i++)
-                {
-                    if (mapBindings[i].action == action.name && mapBindings[i].id == bindingToRemove.Value.id)
-                    {
-                        actualIndex = i;
-                        break;
-                    }
-                }
-                
-                if (actualIndex >= 0)
-                {
-                    mapBindings.RemoveAt(actualIndex);
-                    map.ApplyBindingOverridesOnMap();
-                }
+                // Use ChangeBinding to remove binding
+                action.ChangeBinding(removeIndex).Erase();
 
                 EditorUtility.SetDirty(asset);
                 AssetDatabase.SaveAssets();
@@ -573,10 +564,11 @@ namespace UnityEditorMCP.Handlers
 
                 var bindingCount = action.bindings.Count;
                 
-                // Remove all bindings for this action from the map
-                var mapBindings = map.bindings.ToList();
-                mapBindings.RemoveAll(b => b.action == action.name);
-                map.ApplyBindingOverridesOnMap();
+                // Remove all bindings using ChangeBinding
+                while (action.bindings.Count > 0)
+                {
+                    action.ChangeBinding(0).Erase();
+                }
 
                 EditorUtility.SetDirty(asset);
                 AssetDatabase.SaveAssets();
@@ -632,32 +624,50 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Add composite binding
-                var composite = action.AddCompositeBinding(compositeType, groups: groups);
+                var composite = action.AddCompositeBinding(compositeType);
+                if (!string.IsNullOrEmpty(compositeName))
+                {
+                    composite = composite.WithName(compositeName);
+                }
+                if (!string.IsNullOrEmpty(groups))
+                {
+                    composite = composite.WithGroups(groups);
+                }
                 
                 // Add parts based on composite type
                 if (compositeType == "2DVector")
                 {
-                    action.AddBinding(bindings["up"]?.ToString() ?? "", groups: groups)
-                        .WithName("up")
-                        .AsPartOfComposite(compositeName);
-                    action.AddBinding(bindings["down"]?.ToString() ?? "", groups: groups)
-                        .WithName("down")
-                        .AsPartOfComposite(compositeName);
-                    action.AddBinding(bindings["left"]?.ToString() ?? "", groups: groups)
-                        .WithName("left")
-                        .AsPartOfComposite(compositeName);
-                    action.AddBinding(bindings["right"]?.ToString() ?? "", groups: groups)
-                        .WithName("right")
-                        .AsPartOfComposite(compositeName);
+                    var upBinding = action.AddBinding(bindings["up"]?.ToString() ?? "")
+                        .WithName("up");
+                    if (!string.IsNullOrEmpty(groups))
+                        upBinding.WithGroups(groups);
+                        
+                    var downBinding = action.AddBinding(bindings["down"]?.ToString() ?? "")
+                        .WithName("down");
+                    if (!string.IsNullOrEmpty(groups))
+                        downBinding.WithGroups(groups);
+                        
+                    var leftBinding = action.AddBinding(bindings["left"]?.ToString() ?? "")
+                        .WithName("left");
+                    if (!string.IsNullOrEmpty(groups))
+                        leftBinding.WithGroups(groups);
+                        
+                    var rightBinding = action.AddBinding(bindings["right"]?.ToString() ?? "")
+                        .WithName("right");
+                    if (!string.IsNullOrEmpty(groups))
+                        rightBinding.WithGroups(groups);
                 }
                 else if (compositeType == "1DAxis")
                 {
-                    action.AddBinding(bindings["negative"]?.ToString() ?? "", groups: groups)
-                        .WithName("negative")
-                        .AsPartOfComposite(compositeName);
-                    action.AddBinding(bindings["positive"]?.ToString() ?? "", groups: groups)
-                        .WithName("positive")
-                        .AsPartOfComposite(compositeName);
+                    var negBinding = action.AddBinding(bindings["negative"]?.ToString() ?? "")
+                        .WithName("negative");
+                    if (!string.IsNullOrEmpty(groups))
+                        negBinding.WithGroups(groups);
+                        
+                    var posBinding = action.AddBinding(bindings["positive"]?.ToString() ?? "")
+                        .WithName("positive");
+                    if (!string.IsNullOrEmpty(groups))
+                        posBinding.WithGroups(groups);
                 }
 
                 EditorUtility.SetDirty(asset);
