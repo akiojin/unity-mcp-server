@@ -78,7 +78,7 @@ Add the same configuration to Cursor's MCP settings
 
 ## Available Tools
 
-Unity Editor MCP provides **61 comprehensive tools** across 11 categories for complete Unity Editor automation:
+Unity Editor MCP provides **63 comprehensive tools** across 11 categories for complete Unity Editor automation:
 
 ### System & Core Tools (2 tools)
 - **`ping`** - Test connection to Unity Editor and verify server status
@@ -105,12 +105,14 @@ Unity Editor MCP provides **61 comprehensive tools** across 11 categories for co
 - **`list_scenes`** - List all scenes in project with filtering and build settings info
 - **`get_scene_info`** - Get detailed scene information including GameObject counts
 
-### Scene Analysis (5 tools)
+### Scene Analysis (7 tools)
 - **`get_gameobject_details`** - Deep inspection of GameObjects with component details and hierarchy
 - **`analyze_scene_contents`** - Comprehensive scene statistics, composition, and performance metrics
 - **`get_component_values`** - Get all properties and values of specific components with metadata
 - **`find_by_component`** - Find GameObjects by component type with scope filtering (scene/prefabs/all)
 - **`get_object_references`** - Analyze references between objects including hierarchy and asset connections
+- **`get_animator_state`** - Get current Animator state including layers, parameters, transitions and animation clips
+- **`get_animator_runtime_info`** - Get runtime Animator info including IK, root motion, and performance data (Play mode only)
 
 ### Asset Management (11 tools)
 - **`create_prefab`** - Create prefabs from GameObjects or empty templates with overwrite options

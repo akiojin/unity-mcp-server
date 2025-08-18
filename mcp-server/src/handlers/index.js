@@ -29,6 +29,7 @@ export { AnalyzeSceneContentsToolHandler } from './analysis/AnalyzeSceneContents
 export { GetComponentValuesToolHandler } from './analysis/GetComponentValuesToolHandler.js';
 export { FindByComponentToolHandler } from './analysis/FindByComponentToolHandler.js';
 export { GetObjectReferencesToolHandler } from './analysis/GetObjectReferencesToolHandler.js';
+export { GetAnimatorStateToolHandler, GetAnimatorRuntimeInfoToolHandler } from './analysis/GetAnimatorStateToolHandler.js';
 
 // PlayMode handlers
 export { PlayToolHandler } from './playmode/PlayToolHandler.js';
@@ -112,6 +113,7 @@ import { AnalyzeSceneContentsToolHandler } from './analysis/AnalyzeSceneContents
 import { GetComponentValuesToolHandler } from './analysis/GetComponentValuesToolHandler.js';
 import { FindByComponentToolHandler } from './analysis/FindByComponentToolHandler.js';
 import { GetObjectReferencesToolHandler } from './analysis/GetObjectReferencesToolHandler.js';
+import { GetAnimatorStateToolHandler, GetAnimatorRuntimeInfoToolHandler } from './analysis/GetAnimatorStateToolHandler.js';
 import { PlayToolHandler } from './playmode/PlayToolHandler.js';
 import { PauseToolHandler } from './playmode/PauseToolHandler.js';
 import { StopToolHandler } from './playmode/StopToolHandler.js';
@@ -183,6 +185,8 @@ const HANDLER_CLASSES = [
   GetComponentValuesToolHandler,
   FindByComponentToolHandler,
   GetObjectReferencesToolHandler,
+  GetAnimatorStateToolHandler,
+  GetAnimatorRuntimeInfoToolHandler,
   
   // PlayMode handlers
   PlayToolHandler,

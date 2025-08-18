@@ -446,6 +446,17 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, getObjectReferencesResult);
                         break;
                         
+                    // Animator State commands
+                    case "get_animator_state":
+                        var getAnimatorStateResult = AnimatorStateHandler.GetAnimatorState(command.Parameters);
+                        response = Response.SuccessResult(command.Id, getAnimatorStateResult);
+                        break;
+                        
+                    case "get_animator_runtime_info":
+                        var getAnimatorRuntimeInfoResult = AnimatorStateHandler.GetAnimatorRuntimeInfo(command.Parameters);
+                        response = Response.SuccessResult(command.Id, getAnimatorRuntimeInfoResult);
+                        break;
+                        
                     // Play Mode Control commands
                     case "play_game":
                         var playResult = PlayModeHandler.HandleCommand("play_game", command.Parameters);
