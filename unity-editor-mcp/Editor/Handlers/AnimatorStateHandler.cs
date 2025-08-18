@@ -163,7 +163,7 @@ namespace UnityEditorMCP.Handlers
                 // Get parameters
                 if (includeParameters)
                 {
-                    var parameters = new Dictionary<string, object>();
+                    var animatorParams = new Dictionary<string, object>();
                     foreach (var param in animator.parameters)
                     {
                         var paramData = new Dictionary<string, object>
@@ -191,9 +191,9 @@ namespace UnityEditorMCP.Handlers
                                 break;
                         }
 
-                        parameters[param.name] = paramData;
+                        animatorParams[param.name] = paramData;
                     }
-                    result["parameters"] = parameters;
+                    result["parameters"] = animatorParams;
                 }
 
                 // Build summary
@@ -384,27 +384,8 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // State Machine Behaviours
-                if (includeBehaviours)
-                {
-                    var behaviours = new List<Dictionary<string, object>>();
-                    for (int i = 0; i < animator.layerCount; i++)
-                    {
-                        var currentBehaviours = animator.GetCurrentAnimatorStateBehaviours(i);
-                        foreach (var behaviour in currentBehaviours)
-                        {
-                            if (behaviour != null)
-                            {
-                                behaviours.Add(new Dictionary<string, object>
-                                {
-                                    ["layer"] = i,
-                                    ["type"] = behaviour.GetType().Name,
-                                    ["enabled"] = behaviour.enabled
-                                });
-                            }
-                        }
-                    }
-                    result["behaviours"] = behaviours;
-                }
+                // Note: GetCurrentAnimatorStateBehaviours is only available at runtime with specific setup
+                // Removed for compatibility with Unity 2020.3+
 
                 // Performance info
                 result["hasBoundPlayables"] = animator.hasBoundPlayables;
