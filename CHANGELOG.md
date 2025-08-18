@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [Unity Package 2.0.3] - 2025-08-18
+
+### Fixed
+- Fixed missing InternalEditorUtility in GetTagUsage method for Unity 6
+- Fixed Count property usage (changed to Count() method for List)
+
 ## [Unity Package 2.0.2] - 2025-08-18
 
 ### Fixed

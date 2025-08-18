@@ -250,7 +250,13 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                #if UNITY_6000_0_OR_NEWER
+                // Unity 6: Use default tags for now
+                var tags = new List<string> { "Untagged", "Respawn", "Finish", "EditorOnly", "MainCamera", "Player", "GameController" };
+                #else
                 var tags = InternalEditorUtility.tags.ToList();
+                #endif
+                
                 var tagUsage = new Dictionary<string, int>();
 
                 foreach (var tag in tags)
@@ -263,7 +269,7 @@ namespace UnityEditorMCP.Handlers
                 {
                     success = true,
                     tagUsage = tagUsage,
-                    totalTags = tags.Count,
+                    totalTags = tags.Count(),
                     totalUsages = tagUsage.Values.Sum()
                 };
             }
