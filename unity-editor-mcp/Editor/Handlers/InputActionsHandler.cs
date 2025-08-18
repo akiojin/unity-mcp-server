@@ -624,15 +624,9 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Add composite binding
+                // Note: CompositeSyntax doesn't have WithName/WithGroups methods
+                // The composite name is set via the compositeType parameter
                 var composite = action.AddCompositeBinding(compositeType);
-                if (!string.IsNullOrEmpty(compositeName))
-                {
-                    composite = composite.WithName(compositeName);
-                }
-                if (!string.IsNullOrEmpty(groups))
-                {
-                    composite = composite.WithGroups(groups);
-                }
                 
                 // Add parts based on composite type
                 if (compositeType == "2DVector")
