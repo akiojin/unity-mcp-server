@@ -495,7 +495,7 @@ namespace UnityEditorMCP.Handlers
             }
             
             // Queue state with all keys released
-            keyboardState = new KeyboardState(GetPressedKeysArray());
+            keyboardState = CreateKeyboardState();
             InputSystem.QueueStateEvent(keyboard, keyboardState);
             InputSystem.Update();
             
