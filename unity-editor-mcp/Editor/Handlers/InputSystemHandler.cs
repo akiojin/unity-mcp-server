@@ -301,15 +301,7 @@ namespace UnityEditorMCP.Handlers
         /// </summary>
         private static Keyboard GetVirtualKeyboard()
         {
-            // First try to use the current keyboard if available
-            var currentKeyboard = Keyboard.current;
-            if (currentKeyboard != null)
-            {
-                Debug.Log("[InputSystemHandler] Using current physical keyboard");
-                return currentKeyboard;
-            }
-            
-            // Otherwise create a virtual keyboard
+            // Always use virtual keyboard for safety (don't modify physical keyboard state)
             if (virtualKeyboard == null || !virtualKeyboard.added)
             {
                 virtualKeyboard = InputSystem.AddDevice<Keyboard>("VirtualKeyboard");
@@ -323,12 +315,10 @@ namespace UnityEditorMCP.Handlers
         /// </summary>
         private static KeyboardState CreateKeyboardState()
         {
-            var state = new KeyboardState();
-            foreach (var key in pressedKeys)
-            {
-                state.Set(key, true);
-            }
-            return state;
+            // Convert HashSet to array for KeyboardState constructor
+            var keysArray = new Key[pressedKeys.Count];
+            pressedKeys.CopyTo(keysArray);
+            return new KeyboardState(keysArray);
         }
 
         private static T GetOrCreateDevice<T>(string deviceName) where T : InputDevice
