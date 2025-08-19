@@ -317,10 +317,18 @@ namespace UnityEditorMCP.Handlers
                 return new { error = "key is required" };
             }
             
+            // Handle single character keys (w, a, s, d) by converting to uppercase
+            if (keyName.Length == 1)
+            {
+                keyName = keyName.ToUpper();
+            }
+            
             if (!Enum.TryParse<Key>(keyName, true, out Key key))
             {
                 return new { error = $"Invalid key: {keyName}" };
             }
+            
+            Debug.Log($"[InputSystemHandler] Simulating key press: {keyName} (Play mode: {EditorApplication.isPlaying})");
             
             using (StateEvent.From(keyboard, out var eventPtr))
             {
@@ -328,7 +336,11 @@ namespace UnityEditorMCP.Handlers
                 InputSystem.QueueEvent(eventPtr);
             }
             
-            InputSystem.Update();
+            // Only force update in Edit mode; in Play mode, let Unity handle the update cycle
+            if (!EditorApplication.isPlaying)
+            {
+                InputSystem.Update();
+            }
             
             return new
             {
@@ -347,10 +359,18 @@ namespace UnityEditorMCP.Handlers
                 return new { error = "key is required" };
             }
             
+            // Handle single character keys (w, a, s, d) by converting to uppercase
+            if (keyName.Length == 1)
+            {
+                keyName = keyName.ToUpper();
+            }
+            
             if (!Enum.TryParse<Key>(keyName, true, out Key key))
             {
                 return new { error = $"Invalid key: {keyName}" };
             }
+            
+            Debug.Log($"[InputSystemHandler] Simulating key release: {keyName} (Play mode: {EditorApplication.isPlaying})");
             
             using (StateEvent.From(keyboard, out var eventPtr))
             {
@@ -358,7 +378,11 @@ namespace UnityEditorMCP.Handlers
                 InputSystem.QueueEvent(eventPtr);
             }
             
-            InputSystem.Update();
+            // Only force update in Edit mode; in Play mode, let Unity handle the update cycle
+            if (!EditorApplication.isPlaying)
+            {
+                InputSystem.Update();
+            }
             
             return new
             {
