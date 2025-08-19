@@ -7,7 +7,7 @@ export class CreateSceneToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'create_scene',
-      'Create a new scene in Unity',
+      'Create a new scene in Unity. NOTE: If loadScene is true, scene loading may take 5-30+ seconds depending on Unity project size and compilation state. Please wait for the operation to complete.',
       {
         type: 'object',
         properties: {

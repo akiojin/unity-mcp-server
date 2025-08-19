@@ -7,7 +7,7 @@ export class PlayToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'play_game',
-      'Start Unity play mode to test the game',
+      'Start Unity play mode to test the game. NOTE: This operation may take 10-60+ seconds depending on project size, scene complexity, and compilation requirements. Unity needs time to compile scripts, load assets, and initialize the scene. Please wait for the operation to complete.',
       {
         type: 'object',
         properties: {},

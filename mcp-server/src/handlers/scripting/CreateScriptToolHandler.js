@@ -7,7 +7,7 @@ export class CreateScriptToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'create_script',
-      'Create a new C# script in Unity project',
+      'Create a new C# script in Unity project. NOTE: After creation, Unity will compile the new script which may take 5-60+ seconds depending on project size and compilation cache state. Please wait for compilation to complete.',
       {
         type: 'object',
         properties: {
