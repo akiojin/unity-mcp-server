@@ -24,6 +24,10 @@ namespace UnityEditorMCP.Handlers
         private static Dictionary<string, InputDevice> activeDevices = new Dictionary<string, InputDevice>();
         private static List<InputEventPtr> queuedEvents = new List<InputEventPtr>();
         private static bool isSimulationActive = false;
+        
+        // Virtual keyboard management
+        private static Keyboard virtualKeyboard;
+        private static HashSet<Key> pressedKeys = new HashSet<Key>();
 
         /// <summary>
         /// Simulates keyboard input
@@ -39,8 +43,8 @@ namespace UnityEditorMCP.Handlers
                     return new { error = "action is required (press, release, type, combo)" };
                 }
 
-                // Ensure keyboard device exists
-                var keyboard = GetOrCreateDevice<Keyboard>("keyboard");
+                // Get or create virtual keyboard device
+                var keyboard = GetVirtualKeyboard();
                 
                 switch (action.ToLower())
                 {
@@ -292,6 +296,32 @@ namespace UnityEditorMCP.Handlers
 
         #region Helper Methods
 
+        /// <summary>
+        /// Gets or creates the virtual keyboard device
+        /// </summary>
+        private static Keyboard GetVirtualKeyboard()
+        {
+            if (virtualKeyboard == null || !virtualKeyboard.added)
+            {
+                virtualKeyboard = InputSystem.AddDevice<Keyboard>("VirtualKeyboard");
+                Debug.Log("[InputSystemHandler] Created virtual keyboard device");
+            }
+            return virtualKeyboard;
+        }
+
+        /// <summary>
+        /// Creates a KeyboardState with the currently pressed keys
+        /// </summary>
+        private static KeyboardState CreateKeyboardState()
+        {
+            var state = new KeyboardState();
+            foreach (var key in pressedKeys)
+            {
+                state.Set(key, true);
+            }
+            return state;
+        }
+
         private static T GetOrCreateDevice<T>(string deviceName) where T : InputDevice
         {
             if (activeDevices.ContainsKey(deviceName))
@@ -328,17 +358,16 @@ namespace UnityEditorMCP.Handlers
                 return new { error = $"Invalid key: {keyName}" };
             }
             
-            Debug.Log($"[InputSystemHandler] Simulating key press: {keyName} (Play mode: {EditorApplication.isPlaying})");
-            
-            using (StateEvent.From(keyboard, out var eventPtr))
+            // Add key to pressed keys set
+            if (pressedKeys.Add(key))
             {
-                keyboard[key].WriteValueIntoEvent(1.0f, eventPtr);
-                InputSystem.QueueEvent(eventPtr);
-            }
-            
-            // Only force update in Edit mode; in Play mode, let Unity handle the update cycle
-            if (!EditorApplication.isPlaying)
-            {
+                Debug.Log($"[InputSystemHandler] Simulating key press: {keyName} (Virtual Keyboard)");
+                
+                // Create new keyboard state with all pressed keys
+                var keyboardState = CreateKeyboardState();
+                
+                // Queue the state event for the virtual keyboard
+                InputSystem.QueueStateEvent(keyboard, keyboardState);
                 InputSystem.Update();
             }
             
@@ -370,17 +399,16 @@ namespace UnityEditorMCP.Handlers
                 return new { error = $"Invalid key: {keyName}" };
             }
             
-            Debug.Log($"[InputSystemHandler] Simulating key release: {keyName} (Play mode: {EditorApplication.isPlaying})");
-            
-            using (StateEvent.From(keyboard, out var eventPtr))
+            // Remove key from pressed keys set
+            if (pressedKeys.Remove(key))
             {
-                keyboard[key].WriteValueIntoEvent(0.0f, eventPtr);
-                InputSystem.QueueEvent(eventPtr);
-            }
-            
-            // Only force update in Edit mode; in Play mode, let Unity handle the update cycle
-            if (!EditorApplication.isPlaying)
-            {
+                Debug.Log($"[InputSystemHandler] Simulating key release: {keyName} (Virtual Keyboard)");
+                
+                // Create new keyboard state with remaining pressed keys
+                var keyboardState = CreateKeyboardState();
+                
+                // Queue the state event for the virtual keyboard
+                InputSystem.QueueStateEvent(keyboard, keyboardState);
                 InputSystem.Update();
             }
             
@@ -401,28 +429,12 @@ namespace UnityEditorMCP.Handlers
                 return new { error = "text is required" };
             }
             
-            int typingSpeed = parameters["typingSpeed"]?.ToObject<int>() ?? 50; // ms per character
+            Debug.Log($"[InputSystemHandler] Simulating text input: \"{text}\" (Virtual Keyboard)");
             
+            // Use QueueTextEvent for text input (better for UI/TMP)
             foreach (char c in text)
             {
-                // Convert character to corresponding key
-                Key key = CharToKey(c);
-                if (key != Key.None)
-                {
-                    // Press key
-                    using (StateEvent.From(keyboard, out var pressEvent))
-                    {
-                        keyboard[key].WriteValueIntoEvent(1.0f, pressEvent);
-                        InputSystem.QueueEvent(pressEvent);
-                    }
-                    
-                    // Release key
-                    using (StateEvent.From(keyboard, out var releaseEvent))
-                    {
-                        keyboard[key].WriteValueIntoEvent(0.0f, releaseEvent);
-                        InputSystem.QueueEvent(releaseEvent);
-                    }
-                }
+                InputSystem.QueueTextEvent(keyboard, c);
             }
             
             InputSystem.Update();
@@ -444,34 +456,47 @@ namespace UnityEditorMCP.Handlers
                 return new { error = "keys array is required" };
             }
             
+            Debug.Log($"[InputSystemHandler] Simulating key combo: {string.Join("+", keys)} (Virtual Keyboard)");
+            
             // Press all keys
             foreach (string keyName in keys)
             {
-                if (Enum.TryParse<Key>(keyName, true, out Key key))
+                var actualKeyName = keyName;
+                // Handle single character keys
+                if (keyName.Length == 1)
                 {
-                    using (StateEvent.From(keyboard, out var eventPtr))
-                    {
-                        keyboard[key].WriteValueIntoEvent(1.0f, eventPtr);
-                        InputSystem.QueueEvent(eventPtr);
-                    }
+                    actualKeyName = keyName.ToUpper();
+                }
+                
+                if (Enum.TryParse<Key>(actualKeyName, true, out Key key))
+                {
+                    pressedKeys.Add(key);
                 }
             }
             
+            // Queue state with all keys pressed
+            var keyboardState = CreateKeyboardState();
+            InputSystem.QueueStateEvent(keyboard, keyboardState);
             InputSystem.Update();
             
-            // Release all keys in reverse order
-            for (int i = keys.Length - 1; i >= 0; i--)
+            // Release all keys
+            foreach (string keyName in keys)
             {
-                if (Enum.TryParse<Key>(keys[i], true, out Key key))
+                var actualKeyName = keyName;
+                if (keyName.Length == 1)
                 {
-                    using (StateEvent.From(keyboard, out var eventPtr))
-                    {
-                        keyboard[key].WriteValueIntoEvent(0.0f, eventPtr);
-                        InputSystem.QueueEvent(eventPtr);
-                    }
+                    actualKeyName = keyName.ToUpper();
+                }
+                
+                if (Enum.TryParse<Key>(actualKeyName, true, out Key key))
+                {
+                    pressedKeys.Remove(key);
                 }
             }
             
+            // Queue state with all keys released
+            keyboardState = new KeyboardState(GetPressedKeysArray());
+            InputSystem.QueueStateEvent(keyboard, keyboardState);
             InputSystem.Update();
             
             return new
