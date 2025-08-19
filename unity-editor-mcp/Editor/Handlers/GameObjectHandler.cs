@@ -335,7 +335,7 @@ namespace UnityEditorMCP.Handlers
                 string name = parameters["name"]?.ToString();
                 string tag = parameters["tag"]?.ToString();
                 int? layer = parameters["layer"]?.ToObject<int>();
-                bool exactMatch = parameters["exactMatch"]?.ToObject<bool>() ?? true;
+                bool exactMatch = parameters["exactMatch"]?.ToObject<bool>() ?? false;
                 
                 List<GameObject> results = new List<GameObject>();
                 

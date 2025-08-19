@@ -28,7 +28,8 @@ export class FindGameObjectToolHandler extends BaseToolHandler {
           },
           exactMatch: {
             type: 'boolean',
-            description: 'Whether to match name exactly (default: true)'
+            description: 'Whether to match name exactly (default: false)',
+            default: false
           }
         },
         required: []
