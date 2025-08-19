@@ -301,6 +301,15 @@ namespace UnityEditorMCP.Handlers
         /// </summary>
         private static Keyboard GetVirtualKeyboard()
         {
+            // First try to use the current keyboard if available
+            var currentKeyboard = Keyboard.current;
+            if (currentKeyboard != null)
+            {
+                Debug.Log("[InputSystemHandler] Using current physical keyboard");
+                return currentKeyboard;
+            }
+            
+            // Otherwise create a virtual keyboard
             if (virtualKeyboard == null || !virtualKeyboard.added)
             {
                 virtualKeyboard = InputSystem.AddDevice<Keyboard>("VirtualKeyboard");
