@@ -37,7 +37,7 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Find GameObject
-                GameObject targetObject = GameObject.Find(gameObjectPath);
+                GameObject targetObject = GameObjectHandler.FindGameObjectByPath(gameObjectPath);
                 if (targetObject == null)
                 {
                     return new { error = $"GameObject not found: {gameObjectPath}" };
@@ -119,7 +119,7 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Find GameObject
-                GameObject targetObject = GameObject.Find(gameObjectPath);
+                GameObject targetObject = GameObjectHandler.FindGameObjectByPath(gameObjectPath);
                 if (targetObject == null)
                 {
                     return new { error = $"GameObject not found: {gameObjectPath}" };
@@ -207,7 +207,7 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Find GameObject
-                GameObject targetObject = GameObject.Find(gameObjectPath);
+                GameObject targetObject = GameObjectHandler.FindGameObjectByPath(gameObjectPath);
                 if (targetObject == null)
                 {
                     return new { error = $"GameObject not found: {gameObjectPath}" };
@@ -292,7 +292,7 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Find GameObject
-                GameObject targetObject = GameObject.Find(gameObjectPath);
+                GameObject targetObject = GameObjectHandler.FindGameObjectByPath(gameObjectPath);
                 if (targetObject == null)
                 {
                     return new { error = $"GameObject not found: {gameObjectPath}" };

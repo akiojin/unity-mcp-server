@@ -33,7 +33,7 @@ namespace UnityEditorMCP.Handlers
                 GameObject parent = null;
                 if (!string.IsNullOrEmpty(parentPath))
                 {
-                    parent = GameObject.Find(parentPath);
+                    parent = FindGameObjectByPath(parentPath);
                     if (parent == null)
                     {
                         return new { error = $"Parent GameObject not found: {parentPath}" };
@@ -181,6 +181,59 @@ namespace UnityEditorMCP.Handlers
             
             return "/" + path;
         }
+
+        /// <summary>
+        /// Finds a GameObject by path, supporting both scene and prefab mode
+        /// </summary>
+        public static GameObject FindGameObjectByPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return null;
+            
+            // Check if we're in prefab mode
+            var prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+            if (prefabStage != null)
+            {
+                // In prefab mode, search from prefab root
+                GameObject prefabRoot = prefabStage.prefabContentsRoot;
+                
+                // If the path is the root itself
+                if (path == "/" + prefabRoot.name || path == prefabRoot.name)
+                {
+                    return prefabRoot;
+                }
+                
+                // If the path starts with the root name, strip it
+                string searchPath = path;
+                if (searchPath.StartsWith("/"))
+                {
+                    searchPath = searchPath.Substring(1);
+                }
+                
+                // If path starts with prefab root name, get the relative path
+                string rootPrefix = prefabRoot.name + "/";
+                if (searchPath.StartsWith(rootPrefix))
+                {
+                    searchPath = searchPath.Substring(rootPrefix.Length);
+                    Transform found = prefabRoot.transform.Find(searchPath);
+                    return found != null ? found.gameObject : null;
+                }
+                else if (searchPath == prefabRoot.name)
+                {
+                    return prefabRoot;
+                }
+                else
+                {
+                    // Try direct search under prefab root
+                    Transform found = prefabRoot.transform.Find(searchPath);
+                    return found != null ? found.gameObject : null;
+                }
+            }
+            else
+            {
+                // In scene mode, use regular GameObject.Find
+                return GameObject.Find(path);
+            }
+        }
         
         /// <summary>
         /// Modifies an existing GameObject
@@ -196,7 +249,7 @@ namespace UnityEditorMCP.Handlers
                 }
                 
                 // Find the GameObject
-                GameObject obj = GameObject.Find(path);
+                GameObject obj = FindGameObjectByPath(path);
                 if (obj == null)
                 {
                     return new { error = $"GameObject not found: {path}" };
@@ -280,7 +333,7 @@ namespace UnityEditorMCP.Handlers
                     GameObject newParent = null;
                     if (!string.IsNullOrEmpty(parentPath))
                     {
-                        newParent = GameObject.Find(parentPath);
+                        newParent = FindGameObjectByPath(parentPath);
                         if (newParent == null)
                         {
                             return new { error = $"Parent GameObject not found: {parentPath}" };
@@ -340,7 +393,21 @@ namespace UnityEditorMCP.Handlers
                 List<GameObject> results = new List<GameObject>();
                 
                 // Get all GameObjects in scene
-                GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>(true);
+                GameObject[] allObjects;
+                // Check if we're in prefab mode
+                var prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+                if (prefabStage != null)
+                {
+                    // In prefab mode, get all objects from prefab root
+                    allObjects = prefabStage.prefabContentsRoot.GetComponentsInChildren<Transform>(true)
+                        .Select(t => t.gameObject)
+                        .ToArray();
+                }
+                else
+                {
+                    // In scene mode, use FindObjectsOfType
+                    allObjects = GameObject.FindObjectsOfType<GameObject>(true);
+                }
                 
                 foreach (var obj in allObjects)
                 {
@@ -440,7 +507,7 @@ namespace UnityEditorMCP.Handlers
                 
                 foreach (string objPath in allPaths)
                 {
-                    GameObject obj = GameObject.Find(objPath);
+                    GameObject obj = FindGameObjectByPath(objPath);
                     if (obj != null)
                     {
                         deleted.Add(objPath);
@@ -498,7 +565,7 @@ namespace UnityEditorMCP.Handlers
                 if (!string.IsNullOrEmpty(rootPath))
                 {
                     // Find the specified GameObject
-                    GameObject rootObject = GameObject.Find(rootPath);
+                    GameObject rootObject = FindGameObjectByPath(rootPath);
                     if (rootObject == null)
                     {
                         return new { error = $"GameObject not found at path: {rootPath}" };
@@ -534,39 +601,62 @@ namespace UnityEditorMCP.Handlers
                 }
                 else
                 {
-                    // Get root GameObjects from the scene
-                    GameObject[] rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
-                    Debug.Log($"[GetHierarchy] No rootPath, using scene roots. maxObjects={maxObjects}, rootObjects.Length={rootObjects.Length}");
+                    // Check if we're in prefab mode
+                    var prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
                     
-                    foreach (var root in rootObjects)
+                    if (prefabStage != null)
                     {
-                        if (!includeInactive && !root.activeInHierarchy)
-                            continue;
+                        // In prefab mode, use prefab root
+                        GameObject prefabRoot = prefabStage.prefabContentsRoot;
+                        Debug.Log($"[GetHierarchy] Prefab mode - using prefab root: {prefabRoot.name}");
                         
-                        // Check if we've hit the object limit
-                        if (objectCounter.MaxObjects > 0 && objectCounter.CurrentCount >= objectCounter.MaxObjects)
-                        {
-                            Debug.Log($"[GetHierarchy] Hit object limit at {objectCounter.CurrentCount} objects");
-                            break;
-                        }
-                            
-                        var node = BuildHierarchyNode(root, 0, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly, objectCounter);
+                        var node = BuildHierarchyNode(prefabRoot, 0, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly, objectCounter);
                         if (node != null)
                         {
                             hierarchy.Add(node);
-                            Debug.Log($"[GetHierarchy] Added root node: {root.name}, Current count: {objectCounter.CurrentCount}");
                         }
-                        else
+                    }
+                    else
+                    {
+                        // Get root GameObjects from the scene
+                        GameObject[] rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
+                        Debug.Log($"[GetHierarchy] No rootPath, using scene roots. maxObjects={maxObjects}, rootObjects.Length={rootObjects.Length}");
+                        
+                        foreach (var root in rootObjects)
                         {
-                            Debug.Log($"[GetHierarchy] Node was null for: {root.name}, Breaking loop");
-                            break;
+                            if (!includeInactive && !root.activeInHierarchy)
+                                continue;
+                            
+                            // Check if we've hit the object limit
+                            if (objectCounter.MaxObjects > 0 && objectCounter.CurrentCount >= objectCounter.MaxObjects)
+                            {
+                                Debug.Log($"[GetHierarchy] Hit object limit at {objectCounter.CurrentCount} objects");
+                                break;
+                            }
+                                
+                            var node = BuildHierarchyNode(root, 0, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly, objectCounter);
+                            if (node != null)
+                            {
+                                hierarchy.Add(node);
+                                Debug.Log($"[GetHierarchy] Added root node: {root.name}, Current count: {objectCounter.CurrentCount}");
+                            }
+                            else
+                            {
+                                Debug.Log($"[GetHierarchy] Node was null for: {root.name}, Breaking loop");
+                                break;
+                            }
                         }
                     }
                 }
                 
+                // Prepare result with appropriate scene/prefab name
+                var prefabStageResult = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
                 var result = new Dictionary<string, object>
                 {
-                    ["sceneName"] = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
+                    ["sceneName"] = prefabStageResult != null ? 
+                        System.IO.Path.GetFileNameWithoutExtension(prefabStageResult.assetPath) : 
+                        UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
+                    ["isPrefabMode"] = prefabStageResult != null,
                     ["objectCount"] = hierarchy.Count,
                     ["hierarchy"] = hierarchy
                 };
