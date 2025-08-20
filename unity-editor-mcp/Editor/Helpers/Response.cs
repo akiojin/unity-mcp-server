@@ -1,6 +1,8 @@
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
+using UnityEngine;
 
 namespace UnityEditorMCP.Helpers
 {
@@ -10,6 +12,65 @@ namespace UnityEditorMCP.Helpers
     public static class Response
     {
         /// <summary>
+        /// Gets the package version from package.json
+        /// </summary>
+        /// <returns>Package version string</returns>
+        private static string GetPackageVersion()
+        {
+            try
+            {
+                // Try multiple potential paths for package.json
+                string[] possiblePaths = new string[]
+                {
+                    "Packages/com.unity.editor-mcp/package.json",
+                    Path.Combine(Application.dataPath, "../Packages/com.unity.editor-mcp/package.json"),
+                    Path.Combine(Application.dataPath, "../Library/PackageCache/com.unity.editor-mcp/package.json")
+                };
+
+                foreach (var path in possiblePaths)
+                {
+                    string fullPath = path;
+                    if (!Path.IsPathRooted(path))
+                    {
+                        fullPath = Path.GetFullPath(path);
+                    }
+
+                    if (File.Exists(fullPath))
+                    {
+                        string jsonContent = File.ReadAllText(fullPath);
+                        var packageInfo = JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonContent);
+                        if (packageInfo != null && packageInfo.ContainsKey("version"))
+                        {
+                            return packageInfo["version"].ToString();
+                        }
+                    }
+                }
+
+                // Fallback: try to get from assembly
+                var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+                if (assembly != null)
+                {
+                    var location = assembly.Location;
+                    if (!string.IsNullOrEmpty(location) && location.Contains("com.unity.editor-mcp"))
+                    {
+                        // Try to extract version from path if it contains version info
+                        var match = System.Text.RegularExpressions.Regex.Match(location, @"com\.unity\.editor-mcp@([0-9]+\.[0-9]+\.[0-9]+)");
+                        if (match.Success)
+                        {
+                            return match.Groups[1].Value;
+                        }
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[UnityEditorMCP] Failed to get package version: {e.Message}");
+            }
+
+            return "unknown";
+        }
+
+        /// <summary>
         /// Creates a success response with optional data
         /// </summary>
         /// <param name="data">Optional data to include in the response</param>
@@ -18,7 +79,8 @@ namespace UnityEditorMCP.Helpers
         {
             var response = new Dictionary<string, object>
             {
-                ["status"] = "success"
+                ["status"] = "success",
+                ["version"] = GetPackageVersion()
             };
             
             if (data != null)
@@ -40,7 +102,8 @@ namespace UnityEditorMCP.Helpers
             var response = new Dictionary<string, object>
             {
                 ["id"] = id,
-                ["success"] = true
+                ["success"] = true,
+                ["version"] = GetPackageVersion()
             };
             
             if (data != null)
@@ -115,7 +178,11 @@ namespace UnityEditorMCP.Helpers
         /// <returns>JSON string of the pong response</returns>
         public static string Pong()
         {
-            return Success(new { message = "pong", timestamp = System.DateTime.UtcNow.ToString("o") });
+            return Success(new { 
+                message = "pong", 
+                timestamp = System.DateTime.UtcNow.ToString("o"),
+                version = GetPackageVersion()
+            });
         }
         
         // ===== New Format Methods (Phase 1.1) =====
@@ -126,34 +193,11 @@ namespace UnityEditorMCP.Helpers
         /// <returns>Dictionary containing editor state information</returns>
         private static Dictionary<string, object> GetCurrentEditorState()
         {
-            // Get package version from assembly info or git commit
-            string version = "unknown";
-            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            if (assembly != null)
-            {
-                // Try to get version from assembly location (PackageCache path)
-                var location = assembly.Location;
-                if (!string.IsNullOrEmpty(location) && location.Contains("PackageCache"))
-                {
-                    // Extract version from path like: com.unity.editor-mcp@6fc0fff318a9
-                    var match = System.Text.RegularExpressions.Regex.Match(location, @"com\.unity\.editor-mcp@([a-f0-9]+)");
-                    if (match.Success)
-                    {
-                        version = match.Groups[1].Value;
-                    }
-                    else
-                    {
-                        // Debug: include the path for troubleshooting
-                        version = $"debug_path:{location}";
-                    }
-                }
-            }
-            
             return new Dictionary<string, object>
             {
                 ["isPlaying"] = EditorApplication.isPlaying,
                 ["isPaused"] = EditorApplication.isPaused,
-                ["mcpVersion"] = version,
+                ["version"] = GetPackageVersion(),
                 ["timestamp"] = System.DateTime.UtcNow.ToString("o")
             };
         }
