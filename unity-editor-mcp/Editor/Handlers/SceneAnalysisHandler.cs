@@ -893,6 +893,16 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 result["properties"] = properties;
+                
+                // Debug logging
+                UnityEngine.Debug.Log($"[MCP Debug] GetComponentValues - Properties count: {properties.Count}");
+                if (properties.Count > 0)
+                {
+                    var firstKey = properties.Keys.First();
+                    UnityEngine.Debug.Log($"[MCP Debug] First property key: {firstKey}");
+                    var firstValue = properties[firstKey];
+                    UnityEngine.Debug.Log($"[MCP Debug] First property value type: {firstValue?.GetType().Name ?? "null"}");
+                }
 
                 // Generate summary with detailed property names for debugging
                 var propertyCount = properties.Count;
