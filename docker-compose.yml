@@ -13,6 +13,7 @@ services:
       - GITHUB_TOKEN
       - GITHUB_PERSONAL_ACCESS_TOKEN
       - GITHUB_USERNAME
+      - GIT_USER_EMAIL
       - UNITY_HOST=host.docker.internal
       - UNITY_PORT=6400
       # bash_history

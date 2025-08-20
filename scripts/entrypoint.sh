@@ -21,16 +21,7 @@ if [ -n "$GITHUB_USERNAME" ] && [ -n "$GITHUB_PERSONAL_ACCESS_TOKEN" ]; then
     git config --global credential.helper store
 fi
 
-# GitHub CLIの認証（GITHUB_TOKENが設定されている場合）
-if [ -n "$GITHUB_TOKEN" ] && command -v gh &> /dev/null; then
-    echo "$GITHUB_TOKEN" | gh auth login --with-token 2>/dev/null || true
-fi
-
-# プロジェクトディレクトリに移動
-cd /unity-editor-mcp
-
-echo "🚀 Claude Worktree Docker environment is ready!"
+echo "🚀 Docker environment is ready!"
 echo ""
 
-# コマンドの実行（デフォルトはbash）
 exec "$@"
