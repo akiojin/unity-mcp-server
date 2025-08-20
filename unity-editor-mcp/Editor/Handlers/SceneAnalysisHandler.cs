@@ -894,15 +894,37 @@ namespace UnityEditorMCP.Handlers
 
                 result["properties"] = properties;
 
-                // Generate summary
+                // Generate summary with detailed property names for debugging
                 var propertyCount = properties.Count;
+                var propertyNames = string.Join(", ", properties.Keys.Take(5));
+                if (properties.Count > 5)
+                {
+                    propertyNames += $"... and {properties.Count - 5} more";
+                }
+                
                 var summary = $"{componentType} component on \"{gameObjectName}\"";
                 if (matchingComponents.Count > 1)
                 {
                     summary += $" (index {componentIndex})";
                 }
                 summary += $" - {propertyCount} propert{(propertyCount != 1 ? "ies" : "y")}";
+                
+                if (propertyCount > 0)
+                {
+                    summary += $": {propertyNames}";
+                }
+                
                 result["summary"] = summary;
+                result["propertyCount"] = propertyCount;
+                result["hasProperties"] = propertyCount > 0;
+
+                // Add debug info
+                result["debug"] = new Dictionary<string, object>
+                {
+                    ["propertiesType"] = properties.GetType().Name,
+                    ["propertiesCount"] = properties.Count,
+                    ["firstPropertyKey"] = properties.Count > 0 ? properties.Keys.First() : null
+                };
 
                 return result;
             }
