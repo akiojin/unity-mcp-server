@@ -4,10 +4,8 @@ services:
     container_name: unity-editor-mcp
     volumes:
       - .:/unity-editor-mcp
-      - ssh_keys:/root/.ssh
+      - bash-history:/root/.bash_history_dir
       - claude_config:/root/.claude
-      - ./.docker/bash_history:/root/.bash_history
-      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - NPM_USER
       - NPM_EMAIL
@@ -15,19 +13,22 @@ services:
       - GITHUB_TOKEN
       - GITHUB_PERSONAL_ACCESS_TOKEN
       - GITHUB_USERNAME
-      - DOCKER_HOST=unix:///var/run/docker.sock
       - UNITY_HOST=host.docker.internal
       - UNITY_PORT=6400
+      # bash_history
+      - HISTFILE=/root/.bash_history_dir/.bash_history
+      - HISTSIZE=5000
+      - HISTFILESIZE=200000
+      # Claude Code
+      - MAX_MCP_OUTPUT_TOKENS
+      - ENABLE_BACKGROUND_TASKS=1
+      - FORCE_AUTO_BACKGROUND_TASKS=1
     extra_hosts:
       - "host.docker.internal:host-gateway"
     stdin_open: true
     tty: true
-    restart: unless-stopped
     working_dir: /unity-editor-mcp
 
 volumes:
-  # 必要最小限の設定のみ永続化
-  ssh_keys:
-    driver: local
-  claude_config:
-    driver: local
+  bash-history: {}
+  claude_config: {}
