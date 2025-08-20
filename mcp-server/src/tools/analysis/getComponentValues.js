@@ -107,11 +107,57 @@ export async function getComponentValuesHandler(unityConnection, args) {
         }
 
         // Success response - result is already the unwrapped data
+        let responseText = result.summary || `Component values retrieved`;
+        
+        // Add detailed property information if available
+        if (result.properties && Object.keys(result.properties).length > 0) {
+            responseText += '\n\nProperties:';
+            for (const [key, value] of Object.entries(result.properties)) {
+                if (value && typeof value === 'object') {
+                    if (value.error) {
+                        responseText += `\n- ${key}: ERROR - ${value.error}`;
+                    } else {
+                        const valueStr = value.value ? JSON.stringify(value.value, null, 2) : 'null';
+                        const typeStr = value.type || 'unknown';
+                        responseText += `\n- ${key} (${typeStr}): ${valueStr}`;
+                        
+                        // Add range info if available
+                        if (value.range) {
+                            responseText += ` [range: ${value.range.min}-${value.range.max}]`;
+                        }
+                        
+                        // Add tooltip if available
+                        if (value.tooltip) {
+                            responseText += ` // ${value.tooltip}`;
+                        }
+                        
+                        // Add serialization info
+                        if (value.serialized) {
+                            responseText += ` (SerializeField)`;
+                        }
+                        if (value.hiddenInInspector) {
+                            responseText += ` (HideInInspector)`;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Add debug information if available
+        if (result.debug) {
+            responseText += '\n\nDebug Info:';
+            responseText += `\n- Properties type: ${result.debug.propertiesType}`;
+            responseText += `\n- Properties count: ${result.debug.propertiesCount}`;
+            if (result.debug.firstPropertyKey) {
+                responseText += `\n- First property key: ${result.debug.firstPropertyKey}`;
+            }
+        }
+        
         return {
             content: [
                 {
                     type: 'text',
-                    text: result.summary || `Component values retrieved`
+                    text: responseText
                 }
             ],
             isError: false
