@@ -359,22 +359,105 @@ namespace UnityEditorMCP.Handlers
         /// <summary>
         /// Serializes a value to a JSON-friendly format
         /// </summary>
-        private static object SerializeValue(object value)
+        private static object SerializeValue(object value, HashSet<object> processedObjects = null)
         {
+            // Initialize processed objects set for circular reference detection
+            if (processedObjects == null)
+                processedObjects = new HashSet<object>();
+
+            // Handle null values
+            if (value == null)
+                return new { type = "null", value = "null" };
+
+            // Check for circular references in Unity Objects
+            if (value is UnityEngine.Object unityObj)
+            {
+                if (processedObjects.Contains(value))
+                    return new { type = "CircularReference", objectType = value.GetType().Name };
+                processedObjects.Add(value);
+            }
+
+            // Handle specific types
             switch (value)
             {
+                case GameObject go:
+                    return new { 
+                        type = "GameObject", 
+                        name = go.name, 
+                        instanceId = go.GetInstanceID(),
+                        path = GetGameObjectPath(go)
+                    };
+                    
+                case Transform transform:
+                    return new {
+                        type = "Transform",
+                        position = SerializeVector3(transform.position),
+                        rotation = SerializeVector3(transform.eulerAngles),
+                        localScale = SerializeVector3(transform.localScale)
+                    };
+                    
+                case Component comp:
+                    return new { 
+                        type = "Component", 
+                        componentType = comp.GetType().Name,
+                        gameObject = comp.gameObject.name
+                    };
+                    
+                case UnityEngine.Object obj:
+                    var assetPath = AssetDatabase.GetAssetPath(obj);
+                    return new { 
+                        type = "UnityObject",
+                        objectType = obj.GetType().Name,
+                        name = obj.name,
+                        assetPath = string.IsNullOrEmpty(assetPath) ? null : assetPath
+                    };
+                    
+                case IList list:
+                    var items = new List<object>();
+                    int maxItems = Math.Min(list.Count, 10); // Limit to 10 items
+                    for (int i = 0; i < maxItems; i++)
+                    {
+                        items.Add(SerializeValue(list[i], processedObjects));
+                    }
+                    return new { 
+                        type = "Array", 
+                        elementType = list.GetType().GetElementType()?.Name ?? "unknown",
+                        count = list.Count, 
+                        items = items,
+                        truncated = list.Count > maxItems
+                    };
+                    
                 case Vector3 v:
                     return SerializeVector3(v);
                 case Vector2 v:
                     return new { x = v.x, y = v.y };
+                case Vector4 v:
+                    return new { x = v.x, y = v.y, z = v.z, w = v.w };
                 case Color c:
                     return SerializeColor(c);
                 case Quaternion q:
-                    return new { x = q.x, y = q.y, z = q.z, w = q.w };
+                    return new { x = q.x, y = q.y, z = q.z, w = q.w, eulerAngles = SerializeVector3(q.eulerAngles) };
+                case Bounds b:
+                    return new { center = SerializeVector3(b.center), size = SerializeVector3(b.size) };
+                case Rect r:
+                    return new { x = r.x, y = r.y, width = r.width, height = r.height };
                 case Enum e:
                     return e.ToString();
+                case bool b:
+                    return b;
+                case string s:
+                    return s;
+                case float f:
+                    return f;
+                case double d:
+                    return d;
+                case int i:
+                    return i;
+                case long l:
+                    return l;
                 default:
-                    return value;
+                    // For unknown types, return type information
+                    return new { type = value.GetType().Name, value = value.ToString() };
             }
         }
 
@@ -727,13 +810,11 @@ namespace UnityEditorMCP.Handlers
                         if (prop.CanRead && !prop.GetIndexParameters().Any())
                         {
                             var value = prop.GetValue(targetComponent);
-                            if (value != null)
+                            // Include null values as well
+                            var propData = SerializePropertyValue(prop, value);
+                            if (propData != null)
                             {
-                                var propData = SerializePropertyValue(prop, value);
-                                if (propData != null)
-                                {
-                                    properties[prop.Name] = propData;
-                                }
+                                properties[prop.Name] = propData;
                             }
                         }
                     }
@@ -743,26 +824,65 @@ namespace UnityEditorMCP.Handlers
                     }
                 }
 
-                // Get fields (if including private)
+                // Get SerializeField attributes (always include these)
+                var serializeFields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Where(f => f.GetCustomAttribute<SerializeField>() != null && 
+                           !f.Name.Contains("<") && !f.Name.Contains(">"));
+                
+                foreach (var field in serializeFields)
+                {
+                    try
+                    {
+                        var value = field.GetValue(targetComponent);
+                        var fieldData = SerializeFieldValue(field, value);
+                        if (fieldData != null)
+                        {
+                            properties["[SF]" + field.Name] = fieldData;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        properties["[SF]" + field.Name] = new { error = ex.Message };
+                    }
+                }
+
+                // Get public fields
+                var publicFields = type.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(f => !f.Name.Contains("<") && !f.Name.Contains(">"));
+                
+                foreach (var field in publicFields)
+                {
+                    try
+                    {
+                        var value = field.GetValue(targetComponent);
+                        var fieldData = SerializeFieldValue(field, value);
+                        if (fieldData != null)
+                        {
+                            properties[field.Name] = fieldData;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        properties[field.Name] = new { error = ex.Message };
+                    }
+                }
+
+                // Get additional private fields if requested
                 if (includePrivateFields)
                 {
-                    var fieldInfos = type.GetFields(bindingFlags);
-                    foreach (var field in fieldInfos)
+                    var privateFields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
+                        .Where(f => f.GetCustomAttribute<SerializeField>() == null &&
+                               !f.Name.Contains("<") && !f.Name.Contains(">"));
+                    
+                    foreach (var field in privateFields)
                     {
                         try
                         {
-                            // Skip compiler-generated fields
-                            if (field.Name.Contains("<") || field.Name.Contains(">"))
-                                continue;
-
                             var value = field.GetValue(targetComponent);
-                            if (value != null)
+                            var fieldData = SerializeFieldValue(field, value);
+                            if (fieldData != null)
                             {
-                                var fieldData = SerializeFieldValue(field, value);
-                                if (fieldData != null)
-                                {
-                                    properties["_" + field.Name] = fieldData; // Prefix fields with _
-                                }
+                                properties["_" + field.Name] = fieldData;
                             }
                         }
                         catch
@@ -800,24 +920,39 @@ namespace UnityEditorMCP.Handlers
             var result = new Dictionary<string, object>();
             var propType = prop.PropertyType;
 
-            // Serialize the value
-            result["value"] = SerializeValue(value);
-            result["type"] = GetTypeName(propType);
-
-            // Add range information for numeric types
-            if (propType == typeof(float) || propType == typeof(int))
+            try
             {
-                var rangeAttr = prop.GetCustomAttribute<RangeAttribute>();
-                if (rangeAttr != null)
+                // Serialize the value with circular reference protection
+                result["value"] = SerializeValue(value);
+                result["type"] = GetTypeName(propType);
+
+                // Add range information for numeric types
+                if (propType == typeof(float) || propType == typeof(int))
                 {
-                    result["range"] = new { min = rangeAttr.min, max = rangeAttr.max };
+                    var rangeAttr = prop.GetCustomAttribute<RangeAttribute>();
+                    if (rangeAttr != null)
+                    {
+                        result["range"] = new { min = rangeAttr.min, max = rangeAttr.max };
+                    }
+                }
+
+                // Add options for enum types
+                if (propType.IsEnum)
+                {
+                    result["options"] = Enum.GetNames(propType);
+                }
+
+                // Add tooltip if available
+                var tooltipAttr = prop.GetCustomAttribute<TooltipAttribute>();
+                if (tooltipAttr != null)
+                {
+                    result["tooltip"] = tooltipAttr.tooltip;
                 }
             }
-
-            // Add options for enum types
-            if (propType.IsEnum)
+            catch (Exception ex)
             {
-                result["options"] = Enum.GetNames(propType);
+                result["error"] = $"Failed to serialize: {ex.Message}";
+                result["type"] = GetTypeName(propType);
             }
 
             return result;
@@ -831,24 +966,51 @@ namespace UnityEditorMCP.Handlers
             var result = new Dictionary<string, object>();
             var fieldType = field.FieldType;
 
-            // Serialize the value
-            result["value"] = SerializeValue(value);
-            result["type"] = GetTypeName(fieldType);
-
-            // Add range information for numeric types
-            if (fieldType == typeof(float) || fieldType == typeof(int))
+            try
             {
-                var rangeAttr = field.GetCustomAttribute<RangeAttribute>();
-                if (rangeAttr != null)
+                // Serialize the value with circular reference protection
+                result["value"] = SerializeValue(value);
+                result["type"] = GetTypeName(fieldType);
+
+                // Add range information for numeric types
+                if (fieldType == typeof(float) || fieldType == typeof(int))
                 {
-                    result["range"] = new { min = rangeAttr.min, max = rangeAttr.max };
+                    var rangeAttr = field.GetCustomAttribute<RangeAttribute>();
+                    if (rangeAttr != null)
+                    {
+                        result["range"] = new { min = rangeAttr.min, max = rangeAttr.max };
+                    }
+                }
+
+                // Add options for enum types
+                if (fieldType.IsEnum)
+                {
+                    result["options"] = Enum.GetNames(fieldType);
+                }
+
+                // Add tooltip if available
+                var tooltipAttr = field.GetCustomAttribute<TooltipAttribute>();
+                if (tooltipAttr != null)
+                {
+                    result["tooltip"] = tooltipAttr.tooltip;
+                }
+
+                // Mark if it's a SerializeField
+                if (field.GetCustomAttribute<SerializeField>() != null)
+                {
+                    result["serialized"] = true;
+                }
+
+                // Mark if it's HideInInspector
+                if (field.GetCustomAttribute<HideInInspector>() != null)
+                {
+                    result["hiddenInInspector"] = true;
                 }
             }
-
-            // Add options for enum types
-            if (fieldType.IsEnum)
+            catch (Exception ex)
             {
-                result["options"] = Enum.GetNames(fieldType);
+                result["error"] = $"Failed to serialize: {ex.Message}";
+                result["type"] = GetTypeName(fieldType);
             }
 
             return result;
