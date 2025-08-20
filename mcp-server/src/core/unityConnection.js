@@ -279,6 +279,14 @@ export class UnityConnection extends EventEmitter {
                 }
               }
               
+              // Include version and editorState information if available
+              if (response.version) {
+                result._version = response.version;
+              }
+              if (response.editorState) {
+                result._editorState = response.editorState;
+              }
+              
               logger.info(`[Unity] Command ${response.id} resolved successfully`);
               pending.resolve(result);
             } else if (response.status === 'error' || response.success === false) {

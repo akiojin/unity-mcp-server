@@ -45,7 +45,9 @@ export class PingToolHandler extends BaseToolHandler {
       message: result.message,
       echo: result.echo || params.message || 'ping',
       timestamp: result.timestamp || new Date().toISOString(),
-      unityVersion: result.unityVersion
+      unityVersion: result.unityVersion,
+      version: result._version || result.version,
+      editorState: result._editorState || result.editorState
     };
   }
 }
