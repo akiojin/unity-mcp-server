@@ -1,11 +1,30 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
 
 namespace UnityEditorMCP.Handlers
 {
+    /// <summary>
+    /// Information about a menu item
+    /// </summary>
+    public class MenuItemInfo
+    {
+        public string MenuPath { get; set; }
+        public bool IsCustom { get; set; }
+        public string AssemblyName { get; set; }
+        public string ClassName { get; set; }
+        public string MethodName { get; set; }
+        
+        public MenuItemInfo(string menuPath, bool isCustom = false)
+        {
+            MenuPath = menuPath;
+            IsCustom = isCustom;
+        }
+    }
+    
     /// <summary>
     /// Handles Unity Editor menu item execution commands
     /// </summary>
@@ -198,19 +217,30 @@ namespace UnityEditorMCP.Handlers
         }
 
         /// <summary>
-        /// Gets available Unity Editor menu items including custom MenuItem attributes
+        /// Gets available Unity Editor menu items with distinction between custom and built-in menus
+        /// Returns detailed information about all menu items including their source (custom vs built-in)
+        /// Custom menus are detected via reflection from user assemblies
+        /// Built-in menus are Unity's standard menu items
         /// </summary>
         private static object GetAvailableMenus(JObject parameters)
         {
             try
             {
-                var allMenuItems = new HashSet<string>();
+                var menuInfoList = new List<MenuItemInfo>();
+                var customMenuPaths = new HashSet<string>();
                 
                 // リフレクションで全MenuItem属性を検出
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 {
                     try
                     {
+                        var assemblyName = assembly.GetName().Name;
+                        // Unity標準アセンブリかどうかを判定
+                        bool isUnityAssembly = assemblyName.StartsWith("Unity") || 
+                                              assemblyName.StartsWith("UnityEngine") || 
+                                              assemblyName.StartsWith("UnityEditor") ||
+                                              assemblyName.StartsWith("com.unity");
+                        
                         foreach (var type in assembly.GetTypes())
                         {
                             try
@@ -227,7 +257,18 @@ namespace UnityEditorMCP.Handlers
                                     {
                                         if (!string.IsNullOrEmpty(attr.menuItem))
                                         {
-                                            allMenuItems.Add(attr.menuItem);
+                                            var menuInfo = new MenuItemInfo(attr.menuItem, !isUnityAssembly)
+                                            {
+                                                AssemblyName = assemblyName,
+                                                ClassName = type.FullName,
+                                                MethodName = method.Name
+                                            };
+                                            menuInfoList.Add(menuInfo);
+                                            
+                                            if (!isUnityAssembly)
+                                            {
+                                                customMenuPaths.Add(attr.menuItem);
+                                            }
                                         }
                                     }
                                 }
@@ -246,7 +287,7 @@ namespace UnityEditorMCP.Handlers
                     }
                 }
                 
-                // Common Unity menu items (補足として追加)
+                // Common Unity menu items (標準メニューとして追加)
                 var commonMenus = new List<string>
                 {
                     // File menu
@@ -292,62 +333,115 @@ namespace UnityEditorMCP.Handlers
                     "Window/Animation/Animator"
                 };
                 
-                // 共通メニューも追加
+                // 標準メニューをMenuItemInfoとして追加
                 foreach (var menu in commonMenus)
                 {
-                    allMenuItems.Add(menu);
-                }
-                
-                // リストに変換してソート
-                var menuList = allMenuItems.ToList();
-                menuList.Sort();
-                
-                // Filter by pattern if provided
-                var filter = parameters?["filter"]?.ToString();
-                var filteredMenus = menuList;
-                
-                if (!string.IsNullOrEmpty(filter))
-                {
-                    filteredMenus = new List<string>();
-                    var filterLower = filter.ToLower();
-                    foreach (var menu in menuList)
+                    if (!customMenuPaths.Contains(menu)) // カスタムメニューと重複しない場合のみ追加
                     {
-                        var menuLower = menu.ToLower();
-                        if (menuLower.Contains(filterLower) || 
-                            (filter.EndsWith("*") && menuLower.StartsWith(filter.TrimEnd('*').ToLower())))
+                        menuInfoList.Add(new MenuItemInfo(menu, false)
                         {
-                            filteredMenus.Add(menu);
-                        }
+                            AssemblyName = "Unity Built-in",
+                            ClassName = "Unity Standard",
+                            MethodName = "Built-in"
+                        });
                     }
                 }
                 
-                // カテゴリ別に整理
-                var categorizedMenus = new Dictionary<string, List<string>>();
-                foreach (var menu in filteredMenus)
+                // フィルタリング処理
+                var filter = parameters?["filter"]?.ToString();
+                var showOnlyCustom = parameters?["onlyCustom"]?.ToObject<bool>() ?? false;
+                var showOnlyBuiltIn = parameters?["onlyBuiltIn"]?.ToObject<bool>() ?? false;
+                
+                var filteredMenuInfo = menuInfoList;
+                
+                // カスタム/標準のフィルタリング
+                if (showOnlyCustom)
                 {
-                    var parts = menu.Split('/');
+                    filteredMenuInfo = filteredMenuInfo.Where(m => m.IsCustom).ToList();
+                }
+                else if (showOnlyBuiltIn)
+                {
+                    filteredMenuInfo = filteredMenuInfo.Where(m => !m.IsCustom).ToList();
+                }
+                
+                // キーワードフィルタリング
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    var filterLower = filter.ToLower();
+                    filteredMenuInfo = filteredMenuInfo.Where(m =>
+                    {
+                        var menuLower = m.MenuPath.ToLower();
+                        return menuLower.Contains(filterLower) || 
+                               (filter.EndsWith("*") && menuLower.StartsWith(filter.TrimEnd('*').ToLower()));
+                    }).ToList();
+                }
+                
+                // ソート
+                filteredMenuInfo = filteredMenuInfo.OrderBy(m => m.MenuPath).ToList();
+                
+                // カテゴリ別に整理
+                var categorizedMenus = new Dictionary<string, List<object>>();
+                foreach (var menuInfo in filteredMenuInfo)
+                {
+                    var parts = menuInfo.MenuPath.Split('/');
                     if (parts.Length > 0)
                     {
                         var category = parts[0];
                         if (!categorizedMenus.ContainsKey(category))
                         {
-                            categorizedMenus[category] = new List<string>();
+                            categorizedMenus[category] = new List<object>();
                         }
-                        categorizedMenus[category].Add(menu);
+                        categorizedMenus[category].Add(new
+                        {
+                            path = menuInfo.MenuPath,
+                            isCustom = menuInfo.IsCustom,
+                            assembly = menuInfo.AssemblyName,
+                            className = menuInfo.ClassName,
+                            method = menuInfo.MethodName
+                        });
                     }
                 }
+                
+                // カスタムメニューのみの詳細情報
+                var customMenuDetails = filteredMenuInfo
+                    .Where(m => m.IsCustom)
+                    .Select(m => new
+                    {
+                        path = m.MenuPath,
+                        assembly = m.AssemblyName,
+                        className = m.ClassName,
+                        method = m.MethodName
+                    })
+                    .ToList();
+                
+                // 標準メニューのパスリスト
+                var builtInMenuPaths = filteredMenuInfo
+                    .Where(m => !m.IsCustom)
+                    .Select(m => m.MenuPath)
+                    .ToList();
+                
+                // 全メニューパス（後方互換性のため）
+                var allMenuPaths = filteredMenuInfo.Select(m => m.MenuPath).ToList();
                 
                 return new
                 {
                     success = true,
-                    availableMenus = filteredMenus,
+                    // 後方互換性のため従来の形式も残す
+                    availableMenus = allMenuPaths,
+                    // 詳細情報
+                    customMenus = customMenuDetails,
+                    builtInMenus = builtInMenuPaths,
                     categorized = categorizedMenus,
-                    totalMenus = menuList.Count,
-                    filteredCount = filteredMenus.Count,
-                    message = filter != null 
-                        ? $"Filtered menus retrieved successfully (filter: {filter})" 
-                        : "All available menus retrieved successfully (including custom MenuItems)",
-                    note = "This list includes both Unity built-in menu items and custom MenuItem attributes found via reflection."
+                    // 統計情報
+                    stats = new
+                    {
+                        totalMenus = menuInfoList.Count,
+                        customCount = menuInfoList.Count(m => m.IsCustom),
+                        builtInCount = menuInfoList.Count(m => !m.IsCustom),
+                        filteredCount = filteredMenuInfo.Count
+                    },
+                    message = GetFilterMessage(filter, showOnlyCustom, showOnlyBuiltIn, filteredMenuInfo.Count),
+                    note = "Use 'onlyCustom: true' to show only custom menus, 'onlyBuiltIn: true' for Unity standard menus only. Custom menus include detailed source information."
                 };
             }
             catch (Exception ex)
@@ -361,6 +455,25 @@ namespace UnityEditorMCP.Handlers
             }
         }
 
+        /// <summary>
+        /// Generate appropriate filter message based on parameters
+        /// </summary>
+        private static string GetFilterMessage(string filter, bool onlyCustom, bool onlyBuiltIn, int count)
+        {
+            var parts = new List<string>();
+            
+            if (onlyCustom)
+                parts.Add("custom menus only");
+            else if (onlyBuiltIn)
+                parts.Add("built-in menus only");
+            
+            if (!string.IsNullOrEmpty(filter))
+                parts.Add($"filter: '{filter}'");
+            
+            var filterDesc = parts.Count > 0 ? $" ({string.Join(", ", parts)})" : "";
+            return $"Retrieved {count} menu items{filterDesc}";
+        }
+        
         /// <summary>
         /// Gets the list of blacklisted menu items
         /// </summary>

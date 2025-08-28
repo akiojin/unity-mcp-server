@@ -24,6 +24,8 @@ Unity Editor MCP (Model Context Protocol) enables AI assistants like Claude and 
 - **🖱️ UI Automation**: Interact with Unity UI elements programmatically for testing and automation
 - **📝 Console Integration**: Read Unity console logs filtered by type with enhanced debugging features
 - **🔄 Editor Operations**: Refresh assets, execute menu items, and trigger recompilation
+- **📦 Package Management**: Search, install, remove Unity packages with OpenUPM/NuGet registry support
+- **🎯 Custom Menu Detection**: Automatically detect and execute custom MenuItem implementations
 
 
 ## 🚀 Quick Start
@@ -177,6 +179,9 @@ Unity Editor MCP provides **70 comprehensive tools** across 13 categories for co
 
 ### Editor Operations (5 tools)
 - **`execute_menu_item`** - Execute Unity menu items programmatically with safety checks
+  - **NEW**: Automatic detection of custom MenuItem implementations via reflection
+  - **NEW**: Distinguish between custom and built-in menus with detailed source information
+  - **NEW**: Filter menus by type (onlyCustom/onlyBuiltIn) and keyword
 - **`clear_console`** - Clear Unity console logs with optional filtering
 - **`read_console`** - Read Unity console logs with advanced filtering, search, and export capabilities
 - **`capture_screenshot`** - Take screenshots of Game View or Scene View with custom resolution and encoding
@@ -192,7 +197,21 @@ Unity Editor MCP provides **70 comprehensive tools** across 13 categories for co
 - **`stop_compilation_monitoring`** - Stop compilation monitoring and get final status
 - **`get_compilation_state`** - Get current Unity compilation state and errors
 
-### Project Settings Management (2 tools) 🆕
+### Package Management (2 tools) 🆕
+- **`package_manager`** - Complete Unity Package Manager control
+  - Search for packages in Unity Registry with keyword filtering
+  - Install/uninstall packages with version control
+  - List installed packages with detailed information
+  - Get package details including dependencies
+  - Recommend essential packages by category
+- **`registry_config`** - Configure third-party package registries
+  - Add OpenUPM registry with popular package scopes
+  - Add Unity NuGet registry for .NET packages
+  - Manage scoped registries in manifest.json
+  - List configured registries with scopes
+  - Get recommended packages from each registry
+
+### Project Settings Management (2 tools)
 - **`get_project_settings`** - Read Unity project settings with granular control over categories
   - Player settings (company name, product name, version)
   - Graphics settings (color space, render pipeline)
