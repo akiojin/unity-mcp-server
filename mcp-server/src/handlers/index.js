@@ -110,6 +110,10 @@ export { ToolManagementToolHandler } from './editor/ToolManagementToolHandler.js
 export { GetProjectSettingsToolHandler } from './settings/GetProjectSettingsToolHandler.js';
 export { UpdateProjectSettingsToolHandler } from './settings/UpdateProjectSettingsToolHandler.js';
 
+// Package management handlers
+export { default as PackageManagerToolHandler } from './package/PackageManagerToolHandler.js';
+export { default as RegistryConfigToolHandler } from './package/RegistryConfigToolHandler.js';
+
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
 import { RefreshAssetsToolHandler } from './system/RefreshAssetsToolHandler.js';
@@ -186,6 +190,8 @@ import { WindowManagementToolHandler } from './editor/WindowManagementToolHandle
 import { ToolManagementToolHandler } from './editor/ToolManagementToolHandler.js';
 import { GetProjectSettingsToolHandler } from './settings/GetProjectSettingsToolHandler.js';
 import { UpdateProjectSettingsToolHandler } from './settings/UpdateProjectSettingsToolHandler.js';
+import PackageManagerToolHandler from './package/PackageManagerToolHandler.js';
+import RegistryConfigToolHandler from './package/RegistryConfigToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -292,7 +298,11 @@ const HANDLER_CLASSES = [
   
   // Settings handlers
   GetProjectSettingsToolHandler,
-  UpdateProjectSettingsToolHandler
+  UpdateProjectSettingsToolHandler,
+  
+  // Package management handlers
+  PackageManagerToolHandler,
+  RegistryConfigToolHandler
 ];
 
 /**

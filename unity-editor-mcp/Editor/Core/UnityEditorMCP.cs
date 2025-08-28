@@ -639,6 +639,20 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, executeMenuResult);
                         break;
                         
+                    // Package Manager commands
+                    case "package_manager":
+                        var packageAction = command.Parameters?["action"]?.ToString() ?? "list";
+                        var packageResult = PackageManagerHandler.HandleCommand(packageAction, command.Parameters);
+                        response = Response.SuccessResult(command.Id, packageResult);
+                        break;
+                        
+                    // Registry configuration commands
+                    case "registry_config":
+                        var registryAction = command.Parameters?["action"]?.ToString() ?? "list";
+                        var registryResult = RegistryConfigHandler.HandleCommand(registryAction, command.Parameters);
+                        response = Response.SuccessResult(command.Id, registryResult);
+                        break;
+                        
                     case "clear_console":
                         var clearConsoleResult = ConsoleHandler.ClearConsole(command.Parameters);
                         response = Response.SuccessResult(command.Id, clearConsoleResult);

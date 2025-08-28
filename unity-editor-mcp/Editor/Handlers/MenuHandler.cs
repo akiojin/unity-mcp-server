@@ -198,87 +198,167 @@ namespace UnityEditorMCP.Handlers
         }
 
         /// <summary>
-        /// Gets available Unity Editor menu items
-        /// Note: This is a placeholder implementation as Unity doesn't provide a direct API
-        /// to enumerate all menu items. A full implementation would require reflection
-        /// or maintaining a predefined list of known menu items.
+        /// Gets available Unity Editor menu items including custom MenuItem attributes
         /// </summary>
         private static object GetAvailableMenus(JObject parameters)
         {
-            // Common Unity menu items (partial list for demonstration)
-            var commonMenus = new List<string>
+            try
             {
-                // File menu
-                "File/New Scene",
-                "File/Open Scene",
-                "File/Save",
-                "File/Save As...",
-                "File/Save Project",
+                var allMenuItems = new HashSet<string>();
                 
-                // Edit menu
-                "Edit/Undo",
-                "Edit/Redo",
-                "Edit/Cut",
-                "Edit/Copy",
-                "Edit/Paste",
-                "Edit/Select All",
-                
-                // Assets menu
-                "Assets/Create/Folder",
-                "Assets/Create/C# Script",
-                "Assets/Create/Material",
-                "Assets/Refresh",
-                "Assets/Reimport All",
-                
-                // GameObject menu
-                "GameObject/Create Empty",
-                "GameObject/3D Object/Cube",
-                "GameObject/3D Object/Sphere",
-                "GameObject/3D Object/Cylinder",
-                "GameObject/3D Object/Plane",
-                "GameObject/Light/Directional Light",
-                "GameObject/Audio/Audio Source",
-                "GameObject/Camera",
-                
-                // Window menu
-                "Window/General/Console",
-                "Window/General/Project",
-                "Window/General/Hierarchy",
-                "Window/General/Inspector",
-                "Window/General/Scene",
-                "Window/General/Game",
-                "Window/Animation/Animation",
-                "Window/Animation/Animator"
-            };
-
-            // Filter by pattern if provided
-            var filter = parameters?["filter"]?.ToString();
-            var filteredMenus = commonMenus;
-
-            if (!string.IsNullOrEmpty(filter))
-            {
-                filteredMenus = new List<string>();
-                foreach (var menu in commonMenus)
+                // リフレクションで全MenuItem属性を検出
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    if (menu.Contains(filter) || 
-                        (filter.EndsWith("*") && menu.StartsWith(filter.TrimEnd('*'))))
+                    try
                     {
-                        filteredMenus.Add(menu);
+                        foreach (var type in assembly.GetTypes())
+                        {
+                            try
+                            {
+                                var methods = type.GetMethods(
+                                    System.Reflection.BindingFlags.Static | 
+                                    System.Reflection.BindingFlags.Public | 
+                                    System.Reflection.BindingFlags.NonPublic);
+                                
+                                foreach (var method in methods)
+                                {
+                                    var menuItemAttrs = method.GetCustomAttributes(typeof(MenuItem), false);
+                                    foreach (MenuItem attr in menuItemAttrs)
+                                    {
+                                        if (!string.IsNullOrEmpty(attr.menuItem))
+                                        {
+                                            allMenuItems.Add(attr.menuItem);
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                // Skip types that can't be loaded
+                                continue;
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Skip assemblies that can't be loaded
+                        continue;
                     }
                 }
+                
+                // Common Unity menu items (補足として追加)
+                var commonMenus = new List<string>
+                {
+                    // File menu
+                    "File/New Scene",
+                    "File/Open Scene",
+                    "File/Save",
+                    "File/Save As...",
+                    "File/Save Project",
+                    
+                    // Edit menu
+                    "Edit/Undo",
+                    "Edit/Redo",
+                    "Edit/Cut",
+                    "Edit/Copy",
+                    "Edit/Paste",
+                    "Edit/Select All",
+                    
+                    // Assets menu
+                    "Assets/Create/Folder",
+                    "Assets/Create/C# Script",
+                    "Assets/Create/Material",
+                    "Assets/Refresh",
+                    "Assets/Reimport All",
+                    
+                    // GameObject menu
+                    "GameObject/Create Empty",
+                    "GameObject/3D Object/Cube",
+                    "GameObject/3D Object/Sphere",
+                    "GameObject/3D Object/Cylinder",
+                    "GameObject/3D Object/Plane",
+                    "GameObject/Light/Directional Light",
+                    "GameObject/Audio/Audio Source",
+                    "GameObject/Camera",
+                    
+                    // Window menu
+                    "Window/General/Console",
+                    "Window/General/Project",
+                    "Window/General/Hierarchy",
+                    "Window/General/Inspector",
+                    "Window/General/Scene",
+                    "Window/General/Game",
+                    "Window/Animation/Animation",
+                    "Window/Animation/Animator"
+                };
+                
+                // 共通メニューも追加
+                foreach (var menu in commonMenus)
+                {
+                    allMenuItems.Add(menu);
+                }
+                
+                // リストに変換してソート
+                var menuList = allMenuItems.ToList();
+                menuList.Sort();
+                
+                // Filter by pattern if provided
+                var filter = parameters?["filter"]?.ToString();
+                var filteredMenus = menuList;
+                
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    filteredMenus = new List<string>();
+                    var filterLower = filter.ToLower();
+                    foreach (var menu in menuList)
+                    {
+                        var menuLower = menu.ToLower();
+                        if (menuLower.Contains(filterLower) || 
+                            (filter.EndsWith("*") && menuLower.StartsWith(filter.TrimEnd('*').ToLower())))
+                        {
+                            filteredMenus.Add(menu);
+                        }
+                    }
+                }
+                
+                // カテゴリ別に整理
+                var categorizedMenus = new Dictionary<string, List<string>>();
+                foreach (var menu in filteredMenus)
+                {
+                    var parts = menu.Split('/');
+                    if (parts.Length > 0)
+                    {
+                        var category = parts[0];
+                        if (!categorizedMenus.ContainsKey(category))
+                        {
+                            categorizedMenus[category] = new List<string>();
+                        }
+                        categorizedMenus[category].Add(menu);
+                    }
+                }
+                
+                return new
+                {
+                    success = true,
+                    availableMenus = filteredMenus,
+                    categorized = categorizedMenus,
+                    totalMenus = menuList.Count,
+                    filteredCount = filteredMenus.Count,
+                    message = filter != null 
+                        ? $"Filtered menus retrieved successfully (filter: {filter})" 
+                        : "All available menus retrieved successfully (including custom MenuItems)",
+                    note = "This list includes both Unity built-in menu items and custom MenuItem attributes found via reflection."
+                };
             }
-
-            return new
+            catch (Exception ex)
             {
-                success = true,
-                availableMenus = filteredMenus,
-                totalMenus = commonMenus.Count,
-                filteredCount = filteredMenus.Count,
-                message = filter != null 
-                    ? $"Filtered menus retrieved successfully (filter: {filter})" 
-                    : "Available menus retrieved successfully",
-                note = "This is a partial list of common Unity menu items. Unity doesn't provide a direct API to enumerate all menu items."
-            };
+                Debug.LogError($"[MenuHandler] Error getting available menus: {ex}");
+                return new
+                {
+                    success = false,
+                    error = $"Failed to get available menus: {ex.Message}"
+                };
+            }
         }
 
         /// <summary>
