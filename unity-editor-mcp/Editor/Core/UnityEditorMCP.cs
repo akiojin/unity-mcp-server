@@ -634,37 +634,6 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, savePrefabResult);
                         break;
                         
-                    // Script Management commands
-                    case "create_script":
-                        var createScriptResult = ScriptHandler.CreateScript(command.Parameters);
-                        response = Response.SuccessResult(command.Id, createScriptResult);
-                        break;
-                        
-                    case "read_script":
-                        var readScriptResult = ScriptHandler.ReadScript(command.Parameters);
-                        response = Response.SuccessResult(command.Id, readScriptResult);
-                        break;
-                        
-                    case "update_script":
-                        var updateScriptResult = ScriptHandler.UpdateScript(command.Parameters);
-                        response = Response.SuccessResult(command.Id, updateScriptResult);
-                        break;
-                        
-                    case "delete_script":
-                        var deleteScriptResult = ScriptHandler.DeleteScript(command.Parameters);
-                        response = Response.SuccessResult(command.Id, deleteScriptResult);
-                        break;
-                        
-                    case "list_scripts":
-                        var listScriptsResult = ScriptHandler.ListScripts(command.Parameters);
-                        response = Response.SuccessResult(command.Id, listScriptsResult);
-                        break;
-                        
-                    case "validate_script":
-                        var validateScriptResult = ScriptHandler.ValidateScript(command.Parameters);
-                        response = Response.SuccessResult(command.Id, validateScriptResult);
-                        break;
-                        
                     case "execute_menu_item":
                         var executeMenuResult = MenuHandler.ExecuteMenuItem(command.Parameters);
                         response = Response.SuccessResult(command.Id, executeMenuResult);

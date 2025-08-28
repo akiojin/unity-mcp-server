@@ -76,14 +76,6 @@ export { AssetImportSettingsToolHandler } from './asset/AssetImportSettingsToolH
 export { AssetDatabaseToolHandler } from './asset/AssetDatabaseToolHandler.js';
 export { AssetDependencyToolHandler } from './asset/AssetDependencyToolHandler.js';
 
-// Scripting handlers
-export { CreateScriptToolHandler } from './scripting/CreateScriptToolHandler.js';
-export { ReadScriptToolHandler } from './scripting/ReadScriptToolHandler.js';
-export { UpdateScriptToolHandler } from './scripting/UpdateScriptToolHandler.js';
-export { DeleteScriptToolHandler } from './scripting/DeleteScriptToolHandler.js';
-export { ListScriptsToolHandler } from './scripting/ListScriptsToolHandler.js';
-export { ValidateScriptToolHandler } from './scripting/ValidateScriptToolHandler.js';
-
 // Menu handlers
 export { ExecuteMenuItemToolHandler } from './menu/ExecuteMenuItemToolHandler.js';
 
@@ -174,12 +166,6 @@ import { SavePrefabToolHandler } from './asset/SavePrefabToolHandler.js';
 import { AssetImportSettingsToolHandler } from './asset/AssetImportSettingsToolHandler.js';
 import { AssetDatabaseToolHandler } from './asset/AssetDatabaseToolHandler.js';
 import { AssetDependencyToolHandler } from './asset/AssetDependencyToolHandler.js';
-import { CreateScriptToolHandler } from './scripting/CreateScriptToolHandler.js';
-import { ReadScriptToolHandler } from './scripting/ReadScriptToolHandler.js';
-import { UpdateScriptToolHandler } from './scripting/UpdateScriptToolHandler.js';
-import { DeleteScriptToolHandler } from './scripting/DeleteScriptToolHandler.js';
-import { ListScriptsToolHandler } from './scripting/ListScriptsToolHandler.js';
-import { ValidateScriptToolHandler } from './scripting/ValidateScriptToolHandler.js';
 import { ExecuteMenuItemToolHandler } from './menu/ExecuteMenuItemToolHandler.js';
 import { ClearConsoleToolHandler } from './console/ClearConsoleToolHandler.js';
 import { ReadConsoleToolHandler } from './console/ReadConsoleToolHandler.js';
@@ -273,14 +259,6 @@ const HANDLER_CLASSES = [
   AssetImportSettingsToolHandler,
   AssetDatabaseToolHandler,
   AssetDependencyToolHandler,
-  
-  // Scripting handlers
-  CreateScriptToolHandler,
-  ReadScriptToolHandler,
-  UpdateScriptToolHandler,
-  DeleteScriptToolHandler,
-  ListScriptsToolHandler,
-  ValidateScriptToolHandler,
   
   // Menu handlers
   ExecuteMenuItemToolHandler,
