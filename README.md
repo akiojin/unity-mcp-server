@@ -80,7 +80,7 @@ Add the same configuration to Cursor's MCP settings
 
 ## Available Tools
 
-Unity Editor MCP provides **70 comprehensive tools** across 13 categories for complete Unity Editor automation:
+Unity Editor MCP provides **80+ comprehensive tools** across 14 categories for complete Unity Editor automation:
 
 ### System & Core Tools (2 tools)
 - **`ping`** - Test connection to Unity Editor and verify server status
@@ -129,13 +129,6 @@ Unity Editor MCP provides **70 comprehensive tools** across 13 categories for co
 - **`manage_asset_database`** - Manage Unity Asset Database operations (find, info, create folders, move, copy, delete, refresh)
 - **`analyze_asset_dependencies`** - Analyze Unity asset dependencies (get dependencies, dependents, circular deps, unused assets, size impact)
 
-### Script Management (6 tools)
-- **`create_script`** - Create new C# scripts with templates and namespace management
-- **`read_script`** - Read script file contents with syntax highlighting information
-- **`update_script`** - Modify existing scripts with content replacement and validation
-- **`delete_script`** - Delete script files with dependency checking and confirmation
-- **`list_scripts`** - List all scripts in project with filtering and metadata
-- **`validate_script`** - Validate script syntax and check for compilation errors
 
 ### Play Mode Controls (4 tools)
 - **`play_game`** - Start Unity play mode for testing and interaction
@@ -150,7 +143,18 @@ Unity Editor MCP provides **70 comprehensive tools** across 13 categories for co
 - **`set_ui_element_value`** - Set values for UI input elements (sliders, input fields, etc.)
 - **`simulate_ui_input`** - Execute complex UI interaction sequences
 
-### Input System Simulation (5 tools) 🆕
+### Input Actions Editor (9 tools) 🆕
+- **`create_action_map`** - Create new action map in Input Actions Asset
+- **`remove_action_map`** - Remove existing action map
+- **`add_input_action`** - Add new input action to action map
+- **`remove_input_action`** - Remove input action from action map
+- **`add_input_binding`** - Add input binding to action
+- **`remove_input_binding`** - Remove input binding from action
+- **`remove_all_bindings`** - Remove all bindings from action
+- **`create_composite_binding`** - Create composite binding (e.g., WASD movement)
+- **`manage_control_schemes`** - Manage control schemes (keyboard, gamepad, etc.)
+
+### Input System Simulation (6 tools)
 - **`simulate_keyboard`** - Simulate keyboard input with full control
   - Key press/release events with timing control
   - Text typing simulation with realistic delays
@@ -176,6 +180,7 @@ Unity Editor MCP provides **70 comprehensive tools** across 13 categories for co
   - Mouse position and button states
   - Gamepad button and analog values
   - Active touch points and gestures
+- **`input_system`** - Main Input System handler for various input operations
 
 ### Editor Operations (5 tools)
 - **`execute_menu_item`** - Execute Unity menu items programmatically with safety checks
