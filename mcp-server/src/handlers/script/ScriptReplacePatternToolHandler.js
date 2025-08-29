@@ -1,4 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { WriteGate } from '../../core/writeGate.js';
 
 export class ScriptReplacePatternToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -100,6 +101,7 @@ export class ScriptReplacePatternToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
+        this.writeGate = new WriteGate(unityConnection);
     }
 
     validate(params) {
@@ -113,13 +115,10 @@ export class ScriptReplacePatternToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
-        // Ensure connected
+        const preview = params?.preview !== false ? true : false; // 既定はpreview
         if (!this.unityConnection.isConnected()) {
             await this.unityConnection.connect();
         }
-
-        const result = await this.unityConnection.sendCommand('script_replace_pattern', params);
-
-        return result;
+        return this.writeGate.sendWithGate('script_replace_pattern', params, { preview });
     }
 }

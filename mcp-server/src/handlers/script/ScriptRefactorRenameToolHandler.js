@@ -1,4 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { WriteGate } from '../../core/writeGate.js';
 
 export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -76,6 +77,7 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
+        this.writeGate = new WriteGate(unityConnection);
     }
 
     validate(params) {
@@ -97,13 +99,10 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
-        // Ensure connected
+        const preview = params?.preview === true; // ツールによっては無いが将来用
         if (!this.unityConnection.isConnected()) {
             await this.unityConnection.connect();
         }
-
-        const result = await this.unityConnection.sendCommand('script_refactor_rename', params);
-
-        return result;
+        return this.writeGate.sendWithGate('script_refactor_rename', params, { preview });
     }
 }
