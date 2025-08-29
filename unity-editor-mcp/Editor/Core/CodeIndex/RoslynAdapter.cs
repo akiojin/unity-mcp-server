@@ -230,7 +230,15 @@ namespace UnityEditorMCP.Core.CodeIndex
 
         private static Assembly GetCoreAssembly()
         {
-            return AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "Microsoft.CodeAnalysis");
+            // Some distributions ship the common assembly under the name "Microsoft.CodeAnalysis.Common".
+            // Accept either the canonical name or the common-suffixed variant.
+            return AppDomain.CurrentDomain
+                .GetAssemblies()
+                .FirstOrDefault(a =>
+                {
+                    var name = a.GetName().Name;
+                    return name == "Microsoft.CodeAnalysis" || name == "Microsoft.CodeAnalysis.Common";
+                });
         }
     }
 }
