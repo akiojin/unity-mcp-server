@@ -7,7 +7,7 @@ import {
   ListResourcesRequestSchema,
   ListPromptsRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
-import { UnityConnection } from './unityConnection.js';
+import { UnityConnection } from './UnityConnection.js';
 import { createHandlers } from '../handlers/index.js';
 import { config, logger } from './config.js';
 

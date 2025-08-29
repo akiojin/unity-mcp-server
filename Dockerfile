@@ -11,7 +11,9 @@ RUN npm i -g \
     npm@latest \
     typescript@latest \
     eslint@latest \
-    prettier@latest
+    prettier@latest \
+    @openai/codex@latest \
+    @google/gemini-cli@latest
 
 RUN curl -fsSL https://astral.sh/uv/install.sh | bash
 ENV PATH="/root/.cargo/bin:${PATH}"

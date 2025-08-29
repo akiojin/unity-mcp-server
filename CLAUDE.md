@@ -123,6 +123,26 @@ npm run lint        # ESLint実行
 
 - ドキュメントはルートディレクトリに配置してはいけない。必ずdocs/配下に配置する
 
+## バージョン管理
+
+### npm versionコマンドの使用
+
+バージョンアップは必ず`npm version`コマンドを使用する：
+
+- **パッチバージョン**: `npm version patch` (例: 2.9.0 → 2.9.1)
+- **マイナーバージョン**: `npm version minor` (例: 2.9.0 → 2.10.0)  
+- **メジャーバージョン**: `npm version major` (例: 2.9.0 → 3.0.0)
+
+**重要**: package.jsonを直接編集してのバージョン変更は禁止
+
+### バージョンアップ手順
+
+1. 変更内容に応じて適切なバージョンコマンドを選択
+2. mcp-serverディレクトリで: `npm version [patch|minor|major]`
+3. Unity packageのバージョンも同期して更新（unity-editor-mcp/package.json）
+4. git commit & push
+5. npm publish
+
 ## コードクオリティガイドライン
 
 - マークダウンファイルはmarkdownlintでエラー及び警告がない状態にする

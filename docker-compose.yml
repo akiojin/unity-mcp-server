@@ -6,6 +6,8 @@ services:
       - .:/unity-editor-mcp
       - bash-history:/root/.bash_history_dir
       - claude_config:/root/.claude
+      - ~/.codex:/root/.codex
+      - ~/.serena:/root/.serena
     environment:
       - NPM_USER
       - NPM_EMAIL
@@ -24,8 +26,6 @@ services:
       - MAX_MCP_OUTPUT_TOKENS
       - ENABLE_BACKGROUND_TASKS=1
       - FORCE_AUTO_BACKGROUND_TASKS=1
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     stdin_open: true
     tty: true
     working_dir: /unity-editor-mcp
