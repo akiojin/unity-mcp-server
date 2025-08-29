@@ -1,113 +1,103 @@
+import { BaseToolHandler } from '../base/BaseToolHandler.js';
+
 /**
  * Package Manager Tool Handler for Unity MCP
  * Handles Unity Package Manager operations including search, install, and management
  */
 
-export default class PackageManagerToolHandler {
+export default class PackageManagerToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
+    super(
+      'package_manager',
+      'Manage Unity packages - search, install, remove, and list packages',
+      {
+        type: 'object',
+        properties: {
+          action: {
+            type: 'string',
+            enum: ['search', 'list', 'install', 'remove', 'info', 'recommend'],
+            description: 'The package operation to perform'
+          },
+          keyword: {
+            type: 'string',
+            description: 'Search keyword (for search action)'
+          },
+          packageId: {
+            type: 'string',
+            description: 'Package ID to install (e.g., com.unity.textmeshpro)'
+          },
+          packageName: {
+            type: 'string',
+            description: 'Package name to remove or get info'
+          },
+          version: {
+            type: 'string',
+            description: 'Specific version to install (optional)'
+          },
+          category: {
+            type: 'string',
+            enum: ['essential', 'rendering', 'tools', 'networking', 'mobile'],
+            description: 'Category for recommendations'
+          },
+          includeBuiltIn: {
+            type: 'boolean',
+            description: 'Include built-in packages in list (default: false)'
+          },
+          limit: {
+            type: 'number',
+            description: 'Maximum number of search results (default: 20)'
+          }
+        },
+        required: ['action']
+      }
+    );
     this.unityConnection = unityConnection;
   }
 
-  /**
-   * Get tool definitions for package manager operations
-   */
-  static getToolDefinitions() {
-    return {
-      package_manager: {
-        description: 'Manage Unity packages - search, install, remove, and list packages',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            action: {
-              type: 'string',
-              enum: ['search', 'list', 'install', 'remove', 'info', 'recommend'],
-              description: 'The package operation to perform'
-            },
-            keyword: {
-              type: 'string',
-              description: 'Search keyword (for search action)'
-            },
-            packageId: {
-              type: 'string',
-              description: 'Package ID to install (e.g., com.unity.textmeshpro)'
-            },
-            packageName: {
-              type: 'string',
-              description: 'Package name to remove or get info'
-            },
-            version: {
-              type: 'string',
-              description: 'Specific version to install (optional)'
-            },
-            category: {
-              type: 'string',
-              enum: ['essential', 'rendering', 'tools', 'networking', 'mobile'],
-              description: 'Category for recommendations'
-            },
-            includeBuiltIn: {
-              type: 'boolean',
-              description: 'Include built-in packages in list (default: false)'
-            },
-            limit: {
-              type: 'number',
-              description: 'Maximum number of search results (default: 20)'
-            }
-          },
-          required: ['action']
-        }
-      }
-    };
-  }
+  validate(params) {
+    const { action, keyword, packageId, packageName } = params || {};
 
-  /**
-   * Handle package manager tool execution
-   */
-  async handle(toolName, args) {
-    if (toolName !== 'package_manager') {
-      throw new Error(`Unknown tool: ${toolName}`);
+    if (!action) {
+      throw new Error('action is required');
     }
 
-    const { action, ...parameters } = args;
+    const valid = ['search', 'list', 'install', 'remove', 'info', 'recommend'];
+    if (!valid.includes(action)) {
+      throw new Error(`Invalid action: ${action}. Must be one of: ${valid.join(', ')}`);
+    }
 
-    // Validate required parameters based on action
     switch (action) {
       case 'search':
-        if (!parameters.keyword) {
-          throw new Error('Search keyword is required for search action');
-        }
+        if (!keyword) throw new Error('Search keyword is required for search action');
         break;
       case 'install':
-        if (!parameters.packageId) {
-          throw new Error('Package ID is required for install action');
-        }
+        if (!packageId) throw new Error('Package ID is required for install action');
         break;
       case 'remove':
-        if (!parameters.packageName) {
-          throw new Error('Package name is required for remove action');
-        }
-        break;
       case 'info':
-        if (!parameters.packageName) {
-          throw new Error('Package name is required for info action');
-        }
+        if (!packageName) throw new Error('Package name is required for this action');
         break;
     }
+  }
 
-    // Send command to Unity
+  async execute(params) {
+    const { action, ...parameters } = params;
+
+    // Ensure connected
+    if (!this.unityConnection.isConnected()) {
+      await this.unityConnection.connect();
+    }
+
     const result = await this.unityConnection.sendCommand('package_manager', {
       action,
       ...parameters
     });
 
-    // Format the response based on action
     return this.formatResponse(action, result);
   }
 
-  /**
-   * Format the response for better readability
-   */
   formatResponse(action, result) {
-    if (result.error) {
+    if (result && result.error) {
       return {
         success: false,
         error: result.error
@@ -197,9 +187,6 @@ export default class PackageManagerToolHandler {
     }
   }
 
-  /**
-   * Truncate long descriptions for better readability
-   */
   truncateDescription(description) {
     if (!description) return '';
     const maxLength = 150;
@@ -207,9 +194,6 @@ export default class PackageManagerToolHandler {
     return description.substring(0, maxLength) + '...';
   }
 
-  /**
-   * Get examples for the tool
-   */
   static getExamples() {
     return [
       {
