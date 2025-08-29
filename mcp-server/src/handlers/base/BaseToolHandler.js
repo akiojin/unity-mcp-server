@@ -2,6 +2,8 @@
  * Base class for all tool handlers
  * Provides common functionality for validation, execution, and error handling
  */
+import { logger } from '../../core/config.js';
+
 export class BaseToolHandler {
   constructor(name, description, inputSchema = {}) {
     this.name = name;
@@ -42,20 +44,20 @@ export class BaseToolHandler {
    * @returns {Promise<object>} Standardized response
    */
   async handle(params = {}) {
-    console.error(`[Handler ${this.name}] Starting handle() with params:`, params);
+    logger.debug(`[Handler ${this.name}] Starting handle() with params:`, params);
     
     try {
       // Validate parameters
-      console.error(`[Handler ${this.name}] Validating parameters...`);
+      logger.debug(`[Handler ${this.name}] Validating parameters...`);
       this.validate(params);
-      console.error(`[Handler ${this.name}] Validation passed`);
+      logger.debug(`[Handler ${this.name}] Validation passed`);
       
       // Execute tool logic
-      console.error(`[Handler ${this.name}] Executing tool logic...`);
+      logger.debug(`[Handler ${this.name}] Executing tool logic...`);
       const startTime = Date.now();
       const result = await this.execute(params);
       const duration = Date.now() - startTime;
-      console.error(`[Handler ${this.name}] Execution completed in ${duration}ms`);
+      logger.info(`[Handler ${this.name}] Execution completed in ${duration}ms`);
       
       // Return success response in new format
       return {
@@ -63,8 +65,10 @@ export class BaseToolHandler {
         result
       };
     } catch (error) {
-      console.error(`[Handler ${this.name}] Error occurred:`, error.message);
-      console.error(`[Handler ${this.name}] Error stack:`, error.stack);
+      logger.error(`[Handler ${this.name}] Error occurred: ${error.message}`);
+      if (error.stack) {
+        logger.debug(`[Handler ${this.name}] Error stack: ${error.stack}`);
+      }
       
       // Return error response in new format
       return {

@@ -56,13 +56,7 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
-                #if UNITY_6000_0_OR_NEWER
-                var tags = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().ToList();
-                // In Unity 6, we need to use a different approach to get all tags
-                // This is a placeholder - Unity 6 may provide a new API for this
-                #else
-                var tags = InternalEditorUtility.tags.ToList();
-                #endif
+                var tags = GetAllTags();
                 
                 return new
                 {
@@ -98,11 +92,7 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Check if tag already exists
-                #if UNITY_6000_0_OR_NEWER
-                var currentTags = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().ToList();
-                #else
-                var currentTags = InternalEditorUtility.tags.ToList();
-                #endif
+                var currentTags = GetAllTags();
                 if (currentTags.Contains(tagName))
                 {
                     return new { error = $"Tag \"{tagName}\" already exists" };
@@ -125,11 +115,7 @@ namespace UnityEditorMCP.Handlers
                 // Force refresh of the tags
                 AssetDatabase.Refresh();
 
-                #if UNITY_6000_0_OR_NEWER
-                int tagsCount = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().Count();
-                #else
-                int tagsCount = InternalEditorUtility.tags.Length;
-                #endif
+                int tagsCount = GetAllTags().Count;
 
                 return new
                 {
@@ -166,11 +152,7 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Check if tag exists
-                #if UNITY_6000_0_OR_NEWER
-                var currentTags = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().ToList();
-                #else
-                var currentTags = InternalEditorUtility.tags.ToList();
-                #endif
+                var currentTags = GetAllTags();
                 if (!currentTags.Contains(tagName))
                 {
                     return new { error = $"Tag \"{tagName}\" does not exist" };
@@ -200,11 +182,7 @@ namespace UnityEditorMCP.Handlers
                 // Force refresh of the tags
                 AssetDatabase.Refresh();
 
-                #if UNITY_6000_0_OR_NEWER
-                int tagsCount = UnityEngine.GameObject.FindGameObjectsWithTag("").Select(x => x.tag).Distinct().Count();
-                #else
-                int tagsCount = InternalEditorUtility.tags.Length;
-                #endif
+                int tagsCount = GetAllTags().Count;
 
                 return new
                 {
@@ -250,12 +228,7 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
-                #if UNITY_6000_0_OR_NEWER
-                // Unity 6: Use default tags for now
-                var tags = new List<string> { "Untagged", "Respawn", "Finish", "EditorOnly", "MainCamera", "Player", "GameController" };
-                #else
-                var tags = InternalEditorUtility.tags.ToList();
-                #endif
+                var tags = GetAllTags();
                 
                 var tagUsage = new Dictionary<string, int>();
 
@@ -277,6 +250,45 @@ namespace UnityEditorMCP.Handlers
             {
                 Debug.LogError($"[TagManagementHandler] Error getting tag usage: {e.Message}");
                 return new { error = $"Failed to get tag usage: {e.Message}" };
+            }
+        }
+
+        /// <summary>
+        /// Returns all defined tags in the project using TagManager asset.
+        /// Works across Unity versions without relying on InternalEditorUtility.
+        /// </summary>
+        private static List<string> GetAllTags()
+        {
+            try
+            {
+                var tagManagerAsset = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset");
+                if (tagManagerAsset != null && tagManagerAsset.Length > 0)
+                {
+                    var so = new SerializedObject(tagManagerAsset[0]);
+                    var tagsProp = so.FindProperty("tags");
+                    var list = new List<string>();
+                    for (int i = 0; i < tagsProp.arraySize; i++)
+                    {
+                        var element = tagsProp.GetArrayElementAtIndex(i);
+                        list.Add(element.stringValue);
+                    }
+                    return list;
+                }
+
+                #if !UNITY_6000_0_OR_NEWER
+                // Fallback for older versions
+                return InternalEditorUtility.tags.ToList();
+                #else
+                return new List<string>();
+                #endif
+            }
+            catch
+            {
+                #if !UNITY_6000_0_OR_NEWER
+                return InternalEditorUtility.tags.ToList();
+                #else
+                return new List<string>();
+                #endif
             }
         }
     }
