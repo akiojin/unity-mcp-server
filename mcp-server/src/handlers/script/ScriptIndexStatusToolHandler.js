@@ -1,4 +1,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { ProjectInfoProvider } from '../../core/projectInfo.js';
+import { indexStatus } from '../../utils/codeIndex.js';
+import { logger } from '../../core/config.js';
 
 export class ScriptIndexStatusToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -12,16 +15,21 @@ export class ScriptIndexStatusToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
+        this.projectInfo = new ProjectInfoProvider(unityConnection);
     }
 
     async execute(params) {
-        // Ensure connected
-        if (!this.unityConnection.isConnected()) {
-            await this.unityConnection.connect();
+        try {
+            const info = await this.projectInfo.get();
+            const roots = [info.assetsPath, info.packagesPath];
+            const status = await indexStatus(info.projectRoot, info.codeIndexRoot, roots);
+            return status;
+        } catch (e) {
+            logger.warn(`[script_index_status] local failed, falling back to Unity: ${e.message}`);
+            if (!this.unityConnection.isConnected()) {
+                await this.unityConnection.connect();
+            }
+            return this.unityConnection.sendCommand('script_index_status', {});
         }
-
-        const result = await this.unityConnection.sendCommand('script_index_status', {});
-
-        return result;
     }
 }

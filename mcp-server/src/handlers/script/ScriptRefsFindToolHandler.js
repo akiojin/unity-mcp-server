@@ -1,4 +1,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { ProjectInfoProvider } from '../../core/projectInfo.js';
+import { findReferences } from '../../utils/codeIndex.js';
+import { logger } from '../../core/config.js';
 
 export class ScriptRefsFindToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -55,6 +58,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
+        this.projectInfo = new ProjectInfoProvider(unityConnection);
     }
 
     validate(params) {
@@ -68,13 +72,28 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
-        // Ensure connected
-        if (!this.unityConnection.isConnected()) {
-            await this.unityConnection.connect();
+        const {
+            name,
+            scope = 'assets',
+            snippetContext = 2,
+            maxMatchesPerFile = 5,
+            pageSize = 50,
+            maxBytes = 64 * 1024
+        } = params;
+
+        try {
+            const info = await this.projectInfo.get();
+            const roots = [];
+            if (scope === 'assets' || scope === 'all') roots.push(info.assetsPath);
+            if (scope === 'packages' || scope === 'embedded' || scope === 'all') roots.push(info.packagesPath);
+            const { results, truncated } = await findReferences(info.projectRoot, roots, { name, snippetContext, maxMatchesPerFile, pageSize, maxBytes });
+            return { success: true, results, total: results.length, truncated };
+        } catch (e) {
+            logger.warn(`[script_refs_find] local failed, falling back to Unity: ${e.message}`);
+            if (!this.unityConnection.isConnected()) {
+                await this.unityConnection.connect();
+            }
+            return this.unityConnection.sendCommand('script_refs_find', params);
         }
-
-        const result = await this.unityConnection.sendCommand('script_refs_find', params);
-
-        return result;
     }
 }

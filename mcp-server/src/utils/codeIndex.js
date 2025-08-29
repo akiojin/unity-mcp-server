@@ -88,6 +88,65 @@ export async function* findSymbols(projectRoot, codeIndexRoot, roots, { name, ki
   }
 }
 
+export async function findReferences(projectRoot, roots, { name, snippetContext = 2, maxMatchesPerFile = 5, pageSize = 50, maxBytes = 64 * 1024 }) {
+  const results = [];
+  let bytes = 0;
+  const rx = new RegExp(`\\b${escapeRegex(name)}\\b`);
+  for (const root of roots) {
+    for await (const abs of walkFiles(root)) {
+      if (results.length >= pageSize || bytes >= maxBytes) return { results, truncated: true };
+      if (!abs.toLowerCase().endsWith('.cs')) continue;
+      const rel = toRel(abs, projectRoot);
+      const text = await fs.readFile(abs, 'utf8').catch(() => null);
+      if (!text) continue;
+      const lines = text.split('\n');
+      const filtered = stripComments(lines);
+      let perFile = 0;
+      for (let i = 0; i < filtered.length; i++) {
+        if (perFile >= maxMatchesPerFile) break;
+        const line = filtered[i];
+        if (rx.test(line)) {
+          const s = Math.max(1, i + 1 - snippetContext);
+          const e = Math.min(lines.length, i + 1 + snippetContext);
+          const item = { path: rel, line: i + 1, snippet: lines.slice(s - 1, e).join('\n') };
+          const json = JSON.stringify(item);
+          const size = Buffer.byteLength(json, 'utf8');
+          if (bytes + size > maxBytes) return { results, truncated: true };
+          results.push(item);
+          bytes += size;
+          perFile++;
+          if (results.length >= pageSize) return { results, truncated: true };
+        }
+      }
+    }
+  }
+  return { results, truncated: false };
+}
+
+export async function indexStatus(projectRoot, codeIndexRoot, roots) {
+  // Count cs files under roots
+  let total = 0;
+  for (const root of roots) {
+    for await (const abs of walkFiles(root)) {
+      if (abs.toLowerCase().endsWith('.cs')) total++;
+    }
+  }
+  // Count indexed files
+  let indexed = 0;
+  try {
+    const dir = path.join(codeIndexRoot, 'files');
+    const entries = await fs.readdir(dir);
+    indexed = entries.filter(n => n.endsWith('.symbols.json')).length;
+  } catch {}
+  return {
+    success: true,
+    totalFiles: total,
+    indexedFiles: indexed,
+    coverage: total > 0 ? Math.round((indexed / total) * 100) : 0,
+    codeIndexRoot
+  };
+}
+
 async function* walkFiles(dir) {
   let entries = [];
   try { entries = await fs.readdir(dir, { withFileTypes: true }); } catch { return; }
@@ -105,4 +164,26 @@ function toRel(abs, projectRoot) {
   const n = abs.replace(/\\/g, '/');
   const base = projectRoot.replace(/\\/g, '/');
   return n.startsWith(base) ? n.substring(base.length + 1) : n;
+}
+
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function stripComments(lines) {
+  const out = [];
+  let inBlock = false;
+  for (const line of lines) {
+    let s = line;
+    if (inBlock) {
+      const end = s.indexOf('*/');
+      if (end >= 0) { s = s.slice(end + 2); inBlock = false; } else { out.push(''); continue; }
+    }
+    let i = 0; let res = '';
+    while (i < s.length) {
+      if (s.startsWith('/*', i)) { inBlock = true; const end = s.indexOf('*/', i + 2); if (end >= 0) { i = end + 2; inBlock = false; continue; } else break; }
+      if (s.startsWith('//', i)) { break; }
+      res += s[i++];
+    }
+    out.push(res);
+  }
+  return out;
 }
