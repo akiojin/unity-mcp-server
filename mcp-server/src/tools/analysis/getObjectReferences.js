@@ -3,7 +3,7 @@
  */
 export const getObjectReferencesToolDefinition = {
     name: 'get_object_references',
-    description: 'Find all references to and from a GameObject',
+    description: 'Find references to and from a GameObject (hierarchy/assets/prefabs).',
     inputSchema: {
         type: 'object',
         properties: {

@@ -1,7 +1,7 @@
 // Tool definitions for Input Actions analysis
 export const getInputActionsStateToolDefinition = {
     name: 'get_input_actions_state',
-    description: 'Get the state and structure of an Input Actions asset',
+    description: 'Get Input Actions state: maps, actions, bindings, devices, JSON structure.',
     inputSchema: {
         type: 'object',
         properties: {
@@ -35,7 +35,7 @@ export const getInputActionsStateToolDefinition = {
 
 export const analyzeInputActionsAssetToolDefinition = {
     name: 'analyze_input_actions_asset',
-    description: 'Analyze Input Actions asset in detail with statistics and device usage',
+    description: 'Analyze an Input Actions asset in detail (statistics + device usage).',
     inputSchema: {
         type: 'object',
         properties: {
