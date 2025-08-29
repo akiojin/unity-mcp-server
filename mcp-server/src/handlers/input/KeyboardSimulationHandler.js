@@ -7,7 +7,7 @@ export class KeyboardSimulationHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'simulate_keyboard',
-            'Simulates keyboard input in Unity',
+            'Simulate keyboard input (press/release/type/combo) with typing speed.',
             {
                 type: 'object',
                 properties: {

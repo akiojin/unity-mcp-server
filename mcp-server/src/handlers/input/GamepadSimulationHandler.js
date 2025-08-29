@@ -7,7 +7,7 @@ export class GamepadSimulationHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'simulate_gamepad',
-            'Simulates gamepad/controller input in Unity',
+            'Simulate gamepad input (buttons/sticks/triggers/dpad) with value ranges.',
             {
                 type: 'object',
                 properties: {

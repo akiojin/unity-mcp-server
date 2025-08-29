@@ -7,7 +7,7 @@ export class MouseSimulationHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'simulate_mouse',
-            'Simulates mouse input in Unity',
+            'Simulate mouse input (move/click/drag/scroll) with absolute/relative coords.',
             {
                 type: 'object',
                 properties: {

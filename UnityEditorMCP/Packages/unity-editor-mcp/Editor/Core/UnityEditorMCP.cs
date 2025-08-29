@@ -866,7 +866,34 @@ namespace UnityEditorMCP.Core
                         var getSettingsResult = ProjectSettingsHandler.GetProjectSettings(command.Parameters);
                         response = Response.SuccessResult(command.Id, getSettingsResult);
                         break;
-                        
+
+                    // Editor/Project info for Node-side tools
+                    case "get_editor_info":
+                        try
+                        {
+                            var projectRoot = Application.dataPath.Substring(0, Application.dataPath.Length - "/Assets".Length).Replace('\\', '/');
+                            var assetsPath = System.IO.Path.Combine(projectRoot, "Assets").Replace('\\', '/');
+                            var packagesPath = System.IO.Path.Combine(projectRoot, "Packages").Replace('\\', '/');
+                            var codeIndexRoot = System.IO.Path.Combine(projectRoot, "Library/UnityMCP/CodeIndex").Replace('\\', '/');
+                            var info = new {
+                                projectRoot,
+                                assetsPath,
+                                packagesPath,
+                                codeIndexRoot,
+                                unity = new {
+                                    productName = Application.productName,
+                                    unityVersion = Application.unityVersion,
+                                    platform = Application.platform.ToString()
+                                }
+                            };
+                            response = Response.SuccessResult(command.Id, info);
+                        }
+                        catch (Exception ex)
+                        {
+                            response = Response.ErrorResult(command.Id, $"Failed to get editor info: {ex.Message}", "GET_EDITOR_INFO_ERROR", null);
+                        }
+                        break;
+
                     case "update_project_settings":
                         var updateSettingsResult = ProjectSettingsHandler.UpdateProjectSettings(command.Parameters);
                         response = Response.SuccessResult(command.Id, updateSettingsResult);

@@ -115,17 +115,17 @@ export { default as PackageManagerToolHandler } from './package/PackageManagerTo
 export { default as RegistryConfigToolHandler } from './package/RegistryConfigToolHandler.js';
 
 // Script handlers
-export { ScriptListPackagesToolHandler } from './script/ListPackagesToolHandler.js';
-export { ScriptReadToolHandler } from './script/ReadFileToolHandler.js';
-export { ScriptSearchToolHandler } from './script/SearchToolHandler.js';
-export { ScriptEditPatchToolHandler } from './script/EditPatchToolHandler.js';
-export { ScriptEditStructuredToolHandler } from './script/EditStructuredToolHandler.js';
-export { ScriptFindReferencesToolHandler } from './script/FindReferencesToolHandler.js';
-export { ScriptFindSymbolToolHandler } from './script/FindSymbolToolHandler.js';
-export { ScriptGetSymbolsOverviewToolHandler } from './script/GetSymbolsOverviewToolHandler.js';
-export { ScriptIndexStatusToolHandler } from './script/IndexStatusToolHandler.js';
-export { ScriptRefactorRenameToolHandler } from './script/RefactorRenameToolHandler.js';
-export { ScriptReplacePatternToolHandler } from './script/ReplacePatternToolHandler.js';
+export { ScriptPackagesListToolHandler } from './script/ScriptPackagesListToolHandler.js';
+export { ScriptReadToolHandler } from './script/ScriptReadToolHandler.js';
+export { ScriptSearchToolHandler } from './script/ScriptSearchToolHandler.js';
+export { ScriptEditPatchToolHandler } from './script/ScriptEditPatchToolHandler.js';
+export { ScriptEditStructuredToolHandler } from './script/ScriptEditStructuredToolHandler.js';
+export { ScriptRefsFindToolHandler } from './script/ScriptRefsFindToolHandler.js';
+export { ScriptSymbolFindToolHandler } from './script/ScriptSymbolFindToolHandler.js';
+export { ScriptSymbolsGetToolHandler } from './script/ScriptSymbolsGetToolHandler.js';
+export { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHandler.js';
+export { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
+export { ScriptReplacePatternToolHandler } from './script/ScriptReplacePatternToolHandler.js';
 
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
@@ -205,17 +205,17 @@ import { GetProjectSettingsToolHandler } from './settings/GetProjectSettingsTool
 import { UpdateProjectSettingsToolHandler } from './settings/UpdateProjectSettingsToolHandler.js';
 import PackageManagerToolHandler from './package/PackageManagerToolHandler.js';
 import RegistryConfigToolHandler from './package/RegistryConfigToolHandler.js';
-import { ScriptListPackagesToolHandler } from './script/ListPackagesToolHandler.js';
-import { ScriptReadToolHandler } from './script/ReadFileToolHandler.js';
-import { ScriptSearchToolHandler } from './script/SearchToolHandler.js';
-import { ScriptEditPatchToolHandler } from './script/EditPatchToolHandler.js';
-import { ScriptEditStructuredToolHandler } from './script/EditStructuredToolHandler.js';
-import { ScriptReplacePatternToolHandler } from './script/ReplacePatternToolHandler.js';
-import { ScriptGetSymbolsOverviewToolHandler } from './script/GetSymbolsOverviewToolHandler.js';
-import { ScriptFindSymbolToolHandler } from './script/FindSymbolToolHandler.js';
-import { ScriptFindReferencesToolHandler } from './script/FindReferencesToolHandler.js';
-import { ScriptIndexStatusToolHandler } from './script/IndexStatusToolHandler.js';
-import { ScriptRefactorRenameToolHandler } from './script/RefactorRenameToolHandler.js';
+import { ScriptPackagesListToolHandler } from './script/ScriptPackagesListToolHandler.js';
+import { ScriptReadToolHandler } from './script/ScriptReadToolHandler.js';
+import { ScriptSearchToolHandler } from './script/ScriptSearchToolHandler.js';
+import { ScriptEditPatchToolHandler } from './script/ScriptEditPatchToolHandler.js';
+import { ScriptEditStructuredToolHandler } from './script/ScriptEditStructuredToolHandler.js';
+import { ScriptReplacePatternToolHandler } from './script/ScriptReplacePatternToolHandler.js';
+import { ScriptSymbolsGetToolHandler } from './script/ScriptSymbolsGetToolHandler.js';
+import { ScriptSymbolFindToolHandler } from './script/ScriptSymbolFindToolHandler.js';
+import { ScriptRefsFindToolHandler } from './script/ScriptRefsFindToolHandler.js';
+import { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHandler.js';
+import { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -301,14 +301,14 @@ const HANDLER_CLASSES = [
   CaptureScreenshotToolHandler,
   AnalyzeScreenshotToolHandler,
   // Script handlers
-  ScriptListPackagesToolHandler,
+  ScriptPackagesListToolHandler,
   ScriptReadToolHandler,
   ScriptSearchToolHandler,
   ScriptEditPatchToolHandler,
   ScriptEditStructuredToolHandler,
-  ScriptFindReferencesToolHandler,
-  ScriptFindSymbolToolHandler,
-  ScriptGetSymbolsOverviewToolHandler,
+  ScriptRefsFindToolHandler,
+  ScriptSymbolFindToolHandler,
+  ScriptSymbolsGetToolHandler,
   ScriptIndexStatusToolHandler,
   ScriptRefactorRenameToolHandler,
   ScriptReplacePatternToolHandler,

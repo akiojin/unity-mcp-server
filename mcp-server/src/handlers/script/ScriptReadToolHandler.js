@@ -1,4 +1,8 @@
+import fs from 'fs/promises';
+import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { ProjectInfoProvider } from '../../core/projectInfo.js';
+import { logger } from '../../core/config.js';
 
 export class ScriptReadToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -30,6 +34,7 @@ export class ScriptReadToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
+        this.projectInfo = new ProjectInfoProvider(unityConnection);
     }
 
     validate(params) {
@@ -60,18 +65,38 @@ export class ScriptReadToolHandler extends BaseToolHandler {
             maxBytes
         } = params;
 
-        // Ensure connected
-        if (!this.unityConnection.isConnected()) {
-            await this.unityConnection.connect();
+        try {
+            // Resolve project paths (Unity未接続でも推定可)
+            const info = await this.projectInfo.get();
+
+            // Normalize and validate
+            const norm = (path || '').replace(/\\/g, '/');
+            if (!norm.startsWith('Assets/') && !norm.startsWith('Packages/')) {
+                return { error: 'Path must be under Assets/ or Packages/' };
+            }
+            if (!norm.toLowerCase().endsWith('.cs')) {
+                return { error: 'Only .cs files are supported' };
+            }
+
+            const abs = info.projectRoot + '/' + norm;
+            const stat = await fs.stat(abs).catch(() => null);
+            if (!stat || !stat.isFile()) return { error: 'File not found', path: norm };
+
+            const data = await fs.readFile(abs, 'utf8');
+            const lines = data.split('\n');
+            const s = Math.max(1, startLine);
+            const e = Math.min(lines.length, endLine || (s + 199));
+            let content = lines.slice(s - 1, e).join('\n');
+
+            if (typeof maxBytes === 'number' && maxBytes > 0) {
+                const buf = Buffer.from(content, 'utf8');
+                if (buf.length > maxBytes) content = buf.subarray(0, maxBytes).toString('utf8');
+            }
+
+            return { success: true, path: norm, startLine: s, endLine: e, content };
+        } catch (e) {
+            logger.error(`[script_read] failed: ${e.message}`);
+            return { error: e.message };
         }
-
-        const result = await this.unityConnection.sendCommand('script_read', {
-            path,
-            startLine,
-            endLine: endLine || (startLine + 199),
-            maxBytes
-        });
-
-        return result;
     }
 }
