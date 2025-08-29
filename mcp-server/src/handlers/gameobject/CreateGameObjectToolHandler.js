@@ -9,7 +9,7 @@ export class CreateGameObjectToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'create_gameobject',
-      'Create a GameObject (optionally as primitive) with transform, parent, tag, and layer.',
+      'Create a GameObject in Unity scene',
       {
         type: 'object',
         properties: {
