@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json.schemastore.org/json-schema",
+  "title": "Unity Editor MCP Script API Index",
+  "version": "1.0",
+  "commands": {
+    "script_packages_list": {
+      "params": { "includeBuiltIn": { "type": "boolean", "default": false } },
+      "returns": ["success", "packages", "totalCount"]
+    },
+    "script_read": {
+      "params": {
+        "path": { "type": "string", "required": true },
+        "startLine": { "type": "number", "default": 1 },
+        "endLine": { "type": "number", "default": 200 },
+        "maxBytes": { "type": "number", "default": 32768 }
+      },
+      "returns": ["success", "path", "startLine", "endLine", "content"]
+    },
+    "script_search": {
+      "params": {
+        "patternType": { "type": "string", "enum": ["substring", "regex", "glob"], "default": "substring" },
+        "pattern": { "type": "string", "required": true },
+        "flags": { "type": "array", "items": { "type": "string", "enum": ["i", "m", "s"] }, "default": [] },
+        "scope": { "type": "string", "enum": ["assets", "packages", "embedded", "all"], "default": "assets" },
+        "include": { "type": "string", "default": "**/*.cs" },
+        "exclude": { "type": "string" },
+        "returnMode": { "type": "string", "enum": ["metadata", "snippets", "full"], "default": "metadata" },
+        "pageSize": { "type": "number", "default": 200 },
+        "maxMatchesPerFile": { "type": "number", "default": 3 },
+        "snippetContext": { "type": "number", "default": 2 },
+        "maxBytes": { "type": "number", "default": 32768 },
+        "maxFileSizeKB": { "type": "number", "default": 0 },
+        "startAfter": { "type": "string" },
+        "codeOnly": { "type": "boolean", "default": true },
+        "identifier": { "type": "string" },
+        "container": { "type": "string" },
+        "namespace": { "type": "string" }
+      },
+      "returns": ["success", "results", "total", "nextStartAfter", "truncated"]
+    },
+    "script_symbols_get": {
+      "params": { "path": { "type": "string", "required": true } },
+      "returns": ["success", "path", "symbols"]
+    },
+    "script_symbol_find": {
+      "params": {
+        "name": { "type": "string", "required": true },
+        "scope": { "type": "string", "enum": ["assets", "packages", "embedded", "all"], "default": "assets" },
+        "kind": { "type": "string", "enum": ["class", "struct", "interface", "enum", "method", "property"] },
+        "exact": { "type": "boolean", "default": false }
+      },
+      "returns": ["success", "results", "total"]
+    },
+    "script_refs_find": {
+      "params": {
+        "name": { "type": "string", "required": true },
+        "scope": { "type": "string", "enum": ["assets", "packages", "embedded", "all"], "default": "assets" },
+        "path": { "type": "string" },
+        "kind": { "type": "string", "enum": ["class", "struct", "interface", "enum", "method", "property"] },
+        "container": { "type": "string" },
+        "namespace": { "type": "string" },
+        "snippetContext": { "type": "number", "default": 2 },
+        "pageSize": { "type": "number", "default": 200 },
+        "maxMatchesPerFile": { "type": "number", "default": 3 },
+        "maxBytes": { "type": "number", "default": 32768 },
+        "semanticMinCount": { "type": "number", "default": 3 },
+        "includeSemantic": { "type": "array", "items": { "type": "object", "properties": { "container": {"type":"string"}, "namespace": {"type":"string"} } } }
+      },
+      "returns": ["success", "results", "total"]
+    },
+    "script_edit_patch": {
+      "params": {
+        "preview": { "type": "boolean", "default": true },
+        "edits": { "type": "array", "items": { "type": "object", "properties": { "path": {"type": "string", "required": true }, "startLine": {"type": "number", "required": true }, "endLine": {"type": "number", "required": true }, "newText": {"type": "string", "default": "" } } } },
+        "proximityThreshold": { "type": "number", "default": 3 },
+        "minClusterSize": { "type": "number", "default": 2 }
+      },
+      "returns": ["success", "previews", "applied", "backups", "compilation"]
+    },
+    "script_edit_structured": {
+      "params": {
+        "operation": { "type": "string", "enum": ["insert_before", "insert_after", "replace_body"], "required": true },
+        "path": { "type": "string", "required": true },
+        "symbolName": { "type": "string", "required": true },
+        "kind": { "type": "string", "enum": ["class", "struct", "interface", "enum", "method", "property"] },
+        "preview": { "type": "boolean", "default": true },
+        "newText": { "type": "string", "default": "" }
+      },
+      "returns": ["success", "preview", "backup", "compilation"]
+    },
+    "script_replace_pattern": {
+      "params": {
+        "patternType": { "type": "string", "enum": ["substring", "regex"], "default": "substring" },
+        "pattern": { "type": "string", "required": true },
+        "replacement": { "type": "string", "default": "" },
+        "flags": { "type": "array", "items": { "type": "string", "enum": ["i", "m", "s"] }, "default": [] },
+        "wordBoundary": { "type": "boolean", "default": false },
+        "scope": { "type": "string", "enum": ["assets", "packages", "embedded", "all"], "default": "assets" },
+        "include": { "type": "string", "default": "**/*.cs" },
+        "exclude": { "type": "string" },
+        "preview": { "type": "boolean", "default": true },
+        "pageSize": { "type": "number", "default": 200 },
+        "maxMatchesPerFile": { "type": "number", "default": 3 },
+        "maxFileSizeKB": { "type": "number", "default": 0 },
+        "proximityThreshold": { "type": "number", "default": 3 },
+        "minClusterSize": { "type": "number", "default": 2 },
+        "semanticMinCount": { "type": "number", "default": 3 },
+        "returnLineMeta": { "type": "boolean", "default": false }
+      },
+      "returns": ["success", "previews", "changedFiles", "backups", "compilation"]
+    }
+    },
+    "script_refactor_rename": {
+      "params": {
+        "name": { "type": "string", "required": true },
+        "newName": { "type": "string", "required": true },
+        "scope": { "type": "string", "enum": ["assets", "embedded", "all"], "default": "assets" },
+        "preview": { "type": "boolean", "default": true },
+        "pageSize": { "type": "number", "default": 200 },
+        "maxMatchesPerFile": { "type": "number", "default": 3 },
+        "allowCollisions": { "type": "boolean", "default": false },
+        "includeSemantic": { "type": "array", "items": { "type": "object", "properties": { "container": {"type":"string"}, "namespace": {"type":"string"} } } },
+        "proximityThreshold": { "type": "number", "default": 3 },
+        "minClusterSize": { "type": "number", "default": 2 },
+        "semanticMinCount": { "type": "number", "default": 3 },
+        "returnLineMeta": { "type": "boolean", "default": false }
+      },
+      "returns": ["success", "previews", "backups", "compilation", "truncated", "collisions", "summary", "impact"]
+    },
