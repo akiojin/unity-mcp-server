@@ -51,17 +51,15 @@ export { KeyboardSimulationHandler } from './input/KeyboardSimulationHandler.js'
 export { MouseSimulationHandler } from './input/MouseSimulationHandler.js';
 export { GamepadSimulationHandler } from './input/GamepadSimulationHandler.js';
 export { TouchSimulationHandler } from './input/TouchSimulationHandler.js';
-export { 
-    CreateActionMapToolHandler,
-    RemoveActionMapToolHandler,
-    AddInputActionToolHandler,
-    RemoveInputActionToolHandler,
-    AddInputBindingToolHandler,
-    RemoveInputBindingToolHandler,
-    RemoveAllBindingsToolHandler,
-    CreateCompositeBindingToolHandler,
-    ManageControlSchemesToolHandler 
-} from './input/InputActionsEditorToolHandler.js';
+export { CreateActionMapToolHandler } from './input/CreateActionMapToolHandler.js';
+export { RemoveActionMapToolHandler } from './input/RemoveActionMapToolHandler.js';
+export { AddInputActionToolHandler } from './input/AddInputActionToolHandler.js';
+export { RemoveInputActionToolHandler } from './input/RemoveInputActionToolHandler.js';
+export { AddInputBindingToolHandler } from './input/AddInputBindingToolHandler.js';
+export { RemoveInputBindingToolHandler } from './input/RemoveInputBindingToolHandler.js';
+export { RemoveAllBindingsToolHandler } from './input/RemoveAllBindingsToolHandler.js';
+export { CreateCompositeBindingToolHandler } from './input/CreateCompositeBindingToolHandler.js';
+export { ManageControlSchemesToolHandler } from './input/ManageControlSchemesToolHandler.js';
 
 // Asset handlers
 export { CreatePrefabToolHandler } from './asset/CreatePrefabToolHandler.js';
@@ -161,17 +159,15 @@ import { KeyboardSimulationHandler } from './input/KeyboardSimulationHandler.js'
 import { MouseSimulationHandler } from './input/MouseSimulationHandler.js';
 import { GamepadSimulationHandler } from './input/GamepadSimulationHandler.js';
 import { TouchSimulationHandler } from './input/TouchSimulationHandler.js';
-import { 
-    CreateActionMapToolHandler,
-    RemoveActionMapToolHandler,
-    AddInputActionToolHandler,
-    RemoveInputActionToolHandler,
-    AddInputBindingToolHandler,
-    RemoveInputBindingToolHandler,
-    RemoveAllBindingsToolHandler,
-    CreateCompositeBindingToolHandler,
-    ManageControlSchemesToolHandler 
-} from './input/InputActionsEditorToolHandler.js';
+import { CreateActionMapToolHandler } from './input/CreateActionMapToolHandler.js';
+import { RemoveActionMapToolHandler } from './input/RemoveActionMapToolHandler.js';
+import { AddInputActionToolHandler } from './input/AddInputActionToolHandler.js';
+import { RemoveInputActionToolHandler } from './input/RemoveInputActionToolHandler.js';
+import { AddInputBindingToolHandler } from './input/AddInputBindingToolHandler.js';
+import { RemoveInputBindingToolHandler } from './input/RemoveInputBindingToolHandler.js';
+import { RemoveAllBindingsToolHandler } from './input/RemoveAllBindingsToolHandler.js';
+import { CreateCompositeBindingToolHandler } from './input/CreateCompositeBindingToolHandler.js';
+import { ManageControlSchemesToolHandler } from './input/ManageControlSchemesToolHandler.js';
 import { CreatePrefabToolHandler } from './asset/CreatePrefabToolHandler.js';
 import { ModifyPrefabToolHandler } from './asset/ModifyPrefabToolHandler.js';
 import { InstantiatePrefabToolHandler } from './asset/InstantiatePrefabToolHandler.js';
