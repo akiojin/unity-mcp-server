@@ -114,6 +114,20 @@ export { UpdateProjectSettingsToolHandler } from './settings/UpdateProjectSettin
 export { default as PackageManagerToolHandler } from './package/PackageManagerToolHandler.js';
 export { default as RegistryConfigToolHandler } from './package/RegistryConfigToolHandler.js';
 
+// Script handlers
+export { ListPackagesToolHandler } from './script/ListPackagesToolHandler.js';
+export { ReadFileToolHandler } from './script/ReadFileToolHandler.js';
+export { SearchToolHandler } from './script/SearchToolHandler.js';
+export { EditPatchToolHandler } from './script/EditPatchToolHandler.js';
+export { EditPatchToolHandler } from './script/EditPatchToolHandler.js';
+export { EditStructuredToolHandler } from './script/EditStructuredToolHandler.js';
+export { ReplacePatternToolHandler } from './script/ReplacePatternToolHandler.js';
+export { GetSymbolsOverviewToolHandler } from './script/GetSymbolsOverviewToolHandler.js';
+export { FindSymbolToolHandler } from './script/FindSymbolToolHandler.js';
+export { FindReferencesToolHandler } from './script/FindReferencesToolHandler.js';
+export { IndexStatusToolHandler } from './script/IndexStatusToolHandler.js';
+export { RefactorRenameToolHandler } from './script/RefactorRenameToolHandler.js';
+
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
 import { RefreshAssetsToolHandler } from './system/RefreshAssetsToolHandler.js';
@@ -175,6 +189,11 @@ import { ClearConsoleToolHandler } from './console/ClearConsoleToolHandler.js';
 import { ReadConsoleToolHandler } from './console/ReadConsoleToolHandler.js';
 import { CaptureScreenshotToolHandler } from './screenshot/CaptureScreenshotToolHandler.js';
 import { AnalyzeScreenshotToolHandler } from './screenshot/AnalyzeScreenshotToolHandler.js';
+// Script handlers
+import { ListPackagesToolHandler } from './script/ListPackagesToolHandler.js';
+import { ReadFileToolHandler } from './script/ReadFileToolHandler.js';
+import { SearchToolHandler } from './script/SearchToolHandler.js';
+import { EditPatchToolHandler } from './script/EditPatchToolHandler.js';
 import { AddComponentToolHandler } from './component/AddComponentToolHandler.js';
 import { RemoveComponentToolHandler } from './component/RemoveComponentToolHandler.js';
 import { ModifyComponentToolHandler } from './component/ModifyComponentToolHandler.js';
@@ -192,6 +211,17 @@ import { GetProjectSettingsToolHandler } from './settings/GetProjectSettingsTool
 import { UpdateProjectSettingsToolHandler } from './settings/UpdateProjectSettingsToolHandler.js';
 import PackageManagerToolHandler from './package/PackageManagerToolHandler.js';
 import RegistryConfigToolHandler from './package/RegistryConfigToolHandler.js';
+import { ListPackagesToolHandler } from './script/ListPackagesToolHandler.js';
+import { ReadFileToolHandler } from './script/ReadFileToolHandler.js';
+import { SearchToolHandler } from './script/SearchToolHandler.js';
+import { EditPatchToolHandler } from './script/EditPatchToolHandler.js';
+import { EditStructuredToolHandler } from './script/EditStructuredToolHandler.js';
+import { ReplacePatternToolHandler } from './script/ReplacePatternToolHandler.js';
+import { GetSymbolsOverviewToolHandler } from './script/GetSymbolsOverviewToolHandler.js';
+import { FindSymbolToolHandler } from './script/FindSymbolToolHandler.js';
+import { FindReferencesToolHandler } from './script/FindReferencesToolHandler.js';
+import { IndexStatusToolHandler } from './script/IndexStatusToolHandler.js';
+import { RefactorRenameToolHandler } from './script/RefactorRenameToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -276,6 +306,11 @@ const HANDLER_CLASSES = [
   // Screenshot handlers
   CaptureScreenshotToolHandler,
   AnalyzeScreenshotToolHandler,
+  // Script handlers
+  ListPackagesToolHandler,
+  ReadFileToolHandler,
+  SearchToolHandler,
+  EditPatchToolHandler,
   
   // Component handlers
   AddComponentToolHandler,
@@ -302,7 +337,20 @@ const HANDLER_CLASSES = [
   
   // Package management handlers
   PackageManagerToolHandler,
-  RegistryConfigToolHandler
+  RegistryConfigToolHandler,
+  
+  // Script handlers
+  ListPackagesToolHandler,
+  ReadFileToolHandler,
+  SearchToolHandler,
+  EditPatchToolHandler,
+  EditStructuredToolHandler,
+  ReplacePatternToolHandler,
+  GetSymbolsOverviewToolHandler,
+  FindSymbolToolHandler,
+  FindReferencesToolHandler,
+  IndexStatusToolHandler,
+  RefactorRenameToolHandler
 ];
 
 /**
