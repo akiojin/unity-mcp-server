@@ -7,7 +7,7 @@ export class StopToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'stop_game',
-      'Stop Unity play mode and return to edit mode. NOTE: This operation may take 5-30+ seconds depending on scene cleanup, asset unloading, and domain reload requirements. Unity needs time to properly clean up and return to a stable edit mode state. Please wait for the operation to complete.',
+      'Exit Play Mode and return to Edit Mode.',
       {
         type: 'object',
         properties: {},
