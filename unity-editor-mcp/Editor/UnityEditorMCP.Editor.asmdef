@@ -3,7 +3,9 @@
     "rootNamespace": "UnityEditorMCP",
     "references": [
         "Newtonsoft.Json",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Microsoft.CodeAnalysis.Common",
+        "Microsoft.CodeAnalysis.CSharp"
     ],
     "includePlatforms": [
         "Editor"
