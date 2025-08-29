@@ -4,22 +4,22 @@ export class ModifyPrefabToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'modify_prefab',
-            'Modify properties of an existing prefab',
+            'Modify an existing prefab by applying property changes (optionally to instances).',
             {
                 type: 'object',
                 properties: {
                     prefabPath: {
                         type: 'string',
-                        description: 'Asset path to the prefab (must start with Assets/ and end with .prefab)'
+                        description: 'Asset path to the prefab. Must start with Assets/ and end with .prefab.'
                     },
                     modifications: {
                         type: 'object',
-                        description: 'Object containing properties to modify'
+                        description: 'Key/value object of properties to modify on the prefab.'
                     },
                     applyToInstances: {
                         type: 'boolean',
                         default: true,
-                        description: 'Apply changes to scene instances of the prefab'
+                        description: 'If true, also apply to existing scene instances.'
                     }
                 },
                 required: ['prefabPath', 'modifications']

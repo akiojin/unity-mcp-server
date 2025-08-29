@@ -4,13 +4,13 @@ export class InstantiatePrefabToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'instantiate_prefab',
-            'Instantiate a prefab in the scene',
+            'Instantiate a prefab in the scene with optional transform, parent, and name override.',
             {
                 type: 'object',
                 properties: {
                     prefabPath: {
                         type: 'string',
-                        description: 'Asset path to the prefab (must start with Assets/ and end with .prefab)'
+                        description: 'Asset path to the prefab. Must start with Assets/ and end with .prefab.'
                     },
                     position: {
                         type: 'object',
@@ -19,7 +19,7 @@ export class InstantiatePrefabToolHandler extends BaseToolHandler {
                             y: { type: 'number' },
                             z: { type: 'number' }
                         },
-                        description: 'World position for the instantiated object'
+                        description: 'World position for the instance (requires x,y,z).'
                     },
                     rotation: {
                         type: 'object',
@@ -28,15 +28,15 @@ export class InstantiatePrefabToolHandler extends BaseToolHandler {
                             y: { type: 'number' },
                             z: { type: 'number' }
                         },
-                        description: 'Rotation in Euler angles'
+                        description: 'Euler rotation for the instance (x,y,z).'
                     },
                     parent: {
                         type: 'string',
-                        description: 'Parent GameObject path'
+                        description: 'Parent GameObject scene path (optional).'
                     },
                     name: {
                         type: 'string',
-                        description: 'Override name for the instantiated object'
+                        description: 'Override name for the instantiated object.'
                     }
                 },
                 required: ['prefabPath']

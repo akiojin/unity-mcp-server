@@ -4,27 +4,27 @@ export class CreatePrefabToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'create_prefab',
-            'Create a new prefab from a GameObject or from scratch',
+            'Create a prefab from a GameObject path or create an empty prefab at a target asset path.',
             {
                 type: 'object',
                 properties: {
                     gameObjectPath: {
                         type: 'string',
-                        description: 'Path to GameObject to convert to prefab'
+                        description: 'Scene path to convert (e.g., "/Root/Player"). Mutually exclusive with createFromTemplate.'
                     },
                     prefabPath: {
                         type: 'string',
-                        description: 'Asset path where prefab should be saved (must start with Assets/ and end with .prefab)'
+                        description: 'Asset path for the prefab. Must start with Assets/ and end with .prefab.'
                     },
                     createFromTemplate: {
                         type: 'boolean',
                         default: false,
-                        description: 'Create empty prefab without source GameObject'
+                        description: 'If true, create an empty prefab (no source GameObject).'
                     },
                     overwrite: {
                         type: 'boolean',
                         default: false,
-                        description: 'Overwrite existing prefab if it exists'
+                        description: 'If true, overwrite existing prefab at the destination path.'
                     }
                 },
                 required: ['prefabPath']

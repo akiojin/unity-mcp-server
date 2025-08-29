@@ -4,21 +4,21 @@ export class ModifyMaterialToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'modify_material',
-            'Modify properties of an existing material',
+            'Modify a material by updating property values and/or changing the shader.',
             {
                 type: 'object',
                 properties: {
                     materialPath: {
                         type: 'string',
-                        description: 'Asset path to the material (must start with Assets/ and end with .mat)'
+                        description: 'Asset path to the material. Must start with Assets/ and end with .mat.'
                     },
                     properties: {
                         type: 'object',
-                        description: 'Material properties to modify (e.g., {"_Color": [1,0,0,1], "_Metallic": 0.5})'
+                        description: 'Property updates (e.g., {"_Color":[1,0,0,1], "_Metallic":0.5}).'
                     },
                     shader: {
                         type: 'string',
-                        description: 'Change the shader (e.g., "Standard", "Unlit/Color")'
+                        description: 'Optional: change the shader (e.g., Standard, Unlit/Color).'
                     }
                 },
                 required: ['materialPath', 'properties']

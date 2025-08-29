@@ -4,29 +4,29 @@ export class CreateMaterialToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'create_material',
-            'Create a new material in Unity with specified shader and properties',
+            'Create a material asset with a shader and property overrides (optional copyFrom).',
             {
                 type: 'object',
                 properties: {
                     materialPath: {
                         type: 'string',
-                        description: 'Asset path for the material (must start with Assets/ and end with .mat)'
+                        description: 'Asset path for the material. Must start with Assets/ and end with .mat.'
                     },
                     shader: {
                         type: 'string',
-                        description: 'Shader to use (e.g., "Standard", "Unlit/Color", "Universal Render Pipeline/Lit")'
+                        description: 'Shader to use (e.g., Standard, Unlit/Color, Universal Render Pipeline/Lit).'
                     },
                     properties: {
                         type: 'object',
-                        description: 'Material properties to set (e.g., {"_Color": [1,0,0,1], "_Metallic": 0.5})'
+                        description: 'Material property overrides (e.g., {"_Color":[1,0,0,1], "_Metallic":0.5}).'
                     },
                     copyFrom: {
                         type: 'string',
-                        description: 'Path to existing material to copy from'
+                        description: 'Optional: path to an existing material to clone before applying overrides.'
                     },
                     overwrite: {
                         type: 'boolean',
-                        description: 'Whether to overwrite existing material',
+                        description: 'If true, overwrite existing material at the path.',
                         default: false
                     }
                 },
