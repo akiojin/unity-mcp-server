@@ -7,7 +7,7 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'read_console',
-      'Read Unity console logs with advanced filtering',
+      'Read Console logs with filters (type/text/time), formatting, sort, and grouping.',
       {
         type: 'object',
         properties: {

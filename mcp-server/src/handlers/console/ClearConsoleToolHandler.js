@@ -7,7 +7,7 @@ export class ClearConsoleToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'clear_console',
-      'Clear Unity Editor console logs',
+      'Clear Console logs (optionally set auto-clear and preserve levels).',
       {
         type: 'object',
         properties: {

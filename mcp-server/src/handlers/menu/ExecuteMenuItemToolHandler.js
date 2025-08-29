@@ -7,7 +7,7 @@ export class ExecuteMenuItemToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'execute_menu_item',
-      'Execute Unity Editor menu items',
+      'Execute a Unity menu item or list available menus (with safety checks).',
       {
         type: 'object',
         properties: {
