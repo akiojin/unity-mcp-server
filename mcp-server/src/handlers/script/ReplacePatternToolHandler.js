@@ -4,65 +4,65 @@ export class ScriptReplacePatternToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_replace_pattern',
-            'Replace patterns in Unity script files using regex or substring matching',
+            'Search/replace across C# files using substring or regex with preview and safeguards.',
             {
                 type: 'object',
                 properties: {
                     pattern: {
                         type: 'string',
-                        description: 'Pattern to search for'
+                        description: 'Pattern to search for (required).'
                     },
                     replacement: {
                         type: 'string',
-                        description: 'Replacement text'
+                        description: 'Replacement text to apply.'
                     },
                     patternType: {
                         type: 'string',
                         enum: ['substring', 'regex'],
                         default: 'substring',
-                        description: 'Type of pattern matching'
+                        description: 'Matching strategy: substring (simple) or regex (advanced).'
                     },
                     flags: {
                         type: 'array',
                         items: { type: 'string' },
-                        description: 'Regex flags'
+                        description: 'Regex flags (e.g., ["i","m","s","u"]). Used only for regex.'
                     },
                     scope: {
                         type: 'string',
                         enum: ['assets', 'packages', 'embedded', 'all'],
                         default: 'assets',
-                        description: 'Search scope'
+                        description: 'Search scope: assets (Assets/), packages (Packages/), embedded, or all.'
                     },
                     include: {
                         type: 'string',
                         default: '**/*.cs',
-                        description: 'Include glob pattern'
+                        description: 'Include glob pattern (e.g., **/*.cs).'
                     },
                     exclude: {
                         type: 'string',
-                        description: 'Exclude glob pattern'
+                        description: 'Exclude glob pattern (e.g., **/Tests/**).'
                     },
                     preview: {
                         type: 'boolean',
                         default: true,
-                        description: 'Whether to preview changes only'
+                        description: 'If true, returns a preview without writing files.'
                     },
                     pageSize: {
                         type: 'number',
-                        description: 'Maximum files to process'
+                        description: 'Maximum files to process per batch.'
                     },
                     maxMatchesPerFile: {
                         type: 'number',
-                        description: 'Maximum replacements per file'
+                        description: 'Cap replacements applied per file.'
                     },
                     maxFileSizeKB: {
                         type: 'number',
-                        description: 'Maximum file size to process (in KB)'
+                        description: 'Skip files larger than this (KB).'
                     },
                     wordBoundary: {
                         type: 'boolean',
                         default: false,
-                        description: 'Match word boundaries only'
+                        description: 'If true, match only word-bounded occurrences.'
                     },
                     includeSemantic: {
                         type: 'array',
@@ -73,27 +73,27 @@ export class ScriptReplacePatternToolHandler extends BaseToolHandler {
                                 namespace: { type: 'string' }
                             }
                         },
-                        description: 'Semantic filters for replacements'
+                        description: 'Optional semantic filters to limit scope (container/namespace).'
                     },
                     returnLineMeta: {
                         type: 'boolean',
                         default: false,
-                        description: 'Return line metadata'
+                        description: 'Include per-line metadata in the response.'
                     },
                     proximityThreshold: {
                         type: 'number',
                         default: 3,
-                        description: 'Lines threshold for proximity warnings'
+                        description: 'Warn if edits are within this many lines (detect overlapping edits).'
                     },
                     minClusterSize: {
                         type: 'number',
                         default: 2,
-                        description: 'Minimum cluster size for proximity warnings'
+                        description: 'Warn when clustered edit count reaches this size.'
                     },
                     semanticMinCount: {
                         type: 'number',
                         default: 3,
-                        description: 'Minimum count for semantic proximity warnings'
+                        description: 'Minimum occurrences to trigger semantic proximity warnings.'
                     }
                 },
                 required: ['pattern']

@@ -4,7 +4,7 @@ export class ScriptIndexStatusToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_index_status',
-            'Get the status of the code index',
+            'Report code index status and readiness for symbol/search operations.',
             {
                 type: 'object',
                 properties: {},

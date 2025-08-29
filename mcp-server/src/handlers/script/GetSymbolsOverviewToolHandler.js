@@ -4,13 +4,13 @@ export class ScriptGetSymbolsOverviewToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_symbols_get',
-            'Get an overview of symbols (classes, methods, fields) in a script file',
+            'List symbols (classes, methods, fields, properties) defined in a C# file with spans.',
             {
                 type: 'object',
                 properties: {
                     path: {
                         type: 'string',
-                        description: 'Path to the file (relative to project root)'
+                        description: 'Relative Unity project path to a .cs file (e.g., Assets/Scripts/Foo.cs).'
                     }
                 },
                 required: ['path']

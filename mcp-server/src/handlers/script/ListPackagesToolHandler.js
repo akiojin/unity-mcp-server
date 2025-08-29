@@ -4,14 +4,14 @@ export class ScriptListPackagesToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_packages_list',
-            'List Unity packages in the project',
+            'List Unity packages in the project (optionally include built‑in).',
             {
                 type: 'object',
                 properties: {
                     includeBuiltIn: {
                         type: 'boolean',
                         default: false,
-                        description: 'Whether to include built-in packages'
+                        description: 'If true, includes built‑in packages in results.'
                     }
                 },
                 required: []

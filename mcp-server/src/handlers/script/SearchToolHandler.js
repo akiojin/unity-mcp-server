@@ -4,85 +4,85 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_search',
-            'Search for patterns in Unity script files',
+            'Search C# code by substring/regex/glob with scope, globs, pagination, and snippet context.',
             {
                 type: 'object',
                 properties: {
                     pattern: {
                         type: 'string',
-                        description: 'Search pattern (substring or regex)'
+                        description: 'Pattern to search (required unless patternType="glob"). For glob mode, use include/exclude.'
                     },
                     patternType: {
                         type: 'string',
                         enum: ['substring', 'regex', 'glob'],
                         default: 'substring',
-                        description: 'Type of pattern matching'
+                        description: 'Pattern matching strategy: substring, regex, or glob-only scan.'
                     },
                     flags: {
                         type: 'array',
                         items: { type: 'string' },
-                        description: 'Regex flags (e.g., ["i"] for case-insensitive)'
+                        description: 'Regex flags (e.g., ["i","m","s","u"]). Ignored for substring/glob.'
                     },
                     scope: {
                         type: 'string',
                         enum: ['assets', 'packages', 'embedded', 'all'],
                         default: 'assets',
-                        description: 'Search scope'
+                        description: 'Search scope: assets (Assets/), packages (Packages/), embedded, or all.'
                     },
                     include: {
                         type: 'string',
                         default: '**/*.cs',
-                        description: 'Include glob pattern'
+                        description: 'Include glob pattern (e.g., **/*.cs). Used in all modes.'
                     },
                     exclude: {
                         type: 'string',
-                        description: 'Exclude glob pattern'
+                        description: 'Exclude glob pattern (e.g., **/Tests/**).'
                     },
                     pageSize: {
                         type: 'number',
-                        description: 'Maximum results per page'
+                        description: 'Maximum results per page for pagination.'
                     },
                     maxMatchesPerFile: {
                         type: 'number',
-                        description: 'Maximum matches per file'
+                        description: 'Cap matches returned per file.'
                     },
                     snippetContext: {
                         type: 'number',
-                        description: 'Lines of context around matches'
+                        description: 'Number of context lines around each match.'
                     },
                     maxBytes: {
                         type: 'number',
-                        description: 'Maximum response size in bytes'
+                        description: 'Maximum response size (bytes) to keep outputs LLM‑friendly.'
                     },
                     returnMode: {
                         type: 'string',
                         enum: ['metadata', 'snippets', 'full'],
-                        description: 'Return mode for results'
+                        description: 'Result detail: metadata (fast), snippets (recommended), or full.'
                     },
                     startAfter: {
                         type: 'string',
-                        description: 'Cursor for pagination'
+                        description: 'Opaque cursor for pagination (use value from previous page).'
                     },
                     maxFileSizeKB: {
                         type: 'number',
-                        description: 'Maximum file size to search (in KB)'
+                        description: 'Skip files larger than this (KB).'
                     },
                     codeOnly: {
                         type: 'boolean',
                         default: true,
-                        description: 'Search only in code (exclude comments)'
+                        description: 'If true, exclude comments/whitespace to reduce noise.'
                     },
                     container: {
                         type: 'string',
-                        description: 'Semantic container filter'
+                        description: 'Semantic filter: container (e.g., class name).'
                     },
                     namespace: {
                         type: 'string',
-                        description: 'Semantic namespace filter'
+                        description: 'Semantic filter: namespace.'
                     },
                     identifier: {
                         type: 'string',
-                        description: 'Semantic identifier filter'
+                        description: 'Semantic filter: identifier (e.g., method or field name).'
                     }
                 },
                 required: []

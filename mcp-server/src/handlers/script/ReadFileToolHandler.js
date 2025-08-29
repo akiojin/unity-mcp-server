@@ -4,26 +4,26 @@ export class ScriptReadToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_read',
-            'Read a script file from Unity project with chunked reading support',
+            'Read a C# file with optional line range and payload limits (LLM‑friendly).',
             {
                 type: 'object',
                 properties: {
                     path: {
                         type: 'string',
-                        description: 'Path to the file (relative to project root, e.g., Assets/Scripts/Example.cs)'
+                        description: 'Relative Unity project path (e.g., Assets/Scripts/Example.cs). Must be inside project.'
                     },
                     startLine: {
                         type: 'number',
                         default: 1,
-                        description: 'Starting line number (1-based)'
+                        description: 'Starting line (1-based, inclusive). Defaults to 1.'
                     },
                     endLine: {
                         type: 'number',
-                        description: 'Ending line number (if not specified, defaults to startLine + 199)'
+                        description: 'Ending line (inclusive). Defaults to startLine + 199 when omitted.'
                     },
                     maxBytes: {
                         type: 'number',
-                        description: 'Maximum bytes to return'
+                        description: 'Maximum bytes to return to cap payload size for LLMs.'
                     }
                 },
                 required: ['path']

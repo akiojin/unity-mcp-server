@@ -4,7 +4,7 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_edit_patch',
-            'Apply patches to Unity script files with preview support',
+            'Apply line‑based patches to C# files with preview and safety thresholds.',
             {
                 type: 'object',
                 properties: {
@@ -15,39 +15,39 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
                             properties: {
                                 path: {
                                     type: 'string',
-                                    description: 'Path to the file to edit'
+                                    description: 'Relative Unity project path to edit (e.g., Assets/Scripts/Foo.cs).'
                                 },
                                 startLine: {
                                     type: 'number',
-                                    description: 'Starting line number (1-based)'
+                                    description: 'Starting line (1-based, inclusive).'
                                 },
                                 endLine: {
                                     type: 'number',
-                                    description: 'Ending line number'
+                                    description: 'Ending line (inclusive).'
                                 },
                                 newText: {
                                     type: 'string',
-                                    description: 'New text to replace the lines'
+                                    description: 'Replacement text for the specified range.'
                                 }
                             },
                             required: ['path', 'startLine', 'endLine', 'newText']
                         },
-                        description: 'Array of edit operations'
+                        description: 'Edit operations to apply (processed sequentially).'
                     },
                     preview: {
                         type: 'boolean',
                         default: true,
-                        description: 'Whether to preview changes only'
+                        description: 'If true, returns a preview/diff without writing files.'
                     },
                     proximityThreshold: {
                         type: 'number',
                         default: 3,
-                        description: 'Lines threshold for proximity warnings'
+                        description: 'Warn if edits are within this many lines (helps detect overlapping edits).'
                     },
                     minClusterSize: {
                         type: 'number',
                         default: 2,
-                        description: 'Minimum cluster size for proximity warnings'
+                        description: 'Warn when clustered edit count reaches this size.'
                     }
                 },
                 required: ['edits']

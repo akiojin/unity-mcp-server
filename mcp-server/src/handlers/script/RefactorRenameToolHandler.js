@@ -4,41 +4,41 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_refactor_rename',
-            'Rename symbols (classes, methods, variables) across the codebase',
+            'Refactor: rename a symbol (class/method/variable/etc.) across the project with preview.',
             {
                 type: 'object',
                 properties: {
                     name: {
                         type: 'string',
-                        description: 'Current name of the symbol'
+                        description: 'Current symbol name to rename.'
                     },
                     newName: {
                         type: 'string',
-                        description: 'New name for the symbol'
+                        description: 'New name for the symbol.'
                     },
                     scope: {
                         type: 'string',
                         enum: ['assets', 'packages', 'embedded', 'all'],
                         default: 'assets',
-                        description: 'Search scope'
+                        description: 'Search scope: assets (Assets/), packages (Packages/), embedded, or all.'
                     },
                     preview: {
                         type: 'boolean',
                         default: true,
-                        description: 'Whether to preview changes only'
+                        description: 'If true, calculate and return changes without writing files.'
                     },
                     maxMatchesPerFile: {
                         type: 'number',
-                        description: 'Maximum matches per file'
+                        description: 'Cap matches processed per file.'
                     },
                     pageSize: {
                         type: 'number',
-                        description: 'Maximum files to process'
+                        description: 'Maximum files to process per batch.'
                     },
                     allowCollisions: {
                         type: 'boolean',
                         default: false,
-                        description: 'Allow rename even if collisions detected'
+                        description: 'If true, proceed even if potential name collisions are detected.'
                     },
                     includeSemantic: {
                         type: 'array',
@@ -49,27 +49,27 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
                                 namespace: { type: 'string' }
                             }
                         },
-                        description: 'Semantic filters for rename'
+                        description: 'Optional semantic filters to limit scope (container/namespace).'
                     },
                     returnLineMeta: {
                         type: 'boolean',
                         default: false,
-                        description: 'Return line metadata'
+                        description: 'Include per-line metadata in the response.'
                     },
                     proximityThreshold: {
                         type: 'number',
                         default: 3,
-                        description: 'Lines threshold for proximity warnings'
+                        description: 'Warn if edits are within this many lines (detect overlapping edits).'
                     },
                     minClusterSize: {
                         type: 'number',
                         default: 2,
-                        description: 'Minimum cluster size for proximity warnings'
+                        description: 'Warn when clustered edit count reaches this size.'
                     },
                     semanticMinCount: {
                         type: 'number',
                         default: 3,
-                        description: 'Minimum count for semantic proximity warnings'
+                        description: 'Minimum occurrences to trigger semantic proximity warnings.'
                     }
                 },
                 required: ['name', 'newName']

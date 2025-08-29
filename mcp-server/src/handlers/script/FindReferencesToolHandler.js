@@ -4,51 +4,51 @@ export class ScriptFindReferencesToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_refs_find',
-            'Find references to a symbol across the codebase',
+            'Find code references/usages of a symbol across the project with context and limits.',
             {
                 type: 'object',
                 properties: {
                     name: {
                         type: 'string',
-                        description: 'Name of the symbol to find references for'
+                        description: 'Symbol name to search usages for.'
                     },
                     scope: {
                         type: 'string',
                         enum: ['assets', 'packages', 'embedded', 'all'],
                         default: 'assets',
-                        description: 'Search scope'
+                        description: 'Search scope: assets (Assets/), packages (Packages/), embedded, or all.'
                     },
                     snippetContext: {
                         type: 'number',
-                        description: 'Lines of context around references'
+                        description: 'Number of context lines to include around each match.'
                     },
                     maxMatchesPerFile: {
                         type: 'number',
-                        description: 'Maximum references per file'
+                        description: 'Cap reference matches returned per file.'
                     },
                     pageSize: {
                         type: 'number',
-                        description: 'Maximum results to return'
+                        description: 'Maximum results to return per page.'
                     },
                     maxBytes: {
                         type: 'number',
-                        description: 'Maximum response size in bytes'
+                        description: 'Maximum response size (bytes) to keep outputs LLM‑friendly.'
                     },
                     container: {
                         type: 'string',
-                        description: 'Container (class) of the symbol'
+                        description: 'Optional: container (class) of the symbol.'
                     },
                     namespace: {
                         type: 'string',
-                        description: 'Namespace of the symbol'
+                        description: 'Optional: namespace of the symbol.'
                     },
                     path: {
                         type: 'string',
-                        description: 'Path to file containing the symbol'
+                        description: 'Optional: constrain to file path containing the symbol.'
                     },
                     kind: {
                         type: 'string',
-                        description: 'Kind of symbol'
+                        description: 'Optional: symbol kind (class, method, field, property).'
                     }
                 },
                 required: ['name']

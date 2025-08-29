@@ -4,28 +4,28 @@ export class ScriptFindSymbolToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_symbol_find',
-            'Find symbols (classes, methods, fields) by name across the codebase',
+            'Find symbol definitions by name (class/method/field/property) across the project.',
             {
                 type: 'object',
                 properties: {
                     name: {
                         type: 'string',
-                        description: 'Name of the symbol to find'
+                        description: 'Symbol name to search (exact or fuzzy based on "exact").'
                     },
                     kind: {
                         type: 'string',
-                        description: 'Kind of symbol (e.g., class, method, field, property)'
+                        description: 'Optional: narrow by symbol kind (class, method, field, property).'
                     },
                     scope: {
                         type: 'string',
                         enum: ['assets', 'packages', 'embedded', 'all'],
                         default: 'assets',
-                        description: 'Search scope'
+                        description: 'Search scope: assets (Assets/), packages (Packages/), embedded, or all.'
                     },
                     exact: {
                         type: 'boolean',
                         default: false,
-                        description: 'Whether to match name exactly'
+                        description: 'If true, match name exactly; otherwise allows partial matches.'
                     }
                 },
                 required: ['name']

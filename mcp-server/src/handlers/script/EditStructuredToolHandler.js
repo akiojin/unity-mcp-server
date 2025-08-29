@@ -4,35 +4,35 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_edit_structured',
-            'Perform structured edits on code symbols (insert before/after, replace body)',
+            'Perform structured symbol edits: insert before/after a symbol or replace its body.',
             {
                 type: 'object',
                 properties: {
                     operation: {
                         type: 'string',
                         enum: ['insert_before', 'insert_after', 'replace_body'],
-                        description: 'Type of edit operation'
+                        description: 'Edit type: insert_before, insert_after, or replace_body.'
                     },
                     path: {
                         type: 'string',
-                        description: 'Path to the file'
+                        description: 'Relative Unity project path (e.g., Assets/Scripts/Foo.cs).'
                     },
                     symbolName: {
                         type: 'string',
-                        description: 'Name of the symbol to edit'
+                        description: 'Target symbol name (e.g., class/method/field name).'
                     },
                     kind: {
                         type: 'string',
-                        description: 'Kind of symbol (e.g., class, method, field)'
+                        description: 'Symbol kind (e.g., class, method, field, property). Optional but improves precision.'
                     },
                     newText: {
                         type: 'string',
-                        description: 'New text to insert or replace'
+                        description: 'Text to insert or use as replacement body.'
                     },
                     preview: {
                         type: 'boolean',
                         default: true,
-                        description: 'Whether to preview changes only'
+                        description: 'If true, returns a preview without writing files.'
                     }
                 },
                 required: ['operation', 'path', 'symbolName']
