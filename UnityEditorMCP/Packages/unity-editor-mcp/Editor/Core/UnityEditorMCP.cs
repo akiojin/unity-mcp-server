@@ -867,6 +867,24 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, getSettingsResult);
                         break;
 
+                    case "get_editor_state":
+                        try
+                        {
+                            var state = new {
+                                isPlaying = EditorApplication.isPlaying,
+                                isPaused = EditorApplication.isPaused,
+                                isCompiling = EditorApplication.isCompiling,
+                                isUpdating = EditorApplication.isUpdating,
+                                canApply = !EditorApplication.isCompiling && !EditorApplication.isPlaying
+                            };
+                            response = Response.SuccessResult(command.Id, state);
+                        }
+                        catch (Exception ex)
+                        {
+                            response = Response.ErrorResult(command.Id, $"Failed to get editor state: {ex.Message}", "GET_EDITOR_STATE_ERROR", null);
+                        }
+                        break;
+
                     // Editor/Project info for Node-side tools
                     case "get_editor_info":
                         try

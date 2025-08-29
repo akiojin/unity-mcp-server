@@ -1,4 +1,9 @@
+import fs from 'fs/promises';
+import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { ProjectInfoProvider } from '../../core/projectInfo.js';
+import { loadFileSymbolsWithFallback } from '../../utils/codeIndex.js';
+import { logger } from '../../core/config.js';
 
 export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -17,6 +22,7 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
+        this.projectInfo = new ProjectInfoProvider(unityConnection);
     }
 
     validate(params) {
@@ -35,17 +41,24 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
-        const { path } = params;
+        const { path: relPath } = params;
 
-        // Ensure connected
-        if (!this.unityConnection.isConnected()) {
-            await this.unityConnection.connect();
+        try {
+            const info = await this.projectInfo.get();
+            if (!relPath.startsWith('Assets/') && !relPath.startsWith('Packages/')) {
+                return { error: 'Path must be under Assets/ or Packages/' };
+            }
+            const abs = info.projectRoot + '/' + relPath;
+            const st = await fs.stat(abs).catch(() => null);
+            if (!st || !st.isFile()) return { error: 'File not found', path: relPath };
+            const fsym = await loadFileSymbolsWithFallback(info.projectRoot, info.codeIndexRoot, relPath);
+            return { success: true, path: relPath, symbols: fsym.symbols || [] };
+        } catch (e) {
+            logger.warn(`[script_symbols_get] local failed, falling back to Unity: ${e.message}`);
+            if (!this.unityConnection.isConnected()) {
+                await this.unityConnection.connect();
+            }
+            return this.unityConnection.sendCommand('script_symbols_get', { path: relPath });
         }
-
-        const result = await this.unityConnection.sendCommand('script_symbols_get', {
-            path
-        });
-
-        return result;
     }
 }

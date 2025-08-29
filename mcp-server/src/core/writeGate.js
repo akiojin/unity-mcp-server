@@ -26,10 +26,17 @@ export class WriteGate {
           await sleep(pollMs);
           continue;
         }
-        const state = await this.unity.sendCommand('get_compilation_state', { includeMessages: false });
-        // Heuristic: treat compiling/reloading as busy
-        const compiling = !!(state && (state.isCompiling || state.isAssemblyReloading || state.domainReloadRequested));
-        if (!compiling) return true;
+        // Prefer editor state if available
+        let busy = false;
+        try {
+          const editor = await this.unity.sendCommand('get_editor_state', {});
+          busy = !!(editor && (editor.isCompiling || editor.isPlaying));
+        } catch {}
+        if (!busy) {
+          const state = await this.unity.sendCommand('get_compilation_state', { includeMessages: false });
+          const compiling = !!(state && (state.isCompiling || state.isAssemblyReloading || state.domainReloadRequested));
+          if (!compiling) return true;
+        }
       } catch (e) {
         // If Unity not reachable or command fails, back off but don't block forever
         logger.warn(`[WriteGate] get_compilation_state failed: ${e.message}`);
@@ -53,4 +60,3 @@ export class WriteGate {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-

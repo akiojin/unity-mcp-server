@@ -1,4 +1,8 @@
+import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { ProjectInfoProvider } from '../../core/projectInfo.js';
+import { findSymbols } from '../../utils/codeIndex.js';
+import { logger } from '../../core/config.js';
 
 export class ScriptSymbolFindToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -32,6 +36,7 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
+        this.projectInfo = new ProjectInfoProvider(unityConnection);
     }
 
     validate(params) {
@@ -52,18 +57,24 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
             exact = false
         } = params;
 
-        // Ensure connected
-        if (!this.unityConnection.isConnected()) {
-            await this.unityConnection.connect();
+        try {
+            const info = await this.projectInfo.get();
+            const roots = [];
+            if (scope === 'assets' || scope === 'all') roots.push(info.assetsPath);
+            if (scope === 'packages' || scope === 'embedded' || scope === 'all') roots.push(info.packagesPath);
+
+            const results = [];
+            for await (const hit of findSymbols(info.projectRoot, info.codeIndexRoot, roots, { name, kind, exact, limit: 200 })) {
+                results.push({ path: hit.path, symbol: hit.symbol });
+                if (results.length >= 200) break;
+            }
+            return { success: true, results, total: results.length };
+        } catch (e) {
+            logger.warn(`[script_symbol_find] local failed, falling back to Unity: ${e.message}`);
+            if (!this.unityConnection.isConnected()) {
+                await this.unityConnection.connect();
+            }
+            return this.unityConnection.sendCommand('script_symbol_find', { name, kind, scope, exact });
         }
-
-        const result = await this.unityConnection.sendCommand('script_symbol_find', {
-            name,
-            kind,
-            scope,
-            exact
-        });
-
-        return result;
     }
 }
