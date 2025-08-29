@@ -905,7 +905,7 @@ namespace UnityEditorMCP.Handlers
                 // If includeSemantic specified and Roslyn available, restrict matches to selected container/namespace pairs
                 if (includeSemantic != null && includeSemantic.Count > 0 && UnityEditorMCP.Core.CodeIndex.RoslynAdapter.IsAvailable())
                 {
-                    var allowPairs = new HashSet<(string c, string ns)>(StringComparer.Ordinal);
+                    var allowPairs = new HashSet<(string c, string ns)>();
                     foreach (var it in includeSemantic)
                     {
                         var c = it["container"]?.ToString();
@@ -933,6 +933,7 @@ namespace UnityEditorMCP.Handlers
                 var collisionReport = new List<object>();
                 var proximityList = new List<object>();
                 bool returnLineMeta = parameters["returnLineMeta"]?.ToObject<bool?>() ?? false;
+                var mixedList = new List<object>();
                 foreach (var file in allowedOcc)
                 {
                     var abs = ToAbsoluteProjectPath(file.rel);
@@ -1133,7 +1134,7 @@ namespace UnityEditorMCP.Handlers
                     // If includeSemantic specified and Roslyn available, filter files to those containing tokens in selected containers
                     if (includeSemantic != null && includeSemantic.Count > 0 && patternType == "substring" && wordBoundary && UnityEditorMCP.Core.CodeIndex.RoslynAdapter.IsAvailable())
                     {
-                        var allowPairs = new HashSet<(string c, string ns)>(StringComparer.Ordinal);
+                        var allowPairs = new HashSet<(string c, string ns)>();
                         foreach (var it in includeSemantic)
                         {
                             var c = it["container"]?.ToString();
@@ -1151,7 +1152,7 @@ namespace UnityEditorMCP.Handlers
                     bool useSemanticLines = includeSemantic != null && includeSemantic.Count > 0 && patternType == "substring" && wordBoundary && UnityEditorMCP.Core.CodeIndex.RoslynAdapter.IsAvailable();
                     if (useSemanticLines)
                     {
-                        var allowPairs = new HashSet<(string c, string ns)>(StringComparer.Ordinal);
+                        var allowPairs = new HashSet<(string c, string ns)>();
                         foreach (var it in includeSemantic)
                         {
                             var c = it["container"]?.ToString();

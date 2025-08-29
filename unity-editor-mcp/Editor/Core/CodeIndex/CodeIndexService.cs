@@ -87,6 +87,7 @@ namespace UnityEditorMCP.Core.CodeIndex
             truncated = false;
             int total = 0;
             int totalBytes = 0;
+            var results = new List<(string rel, int line, string snippet)>();
             foreach (var (rel, _) in EnumerateFiles(scope))
             {
                 if (total >= maxTotal) break;
@@ -124,11 +125,12 @@ namespace UnityEditorMCP.Core.CodeIndex
                     var end = Math.Min(lines.Length - 1, i + snippetContext);
                     var snippet = string.Join("\n", lines.Skip(start).Take(end - start + 1));
                     var bytes = Encoding.UTF8.GetByteCount(snippet);
-                    if (totalBytes + bytes > maxBytes) { truncated = true; yield break; }
-                    yield return (rel, line, snippet);
+                    if (totalBytes + bytes > maxBytes) { truncated = true; return results; }
+                    results.Add((rel, line, snippet));
                     total++; perFile++; totalBytes += bytes;
                 }
             }
+            return results;
         }
 
         private static bool WordContains(string line, string word)
@@ -142,6 +144,7 @@ namespace UnityEditorMCP.Core.CodeIndex
         {
             truncated = false;
             int total = 0;
+            var results = new List<(string rel, int line, int startColumn, int length)>();
             foreach (var (rel, _) in EnumerateFiles(scope))
             {
                 if (total >= maxTotal) break;
@@ -152,7 +155,7 @@ namespace UnityEditorMCP.Core.CodeIndex
                 {
                     foreach (var (line, column, length) in RoslynAdapter.FindIdentifierTokens(content, name))
                     {
-                        yield return (rel, line, column, length);
+                        results.Add((rel, line, column, length));
                         perFile++; total++;
                         if (perFile >= maxMatchesPerFile || total >= maxTotal) break;
                     }
@@ -167,13 +170,14 @@ namespace UnityEditorMCP.Core.CodeIndex
                         if (perFile >= maxMatchesPerFile || total >= maxTotal) break;
                         foreach (Match m in rx.Matches(filtered[i]))
                         {
-                            yield return (rel, i + 1, m.Index + 1, m.Length);
+                            results.Add((rel, i + 1, m.Index + 1, m.Length));
                             perFile++; total++;
                             if (perFile >= maxMatchesPerFile || total >= maxTotal) break;
                         }
                     }
                 }
             }
+            return results;
         }
 
         // When Roslyn is available, find identifier occurrences grouped with container/namespace context
