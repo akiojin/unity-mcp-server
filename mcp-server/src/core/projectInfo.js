@@ -42,29 +42,42 @@ export class ProjectInfoProvider {
 
   inferFromCwd() {
     let dir = process.cwd();
-    // If running inside package dir (e.g., mcp-server), step up once.
-    try {
-      const parent = path.dirname(dir);
-      if (fs.existsSync(path.join(parent, 'Assets'))) dir = parent;
-    } catch {}
-    // Walk up max 5 levels
+    // Walk up max 5 levels (look for Assets directly under a directory)
     for (let i = 0; i < 5; i++) {
       const assets = path.join(dir, 'Assets');
-      const packages = path.join(dir, 'Packages');
       if (fs.existsSync(assets)) {
         const projectRoot = dir.replace(/\\/g, '/');
         return {
           projectRoot,
           assetsPath: assets.replace(/\\/g, '/'),
-          packagesPath: packages.replace(/\\/g, '/'),
+          packagesPath: path.join(dir, 'Packages').replace(/\\/g, '/'),
           codeIndexRoot: path.join(dir, 'Library/UnityMCP/CodeIndex').replace(/\\/g, '/'),
         };
       }
-      const next = path.dirname(dir);
-      if (next === dir) break;
-      dir = next;
+      dir = path.dirname(dir);
+    }
+
+    // Fallback: search shallow subdirectories for Unity projects (depth 2)
+    const rootsToCheck = [process.cwd(), path.dirname(process.cwd())];
+    for (const root of rootsToCheck) {
+      try {
+        const entries = fs.readdirSync(root, { withFileTypes: true });
+        for (const e of entries) {
+          if (!e.isDirectory()) continue;
+          const candidate = path.join(root, e.name);
+          const assets = path.join(candidate, 'Assets');
+          if (fs.existsSync(assets)) {
+            const projectRoot = candidate.replace(/\\/g, '/');
+            return {
+              projectRoot,
+              assetsPath: assets.replace(/\\/g, '/'),
+              packagesPath: path.join(candidate, 'Packages').replace(/\\/g, '/'),
+              codeIndexRoot: path.join(candidate, 'Library/UnityMCP/CodeIndex').replace(/\\/g, '/'),
+            };
+          }
+        }
+      } catch {}
     }
     return null;
   }
 }
-

@@ -1,4 +1,8 @@
+import fs from 'fs/promises';
+import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { ProjectInfoProvider } from '../../core/projectInfo.js';
+import { logger } from '../../core/config.js';
 
 export class ScriptSearchToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -89,6 +93,7 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
+        this.projectInfo = new ProjectInfoProvider(unityConnection);
     }
 
     validate(params) {
@@ -103,13 +108,193 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
-        // Ensure connected
-        if (!this.unityConnection.isConnected()) {
-            await this.unityConnection.connect();
+        try {
+            const info = await this.projectInfo.get();
+            const {
+                pattern,
+                patternType = 'substring',
+                flags = [],
+                scope = 'assets',
+                include = '**/*.cs',
+                exclude,
+                pageSize = 20,
+                maxMatchesPerFile = 5,
+                snippetContext = 2,
+                maxBytes = 1024 * 64,
+                returnMode = 'snippets',
+                startAfter,
+                maxFileSizeKB = 1024,
+                codeOnly = true,
+            } = params;
+
+            // Resolve search roots
+            const roots = [];
+            if (scope === 'assets' || scope === 'all') roots.push(info.assetsPath);
+            if (scope === 'packages' || scope === 'embedded' || scope === 'all') roots.push(info.packagesPath);
+
+            const includeRx = globToRegExp(include);
+            const excludeRx = exclude ? globToRegExp(exclude) : null;
+            const matcher = buildMatcher(patternType, pattern, flags);
+
+            const results = [];
+            const pathTable = [];
+            const pathId = new Map();
+            let bytes = 0;
+            let afterFound = !startAfter;
+
+            for await (const file of walk(roots)) {
+                // Pagination cursor: skip until we see startAfter
+                const rel = toRel(file, info.projectRoot);
+                if (!afterFound) {
+                    if (rel === startAfter) afterFound = true;
+                    else continue;
+                }
+                // Filters
+                if (!includeRx.test(rel)) continue;
+                if (excludeRx && excludeRx.test(rel)) continue;
+                if (!rel.toLowerCase().endsWith('.cs')) continue;
+
+                // Size guard
+                const st = await fs.stat(file).catch(() => null);
+                if (!st || st.size > maxFileSizeKB * 1024) continue;
+
+                // Read content
+                const text = await fs.readFile(file, 'utf8');
+                const lines = text.split('\n');
+                const filtered = codeOnly ? stripComments(lines) : lines;
+
+                let matches = 0;
+                const matchedLines = [];
+                for (let i = 0; i < filtered.length; i++) {
+                    if (matches >= maxMatchesPerFile) break;
+                    const line = filtered[i];
+                    if (matcher(line)) {
+                        matches++;
+                        matchedLines.push(i + 1);
+                    }
+                }
+                if (matches === 0) continue;
+
+                const id = pathId.has(rel) ? pathId.get(rel) : (pathTable.push(rel) - 1, pathTable.length - 1);
+                pathId.set(rel, id);
+
+                const lineRanges = toRanges(matchedLines);
+                const item = { fileId: id, lineRanges };
+
+                if (returnMode === 'snippets') {
+                    // Build minimal snippets around first few matches
+                    const snippets = [];
+                    for (const ln of matchedLines.slice(0, maxMatchesPerFile)) {
+                        const s = Math.max(1, ln - snippetContext);
+                        const e = Math.min(lines.length, ln + snippetContext);
+                        snippets.push({ line: ln, snippet: lines.slice(s - 1, e).join('\n') });
+                    }
+                    item.snippets = snippets;
+                }
+
+                const json = JSON.stringify(item);
+                bytes += Buffer.byteLength(json, 'utf8');
+                results.push(item);
+
+                if (results.length >= pageSize || bytes >= maxBytes) break;
+            }
+
+            return {
+                success: true,
+                total: results.length,
+                pathTable,
+                results,
+                cursor: results.length && results.length >= pageSize ? pathTable[pathTable.length - 1] : null
+            };
+        } catch (e) {
+            logger.error(`[script_search] failed: ${e.message}`);
+            return { error: e.message };
         }
-
-        const result = await this.unityConnection.sendCommand('script_search', params);
-
-        return result;
     }
+}
+
+// --- helpers ---
+function globToRegExp(glob) {
+    // Very small subset: **/* and * and ? handling
+    const esc = glob.replace(/[.+^${}()|[\]\\]/g, '\\$&')
+        .replace(/\*\*/g, '§§')
+        .replace(/\*/g, '[^/]*')
+        .replace(/§§/g, '.*')
+        .replace(/\?/g, '.');
+    return new RegExp('^' + esc + '$');
+}
+
+function buildMatcher(type, pattern, flags) {
+    if (type === 'regex') {
+        const fl = Array.isArray(flags) ? flags.join('') : '';
+        const rx = new RegExp(pattern, fl);
+        return (s) => rx.test(s);
+    }
+    if (type === 'glob') {
+        // glob-only scan: no content matcher, treat every file as match
+        return () => true;
+    }
+    // substring
+    const p = pattern || '';
+    return (s) => p && s.includes(p);
+}
+
+async function* walk(roots) {
+    for (const r of roots) {
+        yield* walkDir(r);
+    }
+}
+
+async function* walkDir(dir) {
+    let entries;
+    try { entries = await fs.readdir(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) {
+            yield* walkDir(p);
+        } else if (e.isFile()) {
+            yield p.replace(/\\/g, '/');
+        }
+    }
+}
+
+function toRel(abs, projectRoot) {
+    const n = abs.replace(/\\/g, '/');
+    const base = projectRoot.replace(/\\/g, '/');
+    return n.startsWith(base) ? n.substring(base.length + 1) : n;
+}
+
+function toRanges(lines) {
+    if (!lines.length) return '';
+    const out = [];
+    let s = lines[0], prev = lines[0];
+    for (let i = 1; i < lines.length; i++) {
+        const v = lines[i];
+        if (v === prev + 1) { prev = v; continue; }
+        out.push(s === prev ? `${s}` : `${s}-${prev}`);
+        s = prev = v;
+    }
+    out.push(s === prev ? `${s}` : `${s}-${prev}`);
+    return out.join(',');
+}
+
+function stripComments(lines) {
+    // naive removal of // line comments and /* */ blocks
+    const out = [];
+    let inBlock = false;
+    for (const line of lines) {
+        let s = line;
+        if (inBlock) {
+            const end = s.indexOf('*/');
+            if (end >= 0) { s = s.slice(end + 2); inBlock = false; } else { out.push(''); continue; }
+        }
+        let i = 0; let res = '';
+        while (i < s.length) {
+            if (s.startsWith('/*', i)) { inBlock = true; const end = s.indexOf('*/', i + 2); if (end >= 0) { i = end + 2; inBlock = false; continue; } else break; }
+            if (s.startsWith('//', i)) { break; }
+            res += s[i++];
+        }
+        out.push(res);
+    }
+    return out;
 }

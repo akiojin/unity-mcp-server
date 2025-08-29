@@ -3,7 +3,7 @@
  */
 export const getGameObjectDetailsToolDefinition = {
     name: 'get_gameobject_details',
-    description: 'Get detailed information about a specific GameObject',
+    description: 'Get details for a GameObject by name or path (children/components/materials).',
     inputSchema: {
         type: 'object',
         properties: {

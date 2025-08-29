@@ -3,7 +3,7 @@
  */
 export const findByComponentToolDefinition = {
     name: 'find_by_component',
-    description: 'Find all GameObjects that have a specific component type',
+    description: 'Find GameObjects that have a specific component type (scene/prefabs/all).',
     inputSchema: {
         type: 'object',
         properties: {

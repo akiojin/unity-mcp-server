@@ -3,7 +3,7 @@
  */
 export const analyzeSceneContentsToolDefinition = {
     name: 'analyze_scene_contents',
-    description: 'Analyze and get statistics about the current scene',
+    description: 'Analyze current scene: object counts, types, prefabs, and memory stats.',
     inputSchema: {
         type: 'object',
         properties: {
