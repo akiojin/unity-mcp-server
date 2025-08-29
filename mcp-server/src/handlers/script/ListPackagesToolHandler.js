@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
-export class ListPackagesToolHandler extends BaseToolHandler {
+export class ScriptListPackagesToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'list_packages',
+            'script_packages_list',
             'List Unity packages in the project',
             {
                 type: 'object',

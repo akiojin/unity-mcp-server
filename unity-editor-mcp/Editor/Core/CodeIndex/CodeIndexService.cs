@@ -153,7 +153,7 @@ namespace UnityEditorMCP.Core.CodeIndex
                 int perFile = 0;
                 if (RoslynAdapter.IsAvailable())
                 {
-                    foreach (var (line, column, length) in RoslynAdapter.FindIdentifierTokens(content, name))
+                    foreach (var (line, column, length, container, ns) in RoslynAdapter.FindIdentifierTokens(content, name))
                     {
                         results.Add((rel, line, column, length));
                         perFile++; total++;

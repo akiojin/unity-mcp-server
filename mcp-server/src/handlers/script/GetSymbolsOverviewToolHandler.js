@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
-export class GetSymbolsOverviewToolHandler extends BaseToolHandler {
+export class ScriptGetSymbolsOverviewToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'get_symbols_overview',
+            'script_symbols_get',
             'Get an overview of symbols (classes, methods, fields) in a script file',
             {
                 type: 'object',
@@ -42,7 +42,7 @@ export class GetSymbolsOverviewToolHandler extends BaseToolHandler {
             await this.unityConnection.connect();
         }
 
-        const result = await this.unityConnection.sendCommand('get_symbols_overview', {
+        const result = await this.unityConnection.sendCommand('script_symbols_get', {
             path
         });
 

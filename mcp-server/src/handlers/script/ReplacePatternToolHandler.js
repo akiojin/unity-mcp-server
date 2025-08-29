@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
-export class ReplacePatternToolHandler extends BaseToolHandler {
+export class ScriptReplacePatternToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'replace_pattern',
+            'script_replace_pattern',
             'Replace patterns in Unity script files using regex or substring matching',
             {
                 type: 'object',
@@ -118,7 +118,7 @@ export class ReplacePatternToolHandler extends BaseToolHandler {
             await this.unityConnection.connect();
         }
 
-        const result = await this.unityConnection.sendCommand('replace_pattern', params);
+        const result = await this.unityConnection.sendCommand('script_replace_pattern', params);
 
         return result;
     }

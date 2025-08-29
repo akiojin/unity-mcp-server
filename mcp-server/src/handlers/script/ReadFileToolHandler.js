@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
-export class ReadFileToolHandler extends BaseToolHandler {
+export class ScriptReadToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'read_file',
+            'script_read',
             'Read a script file from Unity project with chunked reading support',
             {
                 type: 'object',

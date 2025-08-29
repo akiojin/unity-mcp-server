@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
-export class FindSymbolToolHandler extends BaseToolHandler {
+export class ScriptFindSymbolToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'find_symbol',
+            'script_symbol_find',
             'Find symbols (classes, methods, fields) by name across the codebase',
             {
                 type: 'object',
@@ -57,7 +57,7 @@ export class FindSymbolToolHandler extends BaseToolHandler {
             await this.unityConnection.connect();
         }
 
-        const result = await this.unityConnection.sendCommand('find_symbol', {
+        const result = await this.unityConnection.sendCommand('script_symbol_find', {
             name,
             kind,
             scope,

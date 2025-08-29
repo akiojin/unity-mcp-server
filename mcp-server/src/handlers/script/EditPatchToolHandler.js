@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
-export class EditPatchToolHandler extends BaseToolHandler {
+export class ScriptEditPatchToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'edit_patch',
+            'script_edit_patch',
             'Apply patches to Unity script files with preview support',
             {
                 type: 'object',

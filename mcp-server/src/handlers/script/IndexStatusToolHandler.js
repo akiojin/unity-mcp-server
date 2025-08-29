@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
-export class IndexStatusToolHandler extends BaseToolHandler {
+export class ScriptIndexStatusToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'index_status',
+            'script_index_status',
             'Get the status of the code index',
             {
                 type: 'object',
@@ -20,7 +20,7 @@ export class IndexStatusToolHandler extends BaseToolHandler {
             await this.unityConnection.connect();
         }
 
-        const result = await this.unityConnection.sendCommand('index_status', {});
+        const result = await this.unityConnection.sendCommand('script_index_status', {});
 
         return result;
     }

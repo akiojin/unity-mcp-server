@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
-export class EditStructuredToolHandler extends BaseToolHandler {
+export class ScriptEditStructuredToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'edit_structured',
+            'script_edit_structured',
             'Perform structured edits on code symbols (insert before/after, replace body)',
             {
                 type: 'object',
@@ -66,7 +66,7 @@ export class EditStructuredToolHandler extends BaseToolHandler {
             await this.unityConnection.connect();
         }
 
-        const result = await this.unityConnection.sendCommand('edit_structured', params);
+        const result = await this.unityConnection.sendCommand('script_edit_structured', params);
 
         return result;
     }

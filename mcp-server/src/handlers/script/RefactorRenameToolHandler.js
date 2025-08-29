@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
-export class RefactorRenameToolHandler extends BaseToolHandler {
+export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'refactor_rename',
+            'script_refactor_rename',
             'Rename symbols (classes, methods, variables) across the codebase',
             {
                 type: 'object',
@@ -102,7 +102,7 @@ export class RefactorRenameToolHandler extends BaseToolHandler {
             await this.unityConnection.connect();
         }
 
-        const result = await this.unityConnection.sendCommand('refactor_rename', params);
+        const result = await this.unityConnection.sendCommand('script_refactor_rename', params);
 
         return result;
     }

@@ -926,7 +926,7 @@ namespace UnityEditorMCP.Handlers
                         }
                     }
                     // Rebuild allowedOcc from filtered (anonymous types, but used inline below)
-                    allowedOcc = filtered.Cast<object>().Select(o => new { rel = (string)o.GetType().GetProperty("rel").GetValue(o), matches = (List<(int line, int startColumn, int length)>)o.GetType().GetProperty("matches").GetValue(o) }).ToList();
+                    allowedOcc = filtered.Select(f => f).ToList();
                 }
 
                 var previews = new List<object>();
@@ -1121,6 +1121,7 @@ namespace UnityEditorMCP.Handlers
                 int changedFiles = 0;
                 int totalMatches = 0;
                 bool returnLineMeta = parameters["returnLineMeta"]?.ToObject<bool?>() ?? false;
+                var mixedList = new List<object>();
 
                 foreach (var file in files)
                 {

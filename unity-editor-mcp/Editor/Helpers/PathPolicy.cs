@@ -47,7 +47,7 @@ namespace UnityEditorMCP.Helpers
             // Resolve package root for path and check source
             try
             {
-                var pkg = PackageInfo.FindForAssetPath(path);
+                var pkg = UnityEditor.PackageManager.PackageInfo.FindForAssetPath(path);
                 return pkg != null && pkg.source == PackageSource.Embedded;
             }
             catch

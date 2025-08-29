@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
-export class SearchToolHandler extends BaseToolHandler {
+export class ScriptSearchToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'search',
+            'script_search',
             'Search for patterns in Unity script files',
             {
                 type: 'object',

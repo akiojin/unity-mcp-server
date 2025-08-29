@@ -115,10 +115,17 @@ export { default as PackageManagerToolHandler } from './package/PackageManagerTo
 export { default as RegistryConfigToolHandler } from './package/RegistryConfigToolHandler.js';
 
 // Script handlers
-export { ListPackagesToolHandler } from './script/ListPackagesToolHandler.js';
-export { ReadFileToolHandler } from './script/ReadFileToolHandler.js';
-export { SearchToolHandler } from './script/SearchToolHandler.js';
-export { EditPatchToolHandler } from './script/EditPatchToolHandler.js';
+export { ScriptListPackagesToolHandler } from './script/ListPackagesToolHandler.js';
+export { ScriptReadToolHandler } from './script/ReadFileToolHandler.js';
+export { ScriptSearchToolHandler } from './script/SearchToolHandler.js';
+export { ScriptEditPatchToolHandler } from './script/EditPatchToolHandler.js';
+export { ScriptEditStructuredToolHandler } from './script/EditStructuredToolHandler.js';
+export { ScriptFindReferencesToolHandler } from './script/FindReferencesToolHandler.js';
+export { ScriptFindSymbolToolHandler } from './script/FindSymbolToolHandler.js';
+export { ScriptGetSymbolsOverviewToolHandler } from './script/GetSymbolsOverviewToolHandler.js';
+export { ScriptIndexStatusToolHandler } from './script/IndexStatusToolHandler.js';
+export { ScriptRefactorRenameToolHandler } from './script/RefactorRenameToolHandler.js';
+export { ScriptReplacePatternToolHandler } from './script/ReplacePatternToolHandler.js';
 export { EditPatchToolHandler } from './script/EditPatchToolHandler.js';
 export { EditStructuredToolHandler } from './script/EditStructuredToolHandler.js';
 export { ReplacePatternToolHandler } from './script/ReplacePatternToolHandler.js';
@@ -190,10 +197,17 @@ import { ReadConsoleToolHandler } from './console/ReadConsoleToolHandler.js';
 import { CaptureScreenshotToolHandler } from './screenshot/CaptureScreenshotToolHandler.js';
 import { AnalyzeScreenshotToolHandler } from './screenshot/AnalyzeScreenshotToolHandler.js';
 // Script handlers
-import { ListPackagesToolHandler } from './script/ListPackagesToolHandler.js';
-import { ReadFileToolHandler } from './script/ReadFileToolHandler.js';
-import { SearchToolHandler } from './script/SearchToolHandler.js';
-import { EditPatchToolHandler } from './script/EditPatchToolHandler.js';
+import { ScriptListPackagesToolHandler } from './script/ListPackagesToolHandler.js';
+import { ScriptReadToolHandler } from './script/ReadFileToolHandler.js';
+import { ScriptSearchToolHandler } from './script/SearchToolHandler.js';
+import { ScriptEditPatchToolHandler } from './script/EditPatchToolHandler.js';
+import { ScriptEditStructuredToolHandler } from './script/EditStructuredToolHandler.js';
+import { ScriptFindReferencesToolHandler } from './script/FindReferencesToolHandler.js';
+import { ScriptFindSymbolToolHandler } from './script/FindSymbolToolHandler.js';
+import { ScriptGetSymbolsOverviewToolHandler } from './script/GetSymbolsOverviewToolHandler.js';
+import { ScriptIndexStatusToolHandler } from './script/IndexStatusToolHandler.js';
+import { ScriptRefactorRenameToolHandler } from './script/RefactorRenameToolHandler.js';
+import { ScriptReplacePatternToolHandler } from './script/ReplacePatternToolHandler.js';
 import { AddComponentToolHandler } from './component/AddComponentToolHandler.js';
 import { RemoveComponentToolHandler } from './component/RemoveComponentToolHandler.js';
 import { ModifyComponentToolHandler } from './component/ModifyComponentToolHandler.js';
@@ -307,10 +321,17 @@ const HANDLER_CLASSES = [
   CaptureScreenshotToolHandler,
   AnalyzeScreenshotToolHandler,
   // Script handlers
-  ListPackagesToolHandler,
-  ReadFileToolHandler,
-  SearchToolHandler,
-  EditPatchToolHandler,
+  ScriptListPackagesToolHandler,
+  ScriptReadToolHandler,
+  ScriptSearchToolHandler,
+  ScriptEditPatchToolHandler,
+  ScriptEditStructuredToolHandler,
+  ScriptFindReferencesToolHandler,
+  ScriptFindSymbolToolHandler,
+  ScriptGetSymbolsOverviewToolHandler,
+  ScriptIndexStatusToolHandler,
+  ScriptRefactorRenameToolHandler,
+  ScriptReplacePatternToolHandler,
   
   // Component handlers
   AddComponentToolHandler,

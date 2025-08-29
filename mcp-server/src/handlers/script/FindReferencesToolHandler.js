@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
-export class FindReferencesToolHandler extends BaseToolHandler {
+export class ScriptFindReferencesToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'find_references',
+            'script_refs_find',
             'Find references to a symbol across the codebase',
             {
                 type: 'object',
@@ -73,7 +73,7 @@ export class FindReferencesToolHandler extends BaseToolHandler {
             await this.unityConnection.connect();
         }
 
-        const result = await this.unityConnection.sendCommand('find_references', params);
+        const result = await this.unityConnection.sendCommand('script_refs_find', params);
 
         return result;
     }
