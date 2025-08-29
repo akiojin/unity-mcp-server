@@ -8,7 +8,7 @@ export class RefreshAssetsToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'refresh_assets',
-      'Trigger Unity to refresh assets and check for compilation. NOTE: Asset refresh and compilation may take 5-120+ seconds depending on project size, number of changed assets, and script complexity. Unity needs to import assets, compile scripts, and update the asset database. Please wait for the operation to complete.',
+      'Refresh assets and check compilation status.',
       {
         type: 'object',
         properties: {},

@@ -7,7 +7,7 @@ export class StartCompilationMonitoringToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'start_compilation_monitoring',
-      'Start monitoring Unity compilation events and error detection',
+      'Start monitoring compilation events and error detection.',
       {
         type: 'object',
         properties: {}

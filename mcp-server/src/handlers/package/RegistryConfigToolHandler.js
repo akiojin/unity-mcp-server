@@ -9,7 +9,7 @@ export default class RegistryConfigToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'registry_config',
-      'Configure Unity package registries (OpenUPM, Unity NuGet) for third-party packages',
+      'Configure package registries (OpenUPM/NuGet): list/add/remove scopes or recommend.',
       {
         type: 'object',
         properties: {
@@ -200,4 +200,3 @@ export default class RegistryConfigToolHandler extends BaseToolHandler {
     ];
   }
 }
-

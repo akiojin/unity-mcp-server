@@ -7,7 +7,7 @@ export class StopCompilationMonitoringToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'stop_compilation_monitoring',
-      'Stop monitoring Unity compilation events',
+      'Stop monitoring compilation events.',
       {
         type: 'object',
         properties: {}
