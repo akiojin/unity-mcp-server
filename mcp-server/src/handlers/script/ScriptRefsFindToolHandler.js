@@ -1,6 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
-export class ScriptFindReferencesToolHandler extends BaseToolHandler {
+export class ScriptRefsFindToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_refs_find',

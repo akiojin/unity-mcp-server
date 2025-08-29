@@ -9,7 +9,7 @@ export class ModifyGameObjectToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'modify_gameobject',
-      'Modify properties of an existing GameObject',
+      'Modify GameObject properties (transform/name/parent/active/tag/layer).',
       {
         type: 'object',
         properties: {

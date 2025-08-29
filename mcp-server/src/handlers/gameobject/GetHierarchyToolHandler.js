@@ -8,7 +8,7 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'get_hierarchy',
-      'Get the Unity scene hierarchy. IMPORTANT: Large hierarchies can cause MCP response size limit errors (>25,000 tokens). Use maxObjects parameter to limit response size (recommended: 10-50 for detailed info, 100-500 for name-only mode).',
+      'Get scene hierarchy. Use nameOnly/maxObjects to limit size and avoid token limits on large scenes.',
       {
         type: 'object',
         properties: {

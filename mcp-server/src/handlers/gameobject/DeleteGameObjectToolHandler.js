@@ -8,7 +8,7 @@ export class DeleteGameObjectToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'delete_gameobject',
-      'Delete GameObject(s) from Unity scene',
+      'Delete GameObject(s) by path or paths (optionally include children).',
       {
         type: 'object',
         properties: {

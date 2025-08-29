@@ -8,7 +8,7 @@ export class FindGameObjectToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'find_gameobject',
-      'Find GameObjects in Unity scene by name, tag, or layer',
+      'Find GameObjects by name, tag, or layer with optional exact matching.',
       {
         type: 'object',
         properties: {
