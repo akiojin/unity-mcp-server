@@ -7,7 +7,7 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'capture_screenshot',
-      'Captures screenshots from Unity Editor with multiple modes: Game View (player perspective), Scene View (editor perspective), Explorer mode (AI/LLM optimized view), or specific editor windows. Explorer mode is specifically designed for AI/LLM analysis with automatic framing and clear object visibility.',
+      'Capture Game/Scene/Window/Explorer screenshots. Explorer mode is AI/LLM‑optimized (auto‑framing, clear visibility).',
       {
         type: 'object',
         properties: {

@@ -9,7 +9,7 @@ export class AnalyzeScreenshotToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'analyze_screenshot',
-      'Analyze Unity screenshots for content, UI elements, colors, and more',
+      'Analyze a screenshot: dimensions/colors, UI elements, and scene content (basic/ui/content/full).',
       {
         type: 'object',
         properties: {
