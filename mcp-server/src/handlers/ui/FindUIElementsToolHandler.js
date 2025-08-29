@@ -4,30 +4,30 @@ export class FindUIElementsToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'find_ui_elements',
-            'Find UI elements in Unity scene by type, tag, or name',
+            'Find UI elements by component type, tag, or name pattern.',
             {
                 type: 'object',
                 properties: {
                     elementType: {
                         type: 'string',
-                        description: 'Filter by UI component type (Button, Toggle, Slider, etc.)'
+                        description: 'UI component type (e.g., Button, Toggle, Slider).'
                     },
                     tagFilter: {
                         type: 'string',
-                        description: 'Filter by GameObject tag'
+                        description: 'Filter by GameObject tag.'
                     },
                     namePattern: {
                         type: 'string',
-                        description: 'Search by name pattern/regex'
+                        description: 'Search by name substring or regex.'
                     },
                     includeInactive: {
                         type: 'boolean',
-                        description: 'Include inactive UI elements',
+                        description: 'If true, include inactive UI elements.',
                         default: false
                     },
                     canvasFilter: {
                         type: 'string',
-                        description: 'Filter by parent Canvas name'
+                        description: 'Filter by parent Canvas name.'
                     }
                 },
                 required: []
