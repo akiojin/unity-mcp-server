@@ -49,8 +49,10 @@ export async function* findSymbols(projectRoot, codeIndexRoot, roots, { name, ki
   // Prefer index if present, otherwise walk files
   const hasIndex = fssync.existsSync(path.join(codeIndexRoot, 'files'));
   let count = 0;
+  const indexedPaths = new Set();
   if (hasIndex) {
     for await (const item of iterateIndexedFiles(codeIndexRoot)) {
+      indexedPaths.add(item.relPath);
       for (const s of item.symbols) {
         if (kind && s.kind !== kind) continue;
         const match = exact ? s.name === name : (s.name || '').toLowerCase().includes(name.toLowerCase());
@@ -59,7 +61,7 @@ export async function* findSymbols(projectRoot, codeIndexRoot, roots, { name, ki
         count++; if (count >= limit) return;
       }
     }
-    return;
+    // Do not return yet; continue to scan roots for files not present in index (e.g., Packages)
   }
   // Walk roots for .cs and parse minimally
   const seen = new Set();
@@ -69,6 +71,7 @@ export async function* findSymbols(projectRoot, codeIndexRoot, roots, { name, ki
       if (!abs.toLowerCase().endsWith('.cs')) continue;
       const rel = toRel(abs, projectRoot);
       if (seen.has(rel)) continue;
+      if (indexedPaths.has(rel)) continue;
       seen.add(rel);
       const text = await fs.readFile(abs, 'utf8').catch(() => null);
       if (!text) continue;
