@@ -7,7 +7,7 @@ export class ListScenesToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'list_scenes',
-      'List all scenes in the Unity project',
+      'List scenes in project (filter to loaded/build scenes or by path).',
       {
         type: 'object',
         properties: {

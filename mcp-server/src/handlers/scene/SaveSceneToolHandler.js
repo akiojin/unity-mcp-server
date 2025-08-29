@@ -7,7 +7,7 @@ export class SaveSceneToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'save_scene',
-      'Save the current scene in Unity',
+      'Save current scene or save as a specified path.',
       {
         type: 'object',
         properties: {

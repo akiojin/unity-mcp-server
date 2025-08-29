@@ -7,7 +7,7 @@ export class LoadSceneToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'load_scene',
-      'Load a scene in Unity. NOTE: Scene loading may take 5-60+ seconds depending on scene size, asset count, lightmaps, and compilation requirements. Large scenes with many GameObjects, textures, or complex lighting can take significant time to load. Please wait for the operation to complete.',
+      'Load a scene by path or name (Single/Additive).',
       {
         type: 'object',
         properties: {
