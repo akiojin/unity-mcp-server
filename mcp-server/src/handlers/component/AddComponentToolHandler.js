@@ -7,13 +7,13 @@ export class AddComponentToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'add_component',
-      'Add a component to a GameObject in Unity (works in both scene and prefab mode)',
+      'Add a component to a GameObject (scene or prefab mode) with optional initial properties.',
       {
         type: 'object',
         properties: {
           gameObjectPath: {
             type: 'string',
-            description: 'Path to the GameObject (e.g., "/Player" or "/Canvas/Button")'
+            description: 'Scene path to the GameObject (e.g., "/Player" or "/Canvas/Button").'
           },
           componentType: {
             type: 'string',
@@ -21,7 +21,7 @@ export class AddComponentToolHandler extends BaseToolHandler {
           },
           properties: {
             type: 'object',
-            description: 'Initial property values for the component',
+            description: 'Initial property values to set on the new component.',
             additionalProperties: true
           }
         },
