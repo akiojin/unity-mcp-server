@@ -208,7 +208,7 @@ namespace UnityEditorMCP.Handlers
             return new JObject
             {
                 ["colorSpace"] = PlayerSettings.colorSpace.ToString(),
-                ["renderPipelineAsset"] = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset?.name ?? "Built-in",
+                ["renderPipelineAsset"] = UnityEngine.Rendering.GraphicsSettings.defaultRenderPipeline?.name ?? "Built-in",
                 ["transparencySortMode"] = UnityEngine.Rendering.GraphicsSettings.transparencySortMode.ToString(),
                 ["transparencySortAxis"] = new JObject
                 {
@@ -284,7 +284,7 @@ namespace UnityEditorMCP.Handlers
                 },
                 ["velocityIterations"] = Physics2D.velocityIterations,
                 ["positionIterations"] = Physics2D.positionIterations,
-                ["velocityThreshold"] = Physics2D.velocityThreshold,
+                ["velocityThreshold"] = Physics2D.bounceThreshold,
                 ["maxLinearCorrection"] = Physics2D.maxLinearCorrection,
                 ["maxAngularCorrection"] = Physics2D.maxAngularCorrection,
                 ["maxTranslationSpeed"] = Physics2D.maxTranslationSpeed,

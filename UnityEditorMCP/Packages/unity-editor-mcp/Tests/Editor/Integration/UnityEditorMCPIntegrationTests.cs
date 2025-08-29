@@ -27,7 +27,7 @@ namespace UnityEditorMCP.Tests.Integration
             {
                 // Act - Try to connect to the Unity TCP server
                 client = new TcpClient();
-                var connectTask = client.ConnectAsync("127.0.0.1", UnityEditorMCP.DEFAULT_PORT);
+                var connectTask = client.ConnectAsync("127.0.0.1", Core.UnityEditorMCP.DEFAULT_PORT);
                 
                 // Wait for connection with timeout
                 var completed = await Task.WhenAny(connectTask, Task.Delay(CONNECTION_TIMEOUT_MS));
@@ -35,7 +35,7 @@ namespace UnityEditorMCP.Tests.Integration
                 // Assert
                 Assert.IsTrue(completed == connectTask, "Connection should complete within timeout");
                 Assert.IsTrue(client.Connected, "Client should be connected");
-                Assert.AreEqual(McpStatus.Connected, UnityEditorMCP.Status, "MCP status should be Connected");
+                Assert.AreEqual(McpStatus.Connected, Core.UnityEditorMCP.Status, "MCP status should be Connected");
             }
             finally
             {
@@ -53,7 +53,7 @@ namespace UnityEditorMCP.Tests.Integration
             try
             {
                 client = new TcpClient();
-                await client.ConnectAsync("127.0.0.1", UnityEditorMCP.DEFAULT_PORT);
+                await client.ConnectAsync("127.0.0.1", Core.UnityEditorMCP.DEFAULT_PORT);
                 
                 var stream = client.GetStream();
                 
@@ -107,7 +107,7 @@ namespace UnityEditorMCP.Tests.Integration
             try
             {
                 client = new TcpClient();
-                await client.ConnectAsync("127.0.0.1", UnityEditorMCP.DEFAULT_PORT);
+                await client.ConnectAsync("127.0.0.1", Core.UnityEditorMCP.DEFAULT_PORT);
                 
                 var stream = client.GetStream();
                 
@@ -150,10 +150,10 @@ namespace UnityEditorMCP.Tests.Integration
             {
                 // Act - Connect two clients
                 client1 = new TcpClient();
-                await client1.ConnectAsync("127.0.0.1", UnityEditorMCP.DEFAULT_PORT);
+                await client1.ConnectAsync("127.0.0.1", Core.UnityEditorMCP.DEFAULT_PORT);
                 
                 client2 = new TcpClient();
-                await client2.ConnectAsync("127.0.0.1", UnityEditorMCP.DEFAULT_PORT);
+                await client2.ConnectAsync("127.0.0.1", Core.UnityEditorMCP.DEFAULT_PORT);
                 
                 // Send commands from both clients
                 var command1 = new Command { Id = "client1-cmd", Type = "ping" };
@@ -185,8 +185,8 @@ namespace UnityEditorMCP.Tests.Integration
             // Note: In actual Unity, the MCP might already be connected from previous tests
             // This test verifies that the status enum is working correctly
             Assert.IsTrue(
-                UnityEditorMCP.Status == McpStatus.Disconnected || 
-                UnityEditorMCP.Status == McpStatus.Connected,
+                Core.UnityEditorMCP.Status == McpStatus.Disconnected || 
+                Core.UnityEditorMCP.Status == McpStatus.Connected,
                 "Status should be either Disconnected or Connected"
             );
         }
@@ -201,7 +201,7 @@ namespace UnityEditorMCP.Tests.Integration
             {
                 // First connection
                 client = new TcpClient();
-                await client.ConnectAsync("127.0.0.1", UnityEditorMCP.DEFAULT_PORT);
+                await client.ConnectAsync("127.0.0.1", Core.UnityEditorMCP.DEFAULT_PORT);
                 Assert.IsTrue(client.Connected, "Should connect initially");
                 
                 // Disconnect
@@ -213,7 +213,7 @@ namespace UnityEditorMCP.Tests.Integration
                 
                 // Act - Reconnect
                 client = new TcpClient();
-                var reconnectTask = client.ConnectAsync("127.0.0.1", UnityEditorMCP.DEFAULT_PORT);
+                var reconnectTask = client.ConnectAsync("127.0.0.1", Core.UnityEditorMCP.DEFAULT_PORT);
                 var completed = await Task.WhenAny(reconnectTask, Task.Delay(CONNECTION_TIMEOUT_MS));
                 
                 // Assert

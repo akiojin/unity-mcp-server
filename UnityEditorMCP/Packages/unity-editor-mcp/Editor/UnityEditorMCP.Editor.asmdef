@@ -2,18 +2,19 @@
     "name": "UnityEditorMCP.Editor",
     "rootNamespace": "UnityEditorMCP",
     "references": [
-        "Newtonsoft.Json",
-        "Unity.InputSystem",
-        "Microsoft.CodeAnalysis.Common",
-        "Microsoft.CodeAnalysis.CSharp"
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Microsoft.CodeAnalysis.dll",
+        "Microsoft.CodeAnalysis.CSharp.dll",
+        "Newtonsoft.Json.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [

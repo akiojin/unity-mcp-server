@@ -3,6 +3,7 @@ using UnityEditorMCP.Helpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEditorMCP.Tests.Helpers
 {
@@ -55,7 +56,7 @@ namespace UnityEditorMCP.Tests.Helpers
         public void Error_ShouldReturnCorrectJsonWithCode()
         {
             // Act
-            var result = Response.Error("Connection failed", "CONN_001");
+            var result = Response.Error("Connection failed", "CONN_001", null);
             var json = JObject.Parse(result);
             
             // Assert

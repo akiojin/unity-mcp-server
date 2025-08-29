@@ -246,8 +246,8 @@ namespace UnityEditorMCP.Handlers
                     
                 case Rigidbody rb:
                     properties["mass"] = rb.mass;
-                    properties["drag"] = rb.drag;
-                    properties["angularDrag"] = rb.angularDrag;
+                    properties["drag"] = rb.linearDamping;
+                    properties["angularDrag"] = rb.angularDamping;
                     properties["useGravity"] = rb.useGravity;
                     properties["isKinematic"] = rb.isKinematic;
                     break;
@@ -629,7 +629,7 @@ namespace UnityEditorMCP.Handlers
                 lighting["directionalLights"] = lights.Count(l => l.type == LightType.Directional);
                 lighting["pointLights"] = lights.Count(l => l.type == LightType.Point);
                 lighting["spotLights"] = lights.Count(l => l.type == LightType.Spot);
-                lighting["areaLights"] = lights.Count(l => l.type == LightType.Area);
+                lighting["areaLights"] = lights.Count(l => l.type == LightType.Rectangle);
                 lighting["realtimeLights"] = lights.Count(l => l.lightmapBakeType == LightmapBakeType.Realtime || l.lightmapBakeType == LightmapBakeType.Mixed);
                 lighting["bakedLights"] = lights.Count(l => l.lightmapBakeType == LightmapBakeType.Baked);
 

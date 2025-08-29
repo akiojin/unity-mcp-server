@@ -19,7 +19,7 @@ namespace UnityEditorMCP.Handlers
         private static ListRequest listRequest;
         private static AddRequest addRequest;
         private static RemoveRequest removeRequest;
-        private static Dictionary<string, PackageInfo> packageCache = new Dictionary<string, PackageInfo>();
+        private static Dictionary<string, UnityEditor.PackageManager.PackageInfo> packageCache = new Dictionary<string, UnityEditor.PackageManager.PackageInfo>();
         
         /// <summary>
         /// Handle package manager operations

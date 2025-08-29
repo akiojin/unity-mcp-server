@@ -912,21 +912,20 @@ namespace UnityEditorMCP.Handlers
                         var ns = it["namespace"]?.ToString();
                         allowPairs.Add((c, ns));
                     }
-                    var filtered = new List<object>();
-                    foreach (var f in allowedOcc)
-                    {
-                        var abs = ToAbsoluteProjectPath(f.rel);
-                        var content = File.ReadAllText(abs);
-                        var toks = UnityEditorMCP.Core.CodeIndex.RoslynAdapter.FindIdentifierTokens(content, name);
-                        var allowedLines = new HashSet<int>(toks.Where(t => allowPairs.Contains((t.container, t.ns))).Select(t => t.line));
-                        var newMatches = f.matches.Where(m => allowedLines.Contains(m.line)).ToList();
-                        if (newMatches.Count > 0)
+                    // Filter while preserving anonymous type of allowedOcc (rel, matches)
+                    var filtered = allowedOcc
+                        .Select(f =>
                         {
-                            filtered.Add(new { rel = f.rel, matches = newMatches });
-                        }
-                    }
-                    // Rebuild allowedOcc from filtered (anonymous types, but used inline below)
-                    allowedOcc = filtered.Select(f => f).ToList();
+                            var abs = ToAbsoluteProjectPath(f.rel);
+                            var content = File.ReadAllText(abs);
+                            var toks = UnityEditorMCP.Core.CodeIndex.RoslynAdapter.FindIdentifierTokens(content, name);
+                            var allowedLines = new HashSet<int>(toks.Where(t => allowPairs.Contains((t.container, t.ns))).Select(t => t.line));
+                            var newMatches = f.matches.Where(m => allowedLines.Contains(m.line)).ToList();
+                            return new { rel = f.rel, matches = newMatches };
+                        })
+                        .Where(x => x.matches.Count > 0)
+                        .ToList();
+                    allowedOcc = filtered;
                 }
 
                 var previews = new List<object>();
