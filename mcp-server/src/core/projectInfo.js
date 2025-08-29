@@ -12,6 +12,18 @@ export class ProjectInfoProvider {
 
   async get() {
     if (this.cached) return this.cached;
+    // Explicit override for tests or custom env
+    const overrideRoot = process.env.UNITY_PROJECT_ROOT;
+    if (overrideRoot) {
+      const projectRoot = overrideRoot.replace(/\\/g, '/');
+      this.cached = {
+        projectRoot,
+        assetsPath: path.join(projectRoot, 'Assets').replace(/\\/g, '/'),
+        packagesPath: path.join(projectRoot, 'Packages').replace(/\\/g, '/'),
+        codeIndexRoot: path.join(projectRoot, 'Library/UnityMCP/CodeIndex').replace(/\\/g, '/'),
+      };
+      return this.cached;
+    }
     // Try Unity if connected (rate-limit attempts)
     const now = Date.now();
     if (this.unityConnection && this.unityConnection.isConnected() && (now - this.lastTried > 1000)) {
