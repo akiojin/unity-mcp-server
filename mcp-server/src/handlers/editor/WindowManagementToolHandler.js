@@ -7,22 +7,22 @@ export class WindowManagementToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'manage_windows',
-      'Manage Unity Editor windows (list, focus, get state)',
+      'Manage editor windows: list/focus/get_state including hidden windows.',
       {
         type: 'object',
         properties: {
           action: {
             type: 'string',
             enum: ['get', 'focus', 'get_state'],
-            description: 'Action to perform on windows'
+            description: 'Operation: get (list), focus, or get_state.'
           },
           windowType: {
             type: 'string',
-            description: 'Type of window (e.g., SceneView, GameView, InspectorWindow)'
+            description: 'Window type (e.g., SceneView, GameView, InspectorWindow). Required for focus/get_state.'
           },
           includeHidden: {
             type: 'boolean',
-            description: 'Include hidden/minimized windows in get action'
+            description: 'If true, includes hidden/minimized windows for get.'
           }
         },
         required: ['action']

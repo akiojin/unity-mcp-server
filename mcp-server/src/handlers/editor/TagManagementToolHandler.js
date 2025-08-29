@@ -7,18 +7,18 @@ export class TagManagementToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'manage_tags',
-      'Manage Unity project tags (add, remove, list)',
+      'Manage project tags: add/remove/list with validation for reserved names.',
       {
         type: 'object',
         properties: {
           action: {
             type: 'string',
             enum: ['add', 'remove', 'get'],
-            description: 'Action to perform: add, remove, or get tags'
+            description: 'Operation: add, remove, or get.'
           },
           tagName: {
             type: 'string',
-            description: 'Name of the tag (required for add and remove actions)'
+            description: 'Tag name (required for add/remove). Alphanumeric/underscore only.'
           }
         },
         required: ['action']

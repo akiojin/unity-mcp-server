@@ -7,17 +7,17 @@ export class UpdateProjectSettingsToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'update_project_settings',
-      'Update Unity project settings with confirmation',
+      'Update project settings by category with a confirmation safety flag.',
       {
         type: 'object',
         properties: {
           confirmChanges: {
             type: 'boolean',
-            description: 'Must be set to true to confirm the changes. This is a safety measure to prevent accidental changes.'
+            description: 'Safety flag: must be true to apply changes (prevents accidental edits).'
           },
           player: {
             type: 'object',
-            description: 'Player settings to update',
+            description: 'Player settings (company/product name, bundle version, windowing).',
             properties: {
               companyName: { type: 'string', description: 'Company name' },
               productName: { type: 'string', description: 'Product name' },
@@ -29,7 +29,7 @@ export class UpdateProjectSettingsToolHandler extends BaseToolHandler {
           },
           graphics: {
             type: 'object',
-            description: 'Graphics settings to update',
+            description: 'Graphics settings (color space, render pipeline, etc.).',
             properties: {
               colorSpace: {
                 type: 'string',
@@ -40,7 +40,7 @@ export class UpdateProjectSettingsToolHandler extends BaseToolHandler {
           },
           physics: {
             type: 'object',
-            description: '3D Physics settings to update',
+            description: '3D physics settings (gravity, solver iterations, thresholds).',
             properties: {
               gravity: {
                 type: 'object',
@@ -59,7 +59,7 @@ export class UpdateProjectSettingsToolHandler extends BaseToolHandler {
           },
           physics2D: {
             type: 'object',
-            description: '2D Physics settings to update',
+            description: '2D physics settings (gravity, iterations, thresholds).',
             properties: {
               gravity: {
                 type: 'object',
@@ -75,7 +75,7 @@ export class UpdateProjectSettingsToolHandler extends BaseToolHandler {
           },
           audio: {
             type: 'object',
-            description: 'Audio settings to update',
+            description: 'Audio settings (global volume).',
             properties: {
               globalVolume: {
                 type: 'number',
@@ -87,7 +87,7 @@ export class UpdateProjectSettingsToolHandler extends BaseToolHandler {
           },
           time: {
             type: 'object',
-            description: 'Time settings to update',
+            description: 'Time settings (fixed timestep, time scale).',
             properties: {
               fixedDeltaTime: { type: 'number', description: 'Fixed timestep' },
               timeScale: { type: 'number', minimum: 0, description: 'Time scale (0 = paused)' },
@@ -96,7 +96,7 @@ export class UpdateProjectSettingsToolHandler extends BaseToolHandler {
           },
           quality: {
             type: 'object',
-            description: 'Quality settings to update',
+            description: 'Quality settings (levels, vSync, AA, shadows).',
             properties: {
               currentLevel: { type: 'string', description: 'Quality level name' },
               vSyncCount: {

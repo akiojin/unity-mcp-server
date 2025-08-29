@@ -7,25 +7,25 @@ export class SelectionToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'manage_selection',
-      'Manage Unity Editor selection (get, set, clear)',
+      'Manage editor selection: get/set/clear and optionally include details.',
       {
         type: 'object',
         properties: {
           action: {
             type: 'string',
             enum: ['get', 'set', 'clear', 'get_details'],
-            description: 'Action to perform on selection'
+            description: 'Operation: get, set, clear, or get_details.'
           },
           objectPaths: {
             type: 'array',
             items: {
               type: 'string'
             },
-            description: 'Array of GameObject paths for set action'
+            description: 'GameObject paths for set (e.g., ["/Main Camera", "/Player"]). Must start with /.'
           },
           includeDetails: {
             type: 'boolean',
-            description: 'Include detailed information for get action'
+            description: 'If true, return detailed info with get/get_details.'
           }
         },
         required: ['action']

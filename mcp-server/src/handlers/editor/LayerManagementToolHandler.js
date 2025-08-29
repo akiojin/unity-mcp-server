@@ -7,24 +7,24 @@ export class LayerManagementToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'manage_layers',
-      'Manage Unity project layers (add, remove, list, convert)',
+      'Manage project layers: add/remove/list and convert (by name/index).',
       {
         type: 'object',
         properties: {
           action: {
             type: 'string',
             enum: ['add', 'remove', 'get', 'get_by_name', 'get_by_index'],
-            description: 'Action to perform'
+            description: 'Operation: add, remove, get, get_by_name, or get_by_index.'
           },
           layerName: {
             type: 'string',
-            description: 'Name of the layer'
+            description: 'Layer name (required for add/remove/get_by_name). Letters/numbers/space/_ only.'
           },
           layerIndex: {
             type: 'integer',
             minimum: 0,
             maximum: 31,
-            description: 'Layer index (0-31)'
+            description: 'Layer index (0-31). Required for get_by_index.'
           }
         },
         required: ['action']

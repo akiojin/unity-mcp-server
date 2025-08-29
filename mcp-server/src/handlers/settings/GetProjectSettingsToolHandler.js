@@ -7,64 +7,64 @@ export class GetProjectSettingsToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'get_project_settings',
-      'Get Unity project settings based on include flags',
+      'Get project settings by category via include flags (player/graphics/quality/physics/etc.).',
       {
         type: 'object',
         properties: {
           includePlayer: {
             type: 'boolean',
             default: true,
-            description: 'Include player settings (company name, product name, version, etc.)'
+            description: 'Include player settings (company/product name, version, etc.).'
           },
           includeGraphics: {
             type: 'boolean',
             default: false,
-            description: 'Include graphics settings (color space, render pipeline, etc.)'
+            description: 'Include graphics settings (color space, render pipeline, etc.).'
           },
           includeQuality: {
             type: 'boolean',
             default: false,
-            description: 'Include quality settings (levels, anti-aliasing, shadows, etc.)'
+            description: 'Include quality settings (levels, anti-aliasing, shadows, etc.).'
           },
           includePhysics: {
             type: 'boolean',
             default: false,
-            description: 'Include 3D physics settings (gravity, solver iterations, etc.)'
+            description: 'Include 3D physics settings (gravity, solver iterations, etc.).'
           },
           includePhysics2D: {
             type: 'boolean',
             default: false,
-            description: 'Include 2D physics settings'
+            description: 'Include 2D physics settings.'
           },
           includeAudio: {
             type: 'boolean',
             default: false,
-            description: 'Include audio settings (speaker mode, DSP buffer, volume, etc.)'
+            description: 'Include audio settings (speaker mode, DSP buffer, volume, etc.).'
           },
           includeTime: {
             type: 'boolean',
             default: false,
-            description: 'Include time settings (fixed timestep, time scale, etc.)'
+            description: 'Include time settings (fixed timestep, time scale, etc.).'
           },
           includeInputManager: {
             type: 'boolean',
             default: false,
-            description: 'Include input manager settings (legacy input system)'
+            description: 'Include input manager settings (legacy input system).'
           },
           includeEditor: {
             type: 'boolean',
             default: false,
-            description: 'Include editor settings (Unity Remote, serialization mode, etc.)'
+            description: 'Include editor settings (Unity Remote, serialization mode, etc.).'
           },
           includeBuild: {
             type: 'boolean',
             default: false,
-            description: 'Include build settings (scenes in build, build target, etc.)'
+            description: 'Include build settings (scenes in build, build target, etc.).'
           },
           includeTags: {
             type: 'boolean',
             default: false,
-            description: 'Include tags, layers, and sorting layers'
+            description: 'Include tags, layers, and sorting layers.'
           }
         },
         required: []

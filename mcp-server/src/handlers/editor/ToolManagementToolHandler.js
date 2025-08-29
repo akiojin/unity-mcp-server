@@ -7,22 +7,22 @@ export class ToolManagementToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'manage_tools',
-      'Manage Unity Editor tools and plugins (list, activate, deactivate, refresh)',
+      'Manage editor tools/plugins: list, activate/deactivate, refresh cache.',
       {
         type: 'object',
         properties: {
           action: {
             type: 'string',
             enum: ['get', 'activate', 'deactivate', 'refresh'],
-            description: 'The action to perform'
+            description: 'Operation: get, activate, deactivate, or refresh.'
           },
           toolName: {
             type: 'string',
-            description: 'Name of the tool (required for activate/deactivate)'
+            description: 'Tool name (required for activate/deactivate).'
           },
           category: {
             type: 'string',
-            description: 'Filter tools by category (optional for get action)'
+            description: 'Optional: filter list by category.'
           }
         },
         required: ['action']
