@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { WriteGate } from '../../core/writeGate.js';
+import { getWriteQueue } from '../../core/globalWriteQueue.js';
 
 export class ScriptEditPatchToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -56,6 +57,7 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
         );
         this.unityConnection = unityConnection;
         this.writeGate = new WriteGate(unityConnection);
+        this.writeQueue = getWriteQueue(unityConnection);
     }
 
     validate(params) {
@@ -82,8 +84,14 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
-        // Previewはノーゲート、適用はゲートを通す
         const preview = params?.preview === true;
+        const defer = params?.defer !== false; // 既定でバッチ適用
+        if (preview === false && defer) {
+            // バッチキューへ投入して即ACK
+            const enq = this.writeQueue.enqueuePatch(params);
+            return { status: enq.status === 'queued' ? 'success' : 'error', result: enq };
+        }
+        // 直ちに適用（プレビュー or defer=false）
         if (!this.unityConnection.isConnected()) {
             await this.unityConnection.connect();
         }

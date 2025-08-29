@@ -3,6 +3,7 @@ import { logger } from './config.js';
 export class WriteGate {
   constructor(unityConnection) {
     this.unity = unityConnection;
+    this.flushing = false;
   }
 
   async ensureConnected() {
@@ -51,11 +52,20 @@ export class WriteGate {
     if (preview) {
       return this.unity.sendCommand(command, params);
     }
+    // Prevent concurrent flushes of the same command
+    while (this.flushing) {
+      await sleep(50);
+    }
+    this.flushing = true;
     const ok = await this.waitUntilIdle({ timeoutMs, pollMs });
     if (!ok) {
       logger.warn('[WriteGate] Timeout waiting for idle, sending anyway');
     }
-    return this.unity.sendCommand(command, params);
+    try {
+      return await this.unity.sendCommand(command, params);
+    } finally {
+      this.flushing = false;
+    }
   }
 }
 
