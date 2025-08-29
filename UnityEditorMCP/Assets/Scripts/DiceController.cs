@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using UnityEngine.InputSystem;
 public class DiceController : MonoBehaviour
 {
     private Rigidbody rb;
@@ -26,8 +26,10 @@ public class DiceController : MonoBehaviour
     
     void Update()
     {
-        // スペースキーでサイコロを転がす
-        if (Input.GetKeyDown(KeyCode.Space) && canRoll && !isRolling)
+        // スペースキーでサイコロを転がす（新Input System対応）
+        if (Keyboard.current != null && 
+            Keyboard.current.spaceKey.wasPressedThisFrame && 
+            canRoll && !isRolling)
         {
             Roll();
         }

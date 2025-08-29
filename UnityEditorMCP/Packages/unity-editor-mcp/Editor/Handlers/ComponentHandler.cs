@@ -543,6 +543,18 @@ namespace UnityEditorMCP.Handlers
                 return Enum.Parse(targetType, value.ToString(), true);
             }
 
+            // Handle UnityEngine.Object-derived types (e.g., Material, Texture2D, Shader)
+            else if (typeof(UnityEngine.Object).IsAssignableFrom(targetType))
+            {
+                // Expect an asset path string like "Assets/Materials/MyMat.mat"
+                if (value.Type == JTokenType.String)
+                {
+                    string assetPath = value.ToString();
+                    var obj = AssetDatabase.LoadAssetAtPath(assetPath, targetType);
+                    return obj;
+                }
+            }
+
             // Use JSON.NET for other conversions
             try
             {

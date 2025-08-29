@@ -34,6 +34,18 @@
   - 早期終了（`pageSize`/`maxMatchesPerFile`/`maxBytes`）
   - サイズ上限（`maxFileSizeKB`）
 
+### 追加: ローカルシンボル/参照/インデックス
+- `script_symbols_get`: CodeIndex JSON優先、未生成時は簡易パーサでフォールバック
+- `script_symbol_find`: CodeIndex JSON優先、未インデックス領域のみフォールバック走査
+- `script_refs_find`: コメント除去＋単語境界検索で高速参照抽出（ページ/バイト上限厳守）
+- `script_index_status`: cs総数とIndex内件数からカバレッジ算出
+
+### 追加: 書き込みのバッチ適用（デバウンス）
+- Node側にグローバルWriteQueueを実装
+  - `script_edit_patch`の`preview:false`は既定でキュー投入→`~1200ms`後に一括適用（Unity側は`StartAssetEditing/Refresh`を1回に集約）
+  - 即時適用が必要な場合は`defer:false`を指定
+  - コンパイル/プレイ中は`WriteGate`がアイドル待ち→安全に適用
+
 ## スケール指針
 - 数千〜数万ファイル: JSON＋軽量インメモリで対応
 - 閾値超過時（>5–10万ファイル、平均レイテンシ>300ms等）: tree-sitter導入やバイナリ化を段階投入
@@ -41,4 +53,3 @@
 ## 互換と安全
 - 既存ツール名と引数は維持（Node側実装で同等の応答形）
 - 書き込みはUnityに残し、AssetDatabase/Importer/コンパイル整合を確保
-

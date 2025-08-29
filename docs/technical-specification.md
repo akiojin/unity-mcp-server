@@ -23,12 +23,13 @@
 
 ```
 1. MCP Client sends request to Node.js Server (stdio)
-2. Node.js Server translates to Unity command format
-3. Node.js sends command via TCP to Unity (port 6400)
+2. Node.js handles locally when possible (script_read/search/symbols/refs/index_status)
+   - Resolves project paths via `get_editor_info` or CWD inference
+   - Prefers CodeIndex JSON; falls back to lightweight C# parser
+3. Node.js sends Unity command when needed (writes/editor ops/play)
 4. Unity processes command on main thread
 5. Unity sends response back via TCP
-6. Node.js Server translates response to MCP format
-7. Node.js Server returns result to MCP Client
+6. Node.js returns compact response to MCP Client
 ```
 
 ## Command Specifications

@@ -4,13 +4,13 @@ Goal: Minimal, LLM-friendly specs for reading, listing, searching, and symbol di
 
 Defaults
 - scope: `assets`
-- returnMode: `metadata`
-- pageSize: 200
-- maxBytes: 32768
+- returnMode: `snippets`（compact応答。必要時のみ詳細を個別取得）
+- pageSize: 20
+- maxBytes: 65536
 - snippetContext: 2
- - regex flags default OFF (i/m/s)
- - regex timeout: ~500ms/ファイル（重いパターンは安全に中断）
- - Roslynが利用可能な環境ではシンボル抽出の精度が自動で向上（なければ軽量パーサにフォールバック）
+- regex flags default OFF (i/m/s)
+- regex timeout: ~500ms/ファイル（安全に中断）
+- 実行主体: Nodeローカル（Unity未接続でも可）。CodeIndex JSONがあれば優先利用、無ければ軽量パーサでフォールバック。
 
 Commands
 
@@ -22,7 +22,7 @@ Commands
 - Request: `{ "path": "Assets/.../Foo.cs", "startLine": 1, "endLine": 200, "maxBytes": 32768 }`
 - Response: `{ "success": true, "path": string, "startLine": number, "endLine": number, "content": string }`
 
-3) script_search
+3) script_search（コンパクト応答）
 - Request:
 ```
 {
@@ -32,12 +32,12 @@ Commands
   "scope": "assets" | "packages" | "embedded" | "all",
   "include": "**/*.cs",
   "exclude": "Packages/**/Tests/**",
-  "returnMode": "metadata" | "snippets" | "full",
-  "pageSize": 200,
-  "maxMatchesPerFile": 3,
+  "returnMode": "metadata" | "snippets" | "full",  // 既定: snippets（compact）
+  "pageSize": 20,
+  "maxMatchesPerFile": 5,
   "snippetContext": 2,
-  "maxBytes": 32768,
-  "maxFileSizeKB": 0,
+  "maxBytes": 65536,
+  "maxFileSizeKB": 1024,
   "startAfter": "relPath|line|matchIndex",
   "codeOnly": true,
   "identifier": "Move",             // 任意（Roslyn可用時のセマンティック絞り込み）
@@ -45,18 +45,29 @@ Commands
   "namespace": "Game"               // 任意（同上）
 }
 ```
-- Response: `{ "success": true, "results": [{ "path": string, "line": number, "snippet?": string, "content?": string }], "total": number, "nextStartAfter?": string, "truncated?": true }`
-- Tips: `codeOnly=true`（既定）でコメント/文字列を除外して検索（substring/regex/glob）。正規表現はフィルタ後の行に対して評価します（行番号は原文基準）。
+- Response（compact）:
+```
+{
+  "success": true,
+  "pathTable": ["Packages/.../Foo.cs", ...],
+  "results": [
+    { "fileId": 0, "lineRanges": "10-12,18", "snippets?": [{ "line": 10, "snippet": "..." }] }
+  ],
+  "total": number,
+  "cursor?": string
+}
+```
+- Tips: `codeOnly=true`（既定）でコメント/文字列を除外して検索。正規表現はフィルタ後の行に対して評価（行番号は原文に対応）。
 
-4) script_symbols_get
+4) script_symbols_get（ローカル優先）
 - Request: `{ "path": "Assets/.../Foo.cs" }`
 - Response: `{ "success": true, "path": string, "symbols": [{ "name": string, "kind": "namespace|class|struct|interface|enum|method|property", "namespace": string, "container": string|null, "startLine": number, "endLine": number }] }`
 
-5) script_symbol_find
+5) script_symbol_find（ローカル優先）
 - Request: `{ "name": "Player", "scope": "assets|packages|embedded|all", "kind": "class|method|property", "exact": false }`
 - Response: `{ "success": true, "results": [{ "path": string, "symbol": { ...Symbol }}], "total": number }`
 
-6) script_refs_find
+6) script_refs_find（ローカル優先）
 - Request:
 ```
 {
@@ -75,9 +86,12 @@ Commands
 - Response: `{ "success": true, "results": [{ "path": string, "line": number, "snippet": string }], "total": number }`
 - 備考: Roslynが利用可能な場合は識別子トークンで一致を検出（コメント/文字列を除外）。`container`/`namespace` 指定で誤検出が減少。
 
-7) script_index_status
+7) script_index_status（ローカル優先）
 - Request: `{}`
-- Response: `{ "success": true, "storedFiles": number }`
+- Response:
+```
+{ "success": true, "totalFiles": number, "indexedFiles": number, "coverage": percent, "codeIndexRoot": string }
+```
 
 Errors
 - 共通エラーモデル: `{ "error": string, "code?": string, "path?": string }`

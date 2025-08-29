@@ -12,6 +12,8 @@ Defaults
 - maxBytes: 32768（プレビュー差分の上限）
 - snippetContext: 2（診断や検索の周辺行数）
  - apply対象: 既存の `.cs`（Assets と Embedded のみ）
+ - apply時の挙動: 既定でデバウンス一括適用（約1.2秒後）。即時適用したい場合は `defer:false` を指定。
+ - Unity側は `get_editor_state` / `get_compilation_state` に基づきアイドル待機→安全タイミングで適用。
 
 Commands
 
@@ -29,6 +31,7 @@ Commands
   - Warnings: `warnings.proximity: [{ path, clusters: [{ startLine, endLine, size }] }]`（近接変更のクラスタ）
   - Options: `proximityThreshold`（行差の閾値、既定3）/ `minClusterSize`（クラスタ最小サイズ、既定2）
 - Request (apply): same as above with `"preview": false`
+- Options (apply): `defer: true|false`（既定: true=バッチキューに投入し一括適用。false=即時適用）
 - Response (apply): `{ "success": true, "applied": true, "previews": [...], "backups": [{ "path": string, "backup": string }], "compilation": { ...state } }`
   - Impact: `impact: { errorsBefore, errorsAfter, errorDelta, warningsBefore, warningsAfter, warningDelta, newDiagnostics: [{ type, file, line, message }] }`
 
@@ -104,6 +107,7 @@ Notes
 - 書き込みは `Assets/**.cs` と Embedded packages の既存`.cs`のみ許可。設定で拡張子/スコープを制御可能。
 - 適用時は `Library/UnityMCP/Backups/<timestamp>/...` に原本コピーを保存します。
 - 参照検索/シンボル検索と組み合わせることで、LLMは目的の位置を特定→プレビュー→適用の流れを自動化できます。
+ - 大量変更は `script_edit_patch` に集約し、`defer:true` で1回のRefresh/コンパイルに抑制するのが推奨です。
 
 Errors
 - 共通エラーモデル: `{ "error": string, "code?": string, "path?": string }`

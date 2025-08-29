@@ -9,6 +9,17 @@
 
 Unity Editor MCP (Model Context Protocol) enables AI assistants like Claude and Cursor to interact directly with the Unity Editor, allowing for AI-assisted game development and automation.
 
+## ⚡ Script Processing Update
+
+- Node.js側でスクリプトの「読み取り・検索・シンボル・参照・インデックス状態」をローカル実行し、最高速度と低トークンを実現しました。
+- Unity側は「適用（書き込み）」に集約。コンパイル/プレイ中は自動で待機し、安全なタイミングに一括適用します。
+- 変更点の要約と詳細は docs/script-architecture-hybrid.md を参照してください。
+
+Key changes (概要):
+- `script_read`/`script_search`/`script_symbols_get`/`script_symbol_find`/`script_refs_find`/`script_index_status` はNodeローカル実行
+- `script_search`はコンパクト応答（`pathTable`/`fileId`/`lineRanges`）でトークン最小化
+- `script_edit_patch`は既定でデバウンス一括適用（即時適用は`defer:false`）
+
 ## 🚀 Key Features
 
 - **🎮 GameObject Management**: Create primitives, modify transforms, manage hierarchy, and delete objects
