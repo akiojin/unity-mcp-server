@@ -14,6 +14,8 @@ using UnityEditorMCP.Logging;
 using UnityEditorMCP.Handlers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.IO;
+using System.Linq;
 
 namespace UnityEditorMCP.Core
 {
@@ -45,6 +47,8 @@ namespace UnityEditorMCP.Core
         
         public const int DEFAULT_PORT = 6400;
         private static int currentPort = DEFAULT_PORT;
+        private static string currentHost = "localhost";
+        private static IPAddress bindAddress = IPAddress.Loopback;
         
         /// <summary>
         /// Static constructor - called when Unity loads
@@ -55,8 +59,107 @@ namespace UnityEditorMCP.Core
             EditorApplication.update += ProcessCommandQueue;
             EditorApplication.quitting += Shutdown;
             
-            // Start the TCP listener
+            // Load config and start the TCP listener
+            TryLoadConfigAndApply();
             StartTcpListener();
+        }
+
+        /// <summary>
+        /// Load external configuration and apply port if present.
+        /// Priority:
+        /// 1) UNITY_MCP_CONFIG (explicit file path)
+        /// 2) ./.unity/config.json (project-local)
+        /// 3) ~/.unity/config.json (user-global)
+        /// </summary>
+        private static void TryLoadConfigAndApply()
+        {
+            try
+            {
+                string explicitPath = Environment.GetEnvironmentVariable("UNITY_MCP_CONFIG");
+                string projectPath = Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".unity", "config.json"));
+                string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string userPath = string.IsNullOrEmpty(homeDir) ? null : Path.Combine(homeDir, ".unity", "config.json");
+
+                var candidates = new[] { explicitPath, projectPath, userPath }
+                    .Where(p => !string.IsNullOrEmpty(p))
+                    .ToArray();
+
+                foreach (var path in candidates)
+                {
+                    try
+                    {
+                        if (File.Exists(path))
+                        {
+                            var jsonText = File.ReadAllText(path);
+                            var json = JObject.Parse(jsonText);
+
+                            // Expect structure: { "unity": { "port": 6400, "host": "localhost" } }
+                            var portToken = json.SelectToken("unity.port");
+                            if (portToken != null && int.TryParse(portToken.ToString(), out int port) && port > 0 && port < 65536)
+                            {
+                                currentPort = port;
+                            }
+                            var hostToken = json.SelectToken("unity.host");
+                            if (hostToken != null)
+                            {
+                                var host = hostToken.ToString();
+                                if (!string.IsNullOrWhiteSpace(host))
+                                {
+                                    currentHost = host.Trim();
+                                    bindAddress = ResolveBindAddress(currentHost);
+                                }
+                            }
+                            Debug.Log($"[Unity Editor MCP] Config loaded from {path}: host={currentHost}, port={currentPort}");
+                            return;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogWarning($"[Unity Editor MCP] Failed to load config '{path}': {ex.Message}");
+                    }
+                }
+
+                // No config found; keep default
+                Debug.Log($"[Unity Editor MCP] No external config found. Using default host={currentHost}, port={currentPort}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[Unity Editor MCP] Config load error: {ex.Message}. Using default host={currentHost}, port={currentPort}");
+            }
+        }
+
+        private static IPAddress ResolveBindAddress(string host)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(host) || host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+                {
+                    return IPAddress.Loopback;
+                }
+                if (host == "*" || host == "0.0.0.0")
+                {
+                    return IPAddress.Any;
+                }
+                if (host == "::")
+                {
+                    return IPAddress.IPv6Any;
+                }
+                if (host == "::1")
+                {
+                    return IPAddress.IPv6Loopback;
+                }
+                if (IPAddress.TryParse(host, out var ip))
+                {
+                    return ip;
+                }
+                var addrs = Dns.GetHostAddresses(host);
+                var ipv4 = addrs.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
+                return ipv4 ?? addrs.FirstOrDefault() ?? IPAddress.Loopback;
+            }
+            catch
+            {
+                return IPAddress.Loopback;
+            }
         }
         
         /// <summary>
@@ -72,11 +175,11 @@ namespace UnityEditorMCP.Core
                 }
                 
                 cancellationTokenSource = new CancellationTokenSource();
-                tcpListener = new TcpListener(IPAddress.Loopback, currentPort);
+                tcpListener = new TcpListener(bindAddress, currentPort);
                 tcpListener.Start();
                 
                 Status = McpStatus.Disconnected;
-                Debug.Log($"[Unity Editor MCP] TCP listener started on port {currentPort}");
+                Debug.Log($"[Unity Editor MCP] TCP listener started on {currentHost}:{currentPort}");
                 
                 // Start accepting connections asynchronously
                 listenerTask = Task.Run(() => AcceptConnectionsAsync(cancellationTokenSource.Token));

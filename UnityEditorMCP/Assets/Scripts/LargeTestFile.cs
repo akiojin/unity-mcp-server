@@ -50,7 +50,7 @@ namespace ComplexTestNamespace
         
         protected virtual void LogTestResult()
         {
-            Debug.Log($"Test {testName} completed with score: {testScore}");
+            UnityEngine.Debug.LogFormat($"Test {testName} completed with score: {testScore}");
         }
     }
     
@@ -134,7 +134,7 @@ namespace ComplexTestNamespace
             
             if (enableLogging)
             {
-                Debug.Log("Large test file initialized");
+                UnityEngine.Debug.LogFormat("Large test file initialized");
             }
         }
         
@@ -337,7 +337,7 @@ namespace ComplexTestNamespace
             
             if (enableLogging)
             {
-                Debug.Log($"Switched to processing mode: {currentProcessingMode}");
+                UnityEngine.Debug.LogFormat($"Switched to processing mode: {currentProcessingMode}");
             }
         }
         
@@ -352,7 +352,7 @@ namespace ComplexTestNamespace
             
             if (enableLogging)
             {
-                Debug.Log($"Processing {(isProcessing ? "enabled" : "disabled")}");
+                UnityEngine.Debug.LogFormat($"Processing {(isProcessing ? "enabled" : "disabled")}");
             }
         }
         
@@ -370,7 +370,7 @@ namespace ComplexTestNamespace
             
             if (enableLogging)
             {
-                Debug.Log("All data reset");
+                UnityEngine.Debug.LogFormat("All data reset");
             }
         }
         
@@ -445,7 +445,7 @@ namespace ComplexTestNamespace
             {
                 if (enableLogging)
                 {
-                    Debug.LogWarning($"Performance warning: Frame took {Time.deltaTime * 1000f:F2}ms");
+                    UnityEngine.Debug.LogFormatWarning($"Performance warning: Frame took {Time.deltaTime * 1000f:F2}ms");
                 }
                 
                 // Automatic optimization
@@ -462,7 +462,7 @@ namespace ComplexTestNamespace
             // For now, we'll just log occasionally
             if (Time.frameCount % 600 == 0 && enableLogging) // Every 10 seconds at 60 FPS
             {
-                Debug.Log($"Status - Active: {activeDataList.Count}, Processed: {processedIds.Count}, Mode: {currentProcessingMode}");
+                UnityEngine.Debug.LogFormat($"Status - Active: {activeDataList.Count}, Processed: {processedIds.Count}, Mode: {currentProcessingMode}");
             }
         }
         
@@ -487,7 +487,7 @@ namespace ComplexTestNamespace
                     float avgFrameTime = Time.deltaTime * 1000f;
                     int memoryUsage = (int)(System.GC.GetTotalMemory(false) / (1024 * 1024));
                     
-                    Debug.Log($"Performance Stats - Frame: {avgFrameTime:F2}ms, Memory: {memoryUsage}MB, Objects: {activeDataList.Count}");
+                    UnityEngine.Debug.LogFormat($"Performance Stats - Frame: {avgFrameTime:F2}ms, Memory: {memoryUsage}MB, Objects: {activeDataList.Count}");
                 }
             }
         }
@@ -581,7 +581,7 @@ namespace ComplexTestNamespace
         {
             if (enableLogging)
             {
-                Debug.Log("Large test file application quit");
+                UnityEngine.Debug.LogFormat("Large test file application quit");
             }
         }
     }

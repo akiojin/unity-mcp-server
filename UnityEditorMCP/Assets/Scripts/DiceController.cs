@@ -20,7 +20,7 @@ public class DiceController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         if (rb == null)
         {
-            Debug.LogError("Rigidbody component is missing on " + gameObject.name);
+            UnityEngine.Debug.LogError("Rigidbody component is missing on " + gameObject.name);
         }
     }
     
@@ -63,13 +63,13 @@ public class DiceController : MonoBehaviour
         
         rb.AddTorque(randomTorque);
         
-        Debug.Log("サイコロを転がしました！");
+        UnityEngine.Debug.LogFormat("サイコロを転がしました！");
     }
     
     private void CheckIfStopped()
     {
         // 速度と角速度が閾値以下になったら停止と判定
-        if (rb.linearVelocity.magnitude < stopThreshold && rb.angularVelocity.magnitude < stopThreshold)
+        if (rb.velocity.magnitude < stopThreshold && rb.angularVelocity.magnitude < stopThreshold)
         {
             isRolling = false;
             DetermineUpwardFace();
@@ -108,7 +108,7 @@ public class DiceController : MonoBehaviour
         }
         
         currentFaceUp = upFace;
-        Debug.Log($"サイコロの出目: {currentFaceUp}");
+        UnityEngine.Debug.LogFormat($"サイコロの出目: {currentFaceUp}");
     }
     
     // 外部から呼び出し可能なメソッド

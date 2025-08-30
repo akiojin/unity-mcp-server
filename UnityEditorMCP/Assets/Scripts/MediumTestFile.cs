@@ -120,7 +120,7 @@ namespace TestNamespace
         public void ToggleTestBool()
         {
             testBool = !testBool;
-            Debug.Log("Test bool toggled to: " + testBool);
+            UnityEngine.Debug.LogFormat("Test bool toggled to: " + testBool);
         }
         
         public void IncrementTestInt()
@@ -132,12 +132,12 @@ namespace TestNamespace
         private void TriggerTestEvent()
         {
             OnTestEvent?.Invoke(testInt);
-            Debug.Log("Test event triggered with value: " + testInt);
+            UnityEngine.Debug.LogFormat("Test event triggered with value: " + testInt);
         }
         
         private void PerformSpecialAction()
         {
-            Debug.Log("Special action performed!");
+            UnityEngine.Debug.LogFormat("Special action performed!");
             CreateAdditionalObjects();
         }
         
@@ -240,7 +240,7 @@ namespace TestNamespace
         
         void OnApplicationQuit()
         {
-            Debug.Log("Medium test file application quit");
+            UnityEngine.Debug.LogFormat("Medium test file application quit");
         }
     }
 }

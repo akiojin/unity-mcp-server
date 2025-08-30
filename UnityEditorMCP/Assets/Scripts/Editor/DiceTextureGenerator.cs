@@ -60,7 +60,7 @@ public class DiceTextureGenerator : MonoBehaviour
             importer.SaveAndReimport();
         }
         
-        Debug.Log("Dice texture generated at: " + path);
+        UnityEngine.Debug.LogFormat("Dice texture generated at: " + path);
     }
     
     static void DrawDiceFace(Texture2D texture, int faceNumber, int offsetX, int offsetY, int faceSize, int dotRadius)

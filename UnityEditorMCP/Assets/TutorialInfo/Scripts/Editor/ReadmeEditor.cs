@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -36,7 +36,7 @@ public class ReadmeEditor : Editor
             }
             else
             {
-                Debug.Log($"Could not find the Readme folder at {s_ReadmeSourceDirectory}");
+                UnityEngine.Debug.LogFormat($"Could not find the Readme folder at {s_ReadmeSourceDirectory}");
             }
 
             var readmeAsset = SelectReadme();
@@ -87,7 +87,7 @@ public class ReadmeEditor : Editor
         }
         else
         {
-            Debug.Log("Couldn't find a readme");
+            UnityEngine.Debug.LogFormat("Couldn't find a readme");
             return null;
         }
     }

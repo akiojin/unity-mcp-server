@@ -10,7 +10,7 @@ public class SmallTestFile : MonoBehaviour
     {
         testValue = 42;
         testString = "Small test";
-        Debug.Log("Small file test method");
+        UnityEngine.Debug.LogFormat("Small file test method");
     }
     
     private void Calculate()
@@ -42,12 +42,12 @@ public class SmallTestFile : MonoBehaviour
         // Simple update logic
         if (Input.GetKeyDown(KeyCode.S))
         {
-            Debug.Log("Small test file key pressed");
+            UnityEngine.Debug.LogFormat("Small test file key pressed");
         }
     }
     
     private void OnDestroy()
     {
-        Debug.Log("Small test file destroyed");
+        UnityEngine.Debug.LogFormat("Small test file destroyed");
     }
 }

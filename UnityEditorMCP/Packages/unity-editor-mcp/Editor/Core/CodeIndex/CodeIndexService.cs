@@ -9,7 +9,8 @@ using UnityEngine;
 namespace UnityEditorMCP.Core.CodeIndex
 {
     /// <summary>
-    /// Lightweight indexing service using SimpleCSharpParser. Builds per-file symbols on demand and caches in-memory.
+    /// コードインデックスサービス（Roslyn必須）。
+    /// Roslynで構文解析し、結果をJSONストアにキャッシュします。
     /// </summary>
     public static class CodeIndexService
     {
@@ -34,18 +35,15 @@ namespace UnityEditorMCP.Core.CodeIndex
             }
             catch { /* fallback to parse */ }
 
-            // Prefer Roslyn if available
-            FileSymbols parsed = null;
+            // Roslynで解析（必須）
+            if (!RoslynAdapter.IsAvailable())
+            {
+                Debug.LogError("[UnityEditorMCP] Roslyn assemblies not found. CodeIndexService requires Roslyn.");
+                return stored ?? new FileSymbols { path = relPath };
+            }
+
             var text = File.ReadAllText(abs);
-            if (RoslynAdapter.IsAvailable())
-            {
-                parsed = RoslynAdapter.TryParse(relPath, text);
-            }
-            if (parsed == null)
-            {
-                var lines = text.Split(new[] {'\n'}, StringSplitOptions.None);
-                parsed = SimpleCSharpParser.Parse(relPath, lines);
-            }
+            var parsed = RoslynAdapter.TryParse(relPath, text) ?? new FileSymbols { path = relPath };
             Cache[relPath] = parsed;
             try { JsonIndexStore.SaveFileSymbols(parsed, File.GetLastWriteTimeUtc(abs)); } catch { }
             return parsed;

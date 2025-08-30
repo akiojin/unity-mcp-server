@@ -59,24 +59,32 @@ const baseConfig = {
 };
 
 /**
- * Optional external config: set UNITY_MCP_CONFIG to a JSON file path,
- * or auto-read ./mcp-server/config.json if present.
+ * External config resolution (no legacy compatibility):
+ * Priority:
+ * 1) UNITY_MCP_CONFIG (explicit file path)
+ * 2) ./.unity/config.json (project-local)
+ * 3) ~/.unity/config.json (user-global)
+ * If none found, return {} and rely on env/defaults.
  */
 function loadExternalConfig() {
-  const envPath = process.env.UNITY_MCP_CONFIG;
-  const localPath = path.resolve(process.cwd(), 'mcp-server', 'config.json');
-  const candidate = envPath && fs.existsSync(envPath)
-    ? envPath
-    : (fs.existsSync(localPath) ? localPath : null);
-  if (!candidate) return {};
-  try {
-    const raw = fs.readFileSync(candidate, 'utf8');
-    const json = JSON.parse(raw);
-    return json && typeof json === 'object' ? json : {};
-  } catch (e) {
-    // Fallback silently to base config, but log via logger after export
-    return { __configLoadError: e.message };
+  const explicitPath = process.env.UNITY_MCP_CONFIG;
+  const projectPath = path.resolve(process.cwd(), '.unity', 'config.json');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || '';
+  const userPath = homeDir ? path.resolve(homeDir, '.unity', 'config.json') : null;
+
+  const candidates = [explicitPath, projectPath, userPath].filter(Boolean);
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) {
+        const raw = fs.readFileSync(p, 'utf8');
+        const json = JSON.parse(raw);
+        return json && typeof json === 'object' ? json : {};
+      }
+    } catch (e) {
+      return { __configLoadError: `${p}: ${e.message}` };
+    }
   }
+  return {};
 }
 
 const external = loadExternalConfig();

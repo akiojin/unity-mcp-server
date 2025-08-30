@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { logger } from './config.js';
+import { logger, config } from './config.js';
 
 // Lazy project info resolver. Prefers Unity via get_editor_info, otherwise infers by walking up for Assets/Packages.
 export class ProjectInfoProvider {
@@ -12,15 +12,17 @@ export class ProjectInfoProvider {
 
   async get() {
     if (this.cached) return this.cached;
-    // Explicit override for tests or custom env
-    const overrideRoot = process.env.UNITY_PROJECT_ROOT;
-    if (overrideRoot) {
-      const projectRoot = overrideRoot.replace(/\\/g, '/');
+    // Config-driven project root (no env fallback)
+    const cfgRoot = config?.project?.root;
+    if (cfgRoot) {
+      const projectRoot = cfgRoot.replace(/\\/g, '/');
+      const codeIndexRoot = (config?.project?.codeIndexRoot
+        || path.join(projectRoot, 'Library/UnityMCP/CodeIndex')).replace(/\\/g, '/');
       this.cached = {
         projectRoot,
         assetsPath: path.join(projectRoot, 'Assets').replace(/\\/g, '/'),
         packagesPath: path.join(projectRoot, 'Packages').replace(/\\/g, '/'),
-        codeIndexRoot: path.join(projectRoot, 'Library/UnityMCP/CodeIndex').replace(/\\/g, '/'),
+        codeIndexRoot,
       };
       return this.cached;
     }
