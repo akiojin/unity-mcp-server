@@ -39,7 +39,7 @@ namespace UnityEditorMCP.Core.CodeIndex
             if (!RoslynAdapter.IsAvailable())
             {
                 Debug.LogError("[UnityEditorMCP] Roslyn assemblies not found. CodeIndexService requires Roslyn.");
-                return stored ?? new FileSymbols { path = relPath };
+                return new FileSymbols { path = relPath };
             }
 
             var text = File.ReadAllText(abs);
