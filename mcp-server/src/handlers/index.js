@@ -37,6 +37,7 @@ export { PlayToolHandler } from './playmode/PlayToolHandler.js';
 export { PauseToolHandler } from './playmode/PauseToolHandler.js';
 export { StopToolHandler } from './playmode/StopToolHandler.js';
 export { GetEditorStateToolHandler } from './playmode/GetEditorStateToolHandler.js';
+export { WaitForEditorStateToolHandler } from './playmode/WaitForEditorStateToolHandler.js';
 
 // UI handlers
 export { FindUIElementsToolHandler } from './ui/FindUIElementsToolHandler.js';
@@ -149,6 +150,7 @@ import { PlayToolHandler } from './playmode/PlayToolHandler.js';
 import { PauseToolHandler } from './playmode/PauseToolHandler.js';
 import { StopToolHandler } from './playmode/StopToolHandler.js';
 import { GetEditorStateToolHandler } from './playmode/GetEditorStateToolHandler.js';
+import { WaitForEditorStateToolHandler } from './playmode/WaitForEditorStateToolHandler.js';
 import { FindUIElementsToolHandler } from './ui/FindUIElementsToolHandler.js';
 import { ClickUIElementToolHandler } from './ui/ClickUIElementToolHandler.js';
 import { GetUIElementStateToolHandler } from './ui/GetUIElementStateToolHandler.js';
@@ -249,6 +251,7 @@ const HANDLER_CLASSES = [
   PauseToolHandler,
   StopToolHandler,
   GetEditorStateToolHandler,
+  WaitForEditorStateToolHandler,
   
   // UI handlers
   FindUIElementsToolHandler,

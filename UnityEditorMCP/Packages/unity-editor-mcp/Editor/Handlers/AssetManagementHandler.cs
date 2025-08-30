@@ -474,6 +474,7 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                propertyName = NormalizeMaterialPropertyName(material, propertyName);
                 // Check if property exists
                 if (!material.HasProperty(propertyName))
                 {
@@ -558,6 +559,20 @@ namespace UnityEditorMCP.Handlers
                 Debug.LogWarning($"Failed to set material property {propertyName}: {e.Message}");
                 return false;
             }
+        }
+
+        private static string NormalizeMaterialPropertyName(Material mat, string name)
+        {
+            if (string.IsNullOrEmpty(name) || mat == null || mat.shader == null) return name;
+            if (string.Equals(name, "_Smoothness", StringComparison.Ordinal))
+            {
+                if (!mat.HasProperty("_Smoothness") && mat.HasProperty("_Glossiness")) return "_Glossiness";
+            }
+            else if (string.Equals(name, "_Glossiness", StringComparison.Ordinal))
+            {
+                if (!mat.HasProperty("_Glossiness") && mat.HasProperty("_Smoothness")) return "_Smoothness";
+            }
+            return name;
         }
 
         private static Vector3? ParseVector3(JToken token)
