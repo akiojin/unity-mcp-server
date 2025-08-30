@@ -69,8 +69,26 @@ namespace UnityEditorMCP.Handlers
                 {
                     _playRequested = true;
                     _lastPlayRequestTime = DateTime.UtcNow;
-                    EditorApplication.isPlaying = true;
-                    message = "Entered play mode";
+                    int delayMs = parameters["delayMs"]?.ToObject<int?>() ?? 300;
+                    if (delayMs <= 0)
+                    {
+                        EditorApplication.isPlaying = true;
+                        message = "Entered play mode";
+                    }
+                    else
+                    {
+                        double target = EditorApplication.timeSinceStartup + (delayMs / 1000.0);
+                        EditorApplication.update += DelayedEnter;
+                        message = $"Play mode scheduled in {delayMs}ms";
+                        void DelayedEnter()
+                        {
+                            if (EditorApplication.timeSinceStartup >= target)
+                            {
+                                EditorApplication.update -= DelayedEnter;
+                                if (!EditorApplication.isPlaying) EditorApplication.isPlaying = true;
+                            }
+                        }
+                    }
                 }
                 else
                 {
