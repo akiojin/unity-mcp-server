@@ -47,8 +47,9 @@ namespace UnityEditorMCP.Core
         
         public const int DEFAULT_PORT = 6400;
         private static int currentPort = DEFAULT_PORT;
-        private static string currentHost = "localhost";
-        private static IPAddress bindAddress = IPAddress.Loopback;
+        // Client connects to unity.host (used by Node side). Server bind is independent (unity.bindHost).
+        private static string currentHost = "localhost"; // for logging only
+        private static IPAddress bindAddress = IPAddress.Any; // default: 0.0.0.0
         
         /// <summary>
         /// Static constructor - called when Unity loads
@@ -93,23 +94,26 @@ namespace UnityEditorMCP.Core
                             var jsonText = File.ReadAllText(path);
                             var json = JObject.Parse(jsonText);
 
-                            // Expect structure: { "unity": { "port": 6400, "host": "localhost" } }
+                            // Expect structure: { "unity": { "port": 6400, "host": "localhost", "bindHost": "0.0.0.0" } }
                             var portToken = json.SelectToken("unity.port");
                             if (portToken != null && int.TryParse(portToken.ToString(), out int port) && port > 0 && port < 65536)
                             {
                                 currentPort = port;
                             }
+                            // unity.host is client connection target; do not use for server bind.
                             var hostToken = json.SelectToken("unity.host");
                             if (hostToken != null)
                             {
                                 var host = hostToken.ToString();
-                                if (!string.IsNullOrWhiteSpace(host))
-                                {
-                                    currentHost = host.Trim();
-                                    bindAddress = ResolveBindAddress(currentHost);
-                                }
+                                if (!string.IsNullOrWhiteSpace(host)) currentHost = host.Trim();
                             }
-                            Debug.Log($"[Unity Editor MCP] Config loaded from {path}: host={currentHost}, port={currentPort}");
+                            var bindToken = json.SelectToken("unity.bindHost");
+                            if (bindToken != null)
+                            {
+                                var bh = bindToken.ToString();
+                                if (!string.IsNullOrWhiteSpace(bh)) bindAddress = ResolveBindAddress(bh.Trim());
+                            }
+                            Debug.Log($"[Unity Editor MCP] Config loaded from {path}: bind={bindAddress}, clientHost={currentHost}, port={currentPort}");
                             return;
                         }
                     }
@@ -120,11 +124,11 @@ namespace UnityEditorMCP.Core
                 }
 
                 // No config found; keep default
-                Debug.Log($"[Unity Editor MCP] No external config found. Using default host={currentHost}, port={currentPort}");
+                Debug.Log($"[Unity Editor MCP] No external config found. Using default bind={bindAddress}, clientHost={currentHost}, port={currentPort}");
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[Unity Editor MCP] Config load error: {ex.Message}. Using default host={currentHost}, port={currentPort}");
+                Debug.LogWarning($"[Unity Editor MCP] Config load error: {ex.Message}. Using default bind={bindAddress}, clientHost={currentHost}, port={currentPort}");
             }
         }
 
@@ -179,7 +183,7 @@ namespace UnityEditorMCP.Core
                 tcpListener.Start();
                 
                 Status = McpStatus.Disconnected;
-                Debug.Log($"[Unity Editor MCP] TCP listener started on {currentHost}:{currentPort}");
+                Debug.Log($"[Unity Editor MCP] TCP listener binding on {bindAddress}:{currentPort} (clientHost={currentHost})");
                 
                 // Start accepting connections asynchronously
                 listenerTask = Task.Run(() => AcceptConnectionsAsync(cancellationTokenSource.Token));
