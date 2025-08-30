@@ -10,6 +10,8 @@ namespace UnityEditorMCP.Handlers
     /// </summary>
     public static class PlayModeHandler
     {
+        private static DateTime _lastPlayRequestTime = DateTime.MinValue;
+        private static bool _playRequested;
         public static JObject HandleCommand(string command, JObject parameters)
         {
             try
@@ -17,7 +19,7 @@ namespace UnityEditorMCP.Handlers
                 switch (command)
                 {
                     case "play_game":
-                        return HandlePlay();
+                        return HandlePlay(parameters);
                     case "pause_game":
                         return HandlePause();
                     case "stop_game":
@@ -35,13 +37,38 @@ namespace UnityEditorMCP.Handlers
             }
         }
 
-        private static JObject HandlePlay()
+        private static JObject HandlePlay(JObject parameters)
         {
             try
             {
+                // Ensure compilation monitoring is active so we can report errors
+                CompilationHandler.StartCompilationMonitoring(new JObject());
+                // Pre-check: if compiling or there are compile errors, return immediately with reason
+                var preCompParams = new JObject { ["includeMessages"] = true, ["maxMessages"] = 100 };
+                var preComp = CompilationHandler.GetCompilationState(preCompParams) as JObject;
+                bool preCompiling = EditorApplication.isCompiling;
+                int preErrors = preComp?["errorCount"]?.ToObject<int?>() ?? 0;
+                if (preCompiling || preErrors > 0)
+                {
+                    var diag = new JObject
+                    {
+                        ["reason"] = preCompiling ? "compiling" : "compile_errors",
+                        ["compilation"] = preComp
+                    };
+                    return new JObject
+                    {
+                        ["status"] = "error",
+                        ["error"] = preCompiling ? "Cannot enter play mode while compiling" : "Cannot enter play mode due to compile errors",
+                        ["state"] = GetEditorState(),
+                        ["diagnostics"] = diag
+                    };
+                }
+
                 string message;
                 if (!EditorApplication.isPlaying)
                 {
+                    _playRequested = true;
+                    _lastPlayRequestTime = DateTime.UtcNow;
                     EditorApplication.isPlaying = true;
                     message = "Entered play mode";
                 }
@@ -119,7 +146,7 @@ namespace UnityEditorMCP.Handlers
 
         private static JObject GetEditorState()
         {
-            return new JObject
+            var state = new JObject
             {
                 ["isPlaying"] = EditorApplication.isPlaying,
                 ["isPaused"] = EditorApplication.isPaused,
@@ -129,6 +156,36 @@ namespace UnityEditorMCP.Handlers
                 ["applicationContentsPath"] = EditorApplication.applicationContentsPath,
                 ["timeSinceStartup"] = EditorApplication.timeSinceStartup
             };
+            // Diagnose playability
+            try
+            {
+                var diag = new JObject();
+                bool isCompiling = EditorApplication.isCompiling;
+                bool isUpdating = EditorApplication.isUpdating;
+                var compParams = new JObject { ["includeMessages"] = true, ["maxMessages"] = 100 };
+                var compState = CompilationHandler.GetCompilationState(compParams) as JObject;
+                int errorCount = compState?["errorCount"]?.ToObject<int?>() ?? 0;
+                string reason = null;
+                if (isCompiling) reason = "compiling";
+                else if (errorCount > 0) reason = "compile_errors";
+                else if (isUpdating) reason = "updating";
+                else if (!EditorApplication.isPlaying && _playRequested)
+                {
+                    var sinceMs = (DateTime.UtcNow - _lastPlayRequestTime).TotalMilliseconds;
+                    diag["msSincePlayRequested"] = sinceMs;
+                    if (sinceMs > 1500 && errorCount > 0) reason = "compile_errors";
+                    else if (sinceMs > 1500 && isCompiling) reason = "compiling";
+                    else if (sinceMs > 1500 && isUpdating) reason = "updating";
+                    else if (sinceMs > 3000) reason = "unknown_or_blocked";
+                }
+                diag["reason"] = reason ?? (EditorApplication.isPlaying ? "in_play_mode" : "ready");
+                diag["playRequested"] = _playRequested;
+                diag["lastPlayRequestTime"] = _lastPlayRequestTime == DateTime.MinValue ? null : _lastPlayRequestTime.ToString("o");
+                diag["compilation"] = compState;
+                state["playability"] = diag;
+            }
+            catch { }
+            return state;
         }
 
         private static JObject CreateSuccessResponse(string message, JObject state)

@@ -45,7 +45,7 @@ namespace UnityEditorMCP.Handlers
                 if (!AssetDatabase.IsValidFolder(directory))
                 {
                     Directory.CreateDirectory(directory);
-                    AssetDatabase.Refresh();
+                    UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
                 }
                 
                 // Capture based on mode
@@ -144,7 +144,7 @@ namespace UnityEditorMCP.Handlers
                 }
                 
                 Debug.Log($"[ScreenshotHandler] File created successfully: {outputPath}");
-                AssetDatabase.Refresh();
+                UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
                 
                 var result = new
                 {
@@ -233,7 +233,7 @@ namespace UnityEditorMCP.Handlers
                 
                 // Save to file
                 File.WriteAllBytes(outputPath, imageBytes);
-                AssetDatabase.Refresh();
+                UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
                 
                 var result = new
                 {
@@ -485,7 +485,7 @@ namespace UnityEditorMCP.Handlers
                     
                     // Save to file
                     File.WriteAllBytes(outputPath, imageBytes);
-                    AssetDatabase.Refresh();
+                    UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
                     
                     var result = new
                     {
@@ -777,7 +777,7 @@ namespace UnityEditorMCP.Handlers
                 
                 // Save to file
                 File.WriteAllBytes(outputPath, imageBytes);
-                AssetDatabase.Refresh();
+                UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
                 
                 var result = new
                 {

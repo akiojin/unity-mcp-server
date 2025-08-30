@@ -369,7 +369,9 @@ namespace UnityEditorMCP.Handlers
                         .ToDictionary(g => g.Key, g => g.OrderByDescending(e => e.start).ToList());
 
                     var backups = new List<object>();
-                    AssetDatabase.StartAssetEditing();
+                    // Avoid starting during compilation to prevent losing Stop in reload
+                    if (!EditorApplication.isCompiling)
+                        UnityEditorMCP.Helpers.AssetEditingGuard.Begin();
                     try
                     {
                         var projectRoot = GetProjectRoot();
@@ -391,15 +393,17 @@ namespace UnityEditorMCP.Handlers
                             var backupPath = CreateBackupFor(rel, File.ReadAllText(abs));
                             backups.Add(new { path = rel, backup = backupPath });
 
-                            // Write
+                            // Write only; import/refresh will be batched after editing
                             File.WriteAllText(abs, string.Join("\n", originalLines));
-                            AssetDatabase.ImportAsset(rel, ImportAssetOptions.ForceUpdate);
                         }
                     }
                     finally
                     {
-                        AssetDatabase.StopAssetEditing();
-                        AssetDatabase.Refresh();
+                        UnityEditorMCP.Helpers.AssetEditingGuard.End();
+                        var mode = parameters["refreshMode"]?.ToString()?.ToLowerInvariant();
+                        if (mode == "immediate") UnityEditorMCP.Helpers.RefreshController.ImmediateThrottled();
+                        else if (mode == "none") { }
+                        else UnityEditorMCP.Helpers.RefreshController.Debounced();
                     }
 
                     // Optionally return compilation state (may still be compiling)
@@ -488,6 +492,7 @@ namespace UnityEditorMCP.Handlers
                 var exclude = parameters["exclude"]?.ToString();
                 var scope = (parameters["scope"]?.ToString() ?? "assets").ToLowerInvariant();
                 var pageSize = Math.Max(1, parameters["pageSize"]?.ToObject<int?>() ?? settings.searchDefaults.maxResults);
+                bool maxProvided = parameters["maxMatchesPerFile"] != null;
                 var maxMatchesPerFile = Math.Max(1, parameters["maxMatchesPerFile"]?.ToObject<int?>() ?? settings.searchDefaults.maxMatchesPerFile);
                 var snippetContext = Math.Max(0, parameters["snippetContext"]?.ToObject<int?>() ?? settings.tokenBudget.snippetContext);
                 var maxBytes = Math.Max(1024, parameters["maxBytes"]?.ToObject<int?>() ?? settings.tokenBudget.maxBytes);
@@ -806,16 +811,19 @@ namespace UnityEditorMCP.Handlers
                 var compBefore2Params = new JObject { ["includeMessages"] = true, ["maxMessages"] = 200 };
                 var compBefore2 = CompilationHandler.GetCompilationState(compBefore2Params);
                 var backup = CreateBackupFor(norm, File.ReadAllText(abs));
-                AssetDatabase.StartAssetEditing();
+                if (!EditorApplication.isCompiling)
+                    UnityEditorMCP.Helpers.AssetEditingGuard.Begin();
                 try
                 {
                     File.WriteAllText(abs, string.Join("\n", lines));
-                    AssetDatabase.ImportAsset(norm, ImportAssetOptions.ForceUpdate);
                 }
                 finally
                 {
-                    AssetDatabase.StopAssetEditing();
-                    AssetDatabase.Refresh();
+                    UnityEditorMCP.Helpers.AssetEditingGuard.End();
+                    var mode = parameters["refreshMode"]?.ToString()?.ToLowerInvariant();
+                    if (mode == "immediate") UnityEditorMCP.Helpers.RefreshController.ImmediateThrottled();
+                    else if (mode == "none") { }
+                    else UnityEditorMCP.Helpers.RefreshController.Debounced();
                 }
 
                 var compParams = new JObject { ["includeMessages"] = true, ["maxMessages"] = 50 };
@@ -1010,7 +1018,8 @@ namespace UnityEditorMCP.Handlers
                 }
                 var compBeforeParams = new JObject { ["includeMessages"] = true, ["maxMessages"] = 200 };
                 var compBefore = CompilationHandler.GetCompilationState(compBeforeParams);
-                AssetDatabase.StartAssetEditing();
+                if (!EditorApplication.isCompiling)
+                    UnityEditorMCP.Helpers.AssetEditingGuard.Begin();
                 var backups = new List<object>();
                 try
                 {
@@ -1033,13 +1042,15 @@ namespace UnityEditorMCP.Handlers
                         var backup = CreateBackupFor(file.rel, File.ReadAllText(abs));
                         backups.Add(new { path = file.rel, backup });
                         File.WriteAllText(abs, string.Join("\n", lines));
-                        AssetDatabase.ImportAsset(file.rel, ImportAssetOptions.ForceUpdate);
                     }
                 }
                 finally
                 {
-                    AssetDatabase.StopAssetEditing();
-                    AssetDatabase.Refresh();
+                    UnityEditorMCP.Helpers.AssetEditingGuard.End();
+                    var mode = parameters["refreshMode"]?.ToString()?.ToLowerInvariant();
+                    if (mode == "immediate") UnityEditorMCP.Helpers.RefreshController.ImmediateThrottled();
+                    else if (mode == "none") { }
+                    else UnityEditorMCP.Helpers.RefreshController.Debounced();
                 }
 
                 var compParams = new JObject { ["includeMessages"] = true, ["maxMessages"] = 50 };
@@ -1090,6 +1101,7 @@ namespace UnityEditorMCP.Handlers
                 var exclude = parameters["exclude"]?.ToString();
                 var preview = parameters["preview"]?.ToObject<bool?>() ?? true;
                 var pageSize = Math.Max(1, parameters["pageSize"]?.ToObject<int?>() ?? settings.searchDefaults.maxResults);
+                bool maxProvided = parameters["maxMatchesPerFile"] != null;
                 var maxMatchesPerFile = Math.Max(1, parameters["maxMatchesPerFile"]?.ToObject<int?>() ?? settings.searchDefaults.maxMatchesPerFile);
                 var maxFileSizeKB = Math.Max(0, parameters["maxFileSizeKB"]?.ToObject<int?>() ?? 0);
                 var wordBoundary = parameters["wordBoundary"]?.ToObject<bool?>() ?? false;
@@ -1325,7 +1337,8 @@ namespace UnityEditorMCP.Handlers
                 // Apply changes
                 var compBeforeParams = new JObject { ["includeMessages"] = true, ["maxMessages"] = 200 };
                 var compBefore = CompilationHandler.GetCompilationState(compBeforeParams);
-                AssetDatabase.StartAssetEditing();
+                if (!EditorApplication.isCompiling)
+                    UnityEditorMCP.Helpers.AssetEditingGuard.Begin();
                 var backups = new List<object>();
                 try
                 {
@@ -1339,16 +1352,17 @@ namespace UnityEditorMCP.Handlers
                         string content = before;
                         string newContent;
                         int dummy;
-                        RecomputeReplacement(content, patternType, pattern, replacement, flags, maxMatchesPerFile, out newContent, wordBoundary);
+                        int perFileCapApply = maxProvided ? maxMatchesPerFile : int.MaxValue;
+                        RecomputeReplacement(content, patternType, pattern, replacement, flags, perFileCapApply, out newContent, wordBoundary);
                         var backup = CreateBackupFor(rel, before);
                         backups.Add(new { path = rel, backup });
                         File.WriteAllText(abs, newContent);
-                        AssetDatabase.ImportAsset(rel, ImportAssetOptions.ForceUpdate);
                     }
                 }
                 finally
                 {
-                    AssetDatabase.StopAssetEditing();
+                    UnityEditorMCP.Helpers.AssetEditingGuard.End();
+                    // Replace: refresh immediately to reflect changes for error state
                     AssetDatabase.Refresh();
                 }
 

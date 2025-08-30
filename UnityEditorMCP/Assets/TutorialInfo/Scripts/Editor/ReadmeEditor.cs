@@ -47,7 +47,7 @@ public class ReadmeEditor : Editor
                 FileUtil.DeleteFileOrDirectory(path);
             }
 
-            AssetDatabase.Refresh();
+            UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
         }
     }
 

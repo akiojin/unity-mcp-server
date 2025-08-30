@@ -48,7 +48,7 @@ public class DiceTextureGenerator : MonoBehaviour
         string path = "Assets/Materials/Dice/DiceTexture.png";
         System.IO.File.WriteAllBytes(path, pngData);
         
-        AssetDatabase.Refresh();
+        UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
         
         // テクスチャ設定を更新
         TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;

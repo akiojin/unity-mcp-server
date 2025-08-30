@@ -36,6 +36,10 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                if (!Application.isPlaying)
+                {
+                    return new { error = "Play Mode is required for simulate_keyboard_input", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
+                }
                 string action = parameters["action"]?.ToString(); // "press", "release", "type", "combo"
                 
                 if (string.IsNullOrEmpty(action))
@@ -78,6 +82,10 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                if (!Application.isPlaying)
+                {
+                    return new { error = "Play Mode is required for simulate_mouse_input", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
+                }
                 string action = parameters["action"]?.ToString(); // "move", "click", "drag", "scroll"
                 
                 if (string.IsNullOrEmpty(action))
@@ -120,6 +128,10 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                if (!Application.isPlaying)
+                {
+                    return new { error = "Play Mode is required for simulate_gamepad_input", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
+                }
                 string action = parameters["action"]?.ToString(); // "button", "stick", "trigger", "dpad"
                 
                 if (string.IsNullOrEmpty(action))
@@ -162,6 +174,10 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                if (!Application.isPlaying)
+                {
+                    return new { error = "Play Mode is required for simulate_touch_input", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
+                }
                 string action = parameters["action"]?.ToString(); // "tap", "swipe", "pinch", "multi"
                 
                 if (string.IsNullOrEmpty(action))
@@ -204,6 +220,10 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                if (!Application.isPlaying)
+                {
+                    return new { error = "Play Mode is required for create_input_sequence", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
+                }
                 var sequence = parameters["sequence"]?.ToObject<JArray>();
                 int delayBetween = parameters["delayBetween"]?.ToObject<int>() ?? 100;
                 

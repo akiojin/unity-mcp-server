@@ -113,7 +113,7 @@ namespace UnityEditorMCP.Handlers
                 tagManager.ApplyModifiedProperties();
 
                 // Force refresh of the tags
-                AssetDatabase.Refresh();
+                UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
 
                 int tagsCount = GetAllTags().Count;
 
@@ -180,7 +180,7 @@ namespace UnityEditorMCP.Handlers
                 tagManager.ApplyModifiedProperties();
 
                 // Force refresh of the tags
-                AssetDatabase.Refresh();
+                UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
 
                 int tagsCount = GetAllTags().Count;
 

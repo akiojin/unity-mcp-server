@@ -152,7 +152,7 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Force refresh
-                AssetDatabase.Refresh();
+                UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
 
                 return new
                 {
@@ -226,7 +226,7 @@ namespace UnityEditorMCP.Handlers
                 }
 
                 // Force refresh
-                AssetDatabase.Refresh();
+                UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
 
                 return new
                 {

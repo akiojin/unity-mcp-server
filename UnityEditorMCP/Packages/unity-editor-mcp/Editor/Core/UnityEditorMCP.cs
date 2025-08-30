@@ -30,6 +30,8 @@ namespace UnityEditorMCP.Core
         private static readonly object queueLock = new object();
         private static CancellationTokenSource cancellationTokenSource;
         private static Task listenerTask;
+        private static bool isProcessingCommand;
+        
         
         private static McpStatus _status = McpStatus.NotConfigured;
         public static McpStatus Status
@@ -64,6 +66,8 @@ namespace UnityEditorMCP.Core
             TryLoadConfigAndApply();
             StartTcpListener();
         }
+
+        
 
         /// <summary>
         /// Load external configuration and apply port if present.
@@ -329,7 +333,7 @@ namespace UnityEditorMCP.Core
                             messageBuffer.RemoveRange(0, 4 + messageLength);
                             
                             var json = Encoding.UTF8.GetString(messageBytes);
-                            Debug.Log($"[Unity Editor MCP] Received command (length={messageLength}): {json}");
+                            Debug.Log($"[Unity Editor MCP] Received command (length={messageLength})");
                             
                             try
                             {
@@ -403,7 +407,11 @@ namespace UnityEditorMCP.Core
                 Array.Reverse(lengthBytes);
             }
             
-            Debug.Log($"[Unity Editor MCP] Sending response (length={messageBytes.Length}): {message}");
+            try
+            {
+                Debug.Log($"[Unity Editor MCP] Sending response (length={messageBytes.Length})");
+            }
+            catch { }
             
             // Write length prefix
             await stream.WriteAsync(lengthBytes, 0, 4, cancellationToken);
@@ -417,14 +425,15 @@ namespace UnityEditorMCP.Core
         /// </summary>
         private static void ProcessCommandQueue()
         {
+            if (isProcessingCommand) return;
+            (Command command, TcpClient client) item;
             lock (queueLock)
             {
-                while (commandQueue.Count > 0)
-                {
-                    var (command, client) = commandQueue.Dequeue();
-                    ProcessCommand(command, client);
-                }
+                if (commandQueue.Count == 0) return;
+                item = commandQueue.Dequeue();
+                isProcessingCommand = true;
             }
+            ProcessCommand(item.command, item.client);
         }
         
         /// <summary>
@@ -434,10 +443,31 @@ namespace UnityEditorMCP.Core
         {
             try
             {
-                Debug.Log($"[Unity Editor MCP] Processing command: {JsonConvert.SerializeObject(command)}");
+                try
+                {
+                    // Avoid logging huge payloads which can stall the editor
+                    Debug.Log($"[Unity Editor MCP] Processing command: type={command.Type}, id={command.Id}");
+                }
+                catch { Debug.Log("[Unity Editor MCP] Processing command (log truncated)"); }
                 
                 string response;
                 
+                // During Play Mode, restrict heavy commands per policy to keep MCP responsive
+                if (Application.isPlaying && !PlayModeCommandPolicy.IsAllowed(command.Type))
+                {
+                    var state = new {
+                        isPlaying = Application.isPlaying,
+                        isCompiling = EditorApplication.isCompiling,
+                        isUpdating = EditorApplication.isUpdating
+                    };
+                    response = Response.ErrorResult(command.Id, $"Command '{command.Type}' is blocked during Play Mode", "PLAY_MODE_BLOCKED", state);
+                    if (client.Connected)
+                    {
+                        await SendFramedMessage(client.GetStream(), response, CancellationToken.None);
+                    }
+                    return;
+                }
+
                 // Handle command based on type
                 switch (command.Type?.ToLower())
                 {
@@ -1048,6 +1078,10 @@ namespace UnityEditorMCP.Core
                 {
                     // Best effort - ignore errors when sending error response
                 }
+            }
+            finally
+            {
+                isProcessingCommand = false;
             }
         }
         

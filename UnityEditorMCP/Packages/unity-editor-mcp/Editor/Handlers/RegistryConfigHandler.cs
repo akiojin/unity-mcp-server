@@ -206,7 +206,7 @@ namespace UnityEditorMCP.Handlers
                 // Write back to manifest.json
                 File.WriteAllText(ManifestPath, manifest.ToString(Newtonsoft.Json.Formatting.Indented));
                 
-                AssetDatabase.Refresh();
+                UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
                 
                 return new
                 {
@@ -318,7 +318,7 @@ namespace UnityEditorMCP.Handlers
                 // Write back to manifest.json
                 File.WriteAllText(ManifestPath, manifest.ToString(Newtonsoft.Json.Formatting.Indented));
                 
-                AssetDatabase.Refresh();
+                UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
                 
                 return new
                 {
@@ -381,7 +381,7 @@ namespace UnityEditorMCP.Handlers
                 // Write back to manifest.json
                 File.WriteAllText(ManifestPath, manifest.ToString(Newtonsoft.Json.Formatting.Indented));
                 
-                AssetDatabase.Refresh();
+                UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
                 
                 return new
                 {
@@ -445,7 +445,7 @@ namespace UnityEditorMCP.Handlers
                     // Write back to manifest.json
                     File.WriteAllText(ManifestPath, manifest.ToString(Newtonsoft.Json.Formatting.Indented));
                     
-                    AssetDatabase.Refresh();
+                    UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
                     
                     return new
                     {

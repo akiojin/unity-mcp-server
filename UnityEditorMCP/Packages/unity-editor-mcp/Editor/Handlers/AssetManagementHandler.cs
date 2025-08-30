@@ -48,7 +48,7 @@ namespace UnityEditorMCP.Handlers
                 if (!AssetDatabase.IsValidFolder(directory))
                 {
                     Directory.CreateDirectory(directory);
-                    AssetDatabase.Refresh();
+                    UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
                 }
 
                 GameObject prefabAsset = null;
@@ -313,7 +313,7 @@ namespace UnityEditorMCP.Handlers
                 if (!AssetDatabase.IsValidFolder(directory))
                 {
                     Directory.CreateDirectory(directory);
-                    AssetDatabase.Refresh();
+                    UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
                 }
 
                 Material material = null;

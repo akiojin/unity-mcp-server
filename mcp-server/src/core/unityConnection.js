@@ -16,6 +16,10 @@ export class UnityConnection extends EventEmitter {
     this.pendingCommands = new Map();
     this.isDisconnecting = false;
     this.messageBuffer = Buffer.alloc(0);
+    // Simple concurrency limiter and send queue to avoid flooding Unity
+    this.sendQueue = [];
+    this.inFlight = 0;
+    this.maxInFlight = 1; // process one command at a time by default
   }
 
   /**
@@ -251,10 +255,10 @@ export class UnityConnection extends EventEmitter {
             continue;
           }
           
-          logger.info(`[Unity] Received framed message: ${message}`);
+          logger.debug(`[Unity] Received framed message (length=${message.length})`);
           
           const response = JSON.parse(message);
-          logger.info(`[Unity] Parsed response:`, response);
+          logger.debug(`[Unity] Parsed response id=${response.id || 'n/a'} status=${response.status || (response.success === false ? 'error' : 'success')}`);
           
           // Check if this is a response to a pending command
           if (response.id && this.pendingCommands.has(response.id)) {
@@ -299,7 +303,7 @@ export class UnityConnection extends EventEmitter {
             }
           } else {
             // Handle unsolicited messages
-            logger.info(`[Unity] Received unsolicited message:`, response);
+            logger.debug(`[Unity] Received unsolicited message id=${response.id || 'n/a'}`);
             this.emit('message', response);
           }
         } catch (error) {
@@ -327,64 +331,79 @@ export class UnityConnection extends EventEmitter {
    * @returns {Promise<any>} - Response from Unity
    */
   async sendCommand(type, params = {}) {
-    logger.info(`[Unity] sendCommand called: ${type}`, { connected: this.connected, params });
+    logger.info(`[Unity] enqueue sendCommand: ${type}`, { connected: this.connected });
     
     if (!this.connected) {
       logger.error('[Unity] Cannot send command - not connected');
       throw new Error('Not connected to Unity');
     }
 
+    // Create an external promise that will resolve when Unity responds
+    return new Promise((outerResolve, outerReject) => {
+      const task = { type, params, outerResolve, outerReject };
+      this.sendQueue.push(task);
+      this._pumpQueue();
+    });
+  }
+
+  _pumpQueue() {
+    if (!this.connected) return;
+    if (this.inFlight >= this.maxInFlight) return;
+    const task = this.sendQueue.shift();
+    if (!task) return;
+
     const id = String(++this.commandId);
-    const command = {
-      id,
-      type,
-      params
-    };
+    const command = { id, type: task.type, params: task.params };
+    const json = JSON.stringify(command);
+    const messageBuffer = Buffer.from(json, 'utf8');
+    const lengthBuffer = Buffer.allocUnsafe(4);
+    lengthBuffer.writeInt32BE(messageBuffer.length, 0);
+    const framedMessage = Buffer.concat([lengthBuffer, messageBuffer]);
 
-    return new Promise((resolve, reject) => {
-      logger.info(`[Unity] Setting up command ${id} with timeout ${config.unity.commandTimeout}ms`);
-      
-      // Set up timeout
-      const timeout = setTimeout(() => {
-        logger.error(`[Unity] Command ${id} timed out after ${config.unity.commandTimeout}ms`);
+    this.inFlight++;
+    logger.info(`[Unity] Dispatching command ${id}: ${task.type}`);
+
+    // Set up timeout only when actually dispatched
+    const timeout = setTimeout(() => {
+      logger.error(`[Unity] Command ${id} timed out after ${config.unity.commandTimeout}ms`);
+      this.pendingCommands.delete(id);
+      this.inFlight = Math.max(0, this.inFlight - 1);
+      task.outerReject(new Error('Command timeout'));
+      this._pumpQueue();
+    }, config.unity.commandTimeout);
+
+    // Store pending with wrappers to manage queue progression
+    this.pendingCommands.set(id, {
+      resolve: (data) => {
+        logger.info(`[Unity] Command ${id} resolved`);
+        clearTimeout(timeout);
+        try { task.outerResolve(data); } finally {
+          this.inFlight = Math.max(0, this.inFlight - 1);
+          this._pumpQueue();
+        }
+      },
+      reject: (error) => {
+        logger.error(`[Unity] Command ${id} rejected: ${error.message}`);
+        clearTimeout(timeout);
+        try { task.outerReject(error); } finally {
+          this.inFlight = Math.max(0, this.inFlight - 1);
+          this._pumpQueue();
+        }
+      }
+    });
+
+    // Send framed message
+    this.socket.write(framedMessage, (error) => {
+      if (error) {
+        logger.error(`[Unity] Failed to write command ${id}: ${error.message}`);
+        clearTimeout(timeout);
         this.pendingCommands.delete(id);
-        reject(new Error('Command timeout'));
-      }, config.unity.commandTimeout);
-
-      // Store pending command
-      this.pendingCommands.set(id, {
-        resolve: (data) => {
-          logger.info(`[Unity] Command ${id} resolved successfully`);
-          clearTimeout(timeout);
-          resolve(data);
-        },
-        reject: (error) => {
-          logger.error(`[Unity] Command ${id} rejected with error:`, error.message);
-          clearTimeout(timeout);
-          reject(error);
-        }
-      });
-
-      // Send command with framing
-      const json = JSON.stringify(command);
-      const messageBuffer = Buffer.from(json, 'utf8');
-      const lengthBuffer = Buffer.allocUnsafe(4);
-      lengthBuffer.writeInt32BE(messageBuffer.length, 0);
-      
-      const framedMessage = Buffer.concat([lengthBuffer, messageBuffer]);
-      
-      logger.info(`[Unity] Sending framed command ${id}: ${json}`);
-      
-      this.socket.write(framedMessage, (error) => {
-        if (error) {
-          logger.error(`[Unity] Failed to write command ${id}:`, error.message);
-          this.pendingCommands.delete(id);
-          clearTimeout(timeout);
-          reject(error);
-        } else {
-          logger.info(`[Unity] Command ${id} written successfully, waiting for response...`);
-        }
-      });
+        this.inFlight = Math.max(0, this.inFlight - 1);
+        task.outerReject(error);
+        this._pumpQueue();
+      } else {
+        logger.debug(`[Unity] Command ${id} written; awaiting response`);
+      }
     });
   }
 

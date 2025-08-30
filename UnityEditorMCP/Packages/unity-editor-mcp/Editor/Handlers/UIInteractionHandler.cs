@@ -237,6 +237,10 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                if (!Application.isPlaying)
+                {
+                    return new { error = "Play Mode is required for simulate_ui_input", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
+                }
                 var inputSequence = parameters["inputSequence"]?.ToObject<JArray>();
                 float waitBetween = parameters["waitBetween"]?.ToObject<float>() ?? 100f;
                 bool validateState = parameters["validateState"]?.ToObject<bool>() ?? true;

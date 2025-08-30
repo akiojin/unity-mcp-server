@@ -351,21 +351,14 @@ namespace UnityEditorMCP.Handlers
             try
             {
                 var startTime = EditorApplication.timeSinceStartup;
-                
                 AssetDatabase.Refresh();
-                
                 var duration = EditorApplication.timeSinceStartup - startTime;
-                
-                // Count assets in project
-                var allAssetGuids = AssetDatabase.FindAssets("");
-                var assetsFound = allAssetGuids.Length;
 
                 return new
                 {
                     success = true,
                     action = "refresh",
                     message = "Asset database refreshed",
-                    assetsFound = assetsFound,
                     duration = Math.Round(duration, 2)
                 };
             }

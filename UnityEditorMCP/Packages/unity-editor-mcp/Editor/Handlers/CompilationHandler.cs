@@ -346,22 +346,9 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
-                // Read fresh compilation logs
-                var logMessages = ReadCompilationLogFile();
-                
-                // Add to our collection without duplicates
-                foreach (var msg in logMessages)
-                {
-                    if (!lastCompilationMessages.Any(existing => 
-                        existing.file == msg.file && 
-                        existing.line == msg.line && 
-                        existing.message == msg.message))
-                    {
-                        lastCompilationMessages.Add(msg);
-                    }
-                }
-
-                Debug.Log($"[CompilationHandler] Captured {lastCompilationMessages.Count} compilation messages");
+                // Avoid reading Editor/Temp log files to prevent stale errors from previous sessions.
+                // We rely solely on CompilationPipeline.assemblyCompilationFinished events to populate messages.
+                Debug.Log($"[CompilationHandler] Using assembly messages only (no log scan). Current messages: {lastCompilationMessages.Count}");
             }
             catch (Exception ex)
             {
