@@ -19,6 +19,10 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                if (Application.isPlaying)
+                {
+                    return new { error = "CreateGameObject is blocked during Play Mode", code = "PLAY_MODE_BLOCKED" };
+                }
                 // Parse parameters
                 string name = parameters["name"]?.ToString() ?? "GameObject";
                 string primitiveType = parameters["primitiveType"]?.ToString();
@@ -242,6 +246,19 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                if (Application.isPlaying)
+                {
+                    bool runtime = parameters["runtime"]?.ToObject<bool>() ?? false;
+                    if (!runtime)
+                    {
+                        return new { error = "ModifyGameObject is blocked during Play Mode without runtime:true", code = "PLAY_MODE_BLOCKED" };
+                    }
+                    // Disallow structural changes during Play
+                    if (parameters.ContainsKey("parentPath") || parameters.ContainsKey("layer") || parameters.ContainsKey("tag"))
+                    {
+                        return new { error = "Structural changes (parent/tag/layer) are blocked during Play Mode", code = "PLAY_MODE_BLOCKED" };
+                    }
+                }
                 string path = parameters["path"]?.ToString();
                 if (string.IsNullOrEmpty(path))
                 {
@@ -255,7 +272,7 @@ namespace UnityEditorMCP.Handlers
                     return new { error = $"GameObject not found: {path}" };
                 }
                 
-                // Store original values for undo
+                // Store original values for undo / runtime rollback
                 var originalName = obj.name;
                 var originalPosition = obj.transform.position;
                 var originalRotation = obj.transform.rotation;
@@ -265,7 +282,13 @@ namespace UnityEditorMCP.Handlers
                 // Apply modifications
                 bool modified = false;
                 
-                // Name
+                // Record runtime snapshot before first change
+                if (Application.isPlaying)
+                {
+                    UnityEditorMCP.Helpers.RuntimeChangeJournal.Record(obj);
+                }
+
+                // Name (non-structural; allow in Play when runtime:true)
                 string newName = parameters["name"]?.ToString();
                 if (!string.IsNullOrEmpty(newName) && newName != obj.name)
                 {
@@ -303,47 +326,41 @@ namespace UnityEditorMCP.Handlers
                     modified = true;
                 }
                 
-                // Tag
-                string tag = parameters["tag"]?.ToString();
-                if (!string.IsNullOrEmpty(tag) && tag != obj.tag)
+                // Tag/Layer changes: allowed only in Edit Mode (already blocked earlier in Play)
+                if (!Application.isPlaying)
                 {
-                    try
+                    string tag = parameters["tag"]?.ToString();
+                    if (!string.IsNullOrEmpty(tag) && tag != obj.tag)
                     {
-                        obj.tag = tag;
-                        modified = true;
+                        try { obj.tag = tag; modified = true; }
+                        catch (Exception) { Debug.LogWarning($"Invalid tag: {tag}"); }
                     }
-                    catch (Exception)
-                    {
-                        Debug.LogWarning($"Invalid tag: {tag}");
-                    }
+
+                    int? layer = parameters["layer"]?.ToObject<int>();
+                    if (layer.HasValue && layer.Value >= 0 && layer.Value < 32 && layer.Value != obj.layer)
+                    { obj.layer = layer.Value; modified = true; }
                 }
                 
-                // Layer
-                int? layer = parameters["layer"]?.ToObject<int>();
-                if (layer.HasValue && layer.Value >= 0 && layer.Value < 32 && layer.Value != obj.layer)
+                // Parent changes only in Edit Mode
+                if (!Application.isPlaying)
                 {
-                    obj.layer = layer.Value;
-                    modified = true;
-                }
-                
-                // Parent
-                string parentPath = parameters["parentPath"]?.ToString();
-                if (parameters.ContainsKey("parentPath")) // Allow null to unparent
-                {
-                    GameObject newParent = null;
-                    if (!string.IsNullOrEmpty(parentPath))
+                    string parentPath = parameters["parentPath"]?.ToString();
+                    if (parameters.ContainsKey("parentPath"))
                     {
-                        newParent = FindGameObjectByPath(parentPath);
-                        if (newParent == null)
+                        GameObject newParent = null;
+                        if (!string.IsNullOrEmpty(parentPath))
                         {
-                            return new { error = $"Parent GameObject not found: {parentPath}" };
+                            newParent = FindGameObjectByPath(parentPath);
+                            if (newParent == null)
+                            {
+                                return new { error = $"Parent GameObject not found: {parentPath}" };
+                            }
                         }
-                    }
-                    
-                    if (obj.transform.parent != (newParent ? newParent.transform : null))
-                    {
-                        obj.transform.SetParent(newParent ? newParent.transform : null, true);
-                        modified = true;
+                        if (obj.transform.parent != (newParent ? newParent.transform : null))
+                        {
+                            obj.transform.SetParent(newParent ? newParent.transform : null, true);
+                            modified = true;
+                        }
                     }
                 }
                 
@@ -480,6 +497,10 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                if (Application.isPlaying)
+                {
+                    return new { error = "DeleteGameObject is blocked during Play Mode", code = "PLAY_MODE_BLOCKED" };
+                }
                 string path = parameters["path"]?.ToString();
                 string[] paths = parameters["paths"]?.ToObject<string[]>();
                 bool includeChildren = parameters["includeChildren"]?.ToObject<bool>() ?? true;
