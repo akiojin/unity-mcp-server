@@ -13,6 +13,7 @@ Defaults
 - snippetContext: 2（診断や検索の周辺行数）
  - apply対象: 既存の `.cs`（Assets と Embedded のみ）
  - apply時の挙動: 既定でデバウンス一括適用（約1.2秒後）。即時適用したい場合は `defer:false` を指定。
+ - 既定値は設定から変更可能（環境変数/設定ファイル）。
  - Unity側は `get_editor_state` / `get_compilation_state` に基づきアイドル待機→安全タイミングで適用。
 
 Commands
@@ -107,7 +108,22 @@ Notes
 - 書き込みは `Assets/**.cs` と Embedded packages の既存`.cs`のみ許可。設定で拡張子/スコープを制御可能。
 - 適用時は `Library/UnityMCP/Backups/<timestamp>/...` に原本コピーを保存します。
 - 参照検索/シンボル検索と組み合わせることで、LLMは目的の位置を特定→プレビュー→適用の流れを自動化できます。
- - 大量変更は `script_edit_patch` に集約し、`defer:true` で1回のRefresh/コンパイルに抑制するのが推奨です。
+- 大量変更は `script_edit_patch` に集約し、`defer:true` で1回のRefresh/コンパイルに抑制するのが推奨です。
+
+Configuration
+- 環境変数（mcp-server 側）
+  - `WRITE_DEBOUNCE_MS`: デバウンス遅延（ms）。既定 `1200`
+  - `WRITE_MAX_EDITS`: キューに貯める最大編集数。既定 `100`
+  - `WRITE_DEFER_DEFAULT`: `true|false`。`script_edit_patch` の既定`defer`。既定 `true`
+- 設定ファイル（任意）
+  - `UNITY_MCP_CONFIG` でJSONパスを指定、未指定時は `mcp-server/config.json` を自動検出
+  - 例:
+```
+{
+  "writeQueue": { "debounceMs": 800, "maxEdits": 200, "deferDefault": true },
+  "search": { "defaultDetail": "compact", "engine": "naive" }
+}
+```
 
 Errors
 - 共通エラーモデル: `{ "error": string, "code?": string, "path?": string }`

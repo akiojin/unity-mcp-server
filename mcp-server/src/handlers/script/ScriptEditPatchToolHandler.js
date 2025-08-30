@@ -1,6 +1,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { WriteGate } from '../../core/writeGate.js';
 import { getWriteQueue } from '../../core/globalWriteQueue.js';
+import { config } from '../../core/config.js';
 
 export class ScriptEditPatchToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -50,6 +51,10 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
                         type: 'number',
                         default: 2,
                         description: 'Warn when clustered edit count reaches this size.'
+                    },
+                    defer: {
+                        type: 'boolean',
+                        description: 'If true, enqueue into write queue and batch apply after debounce. If false, apply immediately.'
                     }
                 },
                 required: ['edits']
@@ -85,7 +90,8 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
 
     async execute(params) {
         const preview = params?.preview === true;
-        const defer = params?.defer !== false; // 既定でバッチ適用
+        const deferDefault = (config.writeQueue && typeof config.writeQueue.deferDefault === 'boolean') ? config.writeQueue.deferDefault : true;
+        const defer = typeof params?.defer === 'boolean' ? params.defer : deferDefault; // 設定既定→引数で上書き
         if (preview === false && defer) {
             // バッチキューへ投入して即ACK
             const enq = this.writeQueue.enqueuePatch(params);

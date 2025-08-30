@@ -53,6 +53,20 @@ export class ProjectInfoProvider {
   }
 
   inferFromCwd() {
+    // First, check for Docker environment default path
+    const dockerDefaultPath = '/unity-editor-mcp/UnityEditorMCP';
+    const dockerAssets = path.join(dockerDefaultPath, 'Assets');
+    if (fs.existsSync(dockerAssets)) {
+      const projectRoot = dockerDefaultPath.replace(/\\/g, '/');
+      logger.info(`Found Unity project at Docker default path: ${projectRoot}`);
+      return {
+        projectRoot,
+        assetsPath: dockerAssets.replace(/\\/g, '/'),
+        packagesPath: path.join(dockerDefaultPath, 'Packages').replace(/\\/g, '/'),
+        codeIndexRoot: path.join(dockerDefaultPath, 'Library/UnityMCP/CodeIndex').replace(/\\/g, '/'),
+      };
+    }
+
     let dir = process.cwd();
     // Walk up max 5 levels (look for Assets directly under a directory)
     for (let i = 0; i < 5; i++) {

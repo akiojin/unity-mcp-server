@@ -5,6 +5,7 @@ Goal: Minimal, LLM-friendly specs for reading, listing, searching, and symbol di
 Defaults
 - scope: `assets`
 - returnMode: `snippets`（compact応答。必要時のみ詳細を個別取得）
+- detail: `compact`（`returnMode=snippets`のエイリアス。環境既定で上書き可能）
 - pageSize: 20
 - maxBytes: 65536
 - snippetContext: 2
@@ -33,6 +34,7 @@ Commands
   "include": "**/*.cs",
   "exclude": "Packages/**/Tests/**",
   "returnMode": "metadata" | "snippets" | "full",  // 既定: snippets（compact）
+  "detail": "compact|metadata|snippets|full",        // 推奨: compact（snippetsと同義）。UI/クライアント向けの分かりやすい別名
   "pageSize": 20,
   "maxMatchesPerFile": 5,
   "snippetContext": 2,

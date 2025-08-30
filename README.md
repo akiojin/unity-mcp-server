@@ -264,6 +264,37 @@ If you see "Port 6400 is already in use":
 2. Run `npm install` in the mcp-server directory
 3. Check for any error messages in the console
 
+### Script Tools Configuration
+
+#### Docker Environment
+When running in Docker, the MCP server automatically detects the Unity project at `/unity-editor-mcp/UnityEditorMCP`. No additional configuration is required.
+
+#### Custom Project Path
+If your Unity project is in a different location, set the `UNITY_PROJECT_ROOT` environment variable:
+
+```bash
+export UNITY_PROJECT_ROOT=/path/to/your/unity/project
+```
+
+#### Script Tools Troubleshooting
+If script tools (script_read, script_search, etc.) return "File not found":
+
+1. **Check project path detection**
+   - Run `script_index_status` to see if files are being detected
+   - Verify `totalFiles` is greater than 0
+
+2. **Verify code index exists**
+   - Check for files in `Library/UnityMCP/CodeIndex/files/`
+   - Index files should have `.symbols.json` and `.meta.json` extensions
+
+3. **Ensure compilation is successful**
+   - Unity must compile successfully for the index to be built
+   - Check Unity console for compilation errors
+
+4. **Restart MCP server after path changes**
+   - If you change `UNITY_PROJECT_ROOT`, restart the MCP server
+   - The server caches the project path on startup
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.

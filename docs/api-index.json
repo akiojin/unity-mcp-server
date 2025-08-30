@@ -24,7 +24,8 @@
         "scope": { "type": "string", "enum": ["assets", "packages", "embedded", "all"], "default": "assets" },
         "include": { "type": "string", "default": "**/*.cs" },
         "exclude": { "type": "string" },
-        "returnMode": { "type": "string", "enum": ["metadata", "snippets", "full"], "default": "metadata" },
+        "returnMode": { "type": "string", "enum": ["metadata", "snippets", "full"], "default": "snippets" },
+        "detail": { "type": "string", "enum": ["compact", "metadata", "snippets", "full"], "default": "compact" },
         "pageSize": { "type": "number", "default": 200 },
         "maxMatchesPerFile": { "type": "number", "default": 3 },
         "snippetContext": { "type": "number", "default": 2 },
@@ -36,7 +37,7 @@
         "container": { "type": "string" },
         "namespace": { "type": "string" }
       },
-      "returns": ["success", "results", "total", "nextStartAfter", "truncated"]
+      "returns": ["success", "pathTable", "results", "total", "cursor"]
     },
     "script_symbols_get": {
       "params": { "path": { "type": "string", "required": true } },
@@ -73,7 +74,8 @@
         "preview": { "type": "boolean", "default": true },
         "edits": { "type": "array", "items": { "type": "object", "properties": { "path": {"type": "string", "required": true }, "startLine": {"type": "number", "required": true }, "endLine": {"type": "number", "required": true }, "newText": {"type": "string", "default": "" } } } },
         "proximityThreshold": { "type": "number", "default": 3 },
-        "minClusterSize": { "type": "number", "default": 2 }
+        "minClusterSize": { "type": "number", "default": 2 },
+        "defer": { "type": "boolean", "description": "If true, enqueue into write queue and batch apply after debounce. If false, apply immediately." }
       },
       "returns": ["success", "previews", "applied", "backups", "compilation"]
     },

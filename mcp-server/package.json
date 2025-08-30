@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node src/core/server.js",
     "dev": "node --watch src/core/server.js",
+    "build:index": "node src/tools/buildCodeIndex.js",
     "test": "node --test tests/unit/**/*.test.js tests/integration/*.test.js",
     "test:unit": "NODE_ENV=test node --test tests/unit/**/*.test.js",
     "test:integration": "NODE_ENV=test node --test tests/integration/*.test.js",

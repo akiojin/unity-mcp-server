@@ -9,6 +9,7 @@ services:
       - ~/.codex:/root/.codex
       - ~/.serena:/root/.serena
     environment:
+      - UNITY_PROJECT_ROOT=/unity-editor-mcp/UnityEditorMCP
       - NPM_USER
       - NPM_EMAIL
       - NPM_PASS

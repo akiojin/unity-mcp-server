@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
-import { logger } from '../../core/config.js';
+import { logger, config } from '../../core/config.js';
 
 export class ScriptSearchToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -63,6 +63,11 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
                         enum: ['metadata', 'snippets', 'full'],
                         description: 'Result detail: metadata (fast), snippets (recommended), or full.'
                     },
+                    detail: {
+                        type: 'string',
+                        enum: ['compact', 'metadata', 'snippets', 'full'],
+                        description: 'Alias of returnMode. `compact` maps to `snippets`.'
+                    },
                     startAfter: {
                         type: 'string',
                         description: 'Opaque cursor for pagination (use value from previous page).'
@@ -94,6 +99,8 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
         );
         this.unityConnection = unityConnection;
         this.projectInfo = new ProjectInfoProvider(unityConnection);
+        this.configDefaultDetail = (config?.search?.defaultDetail || 'compact').toLowerCase();
+        this.configSearchEngine = (config?.search?.engine || 'naive').toLowerCase();
     }
 
     validate(params) {
@@ -121,11 +128,24 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
                 maxMatchesPerFile = 5,
                 snippetContext = 2,
                 maxBytes = 1024 * 64,
-                returnMode = 'snippets',
+                returnMode,
+                detail,
                 startAfter,
                 maxFileSizeKB = 1024,
                 codeOnly = true,
             } = params;
+
+            // Resolve detail/returnMode default and mapping
+            let effectiveDetail = (detail || '').toLowerCase();
+            if (!effectiveDetail && !returnMode) {
+                effectiveDetail = this.configDefaultDetail || 'compact';
+            }
+            const normalizedReturnMode = (() => {
+                const d = (effectiveDetail || '').toLowerCase();
+                if (d === 'compact') return 'snippets';
+                if (d === 'metadata' || d === 'snippets' || d === 'full') return d;
+                return (returnMode || 'snippets');
+            })();
 
             // Resolve search roots
             const roots = [];
@@ -134,6 +154,10 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
 
             const includeRx = globToRegExp(include);
             const excludeRx = exclude ? globToRegExp(exclude) : null;
+            // Engine selection (future: treesitter). Currently fallback to naive.
+            if (this.configSearchEngine === 'treesitter') {
+                logger.debug('[script_search] tree-sitter engine requested; falling back to naive matcher');
+            }
             const matcher = buildMatcher(patternType, pattern, flags);
 
             const results = [];
@@ -181,7 +205,7 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
                 const lineRanges = toRanges(matchedLines);
                 const item = { fileId: id, lineRanges };
 
-                if (returnMode === 'snippets') {
+                if (normalizedReturnMode === 'snippets') {
                     // Build minimal snippets around first few matches
                     const snippets = [];
                     for (const ln of matchedLines.slice(0, maxMatchesPerFile)) {
