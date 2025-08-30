@@ -97,7 +97,10 @@ namespace MassiveTestNamespace
     {
         Verbose,
         Debug,
-        Info
+        Info,
+        Warning,
+        Error,
+        Fatal
     }
     
     public enum NetworkState
@@ -497,13 +500,9 @@ namespace MassiveTestNamespace
         public int maxHealth;
         public int mana;
         public int maxMana;
-        public void Connect()
-        {
-            if (currentState != NetworkState.Disconnected && currentState != NetworkState.Error) return;
-            
-            Debug.Log($"[NetworkManager] Initiating connection to {serverAddress}:{serverPort}");
-            StartCoroutine(ConnectToServer());
-        }
+        public Vector3 position;
+        public Quaternion rotation;
+        public List<string> inventory;
         public Dictionary<string, int> stats;
         public DateTime lastLoginTime;
         public float totalPlayTime;
@@ -635,7 +634,7 @@ namespace MassiveTestNamespace
         [SerializeField] private int highScore;
         
         [Header("Player Management")]
-        [SerializeField] private PlayerData currentPlayer;
+        [SerializeField] public PlayerData currentPlayer;
         [SerializeField] private List<PlayerData> allPlayers;
         
         [Header("Resource Management")]

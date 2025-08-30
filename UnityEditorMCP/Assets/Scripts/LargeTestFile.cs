@@ -445,7 +445,7 @@ namespace ComplexTestNamespace
             {
                 if (enableLogging)
                 {
-                    UnityEngine.Debug.LogFormatWarning($"Performance warning: Frame took {Time.deltaTime * 1000f:F2}ms");
+                    UnityEngine.Debug.LogWarning($"Performance warning: Frame took {Time.deltaTime * 1000f:F2}ms");
                 }
                 
                 // Automatic optimization
