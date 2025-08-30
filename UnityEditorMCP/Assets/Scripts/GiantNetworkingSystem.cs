@@ -2,8 +2,6 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-
-
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
@@ -1053,6 +1051,12 @@ public enum QoSLevel
                             SendSyncData();
                         }
                     }
+                }
+                
+                yield return null;
+            }
+        }
+        
         private IEnumerator NetworkUpdateLoop()
         {
             while (true)
@@ -1086,38 +1090,6 @@ public enum QoSLevel
                         
                         // Check connection health
                         CheckConnectionHealth();
-                    }
-                }
-                
-                yield return null;
-            }
-        }
-                {
-                    byte[] data = transport.Receive();
-                    
-                    if (data != null && data.Length > 0)
-                    {
-                        // Decrypt
-                        if (encryption != null)
-                        {
-                            // In real implementation, key would be exchanged
-                            byte[] key = encryption.GenerateKey(256);
-                            data = encryption.Decrypt(data, key);
-                        }
-                        
-                        // Decompress
-                        if (compression != null)
-                        {
-                            data = compression.Decompress(data);
-                        }
-                        
-                        // Deserialize
-                        var message = serializer.Deserialize<NetworkMessage>(data);
-                        
-                        if (message != null)
-                        {
-                            incomingMessages.Enqueue(message);
-                        }
                     }
                 }
                 
@@ -1194,7 +1166,7 @@ public enum QoSLevel
                     OnPeerDisconnected?.Invoke(peer);
                 }
             }
-            }
+        }
         
         private void SendConnectionRequest()
         {
@@ -2099,4 +2071,4 @@ public enum QoSLevel
     }
     
     #endregion
-}
+} // namespace GiantNetworkingNamespace

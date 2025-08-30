@@ -1,100 +1,52 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace UnityEditorMCP.Core.CodeIndex
 {
     /// <summary>
-    /// Reflection-based Roslyn adapter. Uses Microsoft.CodeAnalysis.CSharp if available at runtime.
-    /// Never references types directly to avoid hard dependency.
+    /// Roslyn adapter (direct references). Parses C# source and exposes symbol info and identifier tokens.
     /// </summary>
     public static class RoslynAdapter
     {
-        public static bool IsAvailable()
-        {
-            return GetCSharpAssembly() != null && GetCoreAssembly() != null;
-        }
+        public static bool IsAvailable() => true;
 
         public static FileSymbols TryParse(string relPath, string sourceText)
         {
             try
             {
-                var csharpAsm = GetCSharpAssembly();
-                var coreAsm = GetCoreAssembly();
-                if (csharpAsm == null || coreAsm == null) return null;
-
-                var csharpSyntaxTreeType = csharpAsm.GetType("Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree");
-                var syntaxNodeType = coreAsm.GetType("Microsoft.CodeAnalysis.SyntaxNode");
-                var syntaxTree = csharpSyntaxTreeType?.GetMethod("ParseText", new[] { typeof(string) })?.Invoke(null, new object[] { sourceText });
-                if (syntaxTree == null) return null;
-
-                var getRoot = syntaxTree.GetType().GetMethod("GetRoot", Type.EmptyTypes);
-                var root = getRoot?.Invoke(syntaxTree, null);
-                if (root == null) return null;
-
+                var tree = CSharpSyntaxTree.ParseText(sourceText);
+                var root = tree.GetRoot();
                 var fs = new FileSymbols { path = relPath };
 
-                // Enumerate all nodes
-                var descMethod = syntaxNodeType.GetMethod("DescendantNodes", Type.EmptyTypes);
-                var nodesEnum = descMethod.Invoke(root, null) as System.Collections.IEnumerable;
-                if (nodesEnum == null) return null;
-
-                var nodeList = new List<object>();
-                foreach (var n in nodesEnum) nodeList.Add(n);
-
-                foreach (var node in nodeList)
+                foreach (var node in root.DescendantNodes())
                 {
-                    var t = node.GetType();
-                    var tn = t.Name;
-                    if (tn == "ClassDeclarationSyntax" || tn == "StructDeclarationSyntax" || tn == "InterfaceDeclarationSyntax" || tn == "EnumDeclarationSyntax")
+                    if (node is ClassDeclarationSyntax cls)
                     {
-                        var name = GetIdentifierText(t, node);
-                        var kind = tn.Replace("DeclarationSyntax", string.Empty).ToLowerInvariant();
-                        var (startLine, endLine) = GetLineSpan(node);
-                        fs.symbols.Add(new Symbol
-                        {
-                            name = name,
-                            kind = kind,
-                            @namespace = GetNamespace(node),
-                            container = GetEnclosingTypeName(node),
-                            startLine = startLine,
-                            endLine = endLine,
-                            startColumn = 1,
-                            endColumn = 1
-                        });
+                        AddType(fs, cls.Identifier.ValueText, "class", cls);
                     }
-                    else if (tn == "MethodDeclarationSyntax")
+                    else if (node is StructDeclarationSyntax str)
                     {
-                        var name = GetIdentifierText(t, node);
-                        var (startLine, endLine) = GetLineSpan(node);
-                        fs.symbols.Add(new Symbol
-                        {
-                            name = name,
-                            kind = "method",
-                            @namespace = GetNamespace(node),
-                            container = GetEnclosingTypeName(node),
-                            startLine = startLine,
-                            endLine = endLine,
-                            startColumn = 1,
-                            endColumn = 1
-                        });
+                        AddType(fs, str.Identifier.ValueText, "struct", str);
                     }
-                    else if (tn == "PropertyDeclarationSyntax")
+                    else if (node is InterfaceDeclarationSyntax iface)
                     {
-                        var name = GetIdentifierText(t, node);
-                        var (startLine, endLine) = GetLineSpan(node);
-                        fs.symbols.Add(new Symbol
-                        {
-                            name = name,
-                            kind = "property",
-                            @namespace = GetNamespace(node),
-                            container = GetEnclosingTypeName(node),
-                            startLine = startLine,
-                            endLine = endLine,
-                            startColumn = 1,
-                            endColumn = 1
-                        });
+                        AddType(fs, iface.Identifier.ValueText, "interface", iface);
+                    }
+                    else if (node is EnumDeclarationSyntax en)
+                    {
+                        AddType(fs, en.Identifier.ValueText, "enum", en);
+                    }
+                    else if (node is MethodDeclarationSyntax m)
+                    {
+                        AddMember(fs, m.Identifier.ValueText, "method", m);
+                    }
+                    else if (node is PropertyDeclarationSyntax p)
+                    {
+                        AddMember(fs, p.Identifier.ValueText, "property", p);
                     }
                 }
 
@@ -106,139 +58,103 @@ namespace UnityEditorMCP.Core.CodeIndex
             }
         }
 
-        /// <summary>
-        /// Finds all identifier token occurrences matching the given name. Skips strings/comments automatically by relying on the syntax tree.
-        /// Returns 1-based line/column and token length.
-        /// </summary>
         public static IEnumerable<(int line, int column, int length, string container, string ns)> FindIdentifierTokens(string sourceText, string name)
         {
             var list = new List<(int, int, int, string, string)>();
             try
             {
-                var csharpAsm = GetCSharpAssembly();
-                var coreAsm = GetCoreAssembly();
-                if (csharpAsm == null || coreAsm == null) return list;
-
-                var csharpSyntaxTreeType = csharpAsm.GetType("Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree");
-                var syntaxNodeType = coreAsm.GetType("Microsoft.CodeAnalysis.SyntaxNode");
-                var syntaxTokenType = coreAsm.GetType("Microsoft.CodeAnalysis.SyntaxToken");
-                var syntaxKindType = csharpAsm.GetType("Microsoft.CodeAnalysis.CSharp.SyntaxKind");
-                if (csharpSyntaxTreeType == null || syntaxNodeType == null || syntaxTokenType == null || syntaxKindType == null) return list;
-
-                var tree = csharpSyntaxTreeType.GetMethod("ParseText", new[] { typeof(string) })?.Invoke(null, new object[] { sourceText });
-                if (tree == null) return list;
-                var root = tree.GetType().GetMethod("GetRoot", Type.EmptyTypes)?.Invoke(tree, null);
-                if (root == null) return list;
-
-                // Enumerate tokens
-                var descTokens = syntaxNodeType.GetMethod("DescendantTokens", Type.EmptyTypes)?.Invoke(root, null) as System.Collections.IEnumerable;
-                if (descTokens == null) return list;
-
-                // SyntaxKind.IdentifierToken value
-                var idKind = Enum.Parse(syntaxKindType, "IdentifierToken");
-
-                foreach (var tok in descTokens)
+                var tree = CSharpSyntaxTree.ParseText(sourceText);
+                var root = tree.GetRoot();
+                foreach (var tok in root.DescendantTokens())
                 {
-                    // if (tok.Kind() == SyntaxKind.IdentifierToken && tok.ValueText == name)
-                    var kindObj = syntaxTokenType.GetMethod("get_Kind")?.Invoke(tok, null);
-                    if (kindObj == null || !kindObj.Equals(idKind)) continue;
-                    var valueText = syntaxTokenType.GetProperty("ValueText")?.GetValue(tok) as string;
-                    if (!string.Equals(valueText, name, StringComparison.Ordinal)) continue;
-
-                    var loc = syntaxTokenType.GetMethod("GetLocation")?.Invoke(tok, null);
-                    var lineSpan = loc?.GetType().GetMethod("GetLineSpan", Type.EmptyTypes)?.Invoke(loc, null);
-                    if (lineSpan == null) continue;
-                    var start = lineSpan.GetType().GetProperty("StartLinePosition")?.GetValue(lineSpan);
-                    int line = (int)(start?.GetType().GetProperty("Line")?.GetValue(start) ?? 0) + 1;
-                    int column = (int)(start?.GetType().GetProperty("Character")?.GetValue(start) ?? 0) + 1;
-                    int length = name.Length;
-                    // container/ns via token.Parent chain
-                    var parent = syntaxTokenType.GetProperty("Parent")?.GetValue(tok);
-                    string container = GetEnclosingTypeName(parent ?? root);
-                    string ns = GetNamespace(parent ?? root);
-                    list.Add((line, column, length, container, ns));
+                    if (tok.Kind() == SyntaxKind.IdentifierToken && string.Equals(tok.ValueText, name, StringComparison.Ordinal))
+                    {
+                        var span = tok.GetLocation().GetLineSpan();
+                        int line = span.StartLinePosition.Line + 1;
+                        int col = span.StartLinePosition.Character + 1;
+                        var parent = tok.Parent as SyntaxNode ?? root;
+                        var container = GetEnclosingTypeName(parent);
+                        var ns = GetNamespace(parent);
+                        list.Add((line, col, name.Length, container, ns));
+                    }
                 }
             }
             catch { }
             return list;
         }
 
-        private static (int, int) GetLineSpan(object node)
+        private static void AddType(FileSymbols fs, string name, string kind, SyntaxNode node)
         {
-            var loc = node.GetType().GetMethod("GetLocation")?.Invoke(node, null);
-            var lineSpan = loc?.GetType().GetMethod("GetLineSpan", Type.EmptyTypes)?.Invoke(loc, null);
-            var spanType = lineSpan?.GetType();
-            var start = spanType?.GetProperty("StartLinePosition")?.GetValue(lineSpan);
-            var end = spanType?.GetProperty("EndLinePosition")?.GetValue(lineSpan);
-            int s = (int)(start?.GetType().GetProperty("Line")?.GetValue(start) ?? 0) + 1;
-            int e = (int)(end?.GetType().GetProperty("Line")?.GetValue(end) ?? 0) + 1;
-            return (s, e);
+            var span = node.GetLocation().GetLineSpan();
+            fs.symbols.Add(new Symbol
+            {
+                name = name,
+                kind = kind,
+                @namespace = GetNamespace(node),
+                container = GetEnclosingTypeName(node),
+                startLine = span.StartLinePosition.Line + 1,
+                endLine = span.EndLinePosition.Line + 1,
+                startColumn = 1,
+                endColumn = 1
+            });
         }
 
-        private static string GetIdentifierText(Type nodeType, object node)
+        private static void AddMember(FileSymbols fs, string name, string kind, SyntaxNode node)
         {
-            var ident = nodeType.GetProperty("Identifier")?.GetValue(node);
-            if (ident == null) return null;
-            var vt = ident.GetType().GetProperty("ValueText")?.GetValue(ident) as string;
-            return vt;
+            var span = node.GetLocation().GetLineSpan();
+            fs.symbols.Add(new Symbol
+            {
+                name = name,
+                kind = kind,
+                @namespace = GetNamespace(node),
+                container = GetEnclosingTypeName(node),
+                startLine = span.StartLinePosition.Line + 1,
+                endLine = span.EndLinePosition.Line + 1,
+                startColumn = 1,
+                endColumn = 1
+            });
         }
 
-        private static string GetNamespace(object node)
+        private static string GetNamespace(SyntaxNode node)
         {
-            // Walk parents to find namespaces; supports file-scoped and block namespace
-            var nsParts = new List<string>();
+            var parts = new List<string>();
             var cur = node;
             while (cur != null)
             {
-                var p = cur.GetType().GetProperty("Parent")?.GetValue(cur);
-                if (p == null) break;
-                var pn = p.GetType().Name;
-                if (pn == "NamespaceDeclarationSyntax" || pn == "FileScopedNamespaceDeclarationSyntax")
+                if (cur is NamespaceDeclarationSyntax nsDecl)
                 {
-                    var nameProp = p.GetType().GetProperty("Name")?.GetValue(p);
-                    var nsStr = nameProp?.ToString();
-                    if (!string.IsNullOrEmpty(nsStr)) nsParts.Add(nsStr);
+                    parts.Add(nsDecl.Name.ToString());
                 }
-                cur = p;
+                else if (cur is FileScopedNamespaceDeclarationSyntax fileNs)
+                {
+                    parts.Add(fileNs.Name.ToString());
+                }
+                cur = cur.Parent;
             }
-            nsParts.Reverse();
-            return string.Join(".", nsParts);
+            parts.Reverse();
+            return string.Join(".", parts);
         }
 
-        private static string GetEnclosingTypeName(object node)
+        private static string GetEnclosingTypeName(SyntaxNode node)
         {
             var cur = node;
             while (cur != null)
             {
-                var p = cur.GetType().GetProperty("Parent")?.GetValue(cur);
-                if (p == null) break;
-                var pn = p.GetType().Name;
-                if (pn == "ClassDeclarationSyntax" || pn == "StructDeclarationSyntax" || pn == "InterfaceDeclarationSyntax" || pn == "EnumDeclarationSyntax")
+                switch (cur)
                 {
-                    var name = GetIdentifierText(p.GetType(), p);
-                    return name;
+                    case ClassDeclarationSyntax cls:
+                        return cls.Identifier.ValueText;
+                    case StructDeclarationSyntax str:
+                        return str.Identifier.ValueText;
+                    case InterfaceDeclarationSyntax iface:
+                        return iface.Identifier.ValueText;
+                    case EnumDeclarationSyntax en:
+                        return en.Identifier.ValueText;
                 }
-                cur = p;
+                cur = cur.Parent;
             }
             return null;
         }
-
-        private static Assembly GetCSharpAssembly()
-        {
-            return AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "Microsoft.CodeAnalysis.CSharp");
-        }
-
-        private static Assembly GetCoreAssembly()
-        {
-            // Some distributions ship the common assembly under the name "Microsoft.CodeAnalysis.Common".
-            // Accept either the canonical name or the common-suffixed variant.
-            return AppDomain.CurrentDomain
-                .GetAssemblies()
-                .FirstOrDefault(a =>
-                {
-                    var name = a.GetName().Name;
-                    return name == "Microsoft.CodeAnalysis" || name == "Microsoft.CodeAnalysis.Common";
-                });
-        }
     }
 }
+
