@@ -97,6 +97,10 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                if (!Application.isPlaying)
+                {
+                    return new { error = "Play Mode is required for click_ui_element", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
+                }
                 string elementPath = parameters["elementPath"]?.ToString();
                 string clickType = parameters["clickType"]?.ToString() ?? "left";
                 float holdDuration = parameters["holdDuration"]?.ToObject<float>() ?? 0f;
