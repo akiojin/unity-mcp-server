@@ -38,7 +38,19 @@ export class PlayToolHandler extends BaseToolHandler {
         error.code = 'UNITY_ERROR';
         throw error;
       }
-      return result;
+      const startOk = Date.now();
+      for (;;) {
+        try {
+          const state = await this.unityConnection.sendCommand('get_editor_state', {});
+          if (state && state.isPlaying) {
+            return { status: 'success', message: 'Entered play mode', state };
+          }
+        } catch {}
+        await sleep(pollIntervalMs);
+        if (maxWaitMs != null && Date.now() - startOk > maxWaitMs) {
+          return result;
+        }
+      }
     } catch (err) {
       const msg = err?.message || '';
       const transient = /(Connection closed|timeout|ECONNRESET|EPIPE|socket|Not connected)/i.test(msg);
