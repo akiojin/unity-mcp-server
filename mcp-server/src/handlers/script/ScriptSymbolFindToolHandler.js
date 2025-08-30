@@ -8,7 +8,7 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_symbol_find',
-            'Find symbol definitions by name (class/method/field/property) across the project.',
+            'Find symbol definitions by name (class/method/field/property) across the project. BEST PRACTICES: Use exact=true for precise matches, false for fuzzy search. Specify "kind" to filter by symbol type. Searches across all scopes by default. Returns symbol location with line/column info. Great for navigation and refactoring preparation.',
             {
                 type: 'object',
                 properties: {

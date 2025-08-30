@@ -7,7 +7,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_refs_find',
-            'Find code references/usages of a symbol across the project with context and limits.',
+            'Find code references/usages of a symbol across the project with context and limits. BEST PRACTICES: Essential for understanding code dependencies. Use container/namespace/kind to narrow search. Set snippetContext for surrounding code lines. Use maxMatchesPerFile to limit results per file. Set maxBytes to control response size. Great for impact analysis before refactoring.',
             {
                 type: 'object',
                 properties: {

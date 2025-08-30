@@ -8,7 +8,7 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_search',
-            'Search C# code by substring/regex/glob with scope, globs, pagination, and snippet context.',
+            'Search C# code by substring/regex/glob with scope, globs, pagination, and snippet context. BEST PRACTICES: Use returnMode="metadata" for fast file discovery, "snippets" for context (recommended), "full" only when needed. For Japanese text search, use substring mode. Set maxBytes/maxMatchesPerFile to control response size. Use semantic filters (namespace/container/identifier) to narrow results. For large projects, use pageSize and startAfter for pagination.',
             {
                 type: 'object',
                 properties: {

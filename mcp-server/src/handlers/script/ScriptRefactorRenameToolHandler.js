@@ -5,7 +5,7 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_refactor_rename',
-            'Refactor: rename a symbol (class/method/variable/etc.) across the project with preview.',
+            'Refactor: rename a symbol (class/method/variable/etc.) across the project with preview. BEST PRACTICES: ALWAYS use preview=true first. Check collision warnings before applying. Use includeSemantic filters for targeted renaming. Watch semanticProximityTypes warnings for concentrated changes. Set allowCollisions=true only if you understand the risks. Handles all references including method calls, field access, type usage.',
             {
                 type: 'object',
                 properties: {

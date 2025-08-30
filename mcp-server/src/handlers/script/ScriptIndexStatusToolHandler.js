@@ -7,7 +7,7 @@ export class ScriptIndexStatusToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_index_status',
-            'Report code index status and readiness for symbol/search operations.',
+            'Report code index status and readiness for symbol/search operations. BEST PRACTICES: Check before heavy symbol operations. Shows total files indexed and coverage percentage. If coverage is low, some symbol operations may be incomplete. Index is automatically built on first use. No parameters needed - lightweight status check.',
             {
                 type: 'object',
                 properties: {},

@@ -5,7 +5,7 @@ export class ScriptReplacePatternToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_replace_pattern',
-            'Search/replace across C# files using substring or regex with preview and safeguards.',
+            'Search/replace across C# files using substring or regex with preview and safeguards. BEST PRACTICES: ALWAYS preview=true first. For large operations, use include/exclude globs to limit scope. Set maxMatchesPerFile to avoid excessive changes. Use wordBoundary=true for whole-word replacements. Watch for TOKEN LIMIT errors - use specific include patterns to reduce scope. Check proximity warnings for concentrated changes.',
             {
                 type: 'object',
                 properties: {

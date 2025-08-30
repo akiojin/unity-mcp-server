@@ -5,7 +5,7 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_edit_structured',
-            'Perform structured symbol edits: insert before/after a symbol or replace its body.',
+            'Perform structured symbol edits: insert before/after a symbol or replace its body. BEST PRACTICES: Use for safe symbol-level edits (class/method/field). Always preview=true first. Specify "kind" for better accuracy. Works with nested symbols. For insert operations, newText should include proper indentation. For replace_body, include opening/closing braces in newText.',
             {
                 type: 'object',
                 properties: {

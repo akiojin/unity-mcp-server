@@ -7,7 +7,7 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_edit_patch',
-            'Apply line‑based patches to C# files with preview and safety thresholds.',
+            'Apply line‑based patches to C# files with preview and safety thresholds. BEST PRACTICES: Always use preview=true first to check changes. Watch for proximity warnings when edits are close together (within proximityThreshold lines). For multiple edits, process sequentially as each edit shifts line numbers. Use defer=true for batch operations. Check minClusterSize warnings for overlapping edits.',
             {
                 type: 'object',
                 properties: {
