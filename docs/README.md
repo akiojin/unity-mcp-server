@@ -1,15 +1,20 @@
-# Documentation Index
+# Documentation Index (Architecture & Design Only)
 
-This folder contains two categories of docs:
+Per project policy, `docs/` contains architecture, design, specifications, and roadmap documents only. Usage guides and operational guidelines live in the repository READMEs (EN/JA).
 
-- Current (LLM-first):
-  - `script-tool.md` (hub)
-  - `script-read.md` (read/search/symbol APIs)
-  - `script-edit.md` (edit/refactor APIs)
-  - `api-index.json` (machine-readable command map)
-  - `llm-playbook.md` (LLM向け手順とベストプラクティス)
-  - `error-codes.md` (標準エラーコード一覧)
+Recommended reading:
 
-- Legacy (planning/history): files prefixed with `phase-` and other roadmap/spec docs. These remain for reference but are not required to use the Script Tool.
+- `technical-specification.md` — System technical specification and command schema
+- `script-architecture-hybrid.md` — Script processing hybrid architecture
+- `nodejs-server-design.md` — Node.js MCP server design
+- `screenshot-system.md` — Screenshot system architecture and components
+- `code-index.md` — Code Index architecture overview
+- `development-roadmap.md` — Development phases and goals
+- `missing-features-roadmap.md` — Planned features and gaps
+- `reference-project-comparison.md` — Reference project comparison and rationale
+- `overall-progression.md` — High-level progression and milestones
+- `implementation-plan.md` — Implementation plan notes
+- `error-codes.md` — Standard error codes (reference)
+- `api-index.json` — Machine-readable command index
 
-Consumers (LLMs) should prefer the Current set.
+For setup, quick start, examples, and guidelines, see the root `README.md` and `README.ja.md`.

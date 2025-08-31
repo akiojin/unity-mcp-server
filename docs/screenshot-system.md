@@ -106,19 +106,7 @@ Located at: `mcp-server/src/handlers/screenshot/AnalyzeScreenshotToolHandler.js`
 }
 ```
 
-## Usage Examples
-
-### User Perspective Captures
-
-#### Capture Game View Screenshot
-```javascript
-// Basic Game View capture (what user sees)
-const result = await mcp.tools.capture_screenshot({
-  captureMode: 'game',
-  includeUI: true
-});
-// Result: { path: "Assets/Screenshots/screenshot_game_2025-06-25.png", width: 1920, height: 1080 }
-```
+<!-- Usage examples have been intentionally removed to keep docs/ focused on architecture/design. -->
 
 #### Capture Scene View with Custom Resolution
 ```javascript
