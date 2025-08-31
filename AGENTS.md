@@ -39,6 +39,13 @@
 
 - ドキュメントはルートディレクトリに配置してはいけない。必ずdocs/配下に配置する
 
+### Unity MCP Scriptツールの使用方針（重要）
+
+- C#の探索/編集/置換/生成は、Unity MCPのScript系ツール（`UnityMCP__script_search`/`UnityMCP__script_read`/`UnityMCP__script_edit_patch`/`UnityMCP__script_replace_pattern`/`UnityMCP__script_edit_structured`）を必ず使用すること。`apply_patch`や`shell`での直接編集は禁止。
+- 変更は必ず「previewで差分確認 → 適用 → `UnityMCP__refresh_assets` → `UnityMCP__wait_for_editor_state`でコンパイル完了待ち」の順で検証すること。
+- 対象パスは`UnityEditorMCP/Assets/**`に限定すること。
+- 詳細手順: docs/agent-guidelines/unity-mcp-script.md を参照。
+
 ## バージョン管理
 
 ### npm versionコマンドの使用
