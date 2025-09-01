@@ -173,6 +173,8 @@ namespace UnityEditorMCP.GuidDb
 
         [MenuItem("Tools/Guid DB/Full Scan (Assets)")]
         public static void FullScan()
+        [MenuItem("Window/Unity Editor MCP/Guid DB/Full Scan (Assets)")]
+        public static void FullScan()
         {
             try
             {
@@ -191,7 +193,7 @@ namespace UnityEditorMCP.GuidDb
             }
         }
 
-        [MenuItem("Tools/Guid DB/Create Daily Snapshot File")]
+        [MenuItem("Window/Unity Editor MCP/Guid DB/Create Daily Snapshot File")]
         public static void EnsureDailySnapshotFile()
         {
             try
@@ -207,5 +209,4 @@ namespace UnityEditorMCP.GuidDb
                 Debug.LogError($"[GuidDB] Snapshot create error: {ex}");
             }
         }
-    }
 }

@@ -112,11 +112,15 @@ namespace UnityEditorMCP.GuidDb
             if (File.Exists(path))
             {
                 try { File.Replace(tmp, path, null); }
-                catch { File.Move(tmp, path, true); }
+                catch
+                {
+                    try { if (File.Exists(path)) File.Delete(path); } catch {}
+                    File.Move(tmp, path);
+                }
             }
             else
             {
-                File.Move(tmp, path, true);
+                File.Move(tmp, path);
             }
         }
 
@@ -129,5 +133,5 @@ namespace UnityEditorMCP.GuidDb
                 sw.WriteLine(line);
             }
         }
-    }
+}
 }
