@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+﻿// SPDX-License-Identifier: UNLICENSED
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -171,8 +171,6 @@ namespace UnityEditorMCP.GuidDb
             });
         }
 
-        [MenuItem("Tools/Guid DB/Full Scan (Assets)")]
-        public static void FullScan()
         [MenuItem("Window/Unity Editor MCP/Guid DB/Full Scan (Assets)")]
         public static void FullScan()
         {
@@ -196,10 +194,10 @@ namespace UnityEditorMCP.GuidDb
         [MenuItem("Window/Unity Editor MCP/Guid DB/Create Daily Snapshot File")]
         public static void EnsureDailySnapshotFile()
         {
+
             try
             {
                 GuidDbPaths.EnsureDirs();
-                // Touch today's snapshot file to ensure it exists
                 var path = GuidDbPaths.TodaySnapshotPath();
                 if (!File.Exists(path)) JsonLines.AppendLine(path, "");
                 Debug.Log($"[GuidDB] Snapshot ready: {path}");
@@ -209,4 +207,5 @@ namespace UnityEditorMCP.GuidDb
                 Debug.LogError($"[GuidDB] Snapshot create error: {ex}");
             }
         }
+    }
 }
