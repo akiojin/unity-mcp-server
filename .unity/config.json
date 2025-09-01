@@ -4,6 +4,6 @@
     "port": 6400
   },
   "project": {
-    "root": "/unity-editor-mcp/UnityEditorMCP"
+    "root": "./UnityEditorMCP"
   }
 }
