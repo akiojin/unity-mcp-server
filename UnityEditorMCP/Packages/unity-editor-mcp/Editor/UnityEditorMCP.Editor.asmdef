@@ -13,7 +13,8 @@
     "precompiledReferences": [
         "Microsoft.CodeAnalysis.dll",
         "Microsoft.CodeAnalysis.CSharp.dll",
-        "Newtonsoft.Json.dll"
+        "Newtonsoft.Json.dll",
+        "System.Collections.Immutable.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

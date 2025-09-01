@@ -7,7 +7,7 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_edit_patch',
-            'Apply line‑based patches to C# files with preview and safety thresholds. BEST PRACTICES: Always use preview=true first to check changes. Watch for proximity warnings when edits are close together (within proximityThreshold lines). For multiple edits, process sequentially as each edit shifts line numbers. Use defer=true for batch operations. Check minClusterSize warnings for overlapping edits.',
+            'LAST RESORT: Line‑based patching (high risk of brace errors). Prefer script_edit_structured for edits. Safe use: small, localized replacements that DO NOT cross symbol boundaries. Recommended: preview=true for risky changes. To reduce tokens, avoid large diffs. The server enforces safeMode by default and rejects large patches; use allowLarge=true only if you fully understand the risks.',
             {
                 type: 'object',
                 properties: {
@@ -55,6 +55,16 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
                     defer: {
                         type: 'boolean',
                         description: 'If true, enqueue into write queue and batch apply after debounce. If false, apply immediately.'
+                    },
+                    safeMode: {
+                        type: 'boolean',
+                        default: true,
+                        description: 'When true (default), rejects large edits and nudges you to use script_edit_structured.'
+                    },
+                    allowLarge: {
+                        type: 'boolean',
+                        default: false,
+                        description: 'Override guard to allow large line ranges. Use with extreme caution.'
                     }
                 },
                 required: ['edits']
@@ -68,7 +78,7 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
     validate(params) {
         super.validate(params);
 
-        const { edits } = params;
+        const { edits, safeMode = true, allowLarge = false } = params;
 
         if (!Array.isArray(edits) || edits.length === 0) {
             throw new Error('edits must be a non-empty array');
@@ -84,6 +94,12 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
             }
             if (edit.endLine < edit.startLine) {
                 throw new Error(`edits[${index}].endLine cannot be less than startLine`);
+            }
+
+            const span = (edit.endLine - edit.startLine + 1);
+            // Guardrail: discourage large destructive patches that often break braces
+            if (safeMode && !allowLarge && span > 80) {
+                throw new Error(`edits[${index}] spans ${span} lines (>80). Use script_edit_structured (replace_body/insert_after) or pass allowLarge:true if you accept the risks.`);
             }
         });
     }

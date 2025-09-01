@@ -8,7 +8,7 @@ export class ScriptReadToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_read',
-            'Read a C# file with optional line range and payload limits (LLM‑friendly). BEST PRACTICES: For large files (>1000 lines), use startLine/endLine to read specific sections. Use maxBytes to control response size. Default reads 200 lines at a time to avoid token limits. Files must be under Assets/ or Packages/ and have .cs extension.',
+            'Read a C# file with optional line range and payload limits. PRIORITY: Read minimally. First locate the target with script_symbols_get, then read only the signature area (≈30–40 lines). Avoid full‑file reads to save tokens. For very large files, always pass startLine/endLine and (optionally) maxBytes. Files must be under Assets/ or Packages/ and have .cs extension.',
             {
                 type: 'object',
                 properties: {

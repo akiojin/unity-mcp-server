@@ -358,6 +358,31 @@ namespace UnityEditorMCP.Handlers
                     parsedEdits.Add((norm, abs, startLine, endLine, newText));
                 }
 
+                // Always run Roslyn preflight in preview and apply
+                object preflightInfo = null;
+                try
+                {
+                    var pfParams = new JObject
+                    {
+                        ["edits"] = edits.DeepClone(),
+                        ["assemblies"] = "editor",
+                        ["includeWarnings"] = true,
+                        ["allFiles"] = false,
+                        ["contextLines"] = 2
+                    };
+                    preflightInfo = RoslynPreflightHandler.Preflight(pfParams);
+                    var pf = JObject.FromObject(preflightInfo);
+                    int pfErrors = pf["errorCount"]?.ToObject<int?>() ?? 0;
+                    if (!preview && pfErrors > 0)
+                    {
+                        return new { success = false, applied = false, preflight = preflightInfo, note = "Blocked by Roslyn preflight errors" };
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[ScriptHandler] Roslyn preflight unavailable: {ex.Message}");
+                }
+
                 if (preview == false)
                 {
                     int proxThreshold = parameters["proximityThreshold"]?.ToObject<int?>() ?? 3;
@@ -437,7 +462,7 @@ namespace UnityEditorMCP.Handlers
                         .Select(g => new { path = g.Key, clusters = BuildProximityClusters(g.Select(v => v.start), proxThreshold, minCluster) })
                         .Where(x => (x.clusters as List<object>).Count > 0)
                         .ToList();
-                    return new { success = true, applied = true, previews = applied, backups, compilation = compState, impact, warnings = new { proximity = prox } };
+                    return new { success = true, applied = true, previews = applied, backups, compilation = compState, impact = impact, preflight = preflightInfo, warnings = new { proximity = prox } };
                 }
 
                 // Proximity warnings in preview
@@ -448,7 +473,7 @@ namespace UnityEditorMCP.Handlers
                     .Select(g => new { path = g.Key, clusters = BuildProximityClusters(g.Select(v => v.start), proxThresholdPrev, minClusterPrev) })
                     .Where(x => (x.clusters as List<object>).Count > 0)
                     .ToList();
-                return new { success = true, previews = applied, warnings = new { proximity } };
+                return new { success = true, previews = applied, warnings = new { proximity }, preflight = preflightInfo };
             }
             catch (Exception e)
             {
@@ -456,6 +481,7 @@ namespace UnityEditorMCP.Handlers
                 return new { error = e.Message };
             }
         }
+
 
         private static string BuildUnifiedDiff(string path, int startLine, int endLine, string oldText, string newText)
         {
@@ -481,6 +507,8 @@ namespace UnityEditorMCP.Handlers
         {
             return Application.dataPath.Substring(0, Application.dataPath.Length - "/Assets".Length).Replace('\\', '/');
         }
+
+
 
         private static string CreateBackupFor(string relPath, string originalContent)
         {
@@ -1492,6 +1520,6 @@ namespace UnityEditorMCP.Handlers
                     }
                 }
             }
-        }
     }
+}
 }

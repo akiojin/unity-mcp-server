@@ -5,7 +5,7 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_edit_structured',
-            'Perform structured symbol edits: insert before/after a symbol or replace its body. BEST PRACTICES: Use for safe symbol-level edits (class/method/field). Always preview=true first. Specify "kind" for better accuracy. Works with nested symbols. For insert operations, newText should include proper indentation. For replace_body, include opening/closing braces in newText.',
+            'PRIORITY: Use this for ALL code changes. Perform structured symbol edits (insert_before/insert_after/replace_body) scoped to a known symbol. Prefer this over line-based patching. Rules: (1) Identify the target with script_symbols_get first, (2) Do NOT insert members inside methods — insert at class level only, (3) For replace_body include opening/closing braces and make the body self‑contained (returns, try/catch/finally closed). Token advice: skip preview unless the change is risky; validate by compiling.',
             {
                 type: 'object',
                 properties: {
@@ -32,8 +32,8 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
                     },
                     preview: {
                         type: 'boolean',
-                        default: true,
-                        description: 'If true, returns a preview without writing files.'
+                        default: false,
+                        description: 'If true, returns a preview without writing files. Default=false to reduce large diff payloads.'
                     }
                 },
                 required: ['operation', 'path', 'symbolName']
@@ -46,7 +46,7 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
     validate(params) {
         super.validate(params);
 
-        const { operation, path, symbolName } = params;
+        const { operation, path, symbolName, kind } = params;
 
         const validOperations = ['insert_before', 'insert_after', 'replace_body'];
         if (!validOperations.includes(operation)) {
@@ -59,6 +59,11 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
 
         if (!symbolName || symbolName.trim() === '') {
             throw new Error('symbolName cannot be empty');
+        }
+
+        // Safety guard: forbid inserting members into a method scope
+        if ((operation === 'insert_after' || operation === 'insert_before') && (kind || '').toLowerCase() === 'method') {
+            throw new Error('Insert operations must target class/namespace, not method scope. Use kind:"class" and insert at class level.');
         }
     }
 

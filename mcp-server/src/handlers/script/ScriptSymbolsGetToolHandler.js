@@ -9,7 +9,7 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_symbols_get',
-            'List symbols (classes, methods, fields, properties) defined in a C# file with spans. BEST PRACTICES: Use to understand file structure before editing. Returns all symbols with line/column positions. Shows nested symbols with container relationships. Handles large files efficiently. Great for generating file outlines or navigation. Works with Japanese method/variable names.',
+            'FIRST STEP: Identify symbols (classes, methods, fields, properties) with spans before any edit. Use this to scope changes to a single symbol and avoid line‑based edits. Returns line/column positions and containers; works with large files and Japanese identifiers.',
             {
                 type: 'object',
                 properties: {

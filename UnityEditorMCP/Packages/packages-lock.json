@@ -46,7 +46,8 @@
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1",
         "com.unity.inputsystem": "1.14.2",
-        "org.nuget.microsoft.codeanalysis.csharp": "4.14.0"
+        "org.nuget.microsoft.codeanalysis.csharp": "4.14.0",
+        "org.nuget.system.collections.immutable": "9.0.0"
       }
     },
     "com.unity.ext.nunit": {
@@ -272,7 +273,7 @@
     },
     "org.nuget.system.collections.immutable": {
       "version": "9.0.0",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {
         "org.nuget.system.memory": "4.5.5",

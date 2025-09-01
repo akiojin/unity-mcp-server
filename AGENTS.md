@@ -97,3 +97,48 @@
 ## ドキュメント作成ガイドライン
 
 - README.mdには設計などは書いてはいけない。プロジェクトの説明やディレクトリ構成などの説明のみに徹底する。設計などは、適切なファイルへのリンクを書く。
+
+## LLM実運用テンプレート（Serena流オーケストレーション統合）
+
+目的: トークン消費を抑えつつ、ゼロエラーで安全にC#編集を行うための実行SOP。
+
+### 基本原則（強制）
+
+- シンボル先行: 変更前に必ず `UnityMCP__script_symbols_get` で対象クラス/メソッドを特定。対象外なら編集しない。
+- 構造化限定: 変更は `UnityMCP__script_edit_structured`（`replace_body`/`insert_after`/`insert_before`）のみを使用。
+- スコープ厳守: 追加メンバーはクラス直下にのみ挿入（`kind:"class"` を明示）。メソッド内へのメンバー定義挿入は禁止（CS0106対策）。
+- 一括反映: 複数編集は `refreshMode:"none"` で適用し、最後に1回だけ `UnityMCP__refresh_assets`→`UnityMCP__wait_for_editor_state`。
+
+### トークン最適化（既定）
+
+- 短読込: `UnityMCP__script_read` は署名周辺 30–40 行のみ（本文の全読込はしない）。
+- プレビュー抑制: 既定は `preview:false`。巨大 diff を返すプレビューは原則使わない（微小・高リスク時のみ）。
+- 軽量ビルド確認: 通常は `get_compilation_state { includeMessages:false }`。エラー時のみ `includeMessages:true, maxMessages:10`。
+- 検索は軽量: `script_search` は `returnMode:"snippets"|"metadata"`＋`snippetContext:1–2` を使用（`full` 禁止）。
+
+### ガード（自動検証と復旧）
+
+- 置換前チェック: `replace_body.newText` の波括弧バランスと戻り値パスを自己検査（負の深さ/未閉鎖なし）。
+- 適用後パース: 同ファイルへ再度 `script_symbols_get` を実行し、シンボルツリー取得可否で健全性を確認。
+- 自動ロールバック: コンパイルエラー発生時は直前の変更ファイルのみを即時復旧（バックアップ/バージョン管理を利用）。
+
+### 禁止事項（違反時は編集中断）
+
+- メソッド途中の行範囲削除や広域正規表現での大塊削除。
+- メソッド内に `private/public` などのメンバー定義を挿入。
+- 毎編集ごとの `refresh_assets` 多発（必ず一括反映）。
+
+### 実行レシピ（コピペ用）
+
+1) 構造取得: `UnityMCP__script_symbols_get { path:"<path>" }`
+2) 署名読込: `UnityMCP__script_read { path:"<path>", startLine:<methodStart>, endLine:<methodStart+30> }`
+3) 本体置換: `UnityMCP__script_edit_structured { operation:"replace_body", path:"<path>", symbolName:"<method>", kind:"method", newText:"{ ... }", preview:false, refreshMode:"none" }`
+4) 追加（必要時）: `UnityMCP__script_edit_structured { operation:"insert_after", path:"<path>", symbolName:"<class>", kind:"class", newText:"\nprivate static ... { ... }\n", preview:false, refreshMode:"none" }`
+5) 一括反映: `UnityMCP__refresh_assets` → `UnityMCP__wait_for_editor_state`
+6) 確認: `UnityMCP__get_compilation_state { includeMessages:false }`（失敗時のみ詳細取得）
+
+### Serena思考ゲート（任意だが推奨）
+
+- 事前: `serena__think_about_task_adherence`（対象/目的/スコープの整合確認）
+- 中間: `serena__think_about_collected_information`（読込量が最小か）
+- 事後: `serena__think_about_whether_you_are_done`（想定結果が満たされたか）
