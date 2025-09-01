@@ -80,6 +80,19 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
         if (!this.unityConnection.isConnected()) {
             await this.unityConnection.connect();
         }
-        return this.writeGate.sendWithGate('script_edit_structured', params, { preview });
+        const res = await this.writeGate.sendWithGate('script_edit_structured', params, { preview });
+        // Do not rely on lastCompilationMessages; fetch errors from Console instead
+        try {
+            const console = await this.unityConnection.sendCommand('read_console', {
+                count: 100,
+                includeStackTrace: false,
+                logTypes: ['Error', 'Exception'],
+                format: 'compact',
+                sortOrder: 'newest',
+            });
+            return { ...res, consoleErrors: console?.logs || [] };
+        } catch {
+            return res;
+        }
     }
 }

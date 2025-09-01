@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -423,7 +423,7 @@ namespace UnityEditorMCP.Handlers
                     var backups = new List<object>();
                     // Avoid starting during compilation to prevent losing Stop in reload
                     if (!EditorApplication.isCompiling)
-                        UnityEditorMCP.Helpers.AssetEditingGuard.Begin();
+                        AssetEditingGuard.Begin();
                     try
                     {
                         var projectRoot = GetProjectRoot();
@@ -455,11 +455,11 @@ namespace UnityEditorMCP.Handlers
                     }
                     finally
                     {
-                        UnityEditorMCP.Helpers.AssetEditingGuard.End();
+                        AssetEditingGuard.End();
                         var mode = parameters["refreshMode"]?.ToString()?.ToLowerInvariant();
-                        if (mode == "immediate") UnityEditorMCP.Helpers.RefreshController.ImmediateThrottled();
+                        if (mode == "immediate") RefreshController.ImmediateThrottled();
                         else if (mode == "none") { }
-                        else UnityEditorMCP.Helpers.RefreshController.Debounced();
+                        else RefreshController.Debounced();
                     }
 
                     // Optionally return compilation state (may still be compiling)
@@ -611,7 +611,7 @@ namespace UnityEditorMCP.Handlers
                 {
                     if (results.Count >= pageSize) break;
                     // Optional semantic pre-filter
-                    if ((!(string.IsNullOrEmpty(semContainer) && string.IsNullOrEmpty(semNamespace))) && UnityEditorMCP.Core.CodeIndex.RoslynAdapter.IsAvailable())
+                    if ((!(string.IsNullOrEmpty(semContainer) && string.IsNullOrEmpty(semNamespace))) && RoslynAdapter.IsAvailable())
                     {
                         string ident = semIdentifier;
                         if (string.IsNullOrEmpty(ident) && patternType == "substring" && Regex.IsMatch(pattern ?? string.Empty, @"^[A-Za-z_][A-Za-z0-9_]*$"))
@@ -621,7 +621,7 @@ namespace UnityEditorMCP.Handlers
                         if (!string.IsNullOrEmpty(ident))
                         {
                             var contentForSem = File.ReadAllText(file.abs);
-                            var toks = UnityEditorMCP.Core.CodeIndex.RoslynAdapter.FindIdentifierTokens(contentForSem, ident);
+                            var toks = RoslynAdapter.FindIdentifierTokens(contentForSem, ident);
                             bool ok = toks.Any(t => (string.IsNullOrEmpty(semContainer) || string.Equals(t.container, semContainer, StringComparison.Ordinal)) &&
                                                    (string.IsNullOrEmpty(semNamespace) || string.Equals(t.ns, semNamespace, StringComparison.Ordinal)));
                             if (!ok) continue;
@@ -829,7 +829,8 @@ namespace UnityEditorMCP.Handlers
                 var fs = CodeIndexService.GetFileSymbols(norm);
                 if (fs == null) return new { error = "No symbols found", code = "NO_SYMBOLS" };
                 var target = fs.symbols.FirstOrDefault(s => (string.IsNullOrEmpty(kind) || s.kind == kind) && string.Equals(s.name, symbolName, StringComparison.Ordinal));
-                if (target == null) return new { error = "Symbol not found", code = "SYMBOL_NOT_FOUND" };
+                if (target == null && !string.Equals(kind, "event", StringComparison.OrdinalIgnoreCase))
+                    return new { error = "Symbol not found", code = "SYMBOL_NOT_FOUND" };
 
                 var lines = File.ReadAllLines(abs).ToList();
 
@@ -837,31 +838,11 @@ namespace UnityEditorMCP.Handlers
                 if ((operation == "insert_before" || operation == "insert_after") && string.Equals(kind, "method", StringComparison.OrdinalIgnoreCase))
                     return new { error = "Insert operations must target class/namespace, not method scope. Use kind:\"class\" and insert at class level.", code = "INVALID_SCOPE" };
 
-                int insertLine = target.startLine;
-                int endLine = target.endLine;
+                int insertLine = target != null ? target.startLine : 1;
+                int endLine = target != null ? target.endLine : lines.Count;
                 string before, after;
 
-                if (operation == "insert_before")
-                {
-                    before = string.Join("\n", lines.Skip(insertLine - 1).Take(0));
-                    after = newText + "\n";
-                    var previewDiff = BuildUnifiedDiff(norm, insertLine, insertLine - 1, string.Empty, newText);
-                    if (preview) return new { success = true, preview = previewDiff };
-
-                    lines.InsertRange(insertLine - 1, (newText ?? string.Empty).Split(new[] {"\n"}, StringSplitOptions.None));
-                }
-                else if (operation == "insert_after")
-                {
-                    var insertAfterLine = Math.Max(target.startLine, endLine);
-                    var previewDiff = BuildUnifiedDiff(norm, insertAfterLine + 1, insertAfterLine, string.Empty, newText);
-                    if (preview) return new { success = true, preview = previewDiff };
-                    lines.InsertRange(insertAfterLine, (newText ?? string.Empty).Split(new[] {"\n"}, StringSplitOptions.None));
-                }
-                else if (operation == "replace_body")
-                {
-                    // Replace only the method body: keep signature/header lines intact
-                    var segStart = Math.Max(0, target.startLine - 1);
-                    var segLen = Math.Max(0, endLine - target.startLine + 1);
+                if (operation == "insert_before") {
                     var segment = lines.Skip(segStart).Take(segLen).ToList();
                     var joined = string.Join("\n", segment);
 
@@ -944,18 +925,18 @@ namespace UnityEditorMCP.Handlers
                 var compBefore2 = CompilationHandler.GetCompilationState(compBefore2Params);
                 var backup = CreateBackupFor(norm, File.ReadAllText(abs));
                 if (!EditorApplication.isCompiling)
-                    UnityEditorMCP.Helpers.AssetEditingGuard.Begin();
+                    AssetEditingGuard.Begin();
                 try
                 {
                     File.WriteAllText(abs, string.Join("\n", lines));
                 }
                 finally
                 {
-                    UnityEditorMCP.Helpers.AssetEditingGuard.End();
+                    AssetEditingGuard.End();
                     var mode = parameters["refreshMode"]?.ToString()?.ToLowerInvariant();
-                    if (mode == "immediate") UnityEditorMCP.Helpers.RefreshController.ImmediateThrottled();
+                    if (mode == "immediate") RefreshController.ImmediateThrottled();
                     else if (mode == "none") { }
-                    else UnityEditorMCP.Helpers.RefreshController.Debounced();
+                    else RefreshController.Debounced();
                 }
 
                 var compParams = new JObject { ["includeMessages"] = true, ["maxMessages"] = 50 };
@@ -1043,7 +1024,7 @@ namespace UnityEditorMCP.Handlers
                     .ToList();
 
                 // If includeSemantic specified and Roslyn available, restrict matches to selected container/namespace pairs
-                if (includeSemantic != null && includeSemantic.Count > 0 && UnityEditorMCP.Core.CodeIndex.RoslynAdapter.IsAvailable())
+                if (includeSemantic != null && includeSemantic.Count > 0 && RoslynAdapter.IsAvailable())
                 {
                     var allowPairs = new HashSet<(string c, string ns)>();
                     foreach (var it in includeSemantic)
@@ -1058,7 +1039,7 @@ namespace UnityEditorMCP.Handlers
                         {
                             var abs = ToAbsoluteProjectPath(f.rel);
                             var content = File.ReadAllText(abs);
-                            var toks = UnityEditorMCP.Core.CodeIndex.RoslynAdapter.FindIdentifierTokens(content, name);
+                            var toks = RoslynAdapter.FindIdentifierTokens(content, name);
                             var allowedLines = new HashSet<int>(toks.Where(t => allowPairs.Contains((t.container, t.ns))).Select(t => t.line));
                             var newMatches = f.matches.Where(m => allowedLines.Contains(m.line)).ToList();
                             return new { rel = f.rel, matches = newMatches };
@@ -1151,7 +1132,7 @@ namespace UnityEditorMCP.Handlers
                 var compBeforeParams = new JObject { ["includeMessages"] = true, ["maxMessages"] = 200 };
                 var compBefore = CompilationHandler.GetCompilationState(compBeforeParams);
                 if (!EditorApplication.isCompiling)
-                    UnityEditorMCP.Helpers.AssetEditingGuard.Begin();
+                    AssetEditingGuard.Begin();
                 var backups = new List<object>();
                 try
                 {
@@ -1178,11 +1159,11 @@ namespace UnityEditorMCP.Handlers
                 }
                 finally
                 {
-                    UnityEditorMCP.Helpers.AssetEditingGuard.End();
+                    AssetEditingGuard.End();
                     var mode = parameters["refreshMode"]?.ToString()?.ToLowerInvariant();
-                    if (mode == "immediate") UnityEditorMCP.Helpers.RefreshController.ImmediateThrottled();
+                    if (mode == "immediate") RefreshController.ImmediateThrottled();
                     else if (mode == "none") { }
-                    else UnityEditorMCP.Helpers.RefreshController.Debounced();
+                    else RefreshController.Debounced();
                 }
 
                 var compParams = new JObject { ["includeMessages"] = true, ["maxMessages"] = 50 };
@@ -1276,7 +1257,7 @@ namespace UnityEditorMCP.Handlers
                     var content = File.ReadAllText(abs);
 
                     // If includeSemantic specified and Roslyn available, filter files to those containing tokens in selected containers
-                    if (includeSemantic != null && includeSemantic.Count > 0 && patternType == "substring" && wordBoundary && UnityEditorMCP.Core.CodeIndex.RoslynAdapter.IsAvailable())
+                    if (includeSemantic != null && includeSemantic.Count > 0 && patternType == "substring" && wordBoundary && RoslynAdapter.IsAvailable())
                     {
                         var allowPairs = new HashSet<(string c, string ns)>();
                         foreach (var it in includeSemantic)
@@ -1285,7 +1266,7 @@ namespace UnityEditorMCP.Handlers
                             var ns = it["namespace"]?.ToString();
                             allowPairs.Add((c, ns));
                         }
-                        var toks = UnityEditorMCP.Core.CodeIndex.RoslynAdapter.FindIdentifierTokens(content, pattern);
+                        var toks = RoslynAdapter.FindIdentifierTokens(content, pattern);
                         bool hasAllowed = toks.Any(t => allowPairs.Contains((t.container, t.ns)));
                         if (!hasAllowed) continue;
                     }
@@ -1293,7 +1274,7 @@ namespace UnityEditorMCP.Handlers
                     string newContent = content;
                     int matches = 0;
 
-                    bool useSemanticLines = includeSemantic != null && includeSemantic.Count > 0 && patternType == "substring" && wordBoundary && UnityEditorMCP.Core.CodeIndex.RoslynAdapter.IsAvailable();
+                    bool useSemanticLines = includeSemantic != null && includeSemantic.Count > 0 && patternType == "substring" && wordBoundary && RoslynAdapter.IsAvailable();
                     if (useSemanticLines)
                     {
                         var allowPairs = new HashSet<(string c, string ns)>();
@@ -1303,7 +1284,7 @@ namespace UnityEditorMCP.Handlers
                             var ns = it["namespace"]?.ToString();
                             allowPairs.Add((c, ns));
                         }
-                        var toks = UnityEditorMCP.Core.CodeIndex.RoslynAdapter.FindIdentifierTokens(content, pattern);
+                        var toks = RoslynAdapter.FindIdentifierTokens(content, pattern);
                         var allowedLines = new HashSet<int>(toks.Where(t => allowPairs.Contains((t.container, t.ns))).Select(t => t.line));
                         var linesArr = content.Split('\n');
                         var rxWord = new Regex($@"\\b{Regex.Escape(pattern)}\\b", RegexOptions.CultureInvariant);
@@ -1470,7 +1451,7 @@ namespace UnityEditorMCP.Handlers
                 var compBeforeParams = new JObject { ["includeMessages"] = true, ["maxMessages"] = 200 };
                 var compBefore = CompilationHandler.GetCompilationState(compBeforeParams);
                 if (!EditorApplication.isCompiling)
-                    UnityEditorMCP.Helpers.AssetEditingGuard.Begin();
+                    AssetEditingGuard.Begin();
                 var backups = new List<object>();
                 try
                 {
@@ -1493,7 +1474,7 @@ namespace UnityEditorMCP.Handlers
                 }
                 finally
                 {
-                    UnityEditorMCP.Helpers.AssetEditingGuard.End();
+                    AssetEditingGuard.End();
                     // Replace: refresh immediately to reflect changes for error state
                     AssetDatabase.Refresh();
                 }
