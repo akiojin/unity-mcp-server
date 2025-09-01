@@ -62,10 +62,10 @@ namespace UnityEditorMCP.Core.Settings
         public class WritePolicy
         {
             public bool allowAssets = true;
-            public bool allowEmbeddedPackages = true; // only existing .cs files
-            public bool allowNewFiles = false; // disabled by default
+            public bool allowEmbeddedPackages = true;
+            // Embedded/Assets での新規 .cs 作成も許可（自己修復/拡張のため）
+            public bool allowNewFiles = true;
             public string[] allowedExtensions = new[] { ".cs" };
         }
     }
 }
-

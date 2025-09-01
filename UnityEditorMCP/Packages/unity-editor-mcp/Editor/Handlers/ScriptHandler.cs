@@ -317,9 +317,29 @@ namespace UnityEditorMCP.Handlers
                     }
 
                     var abs = ToAbsoluteProjectPath(norm);
-                    if (!File.Exists(abs))
+                    var exists = File.Exists(abs);
+
+                    if (!exists)
                     {
-                        return new { error = "Target file not found", path = norm };
+                        // New file creation allowed?
+                        bool allowCreate = settings.writePolicy.allowNewFiles;
+                        if (!allowCreate)
+                        {
+                            return new { error = "Write not allowed for this path", path = norm, reason = "new_file_blocked" };
+                        }
+
+                        // Preview for new file: before = empty, adjust endLine for unified diff header
+                        int startAdj = Math.Max(1, startLine);
+                        int endAdj = Math.Max(0, startAdj - 1);
+                        var previewDiffNew = BuildUnifiedDiff(norm, startAdj, endAdj, string.Empty, newText);
+                        totalBytes += Encoding.UTF8.GetByteCount(previewDiffNew);
+                        if (totalBytes > settings.tokenBudget.maxBytes)
+                        {
+                            return new { error = "Preview too large", exceeded = true };
+                        }
+                        applied.Add(new { path = norm, startLine = startAdj, endLine = endAdj, preview = previewDiffNew });
+                        parsedEdits.Add((norm, abs, startAdj, endAdj, newText));
+                        continue;
                     }
 
                     var originalLines = File.ReadAllLines(abs).ToList();
@@ -334,14 +354,7 @@ namespace UnityEditorMCP.Handlers
                         return new { error = "Preview too large", exceeded = true };
                     }
 
-                    applied.Add(new
-                    {
-                        path = norm,
-                        startLine,
-                        endLine,
-                        preview = previewDiff
-                    });
-
+                    applied.Add(new { path = norm, startLine, endLine, preview = previewDiff });
                     parsedEdits.Add((norm, abs, startLine, endLine, newText));
                 }
 
@@ -349,7 +362,7 @@ namespace UnityEditorMCP.Handlers
                 {
                     int proxThreshold = parameters["proximityThreshold"]?.ToObject<int?>() ?? 3;
                     int minCluster = parameters["minClusterSize"]?.ToObject<int?>() ?? 2;
-                    // Apply allowed for Assets and Embedded packages (.cs existing files only) per write policy
+                    // Apply allowed for Assets and Embedded packages per write policy (new files allowed when enabled)
                     foreach (var pe in parsedEdits)
                     {
                         bool okAssets = PathPolicy.IsAssetsPath(pe.norm) && settings.writePolicy.allowAssets;
@@ -379,21 +392,25 @@ namespace UnityEditorMCP.Handlers
                         {
                             var abs = kv.Key;
                             var rel = abs.Replace('\\', '/').Substring(projectRoot.Length).TrimStart('/');
-                            var originalLines = File.ReadAllLines(abs).ToList();
+                            var originalLines = File.Exists(abs) ? File.ReadAllLines(abs).ToList() : new List<string>();
 
                             foreach (var edit in kv.Value)
                             {
                                 var newLines = (edit.newText ?? string.Empty).Split(new[] {"\n"}, StringSplitOptions.None).ToList();
                                 var replaceCount = Math.Max(0, edit.end - edit.start + 1);
-                                originalLines.RemoveRange(edit.start - 1, replaceCount);
-                                originalLines.InsertRange(edit.start - 1, newLines);
+                                if (replaceCount > 0 && originalLines.Count >= edit.start - 1 + replaceCount)
+                                    originalLines.RemoveRange(edit.start - 1, replaceCount);
+                                originalLines.InsertRange(Math.Max(0, edit.start - 1), newLines);
                             }
 
                             // Backup
-                            var backupPath = CreateBackupFor(rel, File.ReadAllText(abs));
+                            var originalContent = File.Exists(abs) ? File.ReadAllText(abs) : string.Empty;
+                            var backupPath = CreateBackupFor(rel, originalContent);
                             backups.Add(new { path = rel, backup = backupPath });
 
-                            // Write only; import/refresh will be batched after editing
+                            // Ensure directory then write; import/refresh will be batched after editing
+                            var dir = Path.GetDirectoryName(abs);
+                            if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
                             File.WriteAllText(abs, string.Join("\n", originalLines));
                         }
                     }

@@ -48,12 +48,19 @@ namespace UnityEditorMCP.Helpers
             try
             {
                 var pkg = UnityEditor.PackageManager.PackageInfo.FindForAssetPath(path);
-                return pkg != null && pkg.source == PackageSource.Embedded;
+                if (pkg != null) return pkg.source == PackageSource.Embedded;
             }
             catch
             {
-                return false;
+                // ignore and fall through to fallback
             }
+
+            // Fallback: our own package path should be considered embedded
+            // even if PackageInfo lookup fails in early domain states.
+            if (path.StartsWith("Packages/unity-editor-mcp/", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return false;
         }
 
         public static bool IsAllowedWritePath(string path, string[] allowedExtensions, bool allowAssets, bool allowEmbeddedPackages)
@@ -69,4 +76,3 @@ namespace UnityEditorMCP.Helpers
         }
     }
 }
-
