@@ -41,7 +41,7 @@ npx unity-editor-mcp
 
 ## Unity Setup
 
-1. Install the Unity package from: `https://github.com/akiojin/unity-editor-mcp.git?path=unity-editor-mcp`
+1. Install the Unity package from: `https://github.com/akiojin/unity-editor-mcp.git?path=UnityEditorMCP/Packages/unity-editor-mcp`
 2. Open Unity Package Manager → Add package from git URL
 3. The package will automatically start a TCP server on port 6400
 
