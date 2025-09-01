@@ -64,8 +64,7 @@ sequenceDiagram
 - `mcp-server/`: Unityツールを公開する Node.js MCP サーバー
 - `scripts/`: ローカル開発向けヘルパースクリプト
 
-## クイックスタート
-
+## セットアップ
 - 対応バージョン: Unity 2020.3 LTS以降 / Node.js 18+ / npm
 - MCPクライアント: Claude Desktop など
 
@@ -85,8 +84,6 @@ sequenceDiagram
       }
     }
     ```
-
-## セットアップ
 
 1) Unity の Package Manager から本パッケージを導入（下記Git URL）
 2) Unity プロジェクトを開く（パッケージがポート6400で待受）
@@ -166,7 +163,7 @@ sequenceDiagram
   - 表示補助: `explorerSettings.display.*`（highlightTarget、showBounds、showColliders、showGizmos、backgroundColor、layers）。
   - ターゲット: `explorerSettings.target.*`（gameObject/tag/area/position、includeChildren）。
   - 出力: `outputPath`（`Assets/` 配下に保存）または base64 返却。
-- 解析: `analyze_screenshot` でUI検出や内容サマリが可能。
+- 解析: UI検出や内容サマリも可能。
 
 シーケンス
 
@@ -234,15 +231,6 @@ sequenceDiagram
     Node-->>Client: 結果（編集確定 or 検索ヒット）
 ```
 
-
-## トラブルシューティング（簡易）
-
-- UnityのTCPが待受しない: プロジェクトを開き直し／ポート6400の占有を解除。
-- Node.jsが接続できない: Unity稼働確認、FW設定、Unity/Nodeのログ確認。
-- C#の型が見つからない: アセットをリフレッシュし、コンパイル完了まで待機。
-
-注意: 本READMEに接続設計・スクリーンショット・コードインデックスの要点を集約しました。
-
 ## その他クライアント
 
 ### Codex CLI
@@ -250,7 +238,7 @@ sequenceDiagram
 Codex の MCP サーバー設定は次のファイルに作成してください。
 
 - macOS/Linux: `~/.codex/servers.json`
-- Windows: `%USERPROFILE%\\.codex\\servers.json`
+- Windows: `%USERPROFILE%\.codex\servers.json`
 
 例:
 
@@ -264,3 +252,11 @@ Codex の MCP サーバー設定は次のファイルに作成してください
   }
 }
 ```
+
+## トラブルシューティング（簡易）
+
+- UnityのTCPが待受しない: プロジェクトを開き直し／ポート6400の占有を解除。
+- Node.jsが接続できない: Unity稼働確認、FW設定、Unity/Nodeのログ確認。
+- C#の型が見つからない: アセットをリフレッシュし、コンパイル完了まで待機。
+
+注意: 本READMEに接続設計・スクリーンショット・コードインデックスの要点を集約しました.

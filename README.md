@@ -165,7 +165,7 @@ Tip: To avoid CWD dependency, prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.
   - Display aids: `explorerSettings.display.*` (highlightTarget, showBounds, showColliders, showGizmos, backgroundColor, layers).
   - Target focus: `explorerSettings.target.*` (gameObject/tag/area/position, includeChildren).
   - Output: `outputPath` to save under `Assets/` or return base64 data.
-- Analysis: `analyze_screenshot` can detect UI elements and summarize content.
+- Analysis: optional UI detection and content summary.
 
 Sequence
 
