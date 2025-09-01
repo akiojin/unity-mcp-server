@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -398,53 +398,21 @@ namespace UnityEditorMCP.Core
         /// </summary>
         private static async Task SendFramedMessage(NetworkStream stream, string message, CancellationToken cancellationToken)
         {
-            // Ensure cancellation/timeout to avoid editor stall if client stops reading
-            CancellationToken effectiveToken = cancellationToken;
-            CancellationTokenSource timeoutCts = null;
-            try
-            {
-                if (!effectiveToken.CanBeCanceled)
-                {
-                    timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                    effectiveToken = timeoutCts.Token;
-                }
-
-                var messageBytes = Encoding.UTF8.GetBytes(message);
-                var lengthBytes = BitConverter.GetBytes(messageBytes.Length);
-
-                // Convert to big-endian
-                if (BitConverter.IsLittleEndian)
-                {
-                    Array.Reverse(lengthBytes);
-                }
-
-                try
-                {
-                    Debug.Log($"[Unity Editor MCP] Sending response (length={messageBytes.Length})");
-                }
-                catch { }
-
-                // Write length prefix
-                await stream.WriteAsync(lengthBytes, 0, 4, effectiveToken);
-                // Write message
-                await stream.WriteAsync(messageBytes, 0, messageBytes.Length, effectiveToken);
-                await stream.FlushAsync(effectiveToken);
-            }
-            catch (OperationCanceledException)
-            {
-                try { Debug.LogWarning("[Unity Editor MCP] Send operation canceled or timed out."); } catch { }
-                // Swallow cancellation to prevent blocking the main thread/queue
-            }
-            catch (Exception ex)
-            {
-                try { Debug.LogError($"[Unity Editor MCP] Send error: {ex}"); } catch { }
-                throw;
-            }
-            finally
-            {
-                timeoutCts?.Dispose();
-            }
-        }
+    try
+    {
+        var messageBytes = Encoding.UTF8.GetBytes(message);
+        var lengthBytes = BitConverter.GetBytes(messageBytes.Length);
+        if (BitConverter.IsLittleEndian) Array.Reverse(lengthBytes);
+        await stream.WriteAsync(lengthBytes, 0, 4, cancellationToken);
+        await stream.WriteAsync(messageBytes, 0, messageBytes.Length, cancellationToken);
+        await stream.FlushAsync(cancellationToken);
+    }
+    catch (Exception ex)
+    {
+        try { Debug.LogError($"[Unity Editor MCP] Send error: {ex}"); } catch { }
+        throw;
+    }
+}
         
         /// <summary>
         /// Processes queued commands on the Unity main thread
