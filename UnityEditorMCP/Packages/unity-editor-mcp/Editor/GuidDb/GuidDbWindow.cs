@@ -110,17 +110,22 @@ namespace UnityEditorMCP.GuidDb
                 if (GUILayout.Button("Full Scan", EditorStyles.toolbarButton, GUILayout.Width(90))) { GuidDbManager.FullScan(); Reload(); }
             }
 
-            // Fixed header (horizontal scroll only)
-            var headerScroll = EditorGUILayout.BeginScrollView(new Vector2(_scroll.x, 0), true, false, GUILayout.Height(22));
+            // Header: horizontal sync only (no scrollbar)
+            var headerRect = GUILayoutUtility.GetRect(0, 22, GUILayout.ExpandWidth(true));
+            var totalWidth = 90f + 80f + 600f + 240f + 60f + 190f + 360f;
+            var headerView = new Rect(0, 0, totalWidth, 22);
+            var _ = GUI.BeginScrollView(headerRect, new Vector2(_scroll.x, 0), headerView, false, false, GUIStyle.none, GUIStyle.none);
+            GUILayout.BeginArea(new Rect(0, 0, totalWidth, 22));
             DrawHeader();
-            EditorGUILayout.EndScrollView();
-            _scroll = new Vector2(headerScroll.x, _scroll.y);
+            GUILayout.EndArea();
+            GUI.EndScrollView();
 
-            // Content (both axes)
-            _scroll = EditorGUILayout.BeginScrollView(_scroll, true, true);
+            // Content: drives _scroll (hide horizontal bar)
+            var newScroll = EditorGUILayout.BeginScrollView(_scroll, false, true, GUIStyle.none, GUI.skin.verticalScrollbar, GUIStyle.none);
             for (int i = 0; i < _filtered.Count; i++)
                 DrawRow(_filtered[i], i);
             EditorGUILayout.EndScrollView();
+            _scroll = newScroll;
         }
 
         private void DrawHeader()

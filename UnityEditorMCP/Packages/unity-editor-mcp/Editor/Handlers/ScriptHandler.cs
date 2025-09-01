@@ -358,6 +358,20 @@ namespace UnityEditorMCP.Handlers
                     parsedEdits.Add((norm, abs, startLine, endLine, newText));
                 }
 
+
+                // Patch size guard (safeMode)
+                bool safeMode = parameters["safeMode"]?.ToObject<bool?>() ?? true;
+                bool allowLarge = parameters["allowLarge"]?.ToObject<bool?>() ?? false;
+                if (safeMode && !allowLarge)
+                {
+                    foreach (var pe in parsedEdits)
+                    {
+                        int span = pe.end - pe.start + 1;
+                        if (span > 80)
+                            return new { error = "Patch too large (>80 lines). Use structured edit (replace_body).", code = "PATCH_TOO_LARGE", path = pe.norm, span };
+                    }
+                }
+
                 // Always run Roslyn preflight in preview and apply
                 object preflightInfo = null;
                 try
@@ -818,6 +832,11 @@ namespace UnityEditorMCP.Handlers
                 if (target == null) return new { error = "Symbol not found", code = "SYMBOL_NOT_FOUND" };
 
                 var lines = File.ReadAllLines(abs).ToList();
+
+                // Scope guard: forbid inserting members into method scope
+                if ((operation == "insert_before" || operation == "insert_after") && string.Equals(kind, "method", StringComparison.OrdinalIgnoreCase))
+                    return new { error = "Insert operations must target class/namespace, not method scope. Use kind:\"class\" and insert at class level.", code = "INVALID_SCOPE" };
+
                 int insertLine = target.startLine;
                 int endLine = target.endLine;
                 string before, after;
@@ -840,16 +859,84 @@ namespace UnityEditorMCP.Handlers
                 }
                 else if (operation == "replace_body")
                 {
-                    // Replace lines in [startLine, endLine]
-                    var old = string.Join("\n", lines.Skip(target.startLine - 1).Take(endLine - target.startLine + 1));
-                    var previewDiff = BuildUnifiedDiff(norm, target.startLine, endLine, old, newText);
+                    // Replace only the method body: keep signature/header lines intact
+                    var segStart = Math.Max(0, target.startLine - 1);
+                    var segLen = Math.Max(0, endLine - target.startLine + 1);
+                    var segment = lines.Skip(segStart).Take(segLen).ToList();
+                    var joined = string.Join("\n", segment);
+
+                    int FindBodyStart(string text)
+                    {
+                        bool inStr = false, inChr = false, inSL = false, inML = false;
+                        for (int i = 0; i < text.Length; i++)
+                        {
+                            char c = text[i]; char n = (i + 1 < text.Length) ? text[i + 1] : '\0';
+                            if (inSL) { if (c == '\n') inSL = false; continue; }
+                            if (inML) { if (c == '*' && n == '/') { inML = false; i++; } continue; }
+                            if (inStr) { if (c == '\\' && n != '\0') { i++; continue; } if (c == '"') inStr = false; continue; }
+                            if (inChr) { if (c == '\\' && n != '\0') { i++; continue; } if (c == '\'') inChr = false; continue; }
+                            if (c == '/' && n == '/') { inSL = true; i++; continue; }
+                            if (c == '/' && n == '*') { inML = true; i++; continue; }
+                            if (c == '"') { inStr = true; continue; }
+                            if (c == '\'') { inChr = true; continue; }
+                            if (c == '{') return i; // first body brace
+                        }
+                        return -1;
+                    }
+
+                    int bodyStart = FindBodyStart(joined);
+                    if (bodyStart < 0)
+                        return new { error = "METHOD_BODY_NOT_FOUND", code = "BODY_NOT_FOUND" };
+
+                    int depth = 0; bool inStr2 = false, inChr2 = false, inSL2 = false, inML2 = false; int bodyEnd = -1;
+                    for (int i = bodyStart; i < joined.Length; i++)
+                    {
+                        char c = joined[i]; char n = (i + 1 < joined.Length) ? joined[i + 1] : '\0';
+                        if (inSL2) { if (c == '\n') inSL2 = false; continue; }
+                        if (inML2) { if (c == '*' && n == '/') { inML2 = false; i++; } continue; }
+                        if (inStr2) { if (c == '\\' && n != '\0') { i++; continue; } if (c == '"') inStr2 = false; continue; }
+                        if (inChr2) { if (c == '\\' && n != '\0') { i++; continue; } if (c == '\'') inChr2 = false; continue; }
+                        if (c == '/' && n == '/') { inSL2 = true; i++; continue; }
+                        if (c == '/' && n == '*') { inML2 = true; i++; continue; }
+                        if (c == '"') { inStr2 = true; continue; }
+                        if (c == '\'') { inChr2 = true; continue; }
+                        if (c == '{') depth++;
+                        else if (c == '}') { depth--; if (depth == 0) { bodyEnd = i; break; } }
+                    }
+                    if (bodyEnd < 0)
+                        return new { error = "METHOD_BODY_END_NOT_FOUND", code = "BODY_END_NOT_FOUND" };
+
+                    // map char index -> (line,col)
+                    var lineOffsets = new List<int>();
+                    int off = 0; foreach (var l in segment) { lineOffsets.Add(off); off += l.Length + 1; } // +1 for \n join
+                    int FindLine(int idx) { for (int li = 0; li < lineOffsets.Count; li++) { int start = lineOffsets[li]; int end = (li + 1 < lineOffsets.Count) ? lineOffsets[li + 1] : int.MaxValue; if (idx < end) return li; } return lineOffsets.Count - 1; }
+
+                    int startLi = FindLine(bodyStart);
+                    int startCol = bodyStart - lineOffsets[startLi];
+                    int endLi = FindLine(bodyEnd);
+                    int endCol = bodyEnd - lineOffsets[endLi];
+
+                    var newBody = (newText ?? string.Empty).Split(new[] {"\n"}, StringSplitOptions.None).ToList();
+                    string prefix = segment[startLi].Substring(0, startCol);
+                    string suffix = segment[endLi].Substring(Math.Min(segment[endLi].Length, endCol + 1));
+                    if (newBody.Count == 0) newBody.Add("{}");
+                    newBody[0] = prefix + newBody[0];
+                    newBody[newBody.Count - 1] = newBody[newBody.Count - 1] + suffix;
+
+                    int absStart = segStart + startLi;
+                    int absRemove = endLi - startLi + 1;
+                    var oldSeg = string.Join("\n", segment);
+
+                    // preview before applying
+                    var tmpLines = new List<string>(lines);
+                    tmpLines.RemoveRange(absStart, absRemove);
+                    tmpLines.InsertRange(absStart, newBody);
+                    var newSeg = string.Join("\n", tmpLines.Skip(segStart).Take(tmpLines.Count - segStart - (lines.Count - (segStart + segLen))));
+                    var previewDiff = BuildUnifiedDiff(norm, target.startLine, endLine, oldSeg, newSeg);
                     if (preview) return new { success = true, preview = previewDiff };
-                    lines.RemoveRange(target.startLine - 1, endLine - target.startLine + 1);
-                    lines.InsertRange(target.startLine - 1, (newText ?? string.Empty).Split(new[] {"\n"}, StringSplitOptions.None));
-                }
-                else
-                {
-                    return new { error = "Unknown operation", code = "UNKNOWN_OPERATION" };
+
+                    lines.RemoveRange(absStart, absRemove);
+                    lines.InsertRange(absStart, newBody);
                 }
 
                 // Apply
