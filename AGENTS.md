@@ -43,7 +43,27 @@
 
 - C#の探索/編集/置換/生成は、Unity MCPのScript系ツール（`UnityMCP__script_search`/`UnityMCP__script_read`/`UnityMCP__script_edit_patch`/`UnityMCP__script_replace_pattern`/`UnityMCP__script_edit_structured`）を必ず使用すること。`apply_patch`や`shell`での直接編集は禁止。
 - 変更は必ず「previewで差分確認 → 適用 → `UnityMCP__refresh_assets` → `UnityMCP__wait_for_editor_state`でコンパイル完了待ち」の順で検証すること。
-- 対象パスは`UnityEditorMCP/Assets/**`に限定すること。
+- 対象パスは次に限定すること（役割を厳密に区別する）：
+  - 実装本体（UPMパッケージ）: `UnityEditorMCP/Packages/unity-editor-mcp/**`（Embedded。最優先の編集対象）
+  - サンプル/Unityプロジェクト側: `UnityEditorMCP/Assets/**`（サンプル・検証・デモ専用。実装本体は置かない）
+
+### UPMパッケージ配置と編集対象（Unity側実装本体）
+
+- 実装本体の配置: `UnityEditorMCP/Packages/unity-editor-mcp/**`
+  - UPM配布のソース・オブ・トゥルースはこのディレクトリ配下。
+  - `Library/PackageCache/**` はPackage Managerの一時領域。編集禁止（再生成で消失）。
+  - `UnityEditorMCP/Assets/**` はサンプル/検証向けであり、実装本体や配布対象には含めない。
+- 編集手段: 上記ディレクトリは埋め込み（Embedded）パッケージのため、Script系ツールでの編集が可能。
+  - 検索例: `UnityMCP__script_search` の `include` に `UnityEditorMCP/Packages/unity-editor-mcp/**/*.cs` を指定
+  - 編集例: `UnityMCP__script_edit_patch` または `UnityMCP__script_edit_structured` を `preview=true` で差分確認後に適用
+  - 検証: 適用後に `UnityMCP__refresh_assets` → `UnityMCP__wait_for_editor_state` でコンパイル完了を確認
+- 注意: レジストリ配布の読み取り専用パッケージを編集する必要がある場合は、まず埋め込み（Embedded）に変換してから対応すること。
+
+### Assets配下の扱い（サンプル/Unityプロジェクト側）
+
+- 目的: サンプル・検証・デモ・手動動作確認用のシーン/プレハブ/補助スクリプトを配置。
+- 禁止: 実装本体（ランタイム/エディタ拡張の主要コード）を置かない。UPM配布の対象にも含めない。
+- 編集: 必要最小限に留める。スクリプト変更が必要な場合も、可能な限り `Packages/unity-editor-mcp` 側で対応し、Assets側は参照/設定のみで成立させる。
 
 ## バージョン管理
 
