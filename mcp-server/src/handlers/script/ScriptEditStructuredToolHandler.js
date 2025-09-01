@@ -16,7 +16,7 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
                     },
                     path: {
                         type: 'string',
-                        description: 'Relative Unity project path (e.g., Assets/Scripts/Foo.cs).'
+                        description: 'Project-relative C# path starting with Assets/ or Packages/ (e.g., Packages/unity-editor-mcp/Editor/Foo.cs). Do NOT prefix repository folders like UnityEditorMCP/….'
                     },
                     symbolName: {
                         type: 'string',
@@ -63,6 +63,14 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
+        // Normalize path to project-relative form
+        if (params?.path) {
+            const raw = String(params.path).replace(/\\\\/g, '/');
+            const ai = raw.indexOf('Assets/');
+            const pi = raw.indexOf('Packages/');
+            const i = (ai >= 0 && pi >= 0) ? Math.min(ai, pi) : (ai >= 0 ? ai : pi);
+            params.path = i >= 0 ? raw.substring(i) : raw;
+        }
         const preview = params?.preview === true;
         if (!this.unityConnection.isConnected()) {
             await this.unityConnection.connect();

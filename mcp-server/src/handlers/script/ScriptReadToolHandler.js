@@ -14,7 +14,7 @@ export class ScriptReadToolHandler extends BaseToolHandler {
                 properties: {
                     path: {
                         type: 'string',
-                        description: 'Relative Unity project path (e.g., Assets/Scripts/Example.cs). Must be inside project.'
+                        description: 'Project-relative C# path under Assets/ or Packages/ (e.g., Packages/unity-editor-mcp/Editor/Example.cs). Do NOT prefix repository folders (e.g., UnityEditorMCP/…).'
                     },
                     startLine: {
                         type: 'number',
@@ -70,7 +70,12 @@ export class ScriptReadToolHandler extends BaseToolHandler {
             const info = await this.projectInfo.get();
 
             // Normalize and validate
-            const norm = (path || '').replace(/\\/g, '/');
+            // Normalize common mistakes like UnityEditorMCP/Packages/… → Packages/…
+            const raw = (path || '').replace(/\\/g, '/');
+            const ai = raw.indexOf('Assets/');
+            const pi = raw.indexOf('Packages/');
+            const idx = (ai >= 0 && pi >= 0) ? Math.min(ai, pi) : (ai >= 0 ? ai : pi);
+            const norm = idx >= 0 ? raw.substring(idx) : raw;
             if (!norm.startsWith('Assets/') && !norm.startsWith('Packages/')) {
                 return { error: 'Path must be under Assets/ or Packages/' };
             }

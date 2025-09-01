@@ -15,7 +15,7 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
                 properties: {
                     path: {
                         type: 'string',
-                        description: 'Relative Unity project path to a .cs file (e.g., Assets/Scripts/Foo.cs).'
+                        description: 'Project-relative .cs path under Assets/ or Packages/ (e.g., Packages/unity-editor-mcp/Editor/Foo.cs). Do NOT prefix repository folders (e.g., UnityEditorMCP/…).'
                     }
                 },
                 required: ['path']
@@ -41,7 +41,12 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
-        const { path: relPath } = params;
+        // Normalize to project-relative path (strip repo-root prefixes if provided)
+        const rawPath = String(params.path || '').replace(/\\/g, '/');
+        const ai = rawPath.indexOf('Assets/');
+        const pi = rawPath.indexOf('Packages/');
+        const cut = (ai >= 0 && pi >= 0) ? Math.min(ai, pi) : (ai >= 0 ? ai : pi);
+        const relPath = cut >= 0 ? rawPath.substring(cut) : rawPath;
 
         try {
             const info = await this.projectInfo.get();

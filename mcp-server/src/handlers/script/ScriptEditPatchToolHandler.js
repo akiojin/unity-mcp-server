@@ -18,7 +18,7 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
                             properties: {
                                 path: {
                                     type: 'string',
-                                    description: 'Relative Unity project path to edit (e.g., Assets/Scripts/Foo.cs).'
+                                    description: 'Project-relative C# path starting with Assets/ or Packages/ (e.g., Packages/unity-editor-mcp/Editor/Foo.cs). Do NOT prefix repository folders like UnityEditorMCP/… — the MCP server runs inside the Unity project.'
                                 },
                                 startLine: {
                                     type: 'number',
@@ -89,6 +89,18 @@ export class ScriptEditPatchToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
+        // Path normalization: allow accidental repo-root prefixes (e.g., UnityEditorMCP/Packages/…)
+        if (Array.isArray(params?.edits)) {
+            params.edits = params.edits.map(e => {
+                if (!e?.path) return e;
+                const raw = String(e.path).replace(/\\\\/g, '/');
+                const ai = raw.indexOf('Assets/');
+                const pi = raw.indexOf('Packages/');
+                const i = (ai >= 0 && pi >= 0) ? Math.min(ai, pi) : (ai >= 0 ? ai : pi);
+                const norm = i >= 0 ? raw.substring(i) : raw;
+                return { ...e, path: norm };
+            });
+        }
         const preview = params?.preview === true;
         const deferDefault = (config.writeQueue && typeof config.writeQueue.deferDefault === 'boolean') ? config.writeQueue.deferDefault : true;
         const defer = typeof params?.defer === 'boolean' ? params.defer : deferDefault; // 設定既定→引数で上書き
