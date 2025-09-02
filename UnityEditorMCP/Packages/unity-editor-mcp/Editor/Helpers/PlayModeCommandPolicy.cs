@@ -19,8 +19,9 @@ namespace UnityEditorMCP.Helpers
             "click_ui_element", "set_ui_element_value", "simulate_ui_input",
             // Animator queries
             "get_animator_state", "get_animator_runtime_info",
-            // Screenshot (game/scene)
+            // Screenshot / Video (game/scene)
             "capture_screenshot", "analyze_screenshot",
+            "capture_video_start", "capture_video_stop", "capture_video_status",
             // Window/selection queries
             "get_hierarchy", "get_scene_info", "get_gameobject_details", "find_gameobject", "find_by_component",
             // PlayMode controls
@@ -61,4 +62,3 @@ namespace UnityEditorMCP.Helpers
         }
     }
 }
-

@@ -735,6 +735,19 @@ namespace UnityEditorMCP.Core
                         var analyzeScreenshotResult = ScreenshotHandler.AnalyzeScreenshot(command.Parameters);
                         response = Response.SuccessResult(command.Id, analyzeScreenshotResult);
                         break;
+                    // Video capture commands (skeleton)
+                    case "capture_video_start":
+                        var vStart = VideoCaptureHandler.Start(command.Parameters);
+                        response = Response.SuccessResult(command.Id, vStart);
+                        break;
+                    case "capture_video_stop":
+                        var vStop = VideoCaptureHandler.Stop(command.Parameters);
+                        response = Response.SuccessResult(command.Id, vStop);
+                        break;
+                    case "capture_video_status":
+                        var vStatus = VideoCaptureHandler.Status(command.Parameters);
+                        response = Response.SuccessResult(command.Id, vStatus);
+                        break;
                     // Component commands
                     case "add_component":
                         var addComponentResult = ComponentHandler.AddComponent(command.Parameters);
