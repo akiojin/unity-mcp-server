@@ -319,12 +319,6 @@ const HANDLER_CLASSES = [
   RoslynReplaceSymbolBodyToolHandler,
   RoslynInsertSymbolToolHandler,
   
-  // Roslyn CLI handlers (external, no Unity communication)
-  RoslynFindSymbolToolHandler,
-  RoslynFindReferencesToolHandler,
-  RoslynReplaceSymbolBodyToolHandler,
-  RoslynInsertSymbolToolHandler,
-  
   // Component handlers
   AddComponentToolHandler,
   RemoveComponentToolHandler,
