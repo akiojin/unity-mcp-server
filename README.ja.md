@@ -223,13 +223,11 @@ sequenceDiagram
 アーキテクチャ
 
 - 責務分離:
-  - Unity: Roslyn（Microsoft.CodeAnalysis）でC#を解析。`JsonIndexStore` で各ファイルのJSONを書き出し、アセット変更時に無効化。
-  - Node: JSONインデックスを参照してシンボル/検索を実行。インデックスが無い/Unity未接続時はNode側の軽量抽出でフォールバック。
+  - Unity: エディタ自動化のみを担当し、C#解析は行わない。
+  - Node: C#解析/編集は外部 `roslyn-cli` に委譲（`.sln/.csproj` をロード）。
 - 精度:
-  - UnityはRoslynの構文木から `class/struct/interface/enum/method/property` を抽出し、コンテナ/名前空間/行範囲を付与。
-  - 参照検索は可能な限りRoslynの識別子トークンを優先し、コメント/文字列の誤検知を抑制。必要に応じてコンテナ/名前空間でフィルタ。
-- 無効化:
-  - UnityのAssetPostprocessorが `.cs` のインポート/削除/移動でキャッシュを無効化。再解析でJSONを再生成。
+  - Roslyn CLI がプロジェクト全体のシンボル/参照を解決し、構造化編集を安全に実施します。
+- JSONインデックスは廃止しました。
 
 シーケンス
 
