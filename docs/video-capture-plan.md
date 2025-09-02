@@ -41,29 +41,38 @@
 
 ## コマンド仕様（案）
 
-### `capture_video_start`
+### `capture_video_start`（最終仕様）
 
 - 必須: `outputPath`（省略時は `Assets/Screenshots/recordings/<timestamp>.mp4` を自動生成）
 - 任意:
   - `captureMode`: `game|scene|window|explorer`（既定: `game`）
   - `width`, `height`（既定: GameView/SceneView 実サイズ or 明示指定）
   - `fps`（既定: 30）
-  - `bitrateKbps`（既定: 8000）
+  - `bitrateKbps`（既定: 8000、`format:webm` 時は `vp9` 推奨で調整）
   - `format`: `mp4|webm|png_sequence`（既定: `mp4`）
   - `includeUI`（既定: true, GameView のみ有効）
-  - `audio`（既定: false）
+  - `audio`（既定: false、true時はゲームオーディオ）
   - `audioSource`（任意、無指定はゲームオーディオ）
-  - `maxDurationSec`（既定: 無制限, 指定時は自動停止）
+  - `maxDurationSec`（既定: 無制限, 指定時は自動停止、上限超過は `autoStopped:true`）
 - 返却: `{ recordingId, outputPath, actualWidth, actualHeight, fps, startedAt }`
 
-### `capture_video_stop`
+### `capture_video_stop`（最終仕様）
 
 - 引数: `recordingId`（省略時は最新のアクティブセッション）
 - 返却: `{ recordingId, outputPath, durationSec, frames, warnings }`
 
-### `capture_video_status`
+### `capture_video_status`（最終仕様）
 
 - 返却: `{ isRecording, recordingId?, elapsedSec?, frames?, outputPath?, captureMode?, fps? }`
+
+エラーコード方針（共通）
+
+- `E_ALREADY_RECORDING`: 録画中に `start`
+- `E_NOT_RECORDING`: 非録画中に `stop`
+- `E_INVALID_MODE`: `captureMode` 無効
+- `E_INVALID_SIZE`: 解像度が 0 または負値
+- `E_PATH_DENIED`: 出力先への書込不可
+- `E_DEP_MISSING`: 依存（Recorder/ffmpeg）不足
 
 ## 依存と導入方針
 
@@ -97,7 +106,7 @@
 ## 進捗用 ToDo（チェックリスト）
 
 - [x] 要件定義の確定（デフォルト値/制約を文書反映）
-- [ ] コマンド仕様の最終化（引数/戻り値/エラー）
+- [x] コマンド仕様の最終化（引数/戻り値/エラー）
 - [x] ルータへのコマンド追加（start/stop/status）
 - [x] VideoCaptureHandler スケルトン実装（状態管理/出力パス生成）
 - [x] PlayMode ポリシー反映（許可コマンド追加）
