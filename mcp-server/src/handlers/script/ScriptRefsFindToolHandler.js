@@ -1,13 +1,11 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { ProjectInfoProvider } from '../../core/projectInfo.js';
-import { findReferences } from '../../utils/codeIndex.js';
-import { logger } from '../../core/config.js';
+import { RoslynCliUtils } from '../roslyn/RoslynCliUtils.js';
 
 export class ScriptRefsFindToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_refs_find',
-            'Find code references/usages of a symbol across the project with context and limits. BEST PRACTICES: Essential for understanding code dependencies. Use container/namespace/kind to narrow search. Set snippetContext for surrounding code lines. Use maxMatchesPerFile to limit results per file. Set maxBytes to control response size. Great for impact analysis before refactoring.',
+            'Find code references/usages using external Roslyn CLI（Unity無通信）。',
             {
                 type: 'object',
                 properties: {
@@ -58,7 +56,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
-        this.projectInfo = new ProjectInfoProvider(unityConnection);
+        this.roslyn = new RoslynCliUtils(unityConnection);
     }
 
     validate(params) {
@@ -72,28 +70,12 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
-        const {
-            name,
-            scope = 'assets',
-            snippetContext = 2,
-            maxMatchesPerFile = 5,
-            pageSize = 50,
-            maxBytes = 64 * 1024
-        } = params;
-
-        try {
-            const info = await this.projectInfo.get();
-            const roots = [];
-            if (scope === 'assets' || scope === 'all') roots.push(info.assetsPath);
-            if (scope === 'packages' || scope === 'embedded' || scope === 'all') roots.push(info.packagesPath);
-            const { results, truncated } = await findReferences(info.projectRoot, roots, { name, snippetContext, maxMatchesPerFile, pageSize, maxBytes });
-            return { success: true, results, total: results.length, truncated };
-        } catch (e) {
-            logger.warn(`[script_refs_find] local failed, falling back to Unity: ${e.message}`);
-            if (!this.unityConnection.isConnected()) {
-                await this.unityConnection.connect();
-            }
-            return this.unityConnection.sendCommand('script_refs_find', params);
-        }
+        const { name, path } = params;
+        const args = ['find-references'];
+        args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
+        args.push('--name', String(name));
+        if (path) args.push('--relative', String(path).replace(/\\\\/g, '/'));
+        const res = await this.roslyn.runCli(args);
+        return { success: true, results: res.results || [], total: (res.results || []).length, truncated: false };
     }
 }

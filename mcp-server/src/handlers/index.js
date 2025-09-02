@@ -117,14 +117,18 @@ export { default as RegistryConfigToolHandler } from './package/RegistryConfigTo
 export { ScriptPackagesListToolHandler } from './script/ScriptPackagesListToolHandler.js';
 export { ScriptReadToolHandler } from './script/ScriptReadToolHandler.js';
 export { ScriptSearchToolHandler } from './script/ScriptSearchToolHandler.js';
-export { ScriptEditPatchToolHandler } from './script/ScriptEditPatchToolHandler.js';
 export { ScriptEditStructuredToolHandler } from './script/ScriptEditStructuredToolHandler.js';
 export { ScriptRefsFindToolHandler } from './script/ScriptRefsFindToolHandler.js';
 export { ScriptSymbolFindToolHandler } from './script/ScriptSymbolFindToolHandler.js';
 export { ScriptSymbolsGetToolHandler } from './script/ScriptSymbolsGetToolHandler.js';
 export { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHandler.js';
 export { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
-export { ScriptReplacePatternToolHandler } from './script/ScriptReplacePatternToolHandler.js';
+// Deprecated Unity-communication handlers removed: ScriptEditPatchToolHandler, ScriptReplacePatternToolHandler
+// Roslyn CLI (external)
+export { RoslynFindSymbolToolHandler } from './roslyn/RoslynFindSymbolToolHandler.js';
+export { RoslynFindReferencesToolHandler } from './roslyn/RoslynFindReferencesToolHandler.js';
+export { RoslynReplaceSymbolBodyToolHandler } from './roslyn/RoslynReplaceSymbolBodyToolHandler.js';
+export { RoslynInsertSymbolToolHandler } from './roslyn/RoslynInsertSymbolToolHandler.js';
 
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
@@ -303,14 +307,23 @@ const HANDLER_CLASSES = [
   ScriptPackagesListToolHandler,
   ScriptReadToolHandler,
   ScriptSearchToolHandler,
-  ScriptEditPatchToolHandler,
   ScriptEditStructuredToolHandler,
   ScriptRefsFindToolHandler,
   ScriptSymbolFindToolHandler,
   ScriptSymbolsGetToolHandler,
   ScriptIndexStatusToolHandler,
   ScriptRefactorRenameToolHandler,
-  ScriptReplacePatternToolHandler,
+  // Roslyn CLI handlers (external)
+  RoslynFindSymbolToolHandler,
+  RoslynFindReferencesToolHandler,
+  RoslynReplaceSymbolBodyToolHandler,
+  RoslynInsertSymbolToolHandler,
+  
+  // Roslyn CLI handlers (external, no Unity communication)
+  RoslynFindSymbolToolHandler,
+  RoslynFindReferencesToolHandler,
+  RoslynReplaceSymbolBodyToolHandler,
+  RoslynInsertSymbolToolHandler,
   
   // Component handlers
   AddComponentToolHandler,

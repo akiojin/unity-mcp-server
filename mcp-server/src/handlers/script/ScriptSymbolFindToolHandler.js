@@ -1,14 +1,12 @@
 import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { ProjectInfoProvider } from '../../core/projectInfo.js';
-import { findSymbols } from '../../utils/codeIndex.js';
-import { logger } from '../../core/config.js';
+import { RoslynCliUtils } from '../roslyn/RoslynCliUtils.js';
 
 export class ScriptSymbolFindToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_symbol_find',
-            'Find symbol definitions by name (class/method/field/property) across the project. BEST PRACTICES: Use exact=true for precise matches, false for fuzzy search. Specify "kind" to filter by symbol type. Searches across all scopes by default. Returns symbol location with line/column info. Great for navigation and refactoring preparation.',
+            'Find symbol definitions by name (class/method/field/property) using external Roslyn CLI（Unity無通信）。',
             {
                 type: 'object',
                 properties: {
@@ -36,7 +34,7 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
-        this.projectInfo = new ProjectInfoProvider(unityConnection);
+        this.roslyn = new RoslynCliUtils(unityConnection);
     }
 
     validate(params) {
@@ -50,31 +48,26 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
-        const {
-            name,
-            kind,
-            scope = 'assets',
-            exact = false
-        } = params;
-
-        try {
-            const info = await this.projectInfo.get();
-            const roots = [];
-            if (scope === 'assets' || scope === 'all') roots.push(info.assetsPath);
-            if (scope === 'packages' || scope === 'embedded' || scope === 'all') roots.push(info.packagesPath);
-
-            const results = [];
-            for await (const hit of findSymbols(info.projectRoot, info.codeIndexRoot, roots, { name, kind, exact, limit: 200 })) {
-                results.push({ path: hit.path, symbol: hit.symbol });
-                if (results.length >= 200) break;
+        const { name, kind } = params;
+        const args = ['find-symbol'];
+        args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
+        args.push('--name', String(name));
+        if (kind) args.push('--kind', String(kind));
+        const res = await this.roslyn.runCli(args);
+        // Map to legacy shape: { path, symbol }
+        const results = (res.results || []).map(r => ({
+            path: r.path,
+            symbol: {
+                name: r.name,
+                kind: r.kind,
+                @namespace: r.ns,
+                container: r.container,
+                startLine: r.line,
+                startColumn: r.column,
+                endLine: r.line,
+                endColumn: r.column
             }
-            return { success: true, results, total: results.length };
-        } catch (e) {
-            logger.warn(`[script_symbol_find] local failed, falling back to Unity: ${e.message}`);
-            if (!this.unityConnection.isConnected()) {
-                await this.unityConnection.connect();
-            }
-            return this.unityConnection.sendCommand('script_symbol_find', { name, kind, scope, exact });
-        }
+        }));
+        return { success: true, results, total: results.length };
     }
 }

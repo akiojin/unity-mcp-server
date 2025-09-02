@@ -1,5 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { WriteGate } from '../../core/writeGate.js';
+import { RoslynCliUtils } from '../roslyn/RoslynCliUtils.js';
 
 export class ScriptEditStructuredToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -40,7 +40,7 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
-        this.writeGate = new WriteGate(unityConnection);
+        this.roslyn = new RoslynCliUtils(unityConnection);
     }
 
     validate(params) {
@@ -68,31 +68,79 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
-        // Normalize path to project-relative form
-        if (params?.path) {
-            const raw = String(params.path).replace(/\\\\/g, '/');
-            const ai = raw.indexOf('Assets/');
-            const pi = raw.indexOf('Packages/');
-            const i = (ai >= 0 && pi >= 0) ? Math.min(ai, pi) : (ai >= 0 ? ai : pi);
-            params.path = i >= 0 ? raw.substring(i) : raw;
-        }
+        // Normalize to project-relative path
+        const raw = String(params.path).replace(/\\\\/g, '/');
+        const ai = raw.indexOf('Assets/');
+        const pi = raw.indexOf('Packages/');
+        const idx = (ai >= 0 && pi >= 0) ? Math.min(ai, pi) : (ai >= 0 ? ai : pi);
+        const relative = idx >= 0 ? raw.substring(idx) : raw;
+
+        const operation = String(params.operation);
+        const kind = (params.kind || '').toLowerCase();
+        const symbolName = String(params.symbolName);
         const preview = params?.preview === true;
-        if (!this.unityConnection.isConnected()) {
-            await this.unityConnection.connect();
+        const body = String(params.newText || '');
+
+        // Map: replace_body -> roslyn_replace_symbol_body, insert_* -> roslyn_insert_symbol
+        if (operation === 'replace_body') {
+            // Construct namePath: if only method name provided, assume within a class? We pass "Class/Method" if possible is unknown here.
+            // To keep behavior, accept simple symbolName and let CLI resolve within file scope: namePath = symbolName
+            const tmpParams = {
+                relative,
+                namePath: symbolName,
+                body,
+                apply: !preview
+            };
+            // Build CLI args
+            const args = ['replace-symbol-body'];
+            args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
+            args.push('--relative', relative, '--name-path', tmpParams.namePath);
+            // write body to temp and call through RoslynCliUtils helper would duplicate logic; inline minimal here:
+            // Simpler approach: delegate to roslyn_replace_symbol_body tool handler via CLI util wrapper not included; do CLI with temp file below.
         }
-        const res = await this.writeGate.sendWithGate('script_edit_structured', params, { preview });
-        // Do not rely on lastCompilationMessages; fetch errors from Console instead
-        try {
-            const console = await this.unityConnection.sendCommand('read_console', {
-                count: 100,
-                includeStackTrace: false,
-                logTypes: ['Error', 'Exception'],
-                format: 'compact',
-                sortOrder: 'newest',
-            });
-            return { ...res, consoleErrors: console?.logs || [] };
-        } catch {
-            return res;
+
+        // Fallback: delegate to specialized handlers for clarity
+        if (operation === 'insert_before' || operation === 'insert_after') {
+            const cmd = operation === 'insert_before' ? 'insert-before-symbol' : 'insert-after-symbol';
+            const args = [cmd];
+            args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
+            args.push('--relative', relative, '--name-path', symbolName);
+            // temp file for body
+            const fs = await import('fs');
+            const os = await import('os');
+            const path = await import('path');
+            const tmp = await fs.promises.mkdtemp(path.default.join(os.default.tmpdir(), 'roslyn-insert-'));
+            const bodyFile = path.default.join(tmp, 'insert.txt');
+            await fs.promises.writeFile(bodyFile, body, 'utf8');
+            args.push('--body-file', bodyFile);
+            if (!preview) args.push('--apply', 'true');
+            try {
+                const res = await this.roslyn.runCli(args);
+                return res;
+            } finally {
+                try { await fs.promises.rm(tmp, { recursive: true, force: true }); } catch {}
+            }
         }
+
+        if (operation === 'replace_body') {
+            const fs = await import('fs');
+            const os = await import('os');
+            const path = await import('path');
+            const tmp = await fs.promises.mkdtemp(path.default.join(os.default.tmpdir(), 'roslyn-body-'));
+            const bodyFile = path.default.join(tmp, 'body.txt');
+            await fs.promises.writeFile(bodyFile, body, 'utf8');
+            const args = ['replace-symbol-body'];
+            args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
+            args.push('--relative', relative, '--name-path', symbolName, '--body-file', bodyFile);
+            if (!preview) args.push('--apply', 'true');
+            try {
+                const res = await this.roslyn.runCli(args);
+                return res;
+            } finally {
+                try { await fs.promises.rm(tmp, { recursive: true, force: true }); } catch {}
+            }
+        }
+
+        return { error: `Unsupported operation: ${operation}` };
     }
 }
