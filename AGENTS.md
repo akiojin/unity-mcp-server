@@ -39,13 +39,14 @@
 
 - ドキュメントはREADME（英/日）に集約する
 
-### Unity MCP Scriptツールの使用方針（重要）
+### C#編集ポリシー（重要・外部化）
 
-- C#の探索/編集/置換/生成は、Unity MCPのScript系ツール（`UnityMCP__script_search`/`UnityMCP__script_read`/`UnityMCP__script_edit_patch`/`UnityMCP__script_replace_pattern`/`UnityMCP__script_edit_structured`）を必ず使用すること。`apply_patch`や`shell`での直接編集は禁止。
-- 変更は必ず「previewで差分確認 → 適用 → `UnityMCP__refresh_assets` → `UnityMCP__wait_for_editor_state`でコンパイル完了待ち」の順で検証すること。
-- 対象パスは次に限定すること（役割を厳密に区別する）：
-  - 実装本体（UPMパッケージ）: `UnityEditorMCP/Packages/unity-editor-mcp/**`（Embedded。最優先の編集対象）
-  - サンプル/Unityプロジェクト側: `UnityEditorMCP/Assets/**`（サンプル・検証・デモ専用。実装本体は置かない）
+- C#の探索/参照/構造化編集は、Unity外部のRoslyn WorkspaceベースのCLI（オンデマンド実行）で行う。Unityとは通信しない。
+- Unityパッケージ内のC#編集・検索系エンドポイント（Script系）は使用しない（非推奨）。必要最小限の`AssetDatabase.Refresh`等の補助のみ許可。
+- 変更フローは「外部CLIで構造化編集（プリフライト必須）→ 保存 →（必要時のみ）Unityで手動Refresh」。
+- Unity側でC#を直接編集する必要がある場合のみ、`Packages/unity-editor-mcp/**` に限り、Unity MCP Scriptツールを使用し、次の順序で検証すること：
+  - 「previewで差分確認 → 適用 → `UnityMCP__refresh_assets` → `UnityMCP__wait_for_editor_state`」
+  - ただし、通常は外部CLIを優先する。
 
 ### UPMパッケージ配置と編集対象（Unity側実装本体）
 
@@ -53,17 +54,21 @@
   - UPM配布のソース・オブ・トゥルースはこのディレクトリ配下。
   - `Library/PackageCache/**` はPackage Managerの一時領域。編集禁止（再生成で消失）。
   - `UnityEditorMCP/Assets/**` はサンプル/検証向けであり、実装本体や配布対象には含めない。
-- 編集手段: 上記ディレクトリは埋め込み（Embedded）パッケージのため、Script系ツールでの編集が可能。
-  - 検索例: `UnityMCP__script_search` の `include` に `UnityEditorMCP/Packages/unity-editor-mcp/**/*.cs` を指定
-  - 編集例: `UnityMCP__script_edit_patch` または `UnityMCP__script_edit_structured` を `preview=true` で差分確認後に適用
-  - 検証: 適用後に `UnityMCP__refresh_assets` → `UnityMCP__wait_for_editor_state` でコンパイル完了を確認
+- 実装手段: 上記ディレクトリのメンテナンスは最小限とし、C#探索/編集は外部CLIに委譲。やむを得ない場合のみScript系ツールで編集し、前述の手順で検証。
 - 注意: レジストリ配布の読み取り専用パッケージを編集する必要がある場合は、まず埋め込み（Embedded）に変換してから対応すること。
 
 ### Assets配下の扱い（サンプル/Unityプロジェクト側）
 
 - 目的: サンプル・検証・デモ・手動動作確認用のシーン/プレハブ/補助スクリプトを配置。
 - 禁止: 実装本体（ランタイム/エディタ拡張の主要コード）を置かない。UPM配布の対象にも含めない。
-- 編集: 必要最小限に留める。スクリプト変更が必要な場合も、可能な限り `Packages/unity-editor-mcp` 側で対応し、Assets側は参照/設定のみで成立させる。
+- 編集: 必要最小限に留める。C#編集は外部CLIで行い、Assets側は参照/設定のみで成立させる。
+
+### 外部Roslyn CLI（設計概要）
+
+- 目的: `.sln/.csproj` をRoslyn/MSBuildWorkspaceでロードし、`find_symbol`/`find_referencing_symbols`/`replace_symbol_body`/`insert_{before,after}` を提供。
+- 方式: オンデマンドCLI（非常駐）。標準入出力でJSON I/O。未保存バッファは対象外（必要なら仮想ドキュメント差し替えでプリフライト可能）。
+- セーフティ: すべて構造化限定。プリフライト（Roslyn診断）でエラーが増える場合は不適用。バッチ適用→まとめて保存。
+- Unity連携: 自動Refreshは行わない。必要時のみ手動`AssetDatabase.Refresh`を実行。
 
 ## バージョン管理
 
