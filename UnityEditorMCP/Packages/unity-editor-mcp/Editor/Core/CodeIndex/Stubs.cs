@@ -35,7 +35,7 @@ namespace UnityEditorMCP.Core.CodeIndex
         public static IEnumerable<(string rel, int line, string snippet)> FindReferences(string scope, string symbolName, int snippetContext, int maxMatchesPerFile, int maxTotal, int maxBytes, out bool truncated, string containerFilter = null, string namespaceFilter = null)
         {
             truncated = false;
-            yield break;
+            return System.Array.Empty<(string rel, int line, string snippet)>();
         }
 
         public static IEnumerable<(string rel, string container, string ns, int line)> FindIdentifierOccurrencesByContainer(string scope, string name, int maxPerFile, int maxTotal)
@@ -46,8 +46,7 @@ namespace UnityEditorMCP.Core.CodeIndex
         public static IEnumerable<(string rel, int line, int startColumn, int length)> FindRenameOccurrences(string scope, string name, int maxMatchesPerFile, int maxTotal, out bool truncated)
         {
             truncated = false;
-            yield break;
+            return System.Array.Empty<(string rel, int line, int startColumn, int length)>();
         }
     }
 }
-
