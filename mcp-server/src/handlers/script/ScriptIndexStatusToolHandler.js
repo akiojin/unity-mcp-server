@@ -1,7 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
-import { indexStatus } from '../../utils/codeIndex.js';
-import { logger } from '../../core/config.js';
 
 export class ScriptIndexStatusToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -20,10 +18,9 @@ export class ScriptIndexStatusToolHandler extends BaseToolHandler {
 
     async execute(params) {
         try {
-            const info = await this.projectInfo.get();
-            const roots = [info.assetsPath, info.packagesPath];
-            const status = await indexStatus(info.projectRoot, info.codeIndexRoot, roots);
-            return status;
+            await this.projectInfo.get();
+            // 旧ローカル/Unityインデックスを廃止。固定の軽量応答を返す。
+            return { success: true, totalFiles: 0, indexedFiles: 0, coverage: 0 };
         } catch (e) {
             return { success: false, error: e.message };
         }

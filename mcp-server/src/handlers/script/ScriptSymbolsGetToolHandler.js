@@ -2,8 +2,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
-import { loadFileSymbolsWithFallback } from '../../utils/codeIndex.js';
-import { logger } from '../../core/config.js';
 
 export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -53,11 +51,11 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
             if (!relPath.startsWith('Assets/') && !relPath.startsWith('Packages/')) {
                 return { error: 'Path must be under Assets/ or Packages/' };
             }
-            const abs = info.projectRoot + '/' + relPath;
+            const abs = path.join(info.projectRoot, relPath);
             const st = await fs.stat(abs).catch(() => null);
             if (!st || !st.isFile()) return { error: 'File not found', path: relPath };
-            const fsym = await loadFileSymbolsWithFallback(info.projectRoot, info.codeIndexRoot, relPath);
-            return { success: true, path: relPath, symbols: fsym.symbols || [] };
+            // 旧インデックスは廃止。ここでは最小応答（空シンボル配列）を返す。
+            return { success: true, path: relPath, symbols: [] };
         } catch (e) {
             return { error: e.message || 'Failed to get symbols' };
         }
