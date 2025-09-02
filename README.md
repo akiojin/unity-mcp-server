@@ -6,6 +6,10 @@ English | [日本語](README.ja.md)
 
 Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on reliable, scriptable workflows with a simple interface and zero- or low-configuration setup.
 
+### Related Docs
+
+- Video Capture Feature Plan: `docs/video-capture-plan.md`
+
 ### C# Editing Policy (Important)
 
 - All C# symbol/search/structured edits are performed via an external CLI (roslyn-cli) bundled in this repo; no Unity communication is involved.

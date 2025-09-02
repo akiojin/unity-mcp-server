@@ -6,6 +6,10 @@
 
 Unity Editor MCP は、LLMクライアントからUnity Editorを自動化します。シンプルなインターフェースで、安全かつ再現性の高いエディタ操作を実現します。
 
+### 関連ドキュメント
+
+- 動画保存機能 計画: `docs/video-capture-plan.md`
+
 ### C#編集の方針（重要）
 
 - C#の探索/参照/構造化編集は、Unityとは通信せず、リポジトリ同梱の外部CLI（roslyn-cli）で行います。
