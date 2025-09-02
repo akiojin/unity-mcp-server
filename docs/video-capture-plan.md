@@ -96,11 +96,11 @@
 
 ## 進捗用 ToDo（チェックリスト）
 
-- [ ] 要件定義の確定（デフォルト値/制約を文書反映）
+- [x] 要件定義の確定（デフォルト値/制約を文書反映）
 - [ ] コマンド仕様の最終化（引数/戻り値/エラー）
-- [ ] ルータへのコマンド追加（start/stop/status）
-- [ ] VideoCaptureHandler スケルトン実装（状態管理/出力パス生成）
-- [ ] PlayMode ポリシー反映（許可コマンド追加）
+- [x] ルータへのコマンド追加（start/stop/status）
+- [x] VideoCaptureHandler スケルトン実装（状態管理/出力パス生成）
+- [x] PlayMode ポリシー反映（許可コマンド追加）
 - [ ] Recorder 依存導入（manifest.json 追加とガード）
 - [ ] Game/Scene/Window/Explorer キャプチャ基盤流用
 - [ ] Recorder による mp4 出力実装
