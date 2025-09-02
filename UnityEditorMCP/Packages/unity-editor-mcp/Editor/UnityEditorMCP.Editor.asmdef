@@ -9,12 +9,9 @@
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": true,
+    "overrideReferences": false,
     "precompiledReferences": [
-        "Microsoft.CodeAnalysis.dll",
-        "Microsoft.CodeAnalysis.CSharp.dll",
-        "Newtonsoft.Json.dll",
-        "System.Collections.Immutable.dll"
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

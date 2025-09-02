@@ -19,9 +19,7 @@
   },
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1",
-    "com.unity.inputsystem": "1.14.2",
-    "org.nuget.microsoft.codeanalysis.csharp": "4.14.0",
-    "org.nuget.system.collections.immutable": "9.0.0"
+    "com.unity.inputsystem": "1.14.2"
   },
   "repository": {
     "type": "git",
