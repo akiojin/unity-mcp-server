@@ -41,7 +41,7 @@ namespace UnityEditorMCP.Handlers
                 s_CaptureMode = parameters["captureMode"]?.ToString() ?? "game";
                 if (!IsValidCaptureMode(s_CaptureMode))
                 {
-                    return new { error = "Invalid capture mode. Must be 'game', 'scene', 'window', or 'explorer'" };
+                    return new { error = "Invalid capture mode. Must be 'game', 'scene', 'window', or 'explorer'", code = "E_INVALID_MODE" };
                 }
 
                 s_Width = parameters["width"]?.ToObject<int>() ?? 0;
@@ -50,10 +50,26 @@ namespace UnityEditorMCP.Handlers
 
                 s_OutputPath = parameters["outputPath"]?.ToString();
                 string format = parameters["format"]?.ToString() ?? "mp4";
+                if (!IsValidFormat(format))
+                {
+                    return new { error = "Invalid format. Use 'mp4', 'webm' or 'png_sequence'", code = "E_INVALID_FORMAT" };
+                }
                 if (string.IsNullOrEmpty(s_OutputPath))
                 {
                     string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
                     s_OutputPath = $"Assets/Screenshots/recordings/recording_{s_CaptureMode}_{timestamp}.{format}";
+                }
+
+                // Guard: dimensions
+                if (s_Width < 0 || s_Height < 0)
+                {
+                    return new { error = "Width/Height must be >= 0", code = "E_INVALID_SIZE" };
+                }
+
+                // Ensure outputs land under Assets/
+                if (!string.IsNullOrEmpty(s_OutputPath) && !s_OutputPath.Replace('\\','/').StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new { error = "outputPath must be under Assets/", code = "E_PATH_DENIED" };
                 }
 
                 // Fallback mode setup
@@ -100,7 +116,7 @@ namespace UnityEditorMCP.Handlers
             catch (Exception ex)
             {
                 Debug.LogError($"[VideoCaptureHandler] Start error: {ex.Message}");
-                return new { error = $"Failed to start recording: {ex.Message}" };
+                return new { error = $"Failed to start recording: {ex.Message}", code = "E_UNKNOWN" };
             }
         }
 
@@ -176,6 +192,13 @@ namespace UnityEditorMCP.Handlers
         private static bool IsValidCaptureMode(string mode)
         {
             return mode == "game" || mode == "scene" || mode == "window" || mode == "explorer";
+        }
+
+        private static bool IsValidFormat(string fmt)
+        {
+            if (string.IsNullOrEmpty(fmt)) return false;
+            fmt = fmt.ToLowerInvariant();
+            return fmt == "mp4" || fmt == "webm" || fmt == "png_sequence";
         }
 
         private static void EnsureDirectory(string outputPath)
