@@ -25,6 +25,7 @@
 ExportedObj/
 .consulo/
 *.csproj
+!roslyn-cli/*.csproj
 *.unityproj
 *.sln
 *.suo

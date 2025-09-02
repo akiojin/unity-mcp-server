@@ -1,0 +1,48 @@
+name: Build roslyn-cli
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'roslyn-cli/**'
+      - 'scripts/bootstrap-roslyn-cli.*'
+      - '.github/workflows/roslyn-cli.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'roslyn-cli/**'
+      - 'scripts/bootstrap-roslyn-cli.*'
+      - '.github/workflows/roslyn-cli.yml'
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: macos-latest
+            rid: osx-arm64
+          - os: windows-latest
+            rid: win-x64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish roslyn-cli (self-contained)
+        run: |
+          dotnet publish roslyn-cli/roslyn-cli.csproj -c Release -r ${{ matrix.rid }} --self-contained true -o out/${{ matrix.rid }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: roslyn-cli-${{ matrix.rid }}
+          path: out/${{ matrix.rid }}
+
