@@ -986,8 +986,7 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
-                var stored = JsonIndexStore.CountStored();
-                return new { success = true, storedFiles = stored };
+                return new { success = true, storedFiles = 0 };
             }
             catch (Exception e)
             {
