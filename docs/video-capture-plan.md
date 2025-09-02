@@ -101,7 +101,7 @@
 - [x] ルータへのコマンド追加（start/stop/status）
 - [x] VideoCaptureHandler スケルトン実装（状態管理/出力パス生成）
 - [x] PlayMode ポリシー反映（許可コマンド追加）
-- [ ] Recorder 依存導入（manifest.json 追加とガード）
+- [x] Recorder 依存導入（manifest.json 追加とガード）
 - [ ] Game/Scene/Window/Explorer キャプチャ基盤流用
 - [ ] Recorder による mp4 出力実装
 - [ ] 音声キャプチャ（任意）
