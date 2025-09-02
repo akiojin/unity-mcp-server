@@ -22,6 +22,12 @@ namespace UnityEditorMCP.Handlers
         private static int s_Fps;
         private static int s_Width;
         private static int s_Height;
+        // PNG sequence fallback
+        private static bool s_UsePngSequence;
+        private static double s_LastCaptureTime;
+        private static int s_FrameIndex;
+        private static string s_OutputDir;
+        private static string s_FilePattern; // e.g., frame_{0:D6}.png
 
         public static object Start(JObject parameters)
         {
@@ -50,7 +56,28 @@ namespace UnityEditorMCP.Handlers
                     s_OutputPath = $"Assets/Screenshots/recordings/recording_{s_CaptureMode}_{timestamp}.{format}";
                 }
 
-                EnsureDirectory(s_OutputPath);
+                // Fallback mode setup
+                s_UsePngSequence = string.Equals(format, "png_sequence", StringComparison.OrdinalIgnoreCase);
+                if (s_UsePngSequence)
+                {
+                    // Treat outputPath as directory; create default if points to a file
+                    var ext = Path.GetExtension(s_OutputPath);
+                    s_OutputDir = string.IsNullOrEmpty(ext) ? s_OutputPath : Path.GetDirectoryName(s_OutputPath);
+                    if (string.IsNullOrEmpty(s_OutputDir))
+                    {
+                        s_OutputDir = "Assets/Screenshots/recordings";
+                    }
+                    EnsureDirectory(Path.Combine(s_OutputDir, "."));
+                    s_FilePattern = "frame_{0:D6}.png";
+                    s_FrameIndex = 0;
+                    s_LastCaptureTime = EditorApplication.timeSinceStartup;
+                    EditorApplication.update -= OnEditorUpdate;
+                    EditorApplication.update += OnEditorUpdate;
+                }
+                else
+                {
+                    EnsureDirectory(s_OutputPath);
+                }
 
                 s_RecordingId = Guid.NewGuid().ToString("N");
                 s_StartedAt = DateTime.UtcNow;
@@ -61,13 +88,13 @@ namespace UnityEditorMCP.Handlers
                 return new
                 {
                     recordingId = s_RecordingId,
-                    outputPath = s_OutputPath,
+                    outputPath = s_UsePngSequence ? s_OutputDir : s_OutputPath,
                     captureMode = s_CaptureMode,
                     fps = s_Fps,
                     width = s_Width,
                     height = s_Height,
                     startedAt = s_StartedAt.ToString("o"),
-                    note = "Recording session started (skeleton). Encoding integration pending."
+                    note = s_UsePngSequence ? "Recording started (PNG sequence fallback)." : "Recording session started (skeleton). Encoding integration pending."
                 };
             }
             catch (Exception ex)
@@ -95,18 +122,20 @@ namespace UnityEditorMCP.Handlers
 
                 s_IsRecording = false;
                 s_RecordingId = null;
+                // detach update
+                EditorApplication.update -= OnEditorUpdate;
 
                 double duration = (DateTime.UtcNow - started).TotalSeconds;
 
                 return new
                 {
                     recordingId = id,
-                    outputPath = path,
+                    outputPath = s_UsePngSequence ? s_OutputDir : path,
                     captureMode = mode,
                     durationSec = Math.Max(0, duration),
                     frames = frames,
                     fps = fps,
-                    note = "Recording session stopped (skeleton). No file produced yet."
+                    note = s_UsePngSequence ? "Recording stopped. PNG sequence saved." : "Recording session stopped (skeleton). No file produced yet."
                 };
             }
             catch (Exception ex)
@@ -130,7 +159,7 @@ namespace UnityEditorMCP.Handlers
                 {
                     isRecording = true,
                     recordingId = s_RecordingId,
-                    outputPath = s_OutputPath,
+                    outputPath = s_UsePngSequence ? s_OutputDir : s_OutputPath,
                     captureMode = s_CaptureMode,
                     elapsedSec = Math.Max(0, elapsed),
                     frames = s_Frames,
@@ -158,6 +187,26 @@ namespace UnityEditorMCP.Handlers
                 UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
             }
         }
+
+        private static void OnEditorUpdate()
+        {
+            if (!s_IsRecording || !s_UsePngSequence) return;
+            double now = EditorApplication.timeSinceStartup;
+            double interval = 1.0 / Math.Max(1, s_Fps);
+            if (now - s_LastCaptureTime + 1e-6 < interval) return;
+            s_LastCaptureTime = now;
+
+            try
+            {
+                string filename = string.Format(s_FilePattern, s_FrameIndex++);
+                string path = Path.Combine(s_OutputDir, filename);
+                ScreenCapture.CaptureScreenshot(path);
+                s_Frames++;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[VideoCaptureHandler] PNG sequence capture error: {ex.Message}");
+            }
+        }
     }
 }
-

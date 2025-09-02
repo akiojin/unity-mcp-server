@@ -114,7 +114,7 @@
 - [ ] Game/Scene/Window/Explorer キャプチャ基盤流用
 - [ ] Recorder による mp4 出力実装
 - [ ] 音声キャプチャ（任意）
-- [ ] Fallback: 画像連番（PNG）
+- [x] Fallback: 画像連番（PNG）
 - [ ] エラー/ガード実装（ディスク/重複/権限等）
 - [ ] 自動/手動テスト追加
 - [ ] README リンク追加・設計詳細 docs 分離
