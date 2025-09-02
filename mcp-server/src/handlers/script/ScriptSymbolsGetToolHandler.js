@@ -59,11 +59,7 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
             const fsym = await loadFileSymbolsWithFallback(info.projectRoot, info.codeIndexRoot, relPath);
             return { success: true, path: relPath, symbols: fsym.symbols || [] };
         } catch (e) {
-            logger.warn(`[script_symbols_get] local failed, falling back to Unity: ${e.message}`);
-            if (!this.unityConnection.isConnected()) {
-                await this.unityConnection.connect();
-            }
-            return this.unityConnection.sendCommand('script_symbols_get', { path: relPath });
+            return { error: e.message || 'Failed to get symbols' };
         }
     }
 }

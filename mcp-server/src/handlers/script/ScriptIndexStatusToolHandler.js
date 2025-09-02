@@ -25,11 +25,7 @@ export class ScriptIndexStatusToolHandler extends BaseToolHandler {
             const status = await indexStatus(info.projectRoot, info.codeIndexRoot, roots);
             return status;
         } catch (e) {
-            logger.warn(`[script_index_status] local failed, falling back to Unity: ${e.message}`);
-            if (!this.unityConnection.isConnected()) {
-                await this.unityConnection.connect();
-            }
-            return this.unityConnection.sendCommand('script_index_status', {});
+            return { success: false, error: e.message };
         }
     }
 }
