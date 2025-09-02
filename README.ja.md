@@ -6,13 +6,40 @@
 
 Unity Editor MCP は、LLMクライアントからUnity Editorを自動化します。シンプルなインターフェースで、安全かつ再現性の高いエディタ操作を実現します。
 
+### C#編集の方針（重要）
+
+- C#の探索/参照/構造化編集は、Unityとは通信せず、リポジトリ同梱の外部CLI（roslyn-cli）で行います。
+- 既存の `script_*` ツールは内部実装が外部CLIに切り替わっており、Unityのコンパイル/ドメインリロードの影響を受けません。
+- 危険な行単位置換（line-based patch / pattern置換）は廃止しました。
+
+初回セットアップ（roslyn-cli のビルド）
+
+前提: .NET 8+ SDK
+
+- macOS/Linux: `./scripts/bootstrap-roslyn-cli.sh osx-arm64|osx-x64|linux-x64`
+- Windows: `powershell -ExecutionPolicy Bypass -File scripts/bootstrap-roslyn-cli.ps1 -Rid win-x64`
+
+出力先: `./.tools/roslyn-cli/<rid>/roslyn-cli`（自己完結バイナリ、インストール不要）
+
+代表的な使い方（MCPツール）
+
+- シンボル検索: `script_symbol_find { "name": "ClassName", "kind": "class" }`
+- 参照検索: `script_refs_find { "name": "MethodName" }`
+- メソッド本体置換（プリフライト→適用）:
+  - `script_edit_structured { "operation": "replace_body", "path": "Packages/.../File.cs", "symbolName": "Class/Method", "newText": "{ /* ... */ }", "preview": true }`
+  - エラーが無ければ `"preview": false` で適用
+- 追記（クラス直後など）:
+  - `script_edit_structured { "operation": "insert_after", "path": "...", "symbolName": "ClassName", "kind": "class", "newText": "\nprivate void X(){}\n", "preview": false }`
+
+必要時のみ、Unity側で手動 `AssetDatabase.Refresh` を行ってください。
+
 ## できること
 
 - エディタ自動化: シーン/ゲームオブジェクト/コンポーネント/プレハブ/マテリアルの作成・変更
 - UI自動化: UI要素の探索・操作・状態検証
 - 入力シミュレーション: キーボード/マウス/ゲームパッド/タッチ（Input System のみ対応）
 - ビジュアルキャプチャ: Game/Scene/Explorer/Window の確定的スクリーンショット、解析も可能
-- コードベース認識: 軽量なC#コードインデックスにより、高速なシンボル/検索（Unity未接続でも可）
+- コードベース認識: 外部Roslyn CLIにより、安全な構造化編集と正確な検索/参照
 - プロジェクト制御: 一部のプロジェクト/エディタ設定の読み書き、ログ取得、コンパイル監視
 
 ## 接続の仕組み（Unity ↔ MCPサーバー）
@@ -187,16 +214,11 @@ sequenceDiagram
 - 機能: キーボード/マウス/ゲームパッド/タッチの入力をエミュレートして、Play Mode やUI操作をテスト。
 - 注意: プロジェクトが Input System を使用していない場合、シミュレーションによるゲーム操作は反映されません。
 
-## コードインデックス
+## C#編集の実装方式（Roslyn CLI）
 
-- 保存先: `<project.root>/Library/UnityMCP/CodeIndex/files/`。
-- 構成: 各 `.cs` に対して `*.meta.json`（メタ）と `*.symbols.json`（シンボル）のペア（1ファイル=1インデックス）。
-- データモデル:
-  - Meta: `version` / `path` / `size` / `mtime` / `hash` / `language`。
-  - Symbols: `namespace`、`symbols[]`（`kind`（class/method/field/property等）/`name`/`container`/`span`/`modifiers?`/`type?`）。
-- パイプライン: `Assets/**.cs` と `Packages/**.cs` を探索 → 解析 → JSONをアトミック書き出し → 連続更新はデバウンス。
-- 整合性: 読み取り/検索はインデックスを優先、未インデックス領域は簡易パースでフォールバック。編集後は最終的整合性で更新反映。
-- トリガー: アセットリフレッシュ、コンパイル完了、スクリプト適用完了時。
+`roslyn-cli` は `.sln/.csproj` を Roslyn/MSBuildWorkspace でロードし、
+`find-symbol` / `find-references` / `replace-symbol-body` / `insert-before-symbol` / `insert-after-symbol` / `rename-symbol`
+を提供します。`script_*` ツールは内部でこのCLIを呼び出します。
 
 アーキテクチャ
 

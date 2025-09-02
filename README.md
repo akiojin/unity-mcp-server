@@ -6,13 +6,40 @@ English | [日本語](README.ja.md)
 
 Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on reliable, scriptable workflows with a simple interface and zero- or low-configuration setup.
 
+### C# Editing Policy (Important)
+
+- All C# symbol/search/structured edits are performed via an external CLI (roslyn-cli) bundled in this repo; no Unity communication is involved.
+- Existing `script_*` tools now call the CLI under the hood, so edits are robust to Unity compilation/domain reload.
+- Risky line-based patch/pattern replace tools were removed.
+
+Initial setup (roslyn-cli build)
+
+Prereq: .NET 8+ SDK
+
+- macOS/Linux: `./scripts/bootstrap-roslyn-cli.sh osx-arm64|osx-x64|linux-x64`
+- Windows: `powershell -ExecutionPolicy Bypass -File scripts/bootstrap-roslyn-cli.ps1 -Rid win-x64`
+
+Outputs to `./.tools/roslyn-cli/<rid>/roslyn-cli` (self-contained, no install).
+
+Common usage (MCP tools)
+
+- Symbols: `script_symbol_find { "name": "ClassName", "kind": "class" }`
+- References: `script_refs_find { "name": "MethodName" }`
+- Replace body (preflight→apply):
+  - `script_edit_structured { "operation": "replace_body", "path": "Packages/.../File.cs", "symbolName": "Class/Method", "newText": "{ /* ... */ }", "preview": true }`
+  - then set `"preview": false` to apply if errors are empty
+- Insert after class:
+  - `script_edit_structured { "operation": "insert_after", "path": "...", "symbolName": "ClassName", "kind": "class", "newText": "\nprivate void X(){}\n", "preview": false }`
+
+Run `AssetDatabase.Refresh` in Unity manually only when needed.
+
 ## What It Can Do
 
 - Editor automation: create/modify scenes, GameObjects, components, prefabs, materials
 - UI automation: locate and interact with UI, validate UI state
 - Input simulation: keyboard/mouse/gamepad/touch for playmode testing (Input System only)
 - Visual capture: deterministic screenshots from Game/Scene/Explorer/Window views, optional analysis
-- Code base awareness: lightweight C# code index for fast symbol/search without Unity connection
+- Code base awareness: safe structured edits and accurate symbol/search powered by external Roslyn CLI
 - Project control: read/update selected project/editor settings; read logs, monitor compilation
 
 ## Unity–MCP Connection
@@ -189,15 +216,11 @@ sequenceDiagram
 - Capabilities: simulate keyboard, mouse, gamepad, and touch input for playmode testing and UI interaction.
 - Tip: Ensure your project uses Input System; otherwise simulated input will not affect gameplay.
 
-## Code Index
+## C# Editing Backend (Roslyn CLI)
 
-- Storage: `<project.root>/Library/UnityMCP/CodeIndex/files/`.
-- Files per source: `*.meta.json` (metadata) and `*.symbols.json` (symbols); one pair per `.cs` file.
-- Data model:
-  - Meta: `version`, `path`, `size`, `mtime`, `hash`, `language`.
-  - Symbols: `namespace`, `symbols[]` with `kind` (`class`/`method`/`field`/`property`/etc.), `name`, `container`, `span`, optional `modifiers`/`type`.
-- Pipeline: Discover `Assets/**.cs` and `Packages/**.cs` → parse → write JSON atomically → debounce updates.
-- Consistency: Prefer index for read/search; fallback to on-the-fly parse for non-indexed files; eventual consistency after script edits.
+`roslyn-cli` loads your `.sln/.csproj` via Roslyn/MSBuildWorkspace and exposes:
+`find-symbol`, `find-references`, `replace-symbol-body`, `insert-before-symbol`, `insert-after-symbol`, `rename-symbol`.
+All `script_*` tools call this CLI under the hood.
 - Triggers: Asset refresh, compilation complete, script edits applied.
 
 Architecture
