@@ -95,8 +95,6 @@ export { ListComponentsToolHandler } from './component/ListComponentsToolHandler
 export { GetComponentTypesToolHandler } from './component/GetComponentTypesToolHandler.js';
 
 // Compilation handlers
-export { StartCompilationMonitoringToolHandler } from './compilation/StartCompilationMonitoringToolHandler.js';
-export { StopCompilationMonitoringToolHandler } from './compilation/StopCompilationMonitoringToolHandler.js';
 export { GetCompilationStateToolHandler } from './compilation/GetCompilationStateToolHandler.js';
 
 // Editor control handlers
@@ -130,6 +128,7 @@ export { RoslynFindSymbolToolHandler } from './roslyn/RoslynFindSymbolToolHandle
 export { RoslynFindReferencesToolHandler } from './roslyn/RoslynFindReferencesToolHandler.js';
 export { RoslynReplaceSymbolBodyToolHandler } from './roslyn/RoslynReplaceSymbolBodyToolHandler.js';
 export { RoslynInsertSymbolToolHandler } from './roslyn/RoslynInsertSymbolToolHandler.js';
+export { RoslynRemoveSymbolToolHandler } from './roslyn/RoslynRemoveSymbolToolHandler.js';
 
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
@@ -201,8 +200,6 @@ import { RemoveComponentToolHandler } from './component/RemoveComponentToolHandl
 import { ModifyComponentToolHandler } from './component/ModifyComponentToolHandler.js';
 import { ListComponentsToolHandler } from './component/ListComponentsToolHandler.js';
 import { GetComponentTypesToolHandler } from './component/GetComponentTypesToolHandler.js';
-import { StartCompilationMonitoringToolHandler } from './compilation/StartCompilationMonitoringToolHandler.js';
-import { StopCompilationMonitoringToolHandler } from './compilation/StopCompilationMonitoringToolHandler.js';
 import { GetCompilationStateToolHandler } from './compilation/GetCompilationStateToolHandler.js';
 import { TagManagementToolHandler } from './editor/TagManagementToolHandler.js';
 import { LayerManagementToolHandler } from './editor/LayerManagementToolHandler.js';
@@ -227,6 +224,7 @@ import { RoslynFindSymbolToolHandler } from './roslyn/RoslynFindSymbolToolHandle
 import { RoslynFindReferencesToolHandler } from './roslyn/RoslynFindReferencesToolHandler.js';
 import { RoslynReplaceSymbolBodyToolHandler } from './roslyn/RoslynReplaceSymbolBodyToolHandler.js';
 import { RoslynInsertSymbolToolHandler } from './roslyn/RoslynInsertSymbolToolHandler.js';
+import { RoslynRemoveSymbolToolHandler } from './roslyn/RoslynRemoveSymbolToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -334,6 +332,7 @@ const HANDLER_CLASSES = [
   RoslynFindReferencesToolHandler,
   RoslynReplaceSymbolBodyToolHandler,
   RoslynInsertSymbolToolHandler,
+  RoslynRemoveSymbolToolHandler,
   
   // Component handlers
   AddComponentToolHandler,
@@ -343,8 +342,6 @@ const HANDLER_CLASSES = [
   GetComponentTypesToolHandler,
   
   // Compilation handlers
-  StartCompilationMonitoringToolHandler,
-  StopCompilationMonitoringToolHandler,
   GetCompilationStateToolHandler,
   
   // Editor control handlers
