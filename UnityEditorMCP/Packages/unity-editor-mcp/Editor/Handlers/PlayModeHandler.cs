@@ -41,8 +41,6 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
-                // Ensure compilation monitoring is active so we can report errors
-                CompilationHandler.StartCompilationMonitoring(new JObject());
                 // Pre-check: if compiling or there are compile errors, return immediately with reason
                 var preCompParams = new JObject { ["includeMessages"] = true, ["maxMessages"] = 100 };
                 var preComp = CompilationHandler.GetCompilationState(preCompParams) as JObject;

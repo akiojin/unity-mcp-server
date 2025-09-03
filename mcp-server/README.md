@@ -158,14 +158,12 @@ Add to your `claude_desktop_config.json`:
 - `capture_screenshot` - Take screenshots of Game View or Scene View
 - `analyze_screenshot` - Analyze screenshot content with image analysis
 
-### Editor Control & Automation (8 tools)
+### Editor Control & Automation (6 tools)
 - `manage_tags` - Manage Unity project tags (add, remove, list)
 - `manage_layers` - Manage Unity project layers with index conversion
 - `manage_selection` - Manage Editor selection (get, set, clear)
 - `manage_windows` - Manage Editor windows (list, focus, get state)
 - `manage_tools` - Manage Editor tools and plugins
-- `start_compilation_monitoring` - Start monitoring compilation with error detection
-- `stop_compilation_monitoring` - Stop compilation monitoring
 - `get_compilation_state` - Get current compilation state and errors
 
 ### Project Settings Management (2 tools)

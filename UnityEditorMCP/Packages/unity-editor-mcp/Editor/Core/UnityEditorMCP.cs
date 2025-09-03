@@ -836,15 +836,6 @@ namespace UnityEditorMCP.Core
                         var listComponentsResult = ComponentHandler.ListComponents(command.Parameters);
                         response = Response.SuccessResult(command.Id, listComponentsResult);
                         break;
-                    // Compilation monitoring commands
-                    case "start_compilation_monitoring":
-                        var startMonitoringResult = CompilationHandler.StartCompilationMonitoring(command.Parameters);
-                        response = Response.SuccessResult(command.Id, startMonitoringResult);
-                        break;
-                    case "stop_compilation_monitoring":
-                        var stopMonitoringResult = CompilationHandler.StopCompilationMonitoring(command.Parameters);
-                        response = Response.SuccessResult(command.Id, stopMonitoringResult);
-                        break;
                     case "get_compilation_state":
                         var compilationStateResult = CompilationHandler.GetCompilationState(command.Parameters);
                         response = Response.SuccessResult(command.Id, compilationStateResult);
