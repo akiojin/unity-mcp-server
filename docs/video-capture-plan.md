@@ -112,8 +112,8 @@
 - [x] PlayMode ポリシー反映（許可コマンド追加）
 - [x] Recorder 依存導入（manifest.json 追加とガード）
 - [ ] Game/Scene/Window/Explorer キャプチャ基盤流用
-- [ ] Recorder による mp4 出力実装
-- [ ] 音声キャプチャ（任意）
+- [x] Recorder による mp4 出力実装（GameView：リフレクション統合）
+- [x] 音声キャプチャ（任意）※RecorderのAudioInputSettingsを最小有効化（ベストエフォート）
 - [x] Fallback: 画像連番（PNG）
 - [x] エラー/ガード実装（基本）
 - [x] 自動/手動テスト追加（PNG連番の基本動作）
