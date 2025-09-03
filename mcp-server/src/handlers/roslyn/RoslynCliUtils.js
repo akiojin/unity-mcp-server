@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import { logger } from '../../core/config.js';
+import { WORKSPACE_ROOT } from '../../core/config.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
 let AUTO_BUILD_ATTEMPTED = false;
@@ -17,7 +18,7 @@ export class RoslynCliUtils {
     if (envPath && fs.existsSync(envPath)) return envPath;
 
     const rid = this._detectRid();
-    const repoRoot = this._resolveRepoRoot() || process.cwd();
+    const repoRoot = this._resolveRepoRoot() || WORKSPACE_ROOT || process.cwd();
     const local = path.resolve(repoRoot, '.tools', 'roslyn-cli', rid, process.platform === 'win32' ? 'roslyn-cli.exe' : 'roslyn-cli');
     if (fs.existsSync(local)) return local;
 
@@ -25,7 +26,11 @@ export class RoslynCliUtils {
     if (!AUTO_BUILD_ATTEMPTED) {
       AUTO_BUILD_ATTEMPTED = true;
       try {
-        await this._autoBuildCli(rid, repoRoot);
+        // Only attempt bootstrap if scripts exist in the resolved repo root
+        const hasScript = this._hasBootstrapScript(repoRoot);
+        if (hasScript) {
+          await this._autoBuildCli(rid, repoRoot);
+        }
       } catch (e) {
         // Fall-through to standardized error below
         logger.error(`[roslyn-cli] auto-build failed: ${e.message}`);
@@ -42,9 +47,10 @@ export class RoslynCliUtils {
     const msg = [
       'roslyn-cli binary not found.',
       `Expected: ${expected}`,
-      'Build it with:',
-      `  ${hint}`,
-      'or set ROSLYN_CLI env var to the binary path.'
+      'Provision options:',
+      `  - Build from source if present: ${hint}`,
+      '  - Or place a prebuilt binary at the above path',
+      '  - Or set ROSLYN_CLI env var to the binary path'
     ].join('\n');
     throw new Error(msg);
   }
@@ -86,6 +92,12 @@ export class RoslynCliUtils {
     } else {
       await this._spawnOnce(script, [rid], { cwd: repoRoot });
     }
+  }
+
+  _hasBootstrapScript(repoRoot) {
+    const ps1 = path.resolve(repoRoot, 'scripts', 'bootstrap-roslyn-cli.ps1');
+    const sh = path.resolve(repoRoot, 'scripts', 'bootstrap-roslyn-cli.sh');
+    return fs.existsSync(ps1) || fs.existsSync(sh);
   }
 
   // Resolve repository root by locating a 'roslyn-cli' directory using the strategy:
