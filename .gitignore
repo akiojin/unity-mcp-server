@@ -92,4 +92,4 @@ build/
 CLAUDE.local.md
 unity-mcp-reference-project/
 .tools/
-roslyn-cli/.bin/
+roslyn-cli/bin/
