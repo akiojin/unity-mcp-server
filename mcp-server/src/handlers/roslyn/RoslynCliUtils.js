@@ -53,8 +53,10 @@ export class RoslynCliUtils {
     if (fs.existsSync(local)) return local;
 
     // Optional: auto-download from GitHub Releases into WORKSPACE_ROOT when enabled
-    const autoDl = String(process.env.ROSLYN_CLI_AUTO_DOWNLOAD || '').toLowerCase();
-    if (autoDl === '1' || autoDl === 'true' || autoDl === 'yes') {
+    // Default: auto-download ON. Allow opt-out via ROSLYN_CLI_AUTO_DOWNLOAD=0|false|no
+    const autoDlVal = String(process.env.ROSLYN_CLI_AUTO_DOWNLOAD || '').toLowerCase();
+    const autoDl = !(autoDlVal === '0' || autoDlVal === 'false' || autoDlVal === 'no');
+    if (autoDl) {
       try {
         const dl = await this._autoDownloadCli(rid, repoRoot);
         if (dl && fs.existsSync(dl)) return dl;
@@ -75,7 +77,7 @@ export class RoslynCliUtils {
       `  - Build from source if present: ${hint}`,
       '  - Or place a prebuilt binary at the above path',
       '  - Or set ROSLYN_CLI env var to the binary path',
-      '  - Or set ROSLYN_CLI_AUTO_DOWNLOAD=1 to fetch from GitHub Releases'
+      '  - Auto-download is enabled by default. To disable, set ROSLYN_CLI_AUTO_DOWNLOAD=0'
     ].join('\n');
     throw new Error(msg);
   }

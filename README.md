@@ -31,11 +31,12 @@ roslyn-cli provisioning (for npx users)
   - Use `ROSLYN_CLI` env var if set
   - Use `WORKSPACE_ROOT/.tools/roslyn-cli/<rid>/roslyn-cli`
   - If bootstrap scripts are present, auto-build once into the path above
-- Auto-download (Option A):
-  - Set `ROSLYN_CLI_AUTO_DOWNLOAD=1` to fetch the binary from GitHub Releases
-    and place it under `WORKSPACE_ROOT/.tools/roslyn-cli/<rid>/` (SHA256-verified)
-  - Source: this repo’s Releases (tag: `roslyn-cli-v<version>`). You can override with
-    `ROSLYN_CLI_VERSION`, `ROSLYN_CLI_REPO_OWNER`, `ROSLYN_CLI_REPO_NAME`
+- Auto-download (default ON):
+  - By default, the binary is fetched from GitHub Releases and placed under
+    `WORKSPACE_ROOT/.tools/roslyn-cli/<rid>/` (with SHA256 verification when available).
+  - To disable, set `ROSLYN_CLI_AUTO_DOWNLOAD=0`.
+  - Source: this repo’s Releases (tag: `roslyn-cli-v<version>`). Override with
+    `ROSLYN_CLI_VERSION`, `ROSLYN_CLI_REPO_OWNER`, `ROSLYN_CLI_REPO_NAME`.
 
 Common usage (MCP tools)
 

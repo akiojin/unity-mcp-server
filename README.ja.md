@@ -31,9 +31,10 @@ roslyn-cli の配備（npx 実行時）
   - `ROSLYN_CLI` 環境変数で明示パス指定がある場合、それを使用
   - `WORKSPACE_ROOT/.tools/roslyn-cli/<rid>/roslyn-cli`（既定配置先）
   - ブートストラップスクリプトが存在する場合のみ、自動ビルドして上記に配置
-- 自動ダウンロード（オプションA）:
-  - `ROSLYN_CLI_AUTO_DOWNLOAD=1` を設定すると、GitHub Releases から RID に応じたバイナリを取得し、
-    `WORKSPACE_ROOT/.tools/roslyn-cli/<rid>/` に配置します（SHA256 で検証）
+- 自動ダウンロード（既定ON）:
+  - 既定で GitHub Releases から RID に応じたバイナリを取得し、
+    `WORKSPACE_ROOT/.tools/roslyn-cli/<rid>/` に配置します（SHA256 検証対応）
+  - 無効化したい場合は `ROSLYN_CLI_AUTO_DOWNLOAD=0` を設定
   - 取得元: 本リポジトリの Release（タグ: `roslyn-cli-v<version>`）。必要に応じて `ROSLYN_CLI_VERSION`、`ROSLYN_CLI_REPO_OWNER`、`ROSLYN_CLI_REPO_NAME` で上書き可能
 
 代表的な使い方（MCPツール）
