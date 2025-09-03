@@ -32,6 +32,7 @@ namespace UnityEditorMCP.Core
         private static Task listenerTask;
         private static bool isProcessingCommand;
         private static bool verboseReceiveLogs = false; // 受信ログの詳細表示を制御
+        private static DateTime lastReceiveLogTime = DateTime.MinValue;
         
         
         private static McpStatus _status = McpStatus.NotConfigured;
@@ -340,9 +341,15 @@ namespace UnityEditorMCP.Core
                             messageBuffer.RemoveRange(0, 4 + messageLength);
                             
                             var json = Encoding.UTF8.GetString(messageBytes);
+                            // 受信ログは既定で抑制。必要時のみ設定で有効化し、かつ10秒に1回まで。
                             if (verboseReceiveLogs)
                             {
-                                Debug.Log($"[Unity Editor MCP] Received command (length={messageLength})");
+                                var now = DateTime.UtcNow;
+                                if ((now - lastReceiveLogTime).TotalSeconds >= 10)
+                                {
+                                    lastReceiveLogTime = now;
+                                    Debug.Log($"[Unity Editor MCP] Received command (length={messageLength})");
+                                }
                             }
                             
                             try
