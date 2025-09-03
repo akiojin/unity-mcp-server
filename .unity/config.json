@@ -1,7 +1,9 @@
 {
   "unity": {
     "host": "host.docker.internal",
-    "port": 6400
+    "port": 6400,
+    "verboseReceiveLogs": true,
+    "logIncomingCommands": true
   },
   "project": {
     "root": "./UnityEditorMCP"

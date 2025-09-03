@@ -36,6 +36,9 @@ namespace UnityEditorMCP.Core
         private static bool isProcessingCommand;
         private static bool verboseReceiveLogs = false; // 受信ログの詳細表示を制御
         private static bool logIncomingCommands = false; // 受信コマンドの種別をログ出力（デバッグ用）
+        private static int minEditorStateIntervalMs = 250; // get_editor_stateの最小間隔（抑制）
+        private static DateTime lastEditorStateQueryTime = DateTime.MinValue;
+        private static object lastEditorStateData = null;
         private static DateTime lastReceiveLogTime = DateTime.MinValue;
         
         
@@ -133,6 +136,11 @@ namespace UnityEditorMCP.Core
                             if (logCmdToken != null && bool.TryParse(logCmdToken.ToString(), out var logcmd))
                             {
                                 logIncomingCommands = logcmd;
+                            }
+                            var minIntToken = json.SelectToken("unity.minEditorStateIntervalMs");
+                            if (minIntToken != null && int.TryParse(minIntToken.ToString(), out var minMs) && minMs >= 0 && minMs <= 10000)
+                            {
+                                minEditorStateIntervalMs = minMs;
                             }
                             Debug.Log($"[Unity Editor MCP] Config loaded from {path}: bind={bindAddress}, clientHost={currentHost}, port={currentPort}");
                             return;
@@ -671,9 +679,19 @@ namespace UnityEditorMCP.Core
                         response = Response.SuccessResult(command.Id, stopResult);
                         break;
                     case "get_editor_state":
-                        var stateResult = PlayModeHandler.HandleCommand("get_editor_state", command.Parameters);
-                        response = Response.SuccessResult(command.Id, stateResult);
-                        break;
+                        {
+                            var now = DateTime.UtcNow;
+                            if ((now - lastEditorStateQueryTime).TotalMilliseconds < minEditorStateIntervalMs && lastEditorStateData != null)
+                            {
+                                response = Response.SuccessResult(command.Id, lastEditorStateData);
+                                break;
+                            }
+                            var stateResult = PlayModeHandler.HandleCommand("get_editor_state", command.Parameters);
+                            lastEditorStateQueryTime = now;
+                            lastEditorStateData = stateResult;
+                            response = Response.SuccessResult(command.Id, stateResult);
+                            break;
+                        }
                     // UI Interaction commands
                     case "find_ui_elements":
                         var findUIResult = UIInteractionHandler.FindUIElements(command.Parameters);

@@ -23,6 +23,10 @@ export class GetEditorStateToolHandler extends BaseToolHandler {
       }
     );
     this.unityConnection = unityConnection;
+    // 軽量なソフトキャッシュ（単発取得時のみ使用）
+    this._last = { t: 0, state: null };
+    this._minIntervalMs = parseInt(process.env.MIN_EDITOR_STATE_INTERVAL_MS || '', 10);
+    if (!(this._minIntervalMs >= 0)) this._minIntervalMs = 250; // 既定250ms
   }
 
   /**
@@ -36,6 +40,10 @@ export class GetEditorStateToolHandler extends BaseToolHandler {
     const pollMs = typeof params?.pollMs === 'number' ? params.pollMs : 500;
 
     const getOnce = async () => {
+      // 非waitモード時はキャッシュを活用
+      if (!wait && this._last.state && Date.now() - this._last.t < this._minIntervalMs) {
+        return this._last.state;
+      }
       if (!this.unityConnection.isConnected()) {
         await this.unityConnection.connect();
       }
@@ -44,6 +52,9 @@ export class GetEditorStateToolHandler extends BaseToolHandler {
         const error = new Error(result.error);
         error.code = 'UNITY_ERROR';
         throw error;
+      }
+      if (!wait) {
+        this._last = { t: Date.now(), state: result };
       }
       return result;
     };
