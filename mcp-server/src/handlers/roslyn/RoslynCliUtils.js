@@ -3,6 +3,7 @@ import path from 'path';
 import { spawn } from 'child_process';
 import { logger } from '../../core/config.js';
 import { WORKSPACE_ROOT } from '../../core/config.js';
+import { fileURLToPath } from 'url';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
 let AUTO_BUILD_ATTEMPTED = false;
@@ -18,8 +19,20 @@ export class RoslynCliUtils {
     if (envPath && fs.existsSync(envPath)) return envPath;
 
     const rid = this._detectRid();
+    // 1) mcp-server 配下（npm配布時に同梱される想定の場所）
+    const pkgRoot = this._resolvePackageRoot();
+    const exeName = process.platform === 'win32' ? 'roslyn-cli.exe' : 'roslyn-cli';
+    const pkgCandidates = [
+      path.join(pkgRoot, 'roslyn-cli', rid, exeName),
+      path.join(pkgRoot, '.tools', 'roslyn-cli', rid, exeName),
+    ];
+    for (const p of pkgCandidates) {
+      if (p && fs.existsSync(p)) return p;
+    }
+
+    // 2) リポジトリ開発環境（このリポジトリ内）
     const repoRoot = this._resolveRepoRoot() || WORKSPACE_ROOT || process.cwd();
-    const local = path.resolve(repoRoot, '.tools', 'roslyn-cli', rid, process.platform === 'win32' ? 'roslyn-cli.exe' : 'roslyn-cli');
+    const local = path.resolve(repoRoot, '.tools', 'roslyn-cli', rid, exeName);
     if (fs.existsSync(local)) return local;
 
     // Auto-build exactly once per process if missing (bootstrap behavior)
@@ -40,7 +53,7 @@ export class RoslynCliUtils {
     if (fs.existsSync(local)) return local;
 
     // Not found after (optional) auto-build — return explicit guidance
-    const expected = local.replace(/\\/g, '/');
+    const expected = (pkgCandidates.find(p => p) || local).replace(/\\/g, '/');
     const hint = process.platform === 'win32'
       ? 'powershell -ExecutionPolicy Bypass -File scripts/bootstrap-roslyn-cli.ps1 -Rid win-x64'
       : `./scripts/bootstrap-roslyn-cli.sh ${rid}`;
@@ -91,6 +104,23 @@ export class RoslynCliUtils {
       await this._spawnOnce('powershell', ['-ExecutionPolicy','Bypass','-File', script, '-Rid', rid], { cwd: repoRoot });
     } else {
       await this._spawnOnce(script, [rid], { cwd: repoRoot });
+    }
+  }
+
+  // mcp-server パッケージルートを import.meta.url から解決
+  _resolvePackageRoot() {
+    try {
+      const here = path.dirname(fileURLToPath(import.meta.url));
+      // このファイル: mcp-server/src/handlers/roslyn/RoslynCliUtils.js
+      // パッケージルート: mcp-server/
+      // パスを3階層上がる: handlers -> roslyn -> src -> mcp-server
+      const candidate = path.resolve(here, '../../..');
+      // 簡易検証: package.json が存在するか
+      const pkgJson = path.join(candidate, 'package.json');
+      if (fs.existsSync(pkgJson)) return candidate;
+      return candidate; // 最低限返す
+    } catch {
+      return process.cwd();
     }
   }
 
