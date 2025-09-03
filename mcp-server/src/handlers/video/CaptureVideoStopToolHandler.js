@@ -9,7 +9,10 @@ export class CaptureVideoStopToolHandler extends BaseToolHandler {
       'capture_video_stop',
       'Stop current video recording and finalize the file.',
       {
-        recordingId: { type: 'string', description: 'Optional. Stop a specific recording session. Defaults to the latest.' }
+        type: 'object',
+        properties: {
+          recordingId: { type: 'string', description: 'Optional. Stop a specific recording session. Defaults to the latest.' }
+        }
       }
     );
     this.unityConnection = unityConnection;

@@ -40,7 +40,21 @@ const server = new Server(
 
 // Handle tool listing
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  const tools = Array.from(handlers.values()).map(handler => handler.getDefinition());
+  const tools = Array.from(handlers.values()).map((handler, index) => {
+    try {
+      const definition = handler.getDefinition();
+      // Validate inputSchema
+      if (definition.inputSchema && definition.inputSchema.type !== 'object') {
+        logger.error(`[MCP] Tool ${handler.name} (index ${index}) has invalid inputSchema type: ${definition.inputSchema.type}`);
+      }
+      return definition;
+    } catch (error) {
+      logger.error(`[MCP] Failed to get definition for handler ${handler.name}:`, error);
+      return null;
+    }
+  }).filter(tool => tool !== null);
+  
+  logger.info(`[MCP] Returning ${tools.length} tool definitions`);
   return { tools };
 });
 

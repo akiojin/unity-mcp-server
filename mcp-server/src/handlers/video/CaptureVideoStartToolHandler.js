@@ -9,11 +9,14 @@ export class CaptureVideoStartToolHandler extends BaseToolHandler {
       'capture_video_start',
       'Start video recording (Game view). Requires com.unity.recorder.',
       {
-        captureMode: { type: 'string', enum: ['game'], description: 'Capture source. Currently only "game" supported.' },
-        width: { type: 'number', description: 'Output width (0 = auto/default)' },
-        height: { type: 'number', description: 'Output height (0 = auto/default)' },
-        fps: { type: 'number', description: 'Frames per second (e.g., 30)' },
-        maxDurationSec: { type: 'number', description: 'Auto stop after N seconds (0 = unlimited)' }
+        type: 'object',
+        properties: {
+          captureMode: { type: 'string', enum: ['game'], description: 'Capture source. Currently only "game" supported.' },
+          width: { type: 'number', description: 'Output width (0 = auto/default)' },
+          height: { type: 'number', description: 'Output height (0 = auto/default)' },
+          fps: { type: 'number', description: 'Frames per second (e.g., 30)' },
+          maxDurationSec: { type: 'number', description: 'Auto stop after N seconds (0 = unlimited)' }
+        }
       }
     );
     this.unityConnection = unityConnection;

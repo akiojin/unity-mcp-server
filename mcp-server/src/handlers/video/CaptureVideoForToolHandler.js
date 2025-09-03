@@ -10,12 +10,16 @@ export class CaptureVideoForToolHandler extends BaseToolHandler {
       'capture_video_for',
       'Record video for a fixed duration (auto-stop). Optionally enters Play Mode first.',
       {
-        captureMode: { type: 'string', enum: ['game'], description: 'Capture source. Currently only "game" supported.', default: 'game' },
-        width: { type: 'number', description: 'Output width (0 = default 1280)' },
-        height: { type: 'number', description: 'Output height (0 = default 720)' },
-        fps: { type: 'number', description: 'Frames per second (default 30)' },
-        durationSec: { type: 'number', description: 'Duration to record in seconds', required: true },
-        play: { type: 'boolean', description: 'Enter Play Mode before recording (default true if not already playing)', default: true }
+        type: 'object',
+        properties: {
+          captureMode: { type: 'string', enum: ['game'], description: 'Capture source. Currently only "game" supported.', default: 'game' },
+          width: { type: 'number', description: 'Output width (0 = default 1280)' },
+          height: { type: 'number', description: 'Output height (0 = default 720)' },
+          fps: { type: 'number', description: 'Frames per second (default 30)' },
+          durationSec: { type: 'number', description: 'Duration to record in seconds', required: true },
+          play: { type: 'boolean', description: 'Enter Play Mode before recording (default true if not already playing)', default: true }
+        },
+        required: ['durationSec']
       }
     );
     this.unityConnection = unityConnection;

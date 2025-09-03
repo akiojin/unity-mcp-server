@@ -8,7 +8,10 @@ export class CaptureVideoStatusToolHandler extends BaseToolHandler {
     super(
       'capture_video_status',
       'Get current video recording status.',
-      {}
+      {
+        type: 'object',
+        properties: {}
+      }
     );
     this.unityConnection = unityConnection;
   }

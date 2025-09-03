@@ -87,6 +87,12 @@ export { ReadConsoleToolHandler } from './console/ReadConsoleToolHandler.js';
 export { CaptureScreenshotToolHandler } from './screenshot/CaptureScreenshotToolHandler.js';
 export { AnalyzeScreenshotToolHandler } from './screenshot/AnalyzeScreenshotToolHandler.js';
 
+// Video handlers
+export { CaptureVideoStartToolHandler } from './video/CaptureVideoStartToolHandler.js';
+export { CaptureVideoStopToolHandler } from './video/CaptureVideoStopToolHandler.js';
+export { CaptureVideoStatusToolHandler } from './video/CaptureVideoStatusToolHandler.js';
+export { CaptureVideoForToolHandler } from './video/CaptureVideoForToolHandler.js';
+
 // Component handlers
 export { AddComponentToolHandler } from './component/AddComponentToolHandler.js';
 export { RemoveComponentToolHandler } from './component/RemoveComponentToolHandler.js';
@@ -122,6 +128,8 @@ export { ScriptSymbolFindToolHandler } from './script/ScriptSymbolFindToolHandle
 export { ScriptSymbolsGetToolHandler } from './script/ScriptSymbolsGetToolHandler.js';
 export { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHandler.js';
 export { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
+export { ScriptCreateClassFileToolHandler } from './script/ScriptCreateClassFileToolHandler.js';
+export { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
 // Deprecated Unity-communication handlers removed: ScriptEditPatchToolHandler, ScriptReplacePatternToolHandler
 // Roslyn CLI tool exports removed (script_*に統一)
 
@@ -308,7 +316,6 @@ const HANDLER_CLASSES = [
   CaptureVideoStopToolHandler,
   CaptureVideoStatusToolHandler,
   CaptureVideoForToolHandler,
-  CaptureVideoForToolHandler,
   // Script handlers
   ScriptPackagesListToolHandler,
   ScriptReadToolHandler,
@@ -356,12 +363,25 @@ const HANDLER_CLASSES = [
  */
 export function createHandlers(unityConnection) {
   const handlers = new Map();
+  const failedHandlers = [];
   
   // Instantiate all handlers from the registry
   for (const HandlerClass of HANDLER_CLASSES) {
-    const handler = new HandlerClass(unityConnection);
-    handlers.set(handler.name, handler);
+    try {
+      const handler = new HandlerClass(unityConnection);
+      handlers.set(handler.name, handler);
+    } catch (error) {
+      failedHandlers.push(HandlerClass.name);
+      console.error(`[MCP] Failed to create handler ${HandlerClass.name}:`, error.message);
+      // Continue with other handlers instead of throwing
+    }
   }
+  
+  if (failedHandlers.length > 0) {
+    console.error(`[MCP] Failed to initialize ${failedHandlers.length} handlers: ${failedHandlers.join(', ')}`);
+  }
+  
+  console.error(`[MCP] Successfully initialized ${handlers.size}/${HANDLER_CLASSES.length} handlers`);
   
   return handlers;
 }
