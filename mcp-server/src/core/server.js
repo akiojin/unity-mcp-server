@@ -26,7 +26,9 @@ const server = new Server(
   },
   {
     capabilities: {
-      tools: {},
+      // Explicitly advertise tool support; some MCP clients expect a non-empty object
+      // Setting listChanged enables future push updates if we emit notifications
+      tools: { listChanged: true },
       resources: {},
       prompts: {}
     }
@@ -205,7 +207,7 @@ export async function createServer(customConfig = config) {
     },
     {
       capabilities: {
-        tools: {},
+        tools: { listChanged: true },
         resources: {},
         prompts: {}
       }
