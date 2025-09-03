@@ -31,6 +31,7 @@ namespace UnityEditorMCP.Core
         private static CancellationTokenSource cancellationTokenSource;
         private static Task listenerTask;
         private static bool isProcessingCommand;
+        private static bool verboseReceiveLogs = false; // 受信ログの詳細表示を制御
         
         
         private static McpStatus _status = McpStatus.NotConfigured;
@@ -116,6 +117,12 @@ namespace UnityEditorMCP.Core
                             {
                                 var bh = bindToken.ToString();
                                 if (!string.IsNullOrWhiteSpace(bh)) bindAddress = ResolveBindAddress(bh.Trim());
+                            }
+                            // 受信ログの多量出力を抑制するためのフラグ（デフォルトfalse）
+                            var verboseToken = json.SelectToken("unity.verboseReceiveLogs") ?? json.SelectToken("logging.verboseReceiveLogs");
+                            if (verboseToken != null && bool.TryParse(verboseToken.ToString(), out var verbose))
+                            {
+                                verboseReceiveLogs = verbose;
                             }
                             Debug.Log($"[Unity Editor MCP] Config loaded from {path}: bind={bindAddress}, clientHost={currentHost}, port={currentPort}");
                             return;
@@ -333,7 +340,10 @@ namespace UnityEditorMCP.Core
                             messageBuffer.RemoveRange(0, 4 + messageLength);
                             
                             var json = Encoding.UTF8.GetString(messageBytes);
-                            Debug.Log($"[Unity Editor MCP] Received command (length={messageLength})");
+                            if (verboseReceiveLogs)
+                            {
+                                Debug.Log($"[Unity Editor MCP] Received command (length={messageLength})");
+                            }
                             
                             try
                             {
@@ -808,92 +818,7 @@ namespace UnityEditorMCP.Core
                         var assetImportSettingsResult = AssetImportSettingsHandler.HandleCommand(command.Parameters["action"]?.ToString(), command.Parameters);
                         response = Response.SuccessResult(command.Id, assetImportSettingsResult);
                         break;
-                    // Script/Code indexing and editing (M0)
-                    case "script_packages_list":
-                        var spList = ScriptHandler.ListPackages(command.Parameters);
-                        response = Response.SuccessResult(command.Id, spList);
-                        break;
-                    case "script_read":
-                        var sread = ScriptHandler.ReadFile(command.Parameters);
-                        response = Response.SuccessResult(command.Id, sread);
-                        break;
-                    case "script_edit_patch":
-                        var spatch = ScriptHandler.EditPatch(command.Parameters);
-                        response = Response.SuccessResult(command.Id, spatch);
-                        break;
-                    case "script_search":
-                        var ssearch = ScriptHandler.Search(command.Parameters);
-                        response = Response.SuccessResult(command.Id, ssearch);
-                        break;
-                    case "script_symbols_get":
-                        var ssym = ScriptHandler.GetSymbolsOverview(command.Parameters);
-                        response = Response.SuccessResult(command.Id, ssym);
-                        break;
-                    case "script_symbol_find":
-                        var sfind = ScriptHandler.FindSymbol(command.Parameters);
-                        response = Response.SuccessResult(command.Id, sfind);
-                        break;
-                    case "script_refs_find":
-                        var srefs = ScriptHandler.FindReferences(command.Parameters);
-                        response = Response.SuccessResult(command.Id, srefs);
-                        break;
-                    case "script_edit_structured":
-                        var sest = ScriptHandler.EditStructured(command.Parameters);
-                        response = Response.SuccessResult(command.Id, sest);
-                        break;
-                    case "script_index_status":
-                        var sidx = ScriptHandler.IndexStatus(command.Parameters);
-                        response = Response.SuccessResult(command.Id, sidx);
-                        break;
-                    case "script_refactor_rename":
-                        var sren = ScriptHandler.RefactorRename(command.Parameters);
-                        response = Response.SuccessResult(command.Id, sren);
-                        break;
-                    case "script_replace_pattern":
-                        var srep = ScriptHandler.ReplacePattern(command.Parameters);
-                        response = Response.SuccessResult(command.Id, srep);
-                        break;
-                    // Serena MCP compatible aliases
-                    case "get_symbols_overview":
-                        var a1 = ScriptHandler.GetSymbolsOverview(command.Parameters);
-                        response = Response.SuccessResult(command.Id, a1);
-                        break;
-                    case "find_symbol":
-                        var a2 = ScriptHandler.FindSymbol(command.Parameters);
-                        response = Response.SuccessResult(command.Id, a2);
-                        break;
-                    case "find_referencing_symbols":
-                        var a3 = ScriptHandler.FindReferences(command.Parameters);
-                        response = Response.SuccessResult(command.Id, a3);
-                        break;
-                    case "search_for_pattern":
-                        var a4 = ScriptHandler.Search(command.Parameters);
-                        response = Response.SuccessResult(command.Id, a4);
-                        break;
-                    case "insert_before_symbol":
-                        {
-                            var p = command.Parameters.DeepClone() as JObject;
-                            p["operation"] = "insert_before";
-                            var r = ScriptHandler.EditStructured(p);
-                            response = Response.SuccessResult(command.Id, r);
-                            break;
-                        }
-                    case "insert_after_symbol":
-                        {
-                            var p = command.Parameters.DeepClone() as JObject;
-                            p["operation"] = "insert_after";
-                            var r = ScriptHandler.EditStructured(p);
-                            response = Response.SuccessResult(command.Id, r);
-                            break;
-                        }
-                    case "replace_symbol_body":
-                        {
-                            var p = command.Parameters.DeepClone() as JObject;
-                            p["operation"] = "replace_body";
-                            var r = ScriptHandler.EditStructured(p);
-                            response = Response.SuccessResult(command.Id, r);
-                            break;
-                        }
+                    // Script/Code (Unity側実装は廃止: Node側で完結)
                     // Asset database commands
                     case "manage_asset_database":
                         var assetDatabaseResult = AssetDatabaseHandler.HandleCommand(command.Parameters["action"]?.ToString(), command.Parameters);
