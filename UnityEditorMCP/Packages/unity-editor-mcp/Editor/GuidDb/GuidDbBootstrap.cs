@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using System.Globalization;
+// snapshots 機能削除に伴い不要
 
 namespace UnityEditorMCP.GuidDb
 {
@@ -11,7 +11,7 @@ namespace UnityEditorMCP.GuidDb
     internal static class GuidDbBootstrap
     {
         private const string LastFullScanKey = "UnityEditorMCP.GuidDb.LastFullScanUtc";
-        private const string LastSnapshotKey = "UnityEditorMCP.GuidDb.LastSnapshotDate";
+        // スナップショット関連キーは削除
 
         static GuidDbBootstrap()
         {
@@ -21,7 +21,7 @@ namespace UnityEditorMCP.GuidDb
                 try
                 {
                     EnsureDbLayout();
-                    EnsureDailySnapshotOnce();
+                    // スナップショットは廃止
                     EnsureInitialFullScanIfNeeded();
                 }
                 catch (Exception ex)
@@ -36,27 +36,7 @@ namespace UnityEditorMCP.GuidDb
             GuidDbPaths.EnsureDirs();
         }
 
-        private static void EnsureDailySnapshotOnce()
-        {
-            if (!GuidDbConfig.SnapshotsEnabled()) return;
-
-            CleanupOldSnapshots();
-
-            var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
-            var last = EditorPrefs.GetString(LastSnapshotKey, string.Empty);
-            if (last == today)
-            {
-                return; // already ensured today
-            }
-
-            // Touch today's snapshot
-            var path = GuidDbPaths.TodaySnapshotPath();
-            if (!File.Exists(path))
-            {
-                JsonLines.AppendLine(path, "");
-            }
-            EditorPrefs.SetString(LastSnapshotKey, today);
-        }
+        // 日次スナップショット処理は削除
 
         private static void EnsureInitialFullScanIfNeeded()
         {
@@ -90,34 +70,6 @@ namespace UnityEditorMCP.GuidDb
             }
         }
 
-        private static void CleanupOldSnapshots()
-        {
-            try
-            {
-                var days = GuidDbConfig.RetentionDays();
-                if (days <= 0) return;
-                var cutoff = DateTime.UtcNow.Date.AddDays(-days);
-                var dir = GuidDbPaths.SnapshotsDir();
-                if (!Directory.Exists(dir)) return;
-                var files = Directory.GetFiles(dir, "*.ndjson");
-                foreach (var f in files)
-                {
-                    var name = Path.GetFileName(f);
-                    var dot = name.IndexOf('.');
-                    var datePart = dot > 0 ? name.Substring(0, dot) : name;
-                    if (DateTime.TryParseExact(datePart, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var d))
-                    {
-                        if (d.Date < cutoff)
-                        {
-                            try { File.Delete(f); } catch { }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning($"[GuidDB] CleanupOldSnapshots error: {ex.Message}");
-            }
-        }
+        // スナップショットのクリーンアップは削除
     }
 }

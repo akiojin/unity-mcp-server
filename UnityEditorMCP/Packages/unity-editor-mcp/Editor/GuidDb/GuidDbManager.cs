@@ -48,14 +48,7 @@ namespace UnityEditorMCP.GuidDb
             }
         }
 
-        public static void AppendSnapshot(SnapshotRecord rec)
-        {
-            if (!GuidDbConfig.SnapshotsEnabled()) return;
-            lock (_ioLock)
-            {
-                JsonLines.AppendLine(GuidDbPaths.TodaySnapshotPath(), JsonLines.ToJson(rec));
-            }
-        }
+        // スナップショット機能は削除（負債解消）
 
         public static string DetectTypeFromPath(string assetPath)
         {
@@ -103,14 +96,7 @@ namespace UnityEditorMCP.GuidDb
             var dict = LoadLedger();
             var now = JsonLines.IsoNowUtc();
             dict.TryGetValue(guid, out var rec);
-            var change = new SnapshotRecord
-            {
-                guid = guid,
-                path = assetPath,
-                seen_at = now,
-                change_type = rec == null ? "create" : (rec.path_current != assetPath ? "move" : "modify"),
-                meta_hash = JsonLines.Sha256File(Path.Combine(GuidDbPaths.ProjectRoot(), assetPath) + ".meta")
-            };
+            // 変更イベントのスナップショット記録は廃止
 
             if (rec == null)
             {
@@ -129,7 +115,6 @@ namespace UnityEditorMCP.GuidDb
 
             dict[guid] = rec;
             SaveLedger(dict);
-            AppendSnapshot(change);
         }
 
         public static void HandleMoved(string fromPath, string toPath)
@@ -162,14 +147,6 @@ namespace UnityEditorMCP.GuidDb
             rec.last_seen_at = now;
             dict[guid] = rec;
             SaveLedger(dict);
-            AppendSnapshot(new SnapshotRecord
-            {
-                guid = guid,
-                path = assetPath,
-                seen_at = now,
-                change_type = "delete",
-                meta_hash = null
-            });
         }
 
         [MenuItem("Window/Unity Editor MCP/Guid DB/Full Scan (Assets)")]
@@ -192,25 +169,6 @@ namespace UnityEditorMCP.GuidDb
             }
         }
 
-        [MenuItem("Window/Unity Editor MCP/Guid DB/Create Daily Snapshot File")]
-        public static void EnsureDailySnapshotFile()
-        {
-            if (!GuidDbConfig.SnapshotsEnabled())
-            {
-                Debug.Log("[GuidDB] Snapshots are disabled by configuration.");
-                return;
-            }
-            try
-            {
-                GuidDbPaths.EnsureDirs();
-                var path = GuidDbPaths.TodaySnapshotPath();
-                if (!File.Exists(path)) JsonLines.AppendLine(path, "");
-                Debug.Log($"[GuidDB] Snapshot ready: {path}");
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[GuidDB] Snapshot create error: {ex}");
-            }
-        }
+        // 日次スナップショット関連メニューは削除
     }
 }

@@ -4,7 +4,6 @@ using System;
 using System.IO;
 using System.Text;
 using UnityEngine;
-using Newtonsoft.Json.Linq;
 
 namespace UnityEditorMCP.GuidDb
 {
@@ -20,16 +19,6 @@ namespace UnityEditorMCP.GuidDb
         public string first_seen_at; // ISO8601 UTC
         public string last_seen_at;  // ISO8601 UTC
         public bool alive;           // true if asset currently exists
-    }
-
-    [Serializable]
-    public class SnapshotRecord
-    {
-        public string guid;
-        public string path;
-        public string seen_at;    // ISO8601 UTC
-        public string change_type; // create, move, delete, modify
-        public string meta_hash;  // SHA256 of .meta if available
     }
 
     internal static class GuidDbPaths
@@ -79,71 +68,9 @@ namespace UnityEditorMCP.GuidDb
             return Path.Combine(DbRoot(), "ledger.ndjson").Replace("\\", "/");
         }
 
-        public static string SnapshotsDir()
-        {
-            return Path.Combine(DbRoot(), "snapshots").Replace("\\", "/");
-        }
-
-        public static string TodaySnapshotPath()
-        {
-            var fname = DateTime.UtcNow.ToString("yyyy-MM-dd") + ".ndjson";
-            return Path.Combine(SnapshotsDir(), fname).Replace("\\", "/");
-        }
-
         public static void EnsureDirs()
         {
             Directory.CreateDirectory(DbRoot());
-            Directory.CreateDirectory(SnapshotsDir());
-        }
-    }
-
-    internal static class GuidDbConfig
-    {
-        private static JObject _cache;
-        private static DateTime _cacheTime;
-
-        private static JObject LoadConfig()
-        {
-            try
-            {
-                // Simple 2s cache to avoid repeated IO during import bursts
-                if (_cache != null && (DateTime.UtcNow - _cacheTime).TotalSeconds < 2)
-                    return _cache;
-
-                var cfgPath = Path.Combine(GuidDbPaths.WorkspaceRoot(), ".unity", "config.json");
-                if (!File.Exists(cfgPath)) { _cache = new JObject(); _cacheTime = DateTime.UtcNow; return _cache; }
-                var json = File.ReadAllText(cfgPath, new UTF8Encoding(false));
-                _cache = JObject.Parse(json);
-                _cacheTime = DateTime.UtcNow;
-                return _cache;
-            }
-            catch { _cache = new JObject(); _cacheTime = DateTime.UtcNow; return _cache; }
-        }
-
-        public static bool SnapshotsEnabled()
-        {
-            try
-            {
-                var j = LoadConfig();
-                var token = j.SelectToken("guidDb.snapshots.enabled");
-                if (token == null) return false; // default: disabled
-                if (bool.TryParse(token.ToString(), out var b)) return b;
-                return false;
-            }
-            catch { return false; }
-        }
-
-        public static int RetentionDays()
-        {
-            try
-            {
-                var j = LoadConfig();
-                var token = j.SelectToken("guidDb.snapshots.retentionDays");
-                if (token == null) return 0;
-                if (int.TryParse(token.ToString(), out var n) && n > 0) return n;
-                return 0;
-            }
-            catch { return 0; }
         }
     }
 
@@ -202,14 +129,5 @@ namespace UnityEditorMCP.GuidDb
             }
         }
 
-        public static void AppendLine(string path, string line)
-        {
-            var dir = Path.GetDirectoryName(path);
-            if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
-            using (var sw = new StreamWriter(path, append: true, encoding: new UTF8Encoding(false)))
-            {
-                sw.WriteLine(line);
-            }
-        }
 }
 }
