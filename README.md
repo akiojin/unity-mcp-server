@@ -227,16 +227,38 @@ sequenceDiagram
 All `script_*` tools call this CLI under the hood.
 - Triggers: Asset refresh, compilation complete, script edits applied.
 
-Architecture
+### Code Index & Analysis (How it works)
 
-- Separation of concerns:
-  - Unity: performs C# analysis using Roslyn (Microsoft.CodeAnalysis). Writes per-file JSON via `JsonIndexStore` and invalidates on asset changes.
-  - Node: consumes the JSON index for symbol/search. When missing or Unity is unavailable, falls back to a lightweight Node-side extractor.
-- Accuracy:
-  - Unity uses Roslyn syntax trees to extract `class/struct/interface/enum/method/property` with container/namespace and spans.
-  - Reference lookups prefer Roslyn identifier tokens to avoid false hits in comments/strings, with optional container/namespace filters.
-- Invalidations:
-  - Unity asset postprocessor clears stale entries on import/delete/move of `.cs` files; re-parsing repopulates JSON.
+This project does not persist a JSON index anymore. Instead, it performs on-demand, authoritative analysis through Roslyn when you call `script_*` tools.
+
+- Separation of concerns
+  - Unity: editor-side automation only. No C# parsing in the Editor domain.
+  - Node: delegates C# analysis/edits to the external `roslyn-cli` (loads `.sln/.csproj`).
+
+- What the CLI builds internally
+  - Solution/Project graph with MSBuildWorkspace.
+  - Syntax trees + SemanticModel via Roslyn compilations.
+  - Symbol model (type/member with namespace/container, and their spans).
+
+- Operations flow
+  1) MCP tool called (e.g., `script_symbol_find`).
+  2) Server spawns `roslyn-cli ...` for the specific action.
+  3) CLI returns JSON with `{ path, name, kind, line, column, container, ns }` or edit results.
+  4) For edits: preflight compile (in-memory) → if errors, block; if clean, apply workspace changes atomically.
+  5) Unity `AssetDatabase.Refresh` is manual and only needed when you want the Editor to reload scripts.
+
+- Safety guarantees
+  - Structured edits only (body replace, insert before/after, semantic rename).
+  - Preflight compilation blocks error-inducing changes.
+  - No blind line-based replacements.
+
+- Performance
+  - On-demand analysis has a cold-start cost (solution load) but avoids Unity domain reload issues.
+  - You can prebuild self-contained CLI binaries (see CI workflow) to speed up environments.
+
+- Limitations
+  - Unsaved buffers are not considered (CLI reads from disk). Save files before running tools.
+  - `namePath` like `OuterType/InnerType/Method` resolves nested types/members.
 
 Sequence
 
