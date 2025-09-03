@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.FindSymbols;
 
 // roslyn-cli: On-demand CLI for C# symbol queries and structured edits.
-// Commands: find-symbol, find-references, replace-symbol-body, insert-before/after, rename-symbol, remove-symbol
+// Commands: find-symbol, find-references, replace-symbol-body, insert-before/after, rename-symbol, remove-symbol, create-type-file
 
 var app = new App();
 return await app.RunAsync(args);
@@ -45,6 +45,7 @@ sealed class App
             "insert-after-symbol" => await InsertAroundSymbolAsync(rest, before:false),
             "rename-symbol" => await RenameSymbolAsync(rest),
             "remove-symbol" => await RemoveSymbolAsync(rest),
+            "create-type-file" => await CreateTypeFileAsync(rest),
             _ => Fail(new { error = "unknown_command", command = cmd })
         };
     }
@@ -53,7 +54,7 @@ sealed class App
     {
         var help = new
         {
-            commands = new[] { "find-symbol", "find-references", "replace-symbol-body", "insert-before-symbol", "insert-after-symbol", "rename-symbol", "remove-symbol" },
+            commands = new[] { "find-symbol", "find-references", "replace-symbol-body", "insert-before-symbol", "insert-after-symbol", "rename-symbol", "remove-symbol", "create-type-file" },
             usage = new
             {
                 serve = "serve  # JSON-over-stdin server: {id,cmd,args[]} per line; returns {id,...}",
@@ -63,7 +64,8 @@ sealed class App
                 insertBefore = "insert-before-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> --body-file <path> [--apply true|false]",
                 insertAfter = "insert-after-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> --body-file <path> [--apply true|false]",
                 renameSymbol = "rename-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> --new-name <New> [--apply true|false]",
-                removeSymbol = "remove-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> [--apply true|false] [--fail-on-references true|false] [--remove-empty-file true|false]"
+                removeSymbol = "remove-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> [--apply true|false] [--fail-on-references true|false] [--remove-empty-file true|false]",
+                createTypeFile = "create-type-file --solution <sln>|--project <csproj> --relative <path.cs> --name <ClassName> [--namespace <NS>] [--base <BaseType>] [--usings <CSV>] [--partial true|false] [--apply true|false]"
             }
         };
         Console.WriteLine(JsonSerializer.Serialize(help, JsonOpts));
@@ -744,6 +746,101 @@ sealed class App
 
             var ok = ws.TryApplyChanges(newSolution);
             Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, references }, JsonOpts));
+            return ok ? 0 : 1;
+        }
+        catch (Exception ex)
+        {
+            return Fail(new { error = ex.Message, trace = ex.StackTrace });
+        }
+    }
+
+    private async Task<int> CreateTypeFileAsync(string[] args)
+    {
+        try
+        {
+            var relative = Args.Get(args, "--relative") ?? throw new ArgumentException("--relative is required");
+            var name = Args.Get(args, "--name") ?? throw new ArgumentException("--name is required");
+            var ns = Args.Get(args, "--namespace");
+            var baseType = Args.Get(args, "--base");
+            var usingsCsv = Args.Get(args, "--usings");
+            var partial = (Args.Get(args, "--partial") ?? "false").Equals("true", StringComparison.OrdinalIgnoreCase);
+            var apply = (Args.Get(args, "--apply") ?? "false").Equals("true", StringComparison.OrdinalIgnoreCase);
+
+            var (ws, solution, rootDir) = await OpenSolutionOrProjectAsync(args);
+
+            var relPath = relative.Replace('\\', '/');
+            if (!relPath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) relPath += ".cs";
+            var fullPath = Path.Combine(rootDir, relPath).Replace('\\', '/');
+
+            var proj = solution.Projects.FirstOrDefault(p => p.Language == LanguageNames.CSharp) ?? throw new InvalidOperationException("No C# project found in solution");
+
+            // Build source text
+            var sb = new StringBuilder();
+            var usings = new List<string>();
+            if (!string.IsNullOrEmpty(usingsCsv))
+            {
+                usings.AddRange(usingsCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+            }
+            if (!string.IsNullOrEmpty(baseType) && baseType.Trim() == "MonoBehaviour" && !usings.Any(u => u == "UnityEngine"))
+            {
+                usings.Add("UnityEngine");
+            }
+            foreach (var u in usings.Distinct()) sb.AppendLine($"using {u};");
+            if (usings.Count > 0) sb.AppendLine();
+
+            if (!string.IsNullOrEmpty(ns)) sb.AppendLine($"namespace {ns}\n{");
+
+            var indent = string.IsNullOrEmpty(ns) ? "" : "    ";
+            var baseClause = string.IsNullOrEmpty(baseType) ? "" : $" : {baseType}";
+            var partialKw = partial ? " partial" : "";
+            sb.AppendLine($"{indent}public{partialKw} class {name}{baseClause}");
+            sb.AppendLine($"{indent}{{");
+            sb.AppendLine($"{indent}}}");
+
+            if (!string.IsNullOrEmpty(ns)) sb.AppendLine("}");
+
+            var source = sb.ToString();
+
+            // Ensure directory exists (for TryApplyChanges to succeed writing new file)
+            var dir = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir!);
+
+            // Create in project with specified file path
+            var newDoc = proj.AddDocument(Path.GetFileName(fullPath), Microsoft.CodeAnalysis.Text.SourceText.From(source, Encoding.UTF8), filePath: fullPath);
+            var newSolution = newDoc.Project.Solution;
+
+            // Preflight compile changed projects only
+            var changedProjIds = new HashSet<ProjectId>(newSolution.GetChanges(solution).GetProjectChanges().Select(pc => pc.ProjectId));
+            var errors = new List<object>();
+            foreach (var pid in changedProjIds)
+            {
+                var p = newSolution.GetProject(pid);
+                var comp = await p!.GetCompilationAsync();
+                var diags = comp?.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)
+                    .Select(d => (object)new
+                    {
+                        id = d.Id,
+                        message = d.GetMessage(),
+                        file = d.Location.GetLineSpan().Path,
+                        line = d.Location.GetLineSpan().StartLinePosition.Line + 1,
+                        column = d.Location.GetLineSpan().StartLinePosition.Character + 1
+                    }) ?? Enumerable.Empty<object>();
+                errors.AddRange(diags);
+            }
+
+            if (errors.Count > 0 && apply)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors, relative = relPath, preview = source }, JsonOpts));
+                return 0;
+            }
+            if (!apply)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, relative = relPath, preview = source }, JsonOpts));
+                return 0;
+            }
+
+            var ok = ws.TryApplyChanges(newSolution);
+            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, relative = relPath }, JsonOpts));
             return ok ? 0 : 1;
         }
         catch (Exception ex)

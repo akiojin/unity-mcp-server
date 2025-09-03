@@ -225,6 +225,7 @@ import { RoslynFindReferencesToolHandler } from './roslyn/RoslynFindReferencesTo
 import { RoslynReplaceSymbolBodyToolHandler } from './roslyn/RoslynReplaceSymbolBodyToolHandler.js';
 import { RoslynInsertSymbolToolHandler } from './roslyn/RoslynInsertSymbolToolHandler.js';
 import { RoslynRemoveSymbolToolHandler } from './roslyn/RoslynRemoveSymbolToolHandler.js';
+import { RoslynCreateTypeFileToolHandler } from './roslyn/RoslynCreateTypeFileToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -333,6 +334,7 @@ const HANDLER_CLASSES = [
   RoslynReplaceSymbolBodyToolHandler,
   RoslynInsertSymbolToolHandler,
   RoslynRemoveSymbolToolHandler,
+  RoslynCreateTypeFileToolHandler,
   
   // Component handlers
   AddComponentToolHandler,
