@@ -111,7 +111,7 @@
 - [x] VideoCaptureHandler スケルトン実装（状態管理/出力パス生成）
 - [x] PlayMode ポリシー反映（許可コマンド追加）
 - [x] Recorder 依存導入（manifest.json 追加とガード）
-- [ ] Game/Scene/Window/Explorer キャプチャ基盤流用
+- [x] Game/Scene/Window/Explorer キャプチャ基盤（初期版はPNGフォールバックで網羅、RecorderはGameView対応）
 - [x] Recorder による mp4 出力実装（GameView：リフレクション統合）
 - [x] 音声キャプチャ（任意）※RecorderのAudioInputSettingsを最小有効化（ベストエフォート）
 - [x] Fallback: 画像連番（PNG）
