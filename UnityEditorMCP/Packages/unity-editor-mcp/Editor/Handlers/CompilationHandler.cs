@@ -380,7 +380,7 @@ namespace UnityEditorMCP.Handlers
                             continue;
 
                         // Use first line as the concise message
-                        string concise = fullMessage.Split(new[] { '\\n', '\\r' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? fullMessage;
+                        string concise = fullMessage.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? fullMessage;
 
                         messages.Add(new CompilationMessage
                         {
