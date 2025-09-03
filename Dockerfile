@@ -9,13 +9,13 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install .NET 8 SDK (for roslyn-cli build)
+# Install .NET 9 SDK (for roslyn-cli build)
 RUN set -eux; \
     wget https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb -O /tmp/packages-microsoft-prod.deb; \
     dpkg -i /tmp/packages-microsoft-prod.deb; \
     rm /tmp/packages-microsoft-prod.deb; \
     apt-get update; \
-    apt-get install -y dotnet-sdk-8.0; \
+    apt-get install -y dotnet-sdk-9.0; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 
