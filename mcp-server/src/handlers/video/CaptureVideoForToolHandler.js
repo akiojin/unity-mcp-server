@@ -44,12 +44,14 @@ export class CaptureVideoForToolHandler extends BaseToolHandler {
       }
 
       // Start with auto-stop
+      const { WORKSPACE_ROOT } = await import('../../core/config.js');
       const startResp = await this.unityConnection.sendCommand('capture_video_start', {
         captureMode: params.captureMode || 'game',
         width: params.width ?? 1280,
         height: params.height ?? 720,
         fps: params.fps ?? 30,
-        maxDurationSec: params.durationSec
+        maxDurationSec: params.durationSec,
+        workspaceRoot: WORKSPACE_ROOT
       });
       if (startResp && startResp.error) {
         return { error: startResp.error, code: startResp.code || 'UNITY_ERROR' };

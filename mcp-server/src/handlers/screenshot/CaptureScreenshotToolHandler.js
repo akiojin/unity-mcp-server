@@ -433,7 +433,8 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
     }
 
     // Send capture command to Unity
-    const response = await this.unityConnection.sendCommand('capture_screenshot', params);
+    const { WORKSPACE_ROOT } = await import('../../core/config.js');
+    const response = await this.unityConnection.sendCommand('capture_screenshot', { ...(params||{}), workspaceRoot: WORKSPACE_ROOT });
 
     // Handle Unity response
     if (response.error) {

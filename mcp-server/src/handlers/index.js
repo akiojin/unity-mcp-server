@@ -220,6 +220,11 @@ import { ScriptSymbolFindToolHandler } from './script/ScriptSymbolFindToolHandle
 import { ScriptRefsFindToolHandler } from './script/ScriptRefsFindToolHandler.js';
 import { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHandler.js';
 import { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
+// Roslyn (external CLI) handlers
+import { RoslynFindSymbolToolHandler } from './roslyn/RoslynFindSymbolToolHandler.js';
+import { RoslynFindReferencesToolHandler } from './roslyn/RoslynFindReferencesToolHandler.js';
+import { RoslynReplaceSymbolBodyToolHandler } from './roslyn/RoslynReplaceSymbolBodyToolHandler.js';
+import { RoslynInsertSymbolToolHandler } from './roslyn/RoslynInsertSymbolToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [

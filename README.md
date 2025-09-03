@@ -184,9 +184,6 @@ Tip: To avoid CWD dependency, prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.
 | `server.description` | string | `MCP server for Unity Editor integration` | Human-readable description. | — |
 | `logging.level` | string | `process.env.LOG_LEVEL` or `info` | Log verbosity for stderr logging. | `debug` | `info` | `warn` |
 | `logging.prefix` | string | `[Unity Editor MCP]` | Log prefix used in stderr. | — |
-| `writeQueue.debounceMs` | number (ms) | `process.env.WRITE_DEBOUNCE_MS` or `1200` | Debounce window for batched writes. | — |
-| `writeQueue.maxEdits` | number | `process.env.WRITE_MAX_EDITS` or `100` | Max edits coalesced per batch. | — |
-| `writeQueue.deferDefault` | boolean | `true` (unless `WRITE_DEFER_DEFAULT` is exactly `false`) | Queue writes by default to coalesce changes. | `true` | `false` |
 | `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` or `compact` | Default return detail for search; `compact` maps to `snippets`. | `compact` | `metadata` | `snippets` | `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` or `naive` | Search engine implementation. | `naive` (treesitter planned) |
 

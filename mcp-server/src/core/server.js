@@ -11,7 +11,6 @@ import {
 import { UnityConnection } from './unityConnection.js';
 import { createHandlers } from '../handlers/index.js';
 import { config, logger } from './config.js';
-import { flushWriteQueue } from './globalWriteQueue.js';
 
 // Create Unity connection
 const unityConnection = new UnityConnection();
@@ -175,7 +174,6 @@ async function main() {
     // Handle shutdown
     process.on('SIGINT', async () => {
       logger.info('Shutting down...');
-      try { await flushWriteQueue(); } catch {}
       unityConnection.disconnect();
       await server.close();
       process.exit(0);
@@ -183,7 +181,6 @@ async function main() {
     
     process.on('SIGTERM', async () => {
       logger.info('Shutting down...');
-      try { await flushWriteQueue(); } catch {}
       unityConnection.disconnect();
       await server.close();
       process.exit(0);

@@ -66,6 +66,7 @@ sealed class App
         Console.WriteLine(JsonSerializer.Serialize(help, JsonOpts));
     }
 
+
     private static int Fail(object payload)
     {
         Console.Error.WriteLine(JsonSerializer.Serialize(payload, JsonOpts));
@@ -83,7 +84,7 @@ sealed class App
                 var doc = JsonSerializer.Deserialize<ServeRequest>(line);
                 if (doc == null || string.IsNullOrWhiteSpace(doc.cmd)) { Console.WriteLine("{\"error\":\"bad_request\"}"); continue; }
                 var args = doc.args ?? Array.Empty<string>();
-                int code = await (doc.cmd.ToLowerInvariant()) switch
+                int code = await ((doc.cmd.ToLowerInvariant()) switch
                 {
                     "find-symbol" => FindSymbolAsync(args),
                     "find-references" => FindReferencesAsync(args),
@@ -93,7 +94,7 @@ sealed class App
                     "rename-symbol" => RenameSymbolAsync(args),
                     "help" => Task.FromResult(PrintHelpAndOk()),
                     _ => Task.FromResult(Fail(new { error = "unknown_command", command = doc.cmd }))
-                };
+                });
                 // Individual handlers already wrote a JSON payload to stdout.
                 // To correlate, we wrap last line with id if provided.
                 if (!string.IsNullOrEmpty(doc.id))
@@ -429,7 +430,7 @@ sealed class App
             var proj = newDoc.Project;
             var comp = await proj.GetCompilationAsync();
             var diags = comp?.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)
-                .Select(d => new
+                .Select(d => (object)new
                 {
                     id = d.Id,
                     message = d.GetMessage(),
@@ -552,7 +553,7 @@ sealed class App
             var newDoc = doc.WithText(Microsoft.CodeAnalysis.Text.SourceText.From(newText, Encoding.UTF8));
             var comp = await newDoc.Project.GetCompilationAsync();
             var diags = comp?.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)
-                .Select(d => new
+                .Select(d => (object)new
                 {
                     id = d.Id,
                     message = d.GetMessage(),

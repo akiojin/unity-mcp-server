@@ -33,11 +33,13 @@ namespace UnityEditorMCP.Handlers
                     return new { error = "Invalid capture mode. Must be 'game', 'scene', or 'window'" };
                 }
                 
-                // 保存先は固定: <project>/.unity/capture/screenshot_<mode>_<timestamp>.png
+                // 保存先は固定: <workspace>/.unity/capture/screenshot_<mode>_<timestamp>.png
                 {
                     string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
                     var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-                    var captureDir = Path.Combine(projectRoot, ".unity", "capture");
+                    var wsParam = parameters["workspaceRoot"]?.ToString();
+                    string workspaceRoot = !string.IsNullOrEmpty(wsParam) ? wsParam : ResolveWorkspaceRoot(projectRoot);
+                    var captureDir = Path.Combine(workspaceRoot, ".unity", "capture");
                     outputPath = Path.Combine(captureDir, $"screenshot_{captureMode}_{timestamp}.png");
                 }
                 
@@ -75,6 +77,46 @@ namespace UnityEditorMCP.Handlers
                 Debug.LogError($"[ScreenshotHandler] Error capturing screenshot: {ex.Message}");
                 return new { error = $"Failed to capture screenshot: {ex.Message}" };
             }
+        }
+
+        private static string ResolveWorkspaceRoot(string projectRoot)
+        {
+            try
+            {
+                string dir = projectRoot;
+                for (int i = 0; i < 10; i++)
+                {
+                    var configPath = Path.Combine(dir, ".unity", "config.json");
+                    if (File.Exists(configPath))
+                    {
+                        var json = File.ReadAllText(configPath);
+                        var cfg = JObject.Parse(json);
+                        var pr = cfg?["project"]?["root"]?.ToString();
+                        if (!string.IsNullOrEmpty(pr))
+                        {
+                            string prAbs = pr;
+                            if (!Path.IsPathRooted(prAbs)) prAbs = Path.GetFullPath(Path.Combine(dir, prAbs));
+                            if (PathsEqual(prAbs, projectRoot)) return dir;
+                        }
+                    }
+                    var parent = Directory.GetParent(dir);
+                    if (parent == null) break;
+                    dir = parent.FullName;
+                }
+            }
+            catch { }
+            return projectRoot;
+        }
+
+        private static bool PathsEqual(string a, string b)
+        {
+            try
+            {
+                var na = Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                var nb = Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                return string.Equals(na, nb, StringComparison.OrdinalIgnoreCase);
+            }
+            catch { return string.Equals(a, b, StringComparison.OrdinalIgnoreCase); }
         }
         
         /// <summary>

@@ -21,8 +21,9 @@ export class CaptureVideoStartToolHandler extends BaseToolHandler {
 
   /** @override */
   async execute(params, context) {
+    const { WORKSPACE_ROOT } = await import('../../core/config.js');
     const { outputPath, ...rest } = params || {};
-    const response = await this.unityConnection.sendCommand('capture_video_start', rest);
+    const response = await this.unityConnection.sendCommand('capture_video_start', { ...rest, workspaceRoot: WORKSPACE_ROOT });
     if (response.error) {
       return { error: response.error, code: response.code || 'UNITY_ERROR' };
     }

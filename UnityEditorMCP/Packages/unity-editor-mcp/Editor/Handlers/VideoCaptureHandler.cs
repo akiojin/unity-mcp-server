@@ -60,11 +60,12 @@ namespace UnityEditorMCP.Handlers
                 {
                     return new { error = "Invalid format. Use 'mp4', 'webm' or 'png_sequence'", code = "E_INVALID_FORMAT" };
                 }
-                // 生成ファイルパスを固定で作成
+                // 生成ファイルパスを固定で作成 (<workspace>/.unity/capture)
                 {
                     string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
                     var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-                    var captureDir = Path.Combine(projectRoot, ".unity", "capture");
+                    var workspaceRoot = ResolveWorkspaceRoot(projectRoot);
+                    var captureDir = Path.Combine(workspaceRoot, ".unity", "capture");
                     if (!Directory.Exists(captureDir)) Directory.CreateDirectory(captureDir);
                     string ext = string.Equals(format, "webm", StringComparison.OrdinalIgnoreCase) ? ".webm" : ".mp4";
                     s_OutputPath = Path.Combine(captureDir, $"recording_{s_CaptureMode}_{timestamp}{ext}");
@@ -90,10 +91,10 @@ namespace UnityEditorMCP.Handlers
                 s_MovieRecorderSettings = ScriptableObject.CreateInstance<MovieRecorderSettings>();
 
                 s_MovieRecorderSettings.Enabled = true;
-                // 出力先（プロジェクト直下 .unity/capture/<file>）に設定
+                // 出力先（ワークスペース直下 .unity/capture/<file>）に設定
                 var fileNoExt = Path.GetFileNameWithoutExtension(s_OutputPath);
                 s_MovieRecorderSettings.FileNameGenerator.Root = OutputPath.Root.Project;
-                s_MovieRecorderSettings.FileNameGenerator.Leaf = "/.unity/capture";
+                s_MovieRecorderSettings.FileNameGenerator.Leaf = "/../.unity/capture";
                 s_MovieRecorderSettings.FileNameGenerator.FileName = fileNoExt;
                 // フォーマット設定はデフォルト（MP4/H.264）を使用
 
@@ -228,6 +229,46 @@ namespace UnityEditorMCP.Handlers
                 Debug.LogError($"[VideoCaptureHandler] Status error: {ex.Message}");
                 return new { error = $"Failed to get recording status: {ex.Message}" };
             }
+        }
+
+        private static string ResolveWorkspaceRoot(string projectRoot)
+        {
+            try
+            {
+                string dir = projectRoot;
+                for (int i = 0; i < 10; i++)
+                {
+                    var configPath = Path.Combine(dir, ".unity", "config.json");
+                    if (File.Exists(configPath))
+                    {
+                        var json = File.ReadAllText(configPath);
+                        var cfg = JObject.Parse(json);
+                        var pr = cfg?["project"]?["root"]?.ToString();
+                        if (!string.IsNullOrEmpty(pr))
+                        {
+                            string prAbs = pr;
+                            if (!Path.IsPathRooted(prAbs)) prAbs = Path.GetFullPath(Path.Combine(dir, prAbs));
+                            if (PathsEqual(prAbs, projectRoot)) return dir;
+                        }
+                    }
+                    var parent = Directory.GetParent(dir);
+                    if (parent == null) break;
+                    dir = parent.FullName;
+                }
+            }
+            catch { }
+            return projectRoot;
+        }
+
+        private static bool PathsEqual(string a, string b)
+        {
+            try
+            {
+                var na = Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                var nb = Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                return string.Equals(na, nb, StringComparison.OrdinalIgnoreCase);
+            }
+            catch { return string.Equals(a, b, StringComparison.OrdinalIgnoreCase); }
         }
 
         private static bool IsValidCaptureMode(string mode)

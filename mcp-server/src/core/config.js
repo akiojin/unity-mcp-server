@@ -43,12 +43,7 @@ const baseConfig = {
     prefix: '[Unity Editor MCP]',
   },
 
-  // Write queue/debounce settings
-  writeQueue: {
-    debounceMs: parseInt(process.env.WRITE_DEBOUNCE_MS || '', 10) || 1200,
-    maxEdits: parseInt(process.env.WRITE_MAX_EDITS || '', 10) || 100,
-    deferDefault: String(process.env.WRITE_DEFER_DEFAULT || '').toLowerCase() === 'false' ? false : true,
-  },
+  // Write queue removed: all edits go through structured Roslyn tools.
 
   // Search-related defaults and engine selection
   search: {
@@ -78,7 +73,9 @@ function loadExternalConfig() {
       if (fs.existsSync(p)) {
         const raw = fs.readFileSync(p, 'utf8');
         const json = JSON.parse(raw);
-        return json && typeof json === 'object' ? json : {};
+        const out = json && typeof json === 'object' ? json : {};
+        out.__configPath = p;
+        return out;
       }
     } catch (e) {
       return { __configLoadError: `${p}: ${e.message}` };
@@ -89,6 +86,17 @@ function loadExternalConfig() {
 
 const external = loadExternalConfig();
 export const config = merge(baseConfig, external);
+
+// Workspace root detection: directory that contains .unity/config.json used
+const initialCwd = process.cwd();
+let workspaceRoot = initialCwd;
+try {
+  if (config.__configPath) {
+    const cfgDir = path.dirname(config.__configPath); // <workspace>/.unity
+    workspaceRoot = path.dirname(cfgDir);            // <workspace>
+  }
+} catch {}
+export const WORKSPACE_ROOT = workspaceRoot;
 
 /**
  * Logger utility

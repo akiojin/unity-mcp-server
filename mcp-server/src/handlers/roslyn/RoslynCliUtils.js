@@ -58,20 +58,13 @@ export class RoslynCliUtils {
   }
 
   async runCli(args, input = null) {
-    // Default: try serve-mode first for speed. Allow opt-out with ROSLYN_CLI_MODE=oneshot|off
-    const mode = String(process.env.ROSLYN_CLI_MODE || '').toLowerCase();
-    if (mode !== 'oneshot' && mode !== 'off') {
-      try {
-        const resp = await sendServe(args[0], args.slice(1));
-        return resp;
-      } catch (e) {
-        logger.warn(`[roslyn-cli serve] fallback to one-shot: ${e.message}`);
-      }
-    }
-    const bin = await this.getCliPath();
-    logger.debug(`[roslyn-cli] ${bin} ${args.join(' ')}`);
+    // Serve専用: 失敗時は内部で再起動リトライし、それでも失敗ならエラーで返す
+    return await sendServe(args[0], args.slice(1));
+  }
+
+  _spawnAndParse(cmd, args, input) {
     return new Promise((resolve, reject) => {
-      const proc = spawn(bin, args, { stdio: ['pipe', 'pipe', 'pipe'] });
+      const proc = spawn(cmd, args, { stdio: ['pipe', 'pipe', 'pipe'] });
       let out = '';
       let err = '';
       proc.stdout.on('data', d => out += d.toString());
@@ -79,13 +72,13 @@ export class RoslynCliUtils {
       proc.on('error', reject);
       proc.on('close', code => {
         if (code !== 0 && !out) {
-          return reject(new Error(err || `roslyn-cli exited with code ${code}`));
+          return reject(new Error(err || `${cmd} exited with code ${code}`));
         }
         try {
           const json = JSON.parse(out);
           resolve(json);
         } catch (e) {
-          reject(new Error(`Failed to parse roslyn-cli output: ${e.message}. Raw: ${out}\nStderr: ${err}`));
+          reject(new Error(`Failed to parse output: ${e.message}. Raw: ${out}\nStderr: ${err}`));
         }
       });
       if (input) proc.stdin.end(input);

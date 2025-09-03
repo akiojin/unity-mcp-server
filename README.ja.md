@@ -182,9 +182,6 @@ sequenceDiagram
 | `server.description` | string | `MCP server for Unity Editor integration` | サーバーの説明。 | — |
 | `logging.level` | string | `process.env.LOG_LEVEL` または `info` | 標準エラーへのログ出力レベル。 | `debug` / `info` / `warn` |
 | `logging.prefix` | string | `[Unity Editor MCP]` | ログのプレフィックス。 | — |
-| `writeQueue.debounceMs` | number (ms) | `process.env.WRITE_DEBOUNCE_MS` または `1200` | 書き込みバッチングのデバウンス時間。 | — |
-| `writeQueue.maxEdits` | number | `process.env.WRITE_MAX_EDITS` または `100` | バッチにまとめる最大編集数。 | — |
-| `writeQueue.deferDefault` | boolean | `true`（`WRITE_DEFER_DEFAULT` が厳密に `false` の場合のみ `false`） | 既定で書き込みをキューして凝縮する。 | `true` / `false` |
 | `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` または `compact` | 検索の既定詳細度。`compact` は `snippets` のエイリアス。 | `compact` / `metadata` / `snippets` / `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` または `naive` | 検索エンジンの実装。 | `naive`（将来的に `treesitter` 予定） |
 
