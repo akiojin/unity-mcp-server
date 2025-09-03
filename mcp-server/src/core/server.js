@@ -37,25 +37,9 @@ const server = new Server(
 // Register MCP protocol handlers
 // Note: Do not log here as it breaks MCP protocol initialization
 
-// Build a name->handler map with aliases (UnityMCP__script_* compatibility)
-function buildHandlerMap(registry) {
-  const map = new Map();
-  for (const handler of registry.values()) {
-    // Primary name
-    map.set(handler.name, handler);
-    // UnityMCP__ prefix alias for script_* family
-    if (handler.name.startsWith('script_')) {
-      map.set(`UnityMCP__${handler.name}`, handler);
-    }
-  }
-  return map;
-}
-
-const handlerMap = buildHandlerMap(handlers);
-
 // Handle tool listing
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  const tools = Array.from(handlerMap.values()).map(handler => handler.getDefinition());
+  const tools = Array.from(handlers.values()).map(handler => handler.getDefinition());
   return { tools };
 });
 
@@ -80,7 +64,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   
   logger.info(`[MCP] Received tool call request: ${name} at ${new Date(requestTime).toISOString()}`, { args });
   
-  const handler = handlerMap.get(name);
+  const handler = handlers.get(name);
   if (!handler) {
     logger.error(`[MCP] Tool not found: ${name}`);
     throw new Error(`Tool not found: ${name}`);
