@@ -36,6 +36,7 @@ sealed class App
         var rest = args.Skip(1).ToArray();
         return cmd switch
         {
+            "serve" => await ServeAsync(),
             "find-symbol" => await FindSymbolAsync(rest),
             "find-references" => await FindReferencesAsync(rest),
             "replace-symbol-body" => await ReplaceSymbolBodyAsync(rest),
@@ -53,6 +54,7 @@ sealed class App
             commands = new[] { "find-symbol", "find-references", "replace-symbol-body", "insert-before-symbol", "insert-after-symbol", "rename-symbol" },
             usage = new
             {
+                serve = "serve  # JSON-over-stdin server: {id,cmd,args[]} per line; returns {id,...}",
                 findSymbol = "find-symbol --solution <sln>|--project <csproj> --name <name> [--kind <class|struct|interface|enum|method|property|field>] [--relative <file>]",
                 findReferences = "find-references --solution <sln>|--project <csproj> --name <name> [--relative <file>]",
                 replaceSymbolBody = "replace-symbol-body --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> --body-file <path> [--apply true|false]",
@@ -70,6 +72,52 @@ sealed class App
         return 1;
     }
 
+    private async Task<int> ServeAsync()
+    {
+        Console.Error.WriteLine("[roslyn-cli] serve mode started (stdin JSON per line)");
+        string? line;
+        while ((line = await Console.In.ReadLineAsync()) != null)
+        {
+            try
+            {
+                var doc = JsonSerializer.Deserialize<ServeRequest>(line);
+                if (doc == null || string.IsNullOrWhiteSpace(doc.cmd)) { Console.WriteLine("{\"error\":\"bad_request\"}"); continue; }
+                var args = doc.args ?? Array.Empty<string>();
+                int code = await (doc.cmd.ToLowerInvariant()) switch
+                {
+                    "find-symbol" => FindSymbolAsync(args),
+                    "find-references" => FindReferencesAsync(args),
+                    "replace-symbol-body" => ReplaceSymbolBodyAsync(args),
+                    "insert-before-symbol" => InsertAroundSymbolAsync(args, before:true),
+                    "insert-after-symbol" => InsertAroundSymbolAsync(args, before:false),
+                    "rename-symbol" => RenameSymbolAsync(args),
+                    "help" => Task.FromResult(PrintHelpAndOk()),
+                    _ => Task.FromResult(Fail(new { error = "unknown_command", command = doc.cmd }))
+                };
+                // Individual handlers already wrote a JSON payload to stdout.
+                // To correlate, we wrap last line with id if provided.
+                if (!string.IsNullOrEmpty(doc.id))
+                {
+                    // Note: For simplicity, we don't reprint the whole payload; we emit an envelope.
+                    Console.WriteLine(JsonSerializer.Serialize(new { id = doc.id, ok = (code == 0) }));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { error = ex.Message }));
+            }
+        }
+        return 0;
+    }
+
+    private int PrintHelpAndOk() { PrintHelp(); return 0; }
+
+    private sealed class ServeRequest
+    {
+        public string? id { get; set; }
+        public string cmd { get; set; } = string.Empty;
+        public string[]? args { get; set; }
+    }
     private async Task<int> RenameSymbolAsync(string[] args)
     {
         try

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
+import { sendServe } from './RoslynCliServeClient.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 import { logger } from '../../core/config.js';
 
@@ -57,6 +58,15 @@ export class RoslynCliUtils {
   }
 
   async runCli(args, input = null) {
+    // Serve mode (ROSLYN_CLI_MODE=serve): multiplex requests to a persistent process
+    if (String(process.env.ROSLYN_CLI_MODE || '').toLowerCase() === 'serve') {
+      try {
+        const resp = await sendServe(args[0], args.slice(1));
+        return resp;
+      } catch (e) {
+        logger.warn(`[roslyn-cli serve] fallback to one-shot: ${e.message}`);
+      }
+    }
     const bin = await this.getCliPath();
     logger.debug(`[roslyn-cli] ${bin} ${args.join(' ')}`);
     return new Promise((resolve, reject) => {
@@ -82,4 +92,3 @@ export class RoslynCliUtils {
     });
   }
 }
-
