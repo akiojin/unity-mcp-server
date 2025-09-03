@@ -190,6 +190,9 @@ import { ClearConsoleToolHandler } from './console/ClearConsoleToolHandler.js';
 import { ReadConsoleToolHandler } from './console/ReadConsoleToolHandler.js';
 import { CaptureScreenshotToolHandler } from './screenshot/CaptureScreenshotToolHandler.js';
 import { AnalyzeScreenshotToolHandler } from './screenshot/AnalyzeScreenshotToolHandler.js';
+import { CaptureVideoStartToolHandler } from './video/CaptureVideoStartToolHandler.js';
+import { CaptureVideoStopToolHandler } from './video/CaptureVideoStopToolHandler.js';
+import { CaptureVideoStatusToolHandler } from './video/CaptureVideoStatusToolHandler.js';
 import { AddComponentToolHandler } from './component/AddComponentToolHandler.js';
 import { RemoveComponentToolHandler } from './component/RemoveComponentToolHandler.js';
 import { ModifyComponentToolHandler } from './component/ModifyComponentToolHandler.js';
@@ -303,6 +306,10 @@ const HANDLER_CLASSES = [
   // Screenshot handlers
   CaptureScreenshotToolHandler,
   AnalyzeScreenshotToolHandler,
+  // Video handlers
+  CaptureVideoStartToolHandler,
+  CaptureVideoStopToolHandler,
+  CaptureVideoStatusToolHandler,
   // Script handlers
   ScriptPackagesListToolHandler,
   ScriptReadToolHandler,
