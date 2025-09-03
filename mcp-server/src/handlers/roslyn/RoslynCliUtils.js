@@ -58,8 +58,9 @@ export class RoslynCliUtils {
   }
 
   async runCli(args, input = null) {
-    // Serve mode (ROSLYN_CLI_MODE=serve): multiplex requests to a persistent process
-    if (String(process.env.ROSLYN_CLI_MODE || '').toLowerCase() === 'serve') {
+    // Default: try serve-mode first for speed. Allow opt-out with ROSLYN_CLI_MODE=oneshot|off
+    const mode = String(process.env.ROSLYN_CLI_MODE || '').toLowerCase();
+    if (mode !== 'oneshot' && mode !== 'off') {
       try {
         const resp = await sendServe(args[0], args.slice(1));
         return resp;

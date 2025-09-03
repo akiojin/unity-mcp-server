@@ -37,6 +37,11 @@ Unity Editor MCP は、LLMクライアントからUnity Editorを自動化しま
 
 必要時のみ、Unity側で手動 `AssetDatabase.Refresh` を行ってください。
 
+パフォーマンス（既定）
+
+- 既定で `roslyn-cli serve`（常駐）を試行し、初回以降の起動コストを回避します。
+- 明示的に無効化したい場合は `ROSLYN_CLI_MODE=oneshot`（または `off`）を設定してください。
+
 ## できること
 
 - エディタ自動化: シーン/ゲームオブジェクト/コンポーネント/プレハブ/マテリアルの作成・変更
@@ -217,12 +222,6 @@ sequenceDiagram
 - 非対応: 旧 Input Manager（Project Settings → Input Manager）。
 - 機能: キーボード/マウス/ゲームパッド/タッチの入力をエミュレートして、Play Mode やUI操作をテスト。
 - 注意: プロジェクトが Input System を使用していない場合、シミュレーションによるゲーム操作は反映されません。
-
-## C#編集の実装方式（Roslyn CLI）
-
-`roslyn-cli` は `.sln/.csproj` を Roslyn/MSBuildWorkspace でロードし、
-`find-symbol` / `find-references` / `replace-symbol-body` / `insert-before-symbol` / `insert-after-symbol` / `rename-symbol`
-を提供します。`script_*` ツールは内部でこのCLIを呼び出します。
 
 ### コードインデックスと解析の仕組み（How it works）
 

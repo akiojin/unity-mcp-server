@@ -37,6 +37,11 @@ Common usage (MCP tools)
 
 Run `AssetDatabase.Refresh` in Unity manually only when needed.
 
+Performance mode (default)
+
+- The server tries to use a persistent `roslyn-cli serve` by default to avoid cold starts.
+- To opt-out (one-shot per request), set `ROSLYN_CLI_MODE=oneshot` (or `off`).
+
 ## What It Can Do
 
 - Editor automation: create/modify scenes, GameObjects, components, prefabs, materials
