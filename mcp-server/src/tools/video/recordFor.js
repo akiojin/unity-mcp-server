@@ -9,7 +9,6 @@ async function main() {
     const outputPath = `Assets/Screenshots/recordings/mcp_for_${ts}.mp4`;
     const handler = new CaptureVideoForToolHandler(unity);
     const result = await handler.execute({
-        outputPath,
         captureMode: 'game',
         width: 1280,
         height: 720,

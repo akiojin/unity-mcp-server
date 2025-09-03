@@ -9,7 +9,6 @@ export class CaptureVideoStartToolHandler extends BaseToolHandler {
       'capture_video_start',
       'Start video recording (Game view). Requires com.unity.recorder.',
       {
-        outputPath: { type: 'string', description: 'Output path under Assets/, e.g., Assets/Screenshots/recordings/cap.mp4' },
         captureMode: { type: 'string', enum: ['game'], description: 'Capture source. Currently only "game" supported.' },
         width: { type: 'number', description: 'Output width (0 = auto/default)' },
         height: { type: 'number', description: 'Output height (0 = auto/default)' },
@@ -22,7 +21,8 @@ export class CaptureVideoStartToolHandler extends BaseToolHandler {
 
   /** @override */
   async execute(params, context) {
-    const response = await this.unityConnection.sendCommand('capture_video_start', params);
+    const { outputPath, ...rest } = params || {};
+    const response = await this.unityConnection.sendCommand('capture_video_start', rest);
     if (response.error) {
       return { error: response.error, code: response.code || 'UNITY_ERROR' };
     }

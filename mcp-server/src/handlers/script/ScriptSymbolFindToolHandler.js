@@ -60,7 +60,7 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
             symbol: {
                 name: r.name,
                 kind: r.kind,
-                @namespace: r.ns,
+                namespace: r.ns,
                 container: r.container,
                 startLine: r.line,
                 startColumn: r.column,

@@ -26,10 +26,7 @@ async function main() {
     }
 
     // Start recording
-    const ts = new Date().toISOString().replace(/[:.]/g, '').slice(0, 15);
-    const outputPath = `Assets/Screenshots/recordings/mcp_play_${ts}.mp4`;
     const start = await unity.sendCommand('capture_video_start', {
-      outputPath,
       captureMode: 'game',
       width: 1280,
       height: 720,

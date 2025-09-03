@@ -10,6 +10,7 @@
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
 [Ss]creenShots/
+.unity/capture/
 *.pidb.meta
 *.pdb.meta
 *.mdb.meta

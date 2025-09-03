@@ -54,16 +54,20 @@ namespace UnityEditorMCP.Handlers
                 s_IncludeUI = parameters["includeUI"]?.ToObject<bool>() ?? true;
                 s_MaxDurationSec = Math.Max(0, parameters["maxDurationSec"]?.ToObject<double>() ?? 0);
 
-                s_OutputPath = parameters["outputPath"]?.ToString();
+                // 固定保存先: <project>/.unity/capture
                 string format = parameters["format"]?.ToString() ?? "mp4";
                 if (!IsValidFormat(format))
                 {
                     return new { error = "Invalid format. Use 'mp4', 'webm' or 'png_sequence'", code = "E_INVALID_FORMAT" };
                 }
-                if (string.IsNullOrEmpty(s_OutputPath))
+                // 生成ファイルパスを固定で作成
                 {
                     string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-                    s_OutputPath = $"Assets/Screenshots/recordings/recording_{s_CaptureMode}_{timestamp}.{format}";
+                    var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+                    var captureDir = Path.Combine(projectRoot, ".unity", "capture");
+                    if (!Directory.Exists(captureDir)) Directory.CreateDirectory(captureDir);
+                    string ext = string.Equals(format, "webm", StringComparison.OrdinalIgnoreCase) ? ".webm" : ".mp4";
+                    s_OutputPath = Path.Combine(captureDir, $"recording_{s_CaptureMode}_{timestamp}{ext}");
                 }
 
                 // Guard: dimensions
@@ -72,11 +76,7 @@ namespace UnityEditorMCP.Handlers
                     return new { error = "Width/Height must be >= 0", code = "E_INVALID_SIZE" };
                 }
 
-                // Ensure outputs land under Assets/
-                if (!string.IsNullOrEmpty(s_OutputPath) && !s_OutputPath.Replace('\\','/').StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
-                {
-                    return new { error = "outputPath must be under Assets/", code = "E_PATH_DENIED" };
-                }
+                // 保存先ディレクトリを用意（Assets外も許可）
                 EnsureDirectory(s_OutputPath);
                 // 今回は GameView のみ対応（必須依存のRecorder使用）
                 if (!string.Equals(s_CaptureMode, "game", StringComparison.OrdinalIgnoreCase))
@@ -90,11 +90,10 @@ namespace UnityEditorMCP.Handlers
                 s_MovieRecorderSettings = ScriptableObject.CreateInstance<MovieRecorderSettings>();
 
                 s_MovieRecorderSettings.Enabled = true;
-                // 出力先（Assets配下）を明示: Assets/Screenshots/recordings/<file>
+                // 出力先（プロジェクト直下 .unity/capture/<file>）に設定
                 var fileNoExt = Path.GetFileNameWithoutExtension(s_OutputPath);
-                var leafDir = "/Screenshots/recordings";
-                s_MovieRecorderSettings.FileNameGenerator.Root = OutputPath.Root.AssetsFolder;
-                s_MovieRecorderSettings.FileNameGenerator.Leaf = leafDir;
+                s_MovieRecorderSettings.FileNameGenerator.Root = OutputPath.Root.Project;
+                s_MovieRecorderSettings.FileNameGenerator.Leaf = "/.unity/capture";
                 s_MovieRecorderSettings.FileNameGenerator.FileName = fileNoExt;
                 // フォーマット設定はデフォルト（MP4/H.264）を使用
 

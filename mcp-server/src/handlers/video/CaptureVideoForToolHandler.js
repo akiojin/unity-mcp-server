@@ -10,7 +10,6 @@ export class CaptureVideoForToolHandler extends BaseToolHandler {
       'capture_video_for',
       'Record video for a fixed duration (auto-stop). Optionally enters Play Mode first.',
       {
-        outputPath: { type: 'string', description: 'Output path under Assets/, e.g., Assets/Screenshots/recordings/clip.mp4' },
         captureMode: { type: 'string', enum: ['game'], description: 'Capture source. Currently only "game" supported.', default: 'game' },
         width: { type: 'number', description: 'Output width (0 = default 1280)' },
         height: { type: 'number', description: 'Output height (0 = default 720)' },
@@ -46,7 +45,6 @@ export class CaptureVideoForToolHandler extends BaseToolHandler {
 
       // Start with auto-stop
       const startResp = await this.unityConnection.sendCommand('capture_video_start', {
-        outputPath: params.outputPath,
         captureMode: params.captureMode || 'game',
         width: params.width ?? 1280,
         height: params.height ?? 720,

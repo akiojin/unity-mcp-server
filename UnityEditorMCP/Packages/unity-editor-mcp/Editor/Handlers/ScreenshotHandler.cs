@@ -33,16 +33,18 @@ namespace UnityEditorMCP.Handlers
                     return new { error = "Invalid capture mode. Must be 'game', 'scene', or 'window'" };
                 }
                 
-                // Generate output path if not provided
+                // Generate output path if not provided (fixed location: <project>/.unity/capture)
                 if (string.IsNullOrEmpty(outputPath))
                 {
                     string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-                    outputPath = $"Assets/Screenshots/screenshot_{captureMode}_{timestamp}.png";
+                    var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+                    var captureDir = Path.Combine(projectRoot, ".unity", "capture");
+                    outputPath = Path.Combine(captureDir, $"screenshot_{captureMode}_{timestamp}.png");
                 }
                 
-                // Ensure directory exists
+                // Ensure directory exists (support outside Assets)
                 string directory = Path.GetDirectoryName(outputPath);
-                if (!AssetDatabase.IsValidFolder(directory))
+                if (!Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
                     UnityEditorMCP.Helpers.DebouncedAssetRefresh.Request();
