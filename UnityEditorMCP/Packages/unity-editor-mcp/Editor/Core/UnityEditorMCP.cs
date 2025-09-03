@@ -35,6 +35,7 @@ namespace UnityEditorMCP.Core
         private static Task listenerTask;
         private static bool isProcessingCommand;
         private static bool verboseReceiveLogs = false; // 受信ログの詳細表示を制御
+        private static bool logIncomingCommands = false; // 受信コマンドの種別をログ出力（デバッグ用）
         private static DateTime lastReceiveLogTime = DateTime.MinValue;
         
         
@@ -127,6 +128,11 @@ namespace UnityEditorMCP.Core
                             if (verboseToken != null && bool.TryParse(verboseToken.ToString(), out var verbose))
                             {
                                 verboseReceiveLogs = verbose;
+                            }
+                            var logCmdToken = json.SelectToken("unity.logIncomingCommands") ?? json.SelectToken("logging.logIncomingCommands");
+                            if (logCmdToken != null && bool.TryParse(logCmdToken.ToString(), out var logcmd))
+                            {
+                                logIncomingCommands = logcmd;
                             }
                             Debug.Log($"[Unity Editor MCP] Config loaded from {path}: bind={bindAddress}, clientHost={currentHost}, port={currentPort}");
                             return;
@@ -487,6 +493,19 @@ namespace UnityEditorMCP.Core
                         await SendFramedMessage(client.GetStream(), response, CancellationToken.None);
                     }
                     return;
+                }
+
+                // 任意のデバッグログ（コマンド種別を明示）
+                if (logIncomingCommands)
+                {
+                    try
+                    {
+                        var type = command.Type ?? "(null)";
+                        var id = command.Id ?? "(n/a)";
+                        var keys = string.Join(",", (command.Parameters?.Properties()?.Select(p => p.Name) ?? Enumerable.Empty<string>()));
+                        Debug.Log($"[MCP Command] id={id} type={type} keys=[{keys}]");
+                    }
+                    catch { }
                 }
 
                 // Handle command based on type
