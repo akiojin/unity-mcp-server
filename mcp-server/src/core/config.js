@@ -68,7 +68,7 @@ function loadExternalConfig() {
   const findProjectConfigUp = () => {
     let dir = process.cwd();
     let prev = '';
-    for (let i = 0; i < 15 && dir && dir !== prev; i++) {
+    for (let i = 0; i < 3 && dir && dir !== prev; i++) {
       const p = path.resolve(dir, '.unity', 'config.json');
       if (fs.existsSync(p)) return p;
       prev = dir;
