@@ -219,6 +219,8 @@ import { ScriptSymbolFindToolHandler } from './script/ScriptSymbolFindToolHandle
 import { ScriptRefsFindToolHandler } from './script/ScriptRefsFindToolHandler.js';
 import { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHandler.js';
 import { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
+import { ScriptCreateClassFileToolHandler } from './script/ScriptCreateClassFileToolHandler.js';
+import { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
 // Roslyn (external CLI) handlers
 import { RoslynFindSymbolToolHandler } from './roslyn/RoslynFindSymbolToolHandler.js';
 import { RoslynFindReferencesToolHandler } from './roslyn/RoslynFindReferencesToolHandler.js';
@@ -328,6 +330,8 @@ const HANDLER_CLASSES = [
   ScriptSymbolsGetToolHandler,
   ScriptIndexStatusToolHandler,
   ScriptRefactorRenameToolHandler,
+  ScriptCreateClassFileToolHandler,
+  ScriptRemoveSymbolToolHandler,
   // Roslyn CLI handlers (external)
   RoslynFindSymbolToolHandler,
   RoslynFindReferencesToolHandler,
