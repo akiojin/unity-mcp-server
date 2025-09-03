@@ -8,6 +8,7 @@ export { BaseToolHandler } from './base/BaseToolHandler.js';
 // System handlers
 export { PingToolHandler } from './system/PingToolHandler.js';
 export { RefreshAssetsToolHandler } from './system/RefreshAssetsToolHandler.js';
+export { GetCommandStatsToolHandler } from './system/GetCommandStatsToolHandler.js';
 
 // GameObject handlers
 export { CreateGameObjectToolHandler } from './gameobject/CreateGameObjectToolHandler.js';
@@ -133,6 +134,7 @@ export { RoslynInsertSymbolToolHandler } from './roslyn/RoslynInsertSymbolToolHa
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
 import { RefreshAssetsToolHandler } from './system/RefreshAssetsToolHandler.js';
+import { GetCommandStatsToolHandler } from './system/GetCommandStatsToolHandler.js';
 import { CreateGameObjectToolHandler } from './gameobject/CreateGameObjectToolHandler.js';
 import { FindGameObjectToolHandler } from './gameobject/FindGameObjectToolHandler.js';
 import { ModifyGameObjectToolHandler } from './gameobject/ModifyGameObjectToolHandler.js';
@@ -231,6 +233,7 @@ const HANDLER_CLASSES = [
   // System handlers
   PingToolHandler,
   RefreshAssetsToolHandler,
+  GetCommandStatsToolHandler,
   
   // GameObject handlers
   CreateGameObjectToolHandler,

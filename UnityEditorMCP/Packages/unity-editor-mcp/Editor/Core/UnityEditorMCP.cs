@@ -28,6 +28,9 @@ namespace UnityEditorMCP.Core
         private static TcpListener tcpListener;
         private static readonly Queue<(Command command, TcpClient client)> commandQueue = new Queue<(Command, TcpClient)>();
         private static readonly object queueLock = new object();
+        private static readonly object statsLock = new object();
+        private static readonly Dictionary<string, int> commandCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Queue<(DateTime t, string type)> recentCommands = new Queue<(DateTime, string)>();
         private static CancellationTokenSource cancellationTokenSource;
         private static Task listenerTask;
         private static bool isProcessingCommand;
@@ -455,6 +458,20 @@ namespace UnityEditorMCP.Core
             try
             {
                 string response;
+
+                // Audit: カウントと最近のコマンドを記録（軽量・スレッドセーフ）
+                try
+                {
+                    var type = command.Type ?? "(null)";
+                    lock (statsLock)
+                    {
+                        if (!commandCounts.ContainsKey(type)) commandCounts[type] = 0;
+                        commandCounts[type]++;
+                        recentCommands.Enqueue((DateTime.UtcNow, type));
+                        while (recentCommands.Count > 50) recentCommands.Dequeue();
+                    }
+                }
+                catch { }
                 
                 // During Play Mode, restrict heavy commands per policy to keep MCP responsive
                 if (Application.isPlaying && !PlayModeCommandPolicy.IsAllowed(command.Type))
@@ -871,6 +888,22 @@ namespace UnityEditorMCP.Core
                         var updateSettingsResult = ProjectSettingsHandler.UpdateProjectSettings(command.Parameters);
                         response = Response.SuccessResult(command.Id, updateSettingsResult);
                         break;
+                    case "get_command_stats":
+                        {
+                            object stats;
+                            lock (statsLock)
+                            {
+                                stats = new
+                                {
+                                    counts = commandCounts.ToDictionary(kv => kv.Key, kv => kv.Value),
+                                    recent = recentCommands.ToArray()
+                                        .Select(x => new { timestamp = x.t.ToString("o"), type = x.type })
+                                        .ToArray()
+                                };
+                            }
+                            response = Response.SuccessResult(command.Id, stats);
+                            break;
+                        }
                     default:
                         // Use new format with error details
                         response = Response.ErrorResult(
