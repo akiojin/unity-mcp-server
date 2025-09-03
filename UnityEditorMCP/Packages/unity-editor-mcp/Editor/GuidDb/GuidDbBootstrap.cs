@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using System.Globalization;
 
 namespace UnityEditorMCP.GuidDb
 {
@@ -37,6 +38,10 @@ namespace UnityEditorMCP.GuidDb
 
         private static void EnsureDailySnapshotOnce()
         {
+            if (!GuidDbConfig.SnapshotsEnabled()) return;
+
+            CleanupOldSnapshots();
+
             var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
             var last = EditorPrefs.GetString(LastSnapshotKey, string.Empty);
             if (last == today)
@@ -82,6 +87,36 @@ namespace UnityEditorMCP.GuidDb
             catch (Exception ex)
             {
                 Debug.LogError($"[GuidDB] EnsureInitialFullScanIfNeeded error: {ex}");
+            }
+        }
+
+        private static void CleanupOldSnapshots()
+        {
+            try
+            {
+                var days = GuidDbConfig.RetentionDays();
+                if (days <= 0) return;
+                var cutoff = DateTime.UtcNow.Date.AddDays(-days);
+                var dir = GuidDbPaths.SnapshotsDir();
+                if (!Directory.Exists(dir)) return;
+                var files = Directory.GetFiles(dir, "*.ndjson");
+                foreach (var f in files)
+                {
+                    var name = Path.GetFileName(f);
+                    var dot = name.IndexOf('.');
+                    var datePart = dot > 0 ? name.Substring(0, dot) : name;
+                    if (DateTime.TryParseExact(datePart, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var d))
+                    {
+                        if (d.Date < cutoff)
+                        {
+                            try { File.Delete(f); } catch { }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[GuidDB] CleanupOldSnapshots error: {ex.Message}");
             }
         }
     }

@@ -190,6 +190,28 @@ Tip: To avoid CWD dependency, prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.
 | `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` or `compact` | Default return detail for search; `compact` maps to `snippets`. | `compact` | `metadata` | `snippets` | `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` or `naive` | Search engine implementation. | `naive` (treesitter planned) |
 
+### GUID DB (Ledger/Snapshots)
+
+- Storage root: The GUID DB is stored under your workspace at `./.unity/guid-db/`.
+- Version control: Commit `./.unity/guid-db/` to your VCS so history is preserved. This is the recommended approach.
+- Snapshots: Disabled by default. If you still want daily snapshot files, enable and optionally set retention:
+
+```json
+{
+  "guidDb": {
+    "snapshots": {
+      "enabled": true,
+      "retentionDays": 30
+    }
+  }
+}
+```
+
+- Behavior:
+  - When enabled, the editor appends to `./.unity/guid-db/snapshots/yyyy-MM-dd.ndjson`.
+  - If `retentionDays` > 0, files older than that many days are deleted on editor startup.
+  - When disabled, no snapshot files are created or appended.
+
 ## Screenshot System
 
 - Capture Game View, Scene View, Explorer（AI-framed）, or a specific Editor window.

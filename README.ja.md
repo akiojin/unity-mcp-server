@@ -188,6 +188,28 @@ sequenceDiagram
 | `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` または `compact` | 検索の既定詳細度。`compact` は `snippets` のエイリアス。 | `compact` / `metadata` / `snippets` / `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` または `naive` | 検索エンジンの実装。 | `naive`（将来的に `treesitter` 予定） |
 
+### GUID DB（台帳/スナップショット）
+
+- 保存場所: ワークスペース直下の `./.unity/guid-db/` に保存されます。
+- バージョン管理: `./.unity/guid-db/` をリポジトリにコミットして履歴を残す運用を推奨します。
+- スナップショット: 既定では無効です。日次スナップショットが必要な場合のみ、以下の設定で有効化し、保持日数を指定できます。
+
+```json
+{
+  "guidDb": {
+    "snapshots": {
+      "enabled": true,
+      "retentionDays": 30
+    }
+  }
+}
+```
+
+- 挙動:
+  - 有効時は `./.unity/guid-db/snapshots/yyyy-MM-dd.ndjson` に追記します。
+  - `retentionDays` > 0 の場合、起動時にその日数より古いファイルを削除します。
+  - 無効時はスナップショットを作成・追記しません。
+
 ## スクリーンショット
 
 - Game/Scene/Explorer/Window の各ビューをキャプチャ可能。

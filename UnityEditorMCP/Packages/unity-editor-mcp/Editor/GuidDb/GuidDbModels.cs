@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
 
 namespace UnityEditorMCP.GuidDb
 {
@@ -33,6 +34,7 @@ namespace UnityEditorMCP.GuidDb
 
     internal static class GuidDbPaths
     {
+        // Unityプロジェクトのルート（Assets の親）
         public static string ProjectRoot()
         {
             // Application.dataPath ends with "/Assets"
@@ -41,9 +43,35 @@ namespace UnityEditorMCP.GuidDb
             return root.Replace("\\", "/");
         }
 
+        // ワークスペースのルート（.unity/config.json が存在する最上位ディレクトリ）
+        // 必ずワークスペースを基準とする。見つからない場合はプロセスのCWDを使用（ProjectRootへはフォールバックしない）。
+        public static string WorkspaceRoot()
+        {
+            try
+            {
+                var dir = new DirectoryInfo(ProjectRoot());
+                while (dir != null)
+                {
+                    var candidate = Path.Combine(dir.FullName, ".unity", "config.json");
+                    if (File.Exists(candidate))
+                    {
+                        return dir.FullName.Replace("\\", "/");
+                    }
+                    dir = dir.Parent;
+                }
+            }
+            catch { /* fallthrough to process CWD */ }
+
+            // 最後の手段: プロセスのカレントディレクトリを返す
+            try { return Directory.GetCurrentDirectory().Replace("\\", "/"); }
+            catch { return "/"; }
+        }
+
         public static string DbRoot()
         {
-            return Path.Combine(ProjectRoot(), ".unity", "guid-db").Replace("\\", "/");
+            // 優先: ワークスペース（.unity/config.json のある最上位）
+            // 既定: Unityプロジェクト直下
+            return Path.Combine(WorkspaceRoot(), ".unity", "guid-db").Replace("\\", "/");
         }
 
         public static string LedgerPath()
@@ -66,6 +94,56 @@ namespace UnityEditorMCP.GuidDb
         {
             Directory.CreateDirectory(DbRoot());
             Directory.CreateDirectory(SnapshotsDir());
+        }
+    }
+
+    internal static class GuidDbConfig
+    {
+        private static JObject _cache;
+        private static DateTime _cacheTime;
+
+        private static JObject LoadConfig()
+        {
+            try
+            {
+                // Simple 2s cache to avoid repeated IO during import bursts
+                if (_cache != null && (DateTime.UtcNow - _cacheTime).TotalSeconds < 2)
+                    return _cache;
+
+                var cfgPath = Path.Combine(GuidDbPaths.WorkspaceRoot(), ".unity", "config.json");
+                if (!File.Exists(cfgPath)) { _cache = new JObject(); _cacheTime = DateTime.UtcNow; return _cache; }
+                var json = File.ReadAllText(cfgPath, new UTF8Encoding(false));
+                _cache = JObject.Parse(json);
+                _cacheTime = DateTime.UtcNow;
+                return _cache;
+            }
+            catch { _cache = new JObject(); _cacheTime = DateTime.UtcNow; return _cache; }
+        }
+
+        public static bool SnapshotsEnabled()
+        {
+            try
+            {
+                var j = LoadConfig();
+                var token = j.SelectToken("guidDb.snapshots.enabled");
+                if (token == null) return false; // default: disabled
+                if (bool.TryParse(token.ToString(), out var b)) return b;
+                return false;
+            }
+            catch { return false; }
+        }
+
+        public static int RetentionDays()
+        {
+            try
+            {
+                var j = LoadConfig();
+                var token = j.SelectToken("guidDb.snapshots.retentionDays");
+                if (token == null) return 0;
+                if (int.TryParse(token.ToString(), out var n) && n > 0) return n;
+                return 0;
+            }
+            catch { return 0; }
         }
     }
 

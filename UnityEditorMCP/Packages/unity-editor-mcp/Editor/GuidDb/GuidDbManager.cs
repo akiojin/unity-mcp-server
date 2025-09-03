@@ -50,6 +50,7 @@ namespace UnityEditorMCP.GuidDb
 
         public static void AppendSnapshot(SnapshotRecord rec)
         {
+            if (!GuidDbConfig.SnapshotsEnabled()) return;
             lock (_ioLock)
             {
                 JsonLines.AppendLine(GuidDbPaths.TodaySnapshotPath(), JsonLines.ToJson(rec));
@@ -194,7 +195,11 @@ namespace UnityEditorMCP.GuidDb
         [MenuItem("Window/Unity Editor MCP/Guid DB/Create Daily Snapshot File")]
         public static void EnsureDailySnapshotFile()
         {
-
+            if (!GuidDbConfig.SnapshotsEnabled())
+            {
+                Debug.Log("[GuidDB] Snapshots are disabled by configuration.");
+                return;
+            }
             try
             {
                 GuidDbPaths.EnsureDirs();
