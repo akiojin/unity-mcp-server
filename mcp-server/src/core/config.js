@@ -63,14 +63,28 @@ const baseConfig = {
  */
 function loadExternalConfig() {
   const explicitPath = process.env.UNITY_MCP_CONFIG;
-  const projectPath = path.resolve(process.cwd(), '.unity', 'config.json');
+
+  // Find nearest <workspace>/.unity/config.json by walking up from process.cwd()
+  const findProjectConfigUp = () => {
+    let dir = process.cwd();
+    let prev = '';
+    for (let i = 0; i < 15 && dir && dir !== prev; i++) {
+      const p = path.resolve(dir, '.unity', 'config.json');
+      if (fs.existsSync(p)) return p;
+      prev = dir;
+      dir = path.dirname(dir);
+    }
+    return null;
+  };
+
+  const projectPath = findProjectConfigUp();
   const homeDir = process.env.HOME || process.env.USERPROFILE || '';
   const userPath = homeDir ? path.resolve(homeDir, '.unity', 'config.json') : null;
 
   const candidates = [explicitPath, projectPath, userPath].filter(Boolean);
   for (const p of candidates) {
     try {
-      if (fs.existsSync(p)) {
+      if (p && fs.existsSync(p)) {
         const raw = fs.readFileSync(p, 'utf8');
         const json = JSON.parse(raw);
         const out = json && typeof json === 'object' ? json : {};
