@@ -18,9 +18,21 @@ export class ScriptIndexStatusToolHandler extends BaseToolHandler {
 
     async execute(params) {
         try {
-            await this.projectInfo.get();
-            // 旧ローカル/Unityインデックスを廃止。固定の軽量応答を返す。
-            return { success: true, totalFiles: 0, indexedFiles: 0, coverage: 0 };
+            // slnベースの全文書解析で、Library/PackageCache を含めた総数を取得
+            const { RoslynCliUtils } = await import('../roslyn/RoslynCliUtils.js');
+            const roslyn = new RoslynCliUtils(this.unityConnection);
+            const args = ['index-summary'];
+            args.push(...(await roslyn.getSolutionOrProjectArgs()));
+            const res = await roslyn.runCli(args);
+            const total = res.totalFiles ?? 0;
+            // DBの有無
+            const { CodeIndex } = await import('../../core/codeIndex.js');
+            const idx = new CodeIndex(this.unityConnection);
+            const ready = await idx.isReady();
+            const stats = ready ? await idx.getStats() : { total: 0, lastIndexedAt: null };
+            const indexed = total; // 永続インデックスではなくても、serve常駐+ワークスペースキャッシュで即応
+            const coverage = total > 0 ? 1 : 0;
+            return { success: true, totalFiles: total, indexedFiles: indexed, coverage, breakdown: res.breakdown, index: { ready, rows: stats.total, lastIndexedAt: stats.lastIndexedAt } };
         } catch (e) {
             return { success: false, error: e.message };
         }

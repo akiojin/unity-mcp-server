@@ -21,6 +21,8 @@ using System.Globalization;
 
 namespace GigaTestNamespace
 {
+    // [ScriptTest] Marker inserted via Codex CLI on 2025-09-03
+    // 目的: Script系ツール検証用（機能変更なし）
     // 超大規模テストファイル（10000行以上）
     // 日本語コメントとさまざまな構造を含む包括的なテストファイル
     
@@ -633,7 +635,12 @@ namespace GigaTestNamespace
                 _currentState = ProcessingState.Processing;
             }
         }
-        
+
+        public int MCP_ScriptToolProbe()
+        {
+            return 42;
+        }
+
         #endregion
         
         #region コルーチン

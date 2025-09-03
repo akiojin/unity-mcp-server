@@ -224,6 +224,7 @@ import { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHand
 import { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
 import { ScriptCreateClassFileToolHandler } from './script/ScriptCreateClassFileToolHandler.js';
 import { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
+import { BuildCodeIndexToolHandler } from './script/BuildCodeIndexToolHandler.js';
 // Roslyn (external CLI) tool handlers removed（内部ユーティリティのみ存続）
 
 // Handler registry - single source of truth
@@ -328,6 +329,7 @@ const HANDLER_CLASSES = [
   ScriptRefactorRenameToolHandler,
   ScriptCreateClassFileToolHandler,
   ScriptRemoveSymbolToolHandler,
+  BuildCodeIndexToolHandler,
   // roslyn_* ツール群は script_* に統一のため削除
   
   // Component handlers

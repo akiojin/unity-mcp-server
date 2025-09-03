@@ -1,22 +1,19 @@
 import { spawn } from 'child_process';
 import { logger } from '../../core/config.js';
+import { RoslynCliUtils } from './RoslynCliUtils.js';
 
 let serverProc = null;
 let starting = null; // Promise guard to avoid duplicate spawns
 let nextId = 1;
 const pending = new Map();
-let csprojPath = null;
+// FIFO queue of last payloads emitted by roslyn-cli (serve writes result first, then an id-envelope)
+const resultQueue = [];
+const roslynUtils = new RoslynCliUtils(null);
 
-function getCsprojPath() {
-  if (!csprojPath) {
-    csprojPath = new URL('../../../../roslyn-cli/roslyn-cli.csproj', import.meta.url).pathname;
-  }
-  return csprojPath;
-}
-
-function startServer() {
-  const csproj = getCsprojPath();
-  const proc = spawn('dotnet', ['run', '--project', csproj, '--', 'serve'], { stdio: ['pipe', 'pipe', 'pipe'] });
+async function startServer() {
+  // Use built self-contained binary (auto-build once if missing)
+  const cli = await roslynUtils.getCliPath();
+  const proc = spawn(cli, ['serve'], { stdio: ['pipe', 'pipe', 'pipe'] });
   proc.on('error', (e) => logger.error(`[roslyn-cli serve] error: ${e.message}`));
   proc.stderr.on('data', d => logger.debug(`[roslyn-cli serve] ${d.toString().trim()}`));
   let buffer = '';
@@ -31,8 +28,14 @@ function startServer() {
         const json = JSON.parse(line);
         const id = json.id;
         if (id && pending.has(id)) {
-          pending.get(id).resolve(json);
+          // Pair the latest result payload (if any) with this id envelope
+          const payload = resultQueue.length ? resultQueue.shift() : null;
+          const resolved = payload ? Object.assign({ id }, payload) : json;
+          pending.get(id).resolve(resolved);
           pending.delete(id);
+        } else if (!id) {
+          // This is a raw payload from the command; enqueue for pairing
+          resultQueue.push(json);
         }
       } catch { /* ignore stray output */ }
     }
@@ -45,6 +48,8 @@ function startServer() {
       p.reject(new Error('roslyn-cli serve exited'));
       pending.delete(id);
     }
+    // Clear queued payloads
+    resultQueue.length = 0;
   });
   return proc;
 }
@@ -52,16 +57,18 @@ function startServer() {
 async function ensureServer() {
   if (serverProc && !serverProc.killed) return serverProc;
   if (starting) return starting;
-  starting = new Promise((resolve) => {
+  starting = (async () => {
     try {
-      serverProc = startServer();
-      resolve(serverProc);
+      serverProc = await startServer();
+      return serverProc;
     } catch (e) {
       logger.error(`[roslyn-cli serve] failed to start: ${e.message}`);
       serverProc = null;
-      resolve(null);
+      return null;
+    } finally {
+      starting = null;
     }
-  }).finally(() => { starting = null; });
+  })();
   return starting;
 }
 
@@ -80,12 +87,13 @@ export async function sendServe(cmd, args = []) {
         ensureServer().then(() => attempt(true).then(resolve, reject));
         return;
       }
+      // Heavy Roslyn ops on large projects may take >60s. Use generous timeout.
       const to = setTimeout(() => {
         if (pending.has(id)) {
           pending.get(id).reject(new Error('roslyn-cli serve timeout'));
           pending.delete(id);
         }
-      }, 60000);
+      }, 300000);
       // bridge resolution to clear timeout
       const original = pending.get(id);
       if (original) {

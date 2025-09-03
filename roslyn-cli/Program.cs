@@ -16,6 +16,11 @@ return await app.RunAsync(args);
 
 sealed class App
 {
+    // Cache workspace/solution to speed up repeated serve requests on the same solution/project
+    private static MSBuildWorkspace? CachedWs;
+    private static Solution? CachedSolution;
+    private static string? CachedRootDir;
+    private static string? CachedKey; // full path to sln or csproj
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -38,6 +43,8 @@ sealed class App
         return cmd switch
         {
             "serve" => await ServeAsync(),
+            "index-summary" => await IndexSummaryAsync(rest),
+            "scan-symbols" => await ScanSymbolsAsync(rest),
             "find-symbol" => await FindSymbolAsync(rest),
             "find-references" => await FindReferencesAsync(rest),
             "replace-symbol-body" => await ReplaceSymbolBodyAsync(rest),
@@ -91,6 +98,8 @@ sealed class App
                 var args = doc.args ?? Array.Empty<string>();
                 int code = await ((doc.cmd.ToLowerInvariant()) switch
                 {
+                    "index-summary" => IndexSummaryAsync(args),
+                    "scan-symbols" => ScanSymbolsAsync(args),
                     "find-symbol" => FindSymbolAsync(args),
                     "find-references" => FindReferencesAsync(args),
                     "replace-symbol-body" => ReplaceSymbolBodyAsync(args),
@@ -240,21 +249,100 @@ sealed class App
     private static async Task<(MSBuildWorkspace ws, Solution solution, string root)> OpenSolutionOrProjectAsync(string[] args)
     {
         var (sln, proj) = ParseSolutionOrProject(args);
+        var key = !string.IsNullOrEmpty(sln) ? Path.GetFullPath(sln!) : (!string.IsNullOrEmpty(proj) ? Path.GetFullPath(proj!) : null);
+        if (key is null) throw new ArgumentException("--solution or --project is required");
+
+        if (CachedSolution != null && CachedWs != null && string.Equals(CachedKey, key, StringComparison.OrdinalIgnoreCase))
+        {
+            return (CachedWs, CachedSolution, CachedRootDir ?? (Path.GetDirectoryName(key) ?? Directory.GetCurrentDirectory()));
+        }
+
         var ws = MSBuildWorkspace.Create();
         ws.WorkspaceFailed += (_, e) => { /* suppress verbose MSBuild messages */ };
 
         if (!string.IsNullOrEmpty(sln))
         {
-            var solution = await ws.OpenSolutionAsync(Path.GetFullPath(sln!));
-            return (ws, solution, Path.GetDirectoryName(Path.GetFullPath(sln!)) ?? Directory.GetCurrentDirectory());
+            var solution = await ws.OpenSolutionAsync(key);
+            CachedWs = ws; CachedSolution = solution; CachedKey = key; CachedRootDir = Path.GetDirectoryName(key) ?? Directory.GetCurrentDirectory();
+            return (ws, solution, CachedRootDir);
         }
-        if (!string.IsNullOrEmpty(proj))
+        else
         {
-            var project = await ws.OpenProjectAsync(Path.GetFullPath(proj!));
+            var project = await ws.OpenProjectAsync(key);
             var sol = project.Solution;
-            return (ws, sol, Path.GetDirectoryName(Path.GetFullPath(proj!)) ?? Directory.GetCurrentDirectory());
+            CachedWs = ws; CachedSolution = sol; CachedKey = key; CachedRootDir = Path.GetDirectoryName(key) ?? Directory.GetCurrentDirectory();
+            return (ws, sol, CachedRootDir);
         }
-        throw new ArgumentException("--solution or --project is required");
+    }
+
+    private async Task<int> IndexSummaryAsync(string[] args)
+    {
+        try
+        {
+            var (ws, solution, rootDir) = await OpenSolutionOrProjectAsync(args);
+            int total = 0;
+            int assets = 0, packages = 0, packageCache = 0, other = 0;
+            foreach (var proj in solution.Projects)
+            {
+                if (!string.Equals(proj.Language, LanguageNames.CSharp, StringComparison.Ordinal)) continue;
+                foreach (var doc in proj.Documents)
+                {
+                    var file = doc.FilePath ?? string.Empty;
+                    if (!file.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) continue;
+                    total++;
+                    var rel = ToRel(file, rootDir);
+                    if (rel.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase)) assets++;
+                    else if (rel.StartsWith("Packages/", StringComparison.OrdinalIgnoreCase)) packages++;
+                    else if (rel.Contains("Library/PackageCache/", StringComparison.OrdinalIgnoreCase)) packageCache++;
+                    else other++;
+                }
+            }
+            Console.WriteLine(JsonSerializer.Serialize(new { success = true, totalFiles = total, breakdown = new { assets, packages, packageCache, other } }, JsonOpts));
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            return Fail(new { error = ex.Message, trace = ex.StackTrace });
+        }
+    }
+
+    private async Task<int> ScanSymbolsAsync(string[] args)
+    {
+        try
+        {
+            var (ws, solution, rootDir) = await OpenSolutionOrProjectAsync(args);
+            var list = new List<object>();
+            foreach (var proj in solution.Projects)
+            {
+                if (!string.Equals(proj.Language, LanguageNames.CSharp, StringComparison.Ordinal)) continue;
+                foreach (var doc in proj.Documents)
+                {
+                    var file = doc.FilePath ?? string.Empty;
+                    if (!file.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) continue;
+                    var rel = ToRel(file, rootDir);
+                    var root = await doc.GetSyntaxRootAsync();
+                    if (root is null) continue;
+                    foreach (var node in root.DescendantNodes())
+                    {
+                        if (node is not (ClassDeclarationSyntax or StructDeclarationSyntax or InterfaceDeclarationSyntax or EnumDeclarationSyntax or MethodDeclarationSyntax or PropertyDeclarationSyntax or FieldDeclarationSyntax))
+                            continue;
+                        var name = NameOf(node);
+                        if (string.IsNullOrEmpty(name)) continue;
+                        var kind = KindOf(node);
+                        var container = GetEnclosingType(node) ?? name;
+                        var ns = GetNamespace(node);
+                        var loc = node.GetLocation().GetLineSpan();
+                        list.Add(new { path = rel, name, kind, container, ns, line = loc.StartLinePosition.Line + 1, column = loc.StartLinePosition.Character + 1 });
+                    }
+                }
+            }
+            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results = list, total = list.Count }, JsonOpts));
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            return Fail(new { error = ex.Message, trace = ex.StackTrace });
+        }
     }
 
     private static string GetNamespace(SyntaxNode node)
@@ -788,7 +876,11 @@ sealed class App
             foreach (var u in usings.Distinct()) sb.AppendLine($"using {u};");
             if (usings.Count > 0) sb.AppendLine();
 
-            if (!string.IsNullOrEmpty(ns)) sb.AppendLine($"namespace {ns}\n{");
+            if (!string.IsNullOrEmpty(ns))
+            {
+                sb.AppendLine($"namespace {ns}");
+                sb.AppendLine("{");
+            }
 
             var indent = string.IsNullOrEmpty(ns) ? "" : "    ";
             var baseClause = string.IsNullOrEmpty(baseType) ? "" : $" : {baseType}";

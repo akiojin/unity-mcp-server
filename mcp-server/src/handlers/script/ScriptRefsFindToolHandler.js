@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { RoslynCliUtils } from '../roslyn/RoslynCliUtils.js';
+import { CodeIndex } from '../../core/codeIndex.js';
 
 export class ScriptRefsFindToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -16,7 +17,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
                     scope: {
                         type: 'string',
                         enum: ['assets', 'packages', 'embedded', 'all'],
-                        default: 'assets',
+                        default: 'all',
                         description: 'Search scope: assets (Assets/), packages (Packages/), embedded, or all.'
                     },
                     snippetContext: {
@@ -57,6 +58,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
         );
         this.unityConnection = unityConnection;
         this.roslyn = new RoslynCliUtils(unityConnection);
+        this.index = new CodeIndex(unityConnection);
     }
 
     validate(params) {
@@ -70,12 +72,29 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
-        const { name, path } = params;
+        const { name, path, scope = 'all' } = params;
+        let results = [];
+        if (await this.index.isReady()) {
+            // DBには使用箇所のスパンは保持していないため、現時点では参照検索はRoslynに委譲
+            // ただし将来の拡張でトークン位置を保持する設計に移行可能
+        }
         const args = ['find-references'];
         args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
         args.push('--name', String(name));
         if (path) args.push('--relative', String(path).replace(/\\\\/g, '/'));
         const res = await this.roslyn.runCli(args);
-        return { success: true, results: res.results || [], total: (res.results || []).length, truncated: false };
+        results = res.results || [];
+        if (scope && scope !== 'all') {
+            results = results.filter(r => {
+                const p = (r.path || '').replace(/\\\\/g, '/');
+                switch (scope) {
+                    case 'assets': return p.startsWith('Assets/');
+                    case 'packages': return p.startsWith('Packages/') || p.startsWith('Library/PackageCache/');
+                    case 'embedded': return p.startsWith('Packages/');
+                    default: return true;
+                }
+            });
+        }
+        return { success: true, results, total: results.length, truncated: false };
     }
 }

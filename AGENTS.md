@@ -126,7 +126,3 @@
 - Node側が `WORKSPACE_ROOT` を決定し、全Unityコマンドに `workspaceRoot` を付与。
 - Unity側は `workspaceRoot` を優先採用し、未受領時のみ `.unity/config.json` の `project.root` によるフォールバックでワークスペースを探索。
 - `process.cwd()` 変化・環境変数には依存しない。
-
-### Git 管理
-- `/.unity/capture/` は `.gitignore` に登録（一時成果物の保護）。
-- `Library/PackageCache/**` は編集禁止（生成物）。

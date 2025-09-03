@@ -54,8 +54,24 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
             const abs = path.join(info.projectRoot, relPath);
             const st = await fs.stat(abs).catch(() => null);
             if (!st || !st.isFile()) return { error: 'File not found', path: relPath };
-            // 旧インデックスは廃止。ここでは最小応答（空シンボル配列）を返す。
-            return { success: true, path: relPath, symbols: [] };
+            // Roslyn CLIで当該ファイル内のシンボルを列挙（nameに空文字を渡し全一致）
+            const { RoslynCliUtils } = await import('../roslyn/RoslynCliUtils.js');
+            const roslyn = new RoslynCliUtils(this.unityConnection);
+            const args = ['find-symbol'];
+            args.push(...(await roslyn.getSolutionOrProjectArgs()));
+            args.push('--relative', relPath, '--name', '');
+            const res = await roslyn.runCli(args);
+            const list = (res.results || []).map(r => ({
+                name: r.name,
+                kind: r.kind,
+                container: r.container,
+                namespace: r.ns,
+                startLine: r.line,
+                startColumn: r.column,
+                endLine: r.line,
+                endColumn: r.column
+            }));
+            return { success: true, path: relPath, symbols: list };
         } catch (e) {
             return { error: e.message || 'Failed to get symbols' };
         }
