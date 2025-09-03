@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 このファイルは、このリポジトリでコードを扱う際のガイダンスを提供します。
 
@@ -25,7 +25,7 @@
 
 ### 基本ルール
 
-- 作業（タスク）を完了したら、変更点をコミットログに追加して、コミット＆プッシュを必ず行う
+- 作業（タスク）を完了したら、変更点を日本語でコミットログに追加して、コミット＆プッシュを必ず行う
 - 作業（タスク）は、最大限の並列化をして進める
 - 作業（タスク）は、最大限の細分化をしてToDoに登録する
 - 作業（タスク）の開始前には、必ずToDoを登録した後に作業を開始する
@@ -37,7 +37,13 @@
 
 ## ドキュメント管理
 
-- ドキュメントはルートディレクトリに配置してはいけない。必ずdocs/配下に配置する
+- ドキュメントはREADME.md/README.ja.mdに集約する
+
+### Assets配下の扱い（サンプル/Unityプロジェクト側）
+
+- 目的: サンプル・検証・デモ・手動動作確認用のシーン/プレハブ/補助スクリプトを配置。
+- 禁止: unity-editor-mcp 実装本体（ランタイム/エディタ拡張の主要コード）を置かない。UPM配布の対象にも含めない。
+- 編集: 必要最小限に留める。C#編集は外部CLIで行い、Assets側は参照/設定のみで成立させる。
 
 ## バージョン管理
 
@@ -71,3 +77,56 @@
 ## ドキュメント作成ガイドライン
 
 - README.mdには設計などは書いてはいけない。プロジェクトの説明やディレクトリ構成などの説明のみに徹底する。設計などは、適切なファイルへのリンクを書く。
+
+---
+
+## プロジェクト構成（リポジトリ全体）
+
+本リポジトリは「ワークスペース（リポジトリ）ルート」を基点として、Unityプロジェクト・Node製MCPサーバ・Roslyn CLI を同居させています。パスは常にワークスペースルート基準で解決します。
+
+- ワークスペースルート
+  - 定義: コーディングエージェント（Codex等）が「起動したディレクトリ」。
+  - 設定: `./.unity/config.json` の `project.root` に Unity プロジェクトの相対/絶対パスを記載。
+  - Node側は起動時にこの設定を読み、以後「固定の WORKSPACE_ROOT」として保持し、Unityへの全コマンドに `workspaceRoot` を同梱します（`process.cwd()`の変動には依存しない）。
+
+- `.unity/`
+  - `config.json`: ワークスペースの設定。特に `project.root` は Unity プロジェクトルートを指す（相対なら `.unity` の1階層上を基準）。
+  - `capture/`: スクリーンショット・動画の固定保存先。一時成果物としてGit管理外（`.gitignore` 済）。
+
+- `UnityEditorMCP/`（Unityプロジェクト）
+  - `Packages/unity-editor-mcp/**`（UPMパッケージ 実装本体／ソース・オブ・トゥルース）
+  - `Assets/**` はサンプル/検証用途（実装本体を置かない）
+  - `Library/PackageCache/**` は自動生成（編集禁止）
+  - エディタ拡張のスクショ/動画ハンドラ:
+    - `Editor/Handlers/ScreenshotHandler.cs`:
+      - 保存先は常に `<workspace>/.unity/capture/screenshot_<mode>_<timestamp>.png`
+      - Nodeから受け取る `workspaceRoot` を優先。未受領時のみ `.unity/config.json` を用いてフォールバック解決。
+    - `Editor/Handlers/VideoCaptureHandler.cs`:
+      - Unity Recorder（必須依存）で mp4/webm へ録画。
+      - 保存先は常に `<workspace>/.unity/capture/recording_<mode>_<timestamp>.(mp4|webm)`。
+      - Nodeから受け取る `workspaceRoot` を優先採用。
+
+- `mcp-server/`（Node製 MCP サーバ）
+  - `src/core/config.js`:
+    - 起動時に `./.unity/config.json` を読み込み、`WORKSPACE_ROOT` を確定・固定（`process.cwd()`変動非依存）。
+  - ハンドラ登録: `src/handlers/index.js`
+  - スクリーンショット: `src/handlers/screenshot/CaptureScreenshotToolHandler.js`
+    - Unityコマンド `capture_screenshot` に `workspaceRoot` を常時付与。
+  - 動画: `src/handlers/video/`（`CaptureVideoStart/Stop/Status/For`）
+    - `capture_video_start` / `capture_video_for` で `workspaceRoot` を常時付与。
+    - `capture_video_for` は「N秒録画→自動停止」を一括実行。
+
+- `roslyn-cli/`（外部 Roslyn Workspace CLI）
+  - 目的: `.sln/.csproj` を MSBuildWorkspace でロードし、`find_symbol`/`find_referencing_symbols`/`replace_symbol_body`/`insert_{before,after}` を安全に提供。
+  - 実行: MCPサーバ（Node）からCLIを呼び出し、Unityとは直接通信しない。
+  - 成果物: 自己完結バイナリは `.tools/roslyn-cli/<rid>/` 配下（Git管理外推奨）。
+
+### パス解決ポリシー（統一）
+- スクリーンショット/動画の出力先は常にワークスペースルート固定の `./.unity/capture/`。
+- Node側が `WORKSPACE_ROOT` を決定し、全Unityコマンドに `workspaceRoot` を付与。
+- Unity側は `workspaceRoot` を優先採用し、未受領時のみ `.unity/config.json` の `project.root` によるフォールバックでワークスペースを探索。
+- `process.cwd()` 変化・環境変数には依存しない。
+
+### Git 管理
+- `/.unity/capture/` は `.gitignore` に登録（一時成果物の保護）。
+- `Library/PackageCache/**` は編集禁止（生成物）。

@@ -37,38 +37,13 @@
 
 ## ドキュメント管理
 
-- ドキュメントはREADME（英/日）に集約する
-
-### C#編集ポリシー（重要・外部化）
-
-- C#の探索/参照/構造化編集は、Unity外部のRoslyn WorkspaceベースのCLI（オンデマンド実行）で行う。Unityとは通信しない。
-- Unityパッケージ内のC#編集・検索系エンドポイント（Script系）は使用しない（非推奨）。必要最小限の`AssetDatabase.Refresh`等の補助のみ許可。
-- 変更フローは「外部CLIで構造化編集（プリフライト必須）→ 保存 →（必要時のみ）Unityで手動Refresh」。
-- Unity側でC#を直接編集する必要がある場合のみ、`Packages/unity-editor-mcp/**` に限り、Unity MCP Scriptツールを使用し、次の順序で検証すること：
-  - 「previewで差分確認 → 適用 → `UnityMCP__refresh_assets` → `UnityMCP__wait_for_editor_state`」
-  - ただし、通常は外部CLIを優先する。
-
-### UPMパッケージ配置と編集対象（Unity側実装本体）
-
-- 実装本体の配置: `UnityEditorMCP/Packages/unity-editor-mcp/**`
-  - UPM配布のソース・オブ・トゥルースはこのディレクトリ配下。
-  - `Library/PackageCache/**` はPackage Managerの一時領域。編集禁止（再生成で消失）。
-  - `UnityEditorMCP/Assets/**` はサンプル/検証向けであり、実装本体や配布対象には含めない。
-- 実装手段: 上記ディレクトリのメンテナンスは最小限とし、C#探索/編集は外部CLIに委譲。やむを得ない場合のみScript系ツールで編集し、前述の手順で検証。
-- 注意: レジストリ配布の読み取り専用パッケージを編集する必要がある場合は、まず埋め込み（Embedded）に変換してから対応すること。
+- ドキュメントはREADME.md/README.ja.mdに集約する
 
 ### Assets配下の扱い（サンプル/Unityプロジェクト側）
 
 - 目的: サンプル・検証・デモ・手動動作確認用のシーン/プレハブ/補助スクリプトを配置。
-- 禁止: 実装本体（ランタイム/エディタ拡張の主要コード）を置かない。UPM配布の対象にも含めない。
+- 禁止: unity-editor-mcp 実装本体（ランタイム/エディタ拡張の主要コード）を置かない。UPM配布の対象にも含めない。
 - 編集: 必要最小限に留める。C#編集は外部CLIで行い、Assets側は参照/設定のみで成立させる。
-
-### 外部Roslyn CLI（設計概要）
-
-- 目的: `.sln/.csproj` をRoslyn/MSBuildWorkspaceでロードし、`find_symbol`/`find_referencing_symbols`/`replace_symbol_body`/`insert_{before,after}` を提供。
-- 方式: オンデマンドCLI（非常駐）。標準入出力でJSON I/O。未保存バッファは対象外（必要なら仮想ドキュメント差し替えでプリフライト可能）。
-- セーフティ: すべて構造化限定。プリフライト（Roslyn診断）でエラーが増える場合は不適用。バッチ適用→まとめて保存。
-- Unity連携: 自動Refreshは行わない。必要時のみ手動`AssetDatabase.Refresh`を実行。
 
 ## バージョン管理
 
@@ -102,51 +77,6 @@
 ## ドキュメント作成ガイドライン
 
 - README.mdには設計などは書いてはいけない。プロジェクトの説明やディレクトリ構成などの説明のみに徹底する。設計などは、適切なファイルへのリンクを書く。
-
-## LLM実運用テンプレート（Serena流オーケストレーション統合）
-
-目的: トークン消費を抑えつつ、ゼロエラーで安全にC#編集を行うための実行SOP。
-
-### 基本原則（強制）
-
-- シンボル先行: 変更前に必ず `UnityMCP__script_symbols_get` で対象クラス/メソッドを特定。対象外なら編集しない。
-- 構造化限定: 変更は `UnityMCP__script_edit_structured`（`replace_body`/`insert_after`/`insert_before`）のみを使用。
-- スコープ厳守: 追加メンバーはクラス直下にのみ挿入（`kind:"class"` を明示）。メソッド内へのメンバー定義挿入は禁止（CS0106対策）。
-- 一括反映: 複数編集は `refreshMode:"none"` で適用し、最後に1回だけ `UnityMCP__refresh_assets`→`UnityMCP__wait_for_editor_state`。
-
-### トークン最適化（既定）
-
-- 短読込: `UnityMCP__script_read` は署名周辺 30–40 行のみ（本文の全読込はしない）。
-- プレビュー抑制: 既定は `preview:false`。巨大 diff を返すプレビューは原則使わない（微小・高リスク時のみ）。
-- 軽量ビルド確認: 通常は `get_compilation_state { includeMessages:false }`。エラー時のみ `includeMessages:true, maxMessages:10`。
-- 検索は軽量: `script_search` は `returnMode:"snippets"|"metadata"`＋`snippetContext:1–2` を使用（`full` 禁止）。
-
-### ガード（自動検証と復旧）
-
-- 置換前チェック: `replace_body.newText` の波括弧バランスと戻り値パスを自己検査（負の深さ/未閉鎖なし）。
-- 適用後パース: 同ファイルへ再度 `script_symbols_get` を実行し、シンボルツリー取得可否で健全性を確認。
-- 自動ロールバック: コンパイルエラー発生時は直前の変更ファイルのみを即時復旧（バックアップ/バージョン管理を利用）。
-
-### 禁止事項（違反時は編集中断）
-
-- メソッド途中の行範囲削除や広域正規表現での大塊削除。
-- メソッド内に `private/public` などのメンバー定義を挿入。
-- 毎編集ごとの `refresh_assets` 多発（必ず一括反映）。
-
-### 実行レシピ（コピペ用）
-
-1) 構造取得: `UnityMCP__script_symbols_get { path:"<path>" }`
-2) 署名読込: `UnityMCP__script_read { path:"<path>", startLine:<methodStart>, endLine:<methodStart+30> }`
-3) 本体置換: `UnityMCP__script_edit_structured { operation:"replace_body", path:"<path>", symbolName:"<method>", kind:"method", newText:"{ ... }", preview:false, refreshMode:"none" }`
-4) 追加（必要時）: `UnityMCP__script_edit_structured { operation:"insert_after", path:"<path>", symbolName:"<class>", kind:"class", newText:"\nprivate static ... { ... }\n", preview:false, refreshMode:"none" }`
-5) 一括反映: `UnityMCP__refresh_assets` → `UnityMCP__wait_for_editor_state`
-6) 確認: `UnityMCP__get_compilation_state { includeMessages:false }`（失敗時のみ詳細取得）
-
-### Serena思考ゲート（任意だが推奨）
-
-- 事前: `serena__think_about_task_adherence`（対象/目的/スコープの整合確認）
-- 中間: `serena__think_about_collected_information`（読込量が最小か）
-- 事後: `serena__think_about_whether_you_are_done`（想定結果が満たされたか）
 
 ---
 
