@@ -256,22 +256,30 @@ namespace UnityEditorMCP.Handlers
 
         private static void OnEditorUpdate()
         {
-            if (!s_IsRecording || !s_UsePngSequence) return;
+            if (!s_IsRecording) return;
             double now = EditorApplication.timeSinceStartup;
             double interval = 1.0 / Math.Max(1, s_Fps);
             if (now - s_LastCaptureTime + 1e-6 < interval) return;
             s_LastCaptureTime = now;
 
-            try
+            if (s_UsePngSequence)
             {
-                string filename = string.Format(s_FilePattern, s_FrameIndex++);
-                string path = Path.Combine(s_OutputDir, filename);
-                ScreenCapture.CaptureScreenshot(path);
-                s_Frames++;
+                try
+                {
+                    string filename = string.Format(s_FilePattern, s_FrameIndex++);
+                    string path = Path.Combine(s_OutputDir, filename);
+                    ScreenCapture.CaptureScreenshot(path);
+                    s_Frames++;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[VideoCaptureHandler] PNG sequence capture error: {ex.Message}");
+                }
             }
-            catch (Exception ex)
+            else if (s_UseRecorder)
             {
-                Debug.LogError($"[VideoCaptureHandler] PNG sequence capture error: {ex.Message}");
+                // Just advance frame counter to reflect expected frame cadence
+                s_Frames++;
             }
 
             // Auto stop by duration
