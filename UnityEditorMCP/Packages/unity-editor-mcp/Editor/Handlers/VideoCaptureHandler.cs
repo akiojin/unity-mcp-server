@@ -90,7 +90,6 @@ namespace UnityEditorMCP.Handlers
                 s_MovieRecorderSettings = ScriptableObject.CreateInstance<MovieRecorderSettings>();
 
                 s_MovieRecorderSettings.Enabled = true;
-                s_MovieRecorderSettings.Name = "MCP_Recorder";
                 // 拡張子無しで指定（Recorderが付与）
                 string outNoExt = s_OutputPath;
                 if (Path.HasExtension(outNoExt))
@@ -98,21 +97,20 @@ namespace UnityEditorMCP.Handlers
                     outNoExt = Path.Combine(Path.GetDirectoryName(outNoExt) ?? "Assets", Path.GetFileNameWithoutExtension(outNoExt));
                 }
                 s_MovieRecorderSettings.OutputFile = outNoExt;
-                s_MovieRecorderSettings.OutputFormat = format.Equals("webm", StringComparison.OrdinalIgnoreCase)
-                    ? MovieRecorderSettings.OutputFormat.WebM
-                    : MovieRecorderSettings.OutputFormat.MP4;
+                // フォーマット設定はデフォルト（MP4/H.264）を使用
 
                 var input = new GameViewInputSettings
                 {
                     OutputWidth = s_Width > 0 ? s_Width : 0,
-                    OutputHeight = s_Height > 0 ? s_Height : 0,
-                    IncludeUI = s_IncludeUI
+                    OutputHeight = s_Height > 0 ? s_Height : 0
                 };
                 s_MovieRecorderSettings.ImageInputSettings = input;
                 s_MovieRecorderSettings.FrameRate = s_Fps;
-                s_MovieRecorderSettings.CaptureEveryNthFrame = 1;
                 // 音声（最小有効化）
-                s_MovieRecorderSettings.AudioInputSettings = new AudioInputSettings { PreserveAudio = true };
+                if (s_MovieRecorderSettings.AudioInputSettings != null)
+                {
+                    s_MovieRecorderSettings.AudioInputSettings.PreserveAudio = true;
+                }
 
                 s_RecorderControllerSettings.AddRecorderSettings(s_MovieRecorderSettings);
                 s_RecorderControllerSettings.SetRecordModeToManual();

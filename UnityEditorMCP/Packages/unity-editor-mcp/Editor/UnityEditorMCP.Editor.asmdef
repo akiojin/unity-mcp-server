@@ -2,7 +2,9 @@
     "name": "UnityEditorMCP.Editor",
     "rootNamespace": "UnityEditorMCP",
     "references": [
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.Recorder",
+        "Unity.Recorder.Editor"
     ],
     "includePlatforms": [
         "Editor"
