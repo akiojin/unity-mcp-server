@@ -4,12 +4,13 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 export class CaptureVideoStatusToolHandler extends BaseToolHandler {
-  constructor() {
+  constructor(unityConnection) {
     super(
       'capture_video_status',
       'Get current video recording status.',
       {}
     );
+    this.unityConnection = unityConnection;
   }
 
   /** @override */
@@ -24,4 +25,3 @@ export class CaptureVideoStatusToolHandler extends BaseToolHandler {
     };
   }
 }
-

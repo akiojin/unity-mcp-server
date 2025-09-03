@@ -4,7 +4,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 export class CaptureVideoStopToolHandler extends BaseToolHandler {
-  constructor() {
+  constructor(unityConnection) {
     super(
       'capture_video_stop',
       'Stop current video recording and finalize the file.',
@@ -12,6 +12,7 @@ export class CaptureVideoStopToolHandler extends BaseToolHandler {
         recordingId: { type: 'string', description: 'Optional. Stop a specific recording session. Defaults to the latest.' }
       }
     );
+    this.unityConnection = unityConnection;
   }
 
   /** @override */
@@ -26,4 +27,3 @@ export class CaptureVideoStopToolHandler extends BaseToolHandler {
     };
   }
 }
-

@@ -90,19 +90,20 @@ namespace UnityEditorMCP.Handlers
                 s_MovieRecorderSettings = ScriptableObject.CreateInstance<MovieRecorderSettings>();
 
                 s_MovieRecorderSettings.Enabled = true;
-                // 拡張子無しで指定（Recorderが付与）
-                string outNoExt = s_OutputPath;
-                if (Path.HasExtension(outNoExt))
-                {
-                    outNoExt = Path.Combine(Path.GetDirectoryName(outNoExt) ?? "Assets", Path.GetFileNameWithoutExtension(outNoExt));
-                }
-                s_MovieRecorderSettings.OutputFile = outNoExt;
+                // 出力先（Assets配下）を明示: Assets/Screenshots/recordings/<file>
+                var fileNoExt = Path.GetFileNameWithoutExtension(s_OutputPath);
+                var leafDir = "/Screenshots/recordings";
+                s_MovieRecorderSettings.FileNameGenerator.Root = OutputPath.Root.AssetsFolder;
+                s_MovieRecorderSettings.FileNameGenerator.Leaf = leafDir;
+                s_MovieRecorderSettings.FileNameGenerator.FileName = fileNoExt;
                 // フォーマット設定はデフォルト（MP4/H.264）を使用
 
+                int ow = s_Width > 0 ? s_Width : 1280;
+                int oh = s_Height > 0 ? s_Height : 720;
                 var input = new GameViewInputSettings
                 {
-                    OutputWidth = s_Width > 0 ? s_Width : 0,
-                    OutputHeight = s_Height > 0 ? s_Height : 0
+                    OutputWidth = ow,
+                    OutputHeight = oh
                 };
                 s_MovieRecorderSettings.ImageInputSettings = input;
                 s_MovieRecorderSettings.FrameRate = s_Fps;
@@ -112,10 +113,19 @@ namespace UnityEditorMCP.Handlers
                     s_MovieRecorderSettings.AudioInputSettings.PreserveAudio = true;
                 }
 
+                // 収録動作パラメータ
+                s_RecorderControllerSettings.FrameRatePlayback = FrameRatePlayback.Variable;
+                s_RecorderControllerSettings.FrameRate = s_Fps;
+                s_RecorderControllerSettings.CapFrameRate = false;
                 s_RecorderControllerSettings.AddRecorderSettings(s_MovieRecorderSettings);
                 s_RecorderControllerSettings.SetRecordModeToManual();
                 s_RecorderController.PrepareRecording();
-                s_RecorderController.StartRecording();
+                var startedOk = s_RecorderController.StartRecording();
+                RecorderOptions.VerboseMode = true;
+                if (!startedOk)
+                {
+                    Debug.LogError("[VideoCaptureHandler] Recorder did not start (StartRecording returned false)");
+                }
                 s_LastCaptureTime = EditorApplication.timeSinceStartup;
                 EditorApplication.update -= OnEditorUpdate;
                 EditorApplication.update += OnEditorUpdate;
@@ -135,7 +145,8 @@ namespace UnityEditorMCP.Handlers
                     width = s_Width,
                     height = s_Height,
                     startedAt = s_StartedAt.ToString("o"),
-                    note = "Recording started (Recorder mp4/webm)."
+                    note = "Recording started (Recorder mp4/webm).",
+                    isRecording = s_RecorderController.IsRecording()
                 };
             }
             catch (Exception ex)

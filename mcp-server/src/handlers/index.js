@@ -193,6 +193,7 @@ import { AnalyzeScreenshotToolHandler } from './screenshot/AnalyzeScreenshotTool
 import { CaptureVideoStartToolHandler } from './video/CaptureVideoStartToolHandler.js';
 import { CaptureVideoStopToolHandler } from './video/CaptureVideoStopToolHandler.js';
 import { CaptureVideoStatusToolHandler } from './video/CaptureVideoStatusToolHandler.js';
+import { CaptureVideoForToolHandler } from './video/CaptureVideoForToolHandler.js';
 import { AddComponentToolHandler } from './component/AddComponentToolHandler.js';
 import { RemoveComponentToolHandler } from './component/RemoveComponentToolHandler.js';
 import { ModifyComponentToolHandler } from './component/ModifyComponentToolHandler.js';
@@ -310,6 +311,8 @@ const HANDLER_CLASSES = [
   CaptureVideoStartToolHandler,
   CaptureVideoStopToolHandler,
   CaptureVideoStatusToolHandler,
+  CaptureVideoForToolHandler,
+  CaptureVideoForToolHandler,
   // Script handlers
   ScriptPackagesListToolHandler,
   ScriptReadToolHandler,

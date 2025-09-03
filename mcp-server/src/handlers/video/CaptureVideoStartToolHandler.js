@@ -4,7 +4,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 export class CaptureVideoStartToolHandler extends BaseToolHandler {
-  constructor() {
+  constructor(unityConnection) {
     super(
       'capture_video_start',
       'Start video recording (Game view). Requires com.unity.recorder.',
@@ -17,6 +17,7 @@ export class CaptureVideoStartToolHandler extends BaseToolHandler {
         maxDurationSec: { type: 'number', description: 'Auto stop after N seconds (0 = unlimited)' }
       }
     );
+    this.unityConnection = unityConnection;
   }
 
   /** @override */
@@ -31,4 +32,3 @@ export class CaptureVideoStartToolHandler extends BaseToolHandler {
     };
   }
 }
-
