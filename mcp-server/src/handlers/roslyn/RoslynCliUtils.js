@@ -15,9 +15,6 @@ export class RoslynCliUtils {
   }
 
   async getCliPath() {
-    const envPath = process.env.ROSLYN_CLI;
-    if (envPath && fs.existsSync(envPath)) return envPath;
-
     const rid = this._detectRid();
     // 1) mcp-server 配下（npm配布時に同梱される想定の場所）
     const pkgRoot = this._resolvePackageRoot();
@@ -52,17 +49,12 @@ export class RoslynCliUtils {
 
     if (fs.existsSync(local)) return local;
 
-    // Optional: auto-download from GitHub Releases into WORKSPACE_ROOT when enabled
-    // Default: auto-download ON. Allow opt-out via ROSLYN_CLI_AUTO_DOWNLOAD=0|false|no
-    const autoDlVal = String(process.env.ROSLYN_CLI_AUTO_DOWNLOAD || '').toLowerCase();
-    const autoDl = !(autoDlVal === '0' || autoDlVal === 'false' || autoDlVal === 'no');
-    if (autoDl) {
-      try {
-        const dl = await this._autoDownloadCli(rid, repoRoot);
-        if (dl && fs.existsSync(dl)) return dl;
-      } catch (e) {
-        logger.warn(`roslyn-cli auto-download failed: ${e.message}`);
-      }
+    // Always auto-download from GitHub Releases into WORKSPACE_ROOT when missing
+    try {
+      const dl = await this._autoDownloadCli(rid, repoRoot);
+      if (dl && fs.existsSync(dl)) return dl;
+    } catch (e) {
+      logger.warn(`roslyn-cli auto-download failed: ${e.message}`);
     }
 
     // Not found after (optional) auto-build — return explicit guidance
@@ -76,8 +68,7 @@ export class RoslynCliUtils {
       'Provision options:',
       `  - Build from source if present: ${hint}`,
       '  - Or place a prebuilt binary at the above path',
-      '  - Or set ROSLYN_CLI env var to the binary path',
-      '  - Auto-download is enabled by default. To disable, set ROSLYN_CLI_AUTO_DOWNLOAD=0'
+      '  - Auto-download is performed automatically from GitHub Releases'
     ].join('\n');
     throw new Error(msg);
   }
@@ -145,9 +136,9 @@ export class RoslynCliUtils {
   }
 
   async _autoDownloadCli(rid, workspaceRoot) {
-    const owner = process.env.ROSLYN_CLI_REPO_OWNER || 'akiojin';
-    const repo = process.env.ROSLYN_CLI_REPO_NAME || 'unity-editor-mcp';
-    const version = process.env.ROSLYN_CLI_VERSION || await this._getPackageVersion();
+    const owner = 'akiojin';
+    const repo = 'unity-editor-mcp';
+    const version = await this._getPackageVersion();
     const tag = version ? `roslyn-cli-v${version}` : 'latest';
 
     const release = await this._fetchJson(tag === 'latest'
