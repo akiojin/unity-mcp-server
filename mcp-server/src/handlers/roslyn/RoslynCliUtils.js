@@ -52,6 +52,17 @@ export class RoslynCliUtils {
 
     if (fs.existsSync(local)) return local;
 
+    // Optional: auto-download from GitHub Releases into WORKSPACE_ROOT when enabled
+    const autoDl = String(process.env.ROSLYN_CLI_AUTO_DOWNLOAD || '').toLowerCase();
+    if (autoDl === '1' || autoDl === 'true' || autoDl === 'yes') {
+      try {
+        const dl = await this._autoDownloadCli(rid, repoRoot);
+        if (dl && fs.existsSync(dl)) return dl;
+      } catch (e) {
+        logger.warn(`roslyn-cli auto-download failed: ${e.message}`);
+      }
+    }
+
     // Not found after (optional) auto-build — return explicit guidance
     const expected = (pkgCandidates.find(p => p) || local).replace(/\\/g, '/');
     const hint = process.platform === 'win32'
@@ -63,7 +74,8 @@ export class RoslynCliUtils {
       'Provision options:',
       `  - Build from source if present: ${hint}`,
       '  - Or place a prebuilt binary at the above path',
-      '  - Or set ROSLYN_CLI env var to the binary path'
+      '  - Or set ROSLYN_CLI env var to the binary path',
+      '  - Or set ROSLYN_CLI_AUTO_DOWNLOAD=1 to fetch from GitHub Releases'
     ].join('\n');
     throw new Error(msg);
   }
@@ -128,6 +140,104 @@ export class RoslynCliUtils {
     const ps1 = path.resolve(repoRoot, 'scripts', 'bootstrap-roslyn-cli.ps1');
     const sh = path.resolve(repoRoot, 'scripts', 'bootstrap-roslyn-cli.sh');
     return fs.existsSync(ps1) || fs.existsSync(sh);
+  }
+
+  async _autoDownloadCli(rid, workspaceRoot) {
+    const owner = process.env.ROSLYN_CLI_REPO_OWNER || 'akiojin';
+    const repo = process.env.ROSLYN_CLI_REPO_NAME || 'unity-editor-mcp';
+    const version = process.env.ROSLYN_CLI_VERSION || await this._getPackageVersion();
+    const tag = version ? `roslyn-cli-v${version}` : 'latest';
+
+    const release = await this._fetchJson(tag === 'latest'
+      ? `https://api.github.com/repos/${owner}/${repo}/releases/latest`
+      : `https://api.github.com/repos/${owner}/${repo}/releases/tags/${encodeURIComponent(tag)}`);
+
+    if (!release || !Array.isArray(release.assets)) throw new Error('release info not found');
+    // Prefer plain binary assets, fall back to archive if present
+    const exeName = process.platform === 'win32' ? 'roslyn-cli.exe' : 'roslyn-cli';
+    const matchers = [
+      // exact filename patterns we publish
+      new RegExp(`^roslyn-cli-${rid}\\.exe$`, 'i'),
+      new RegExp(`^roslyn-cli-${rid}$`, 'i'),
+      // more relaxed contains matcher
+      new RegExp(`roslyn-cli.*${rid}.*`, 'i'),
+    ];
+    const asset = release.assets.find(a => matchers.some(rx => rx.test(a.name)));
+    if (!asset) throw new Error(`no asset for RID ${rid} under tag ${release.tag_name}`);
+
+    // optional checksums
+    let checksums = null;
+    const sumAsset = release.assets.find(a => /checksums?/i.test(a.name));
+    if (sumAsset) {
+      try { checksums = await this._fetchText(sumAsset.browser_download_url); } catch {}
+    }
+
+    const destDir = path.resolve(workspaceRoot, '.tools', 'roslyn-cli', rid);
+    fs.mkdirSync(destDir, { recursive: true });
+    const dest = path.join(destDir, exeName);
+    const tmp = dest + '.download';
+    await this._downloadTo(asset.browser_download_url, tmp);
+
+    // verify checksum if available
+    if (checksums) {
+      const expected = this._extractChecksum(checksums, asset.name);
+      if (expected) {
+        const actual = await this._sha256File(tmp);
+        if (expected.toLowerCase() !== actual.toLowerCase()) {
+          try { fs.unlinkSync(tmp); } catch {}
+          throw new Error(`checksum mismatch for ${asset.name}`);
+        }
+      }
+    }
+
+    fs.renameSync(tmp, dest);
+    try { if (process.platform !== 'win32') fs.chmodSync(dest, 0o755); } catch {}
+    logger.info(`[roslyn-cli] downloaded ${asset.name} -> ${dest}`);
+    return dest;
+  }
+
+  async _getPackageVersion() {
+    try {
+      const pkgPath = path.resolve(this._resolvePackageRoot(), 'package.json');
+      const raw = fs.readFileSync(pkgPath, 'utf8');
+      const json = JSON.parse(raw);
+      return json.version;
+    } catch { return null; }
+  }
+
+  async _fetchJson(url) {
+    const res = await fetch(url, { headers: { 'User-Agent': 'unity-editor-mcp' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+    return await res.json();
+  }
+
+  async _fetchText(url) {
+    const res = await fetch(url, { headers: { 'User-Agent': 'unity-editor-mcp' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+    return await res.text();
+  }
+
+  async _downloadTo(url, dest) {
+    const res = await fetch(url, { headers: { 'User-Agent': 'unity-editor-mcp' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+    const file = fs.createWriteStream(dest);
+    await new Promise((resolve, reject) => {
+      res.body.pipe(file);
+      res.body.on('error', reject);
+      file.on('finish', resolve);
+      file.on('error', reject);
+    });
+  }
+
+  _extractChecksum(text, name) {
+    try {
+      const lines = text.split(/\r?\n/);
+      for (const line of lines) {
+        const m = line.match(/([a-fA-F0-9]{64})\s+\*?(.+)$/);
+        if (m && m[2].trim().endsWith(name)) return m[1];
+      }
+    } catch {}
+    return null;
   }
 
   // Resolve repository root by locating a 'roslyn-cli' directory using the strategy:

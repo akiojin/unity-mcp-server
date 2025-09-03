@@ -25,6 +25,18 @@ Prereq: .NET 9 SDK
 
 Outputs to `./.tools/roslyn-cli/<rid>/roslyn-cli` (self-contained, no install).
 
+roslyn-cli provisioning (for npx users)
+
+- Resolution order:
+  - Use `ROSLYN_CLI` env var if set
+  - Use `WORKSPACE_ROOT/.tools/roslyn-cli/<rid>/roslyn-cli`
+  - If bootstrap scripts are present, auto-build once into the path above
+- Auto-download (Option A):
+  - Set `ROSLYN_CLI_AUTO_DOWNLOAD=1` to fetch the binary from GitHub Releases
+    and place it under `WORKSPACE_ROOT/.tools/roslyn-cli/<rid>/` (SHA256-verified)
+  - Source: this repo’s Releases (tag: `roslyn-cli-v<version>`). You can override with
+    `ROSLYN_CLI_VERSION`, `ROSLYN_CLI_REPO_OWNER`, `ROSLYN_CLI_REPO_NAME`
+
 Common usage (MCP tools)
 
 - Symbols: `script_symbol_find { "name": "ClassName", "kind": "class" }`

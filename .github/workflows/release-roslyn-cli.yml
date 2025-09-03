@@ -1,0 +1,86 @@
+name: Release roslyn-cli binaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: roslyn-cli version (e.g., 2.13.1)
+        required: true
+  push:
+    tags:
+      - 'roslyn-cli-v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            exe: roslyn-cli
+          - os: macos-latest
+            rid: osx-x64
+            exe: roslyn-cli
+          - os: macos-latest
+            rid: osx-arm64
+            exe: roslyn-cli
+          - os: windows-latest
+            rid: win-x64
+            exe: roslyn-cli.exe
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Publish roslyn-cli
+        shell: bash
+        run: |
+          set -euxo pipefail
+          dotnet publish roslyn-cli/roslyn-cli.csproj -c Release -r "${{ matrix.rid }}" --self-contained true -o out
+          ls -la out
+      - name: Prepare artifact
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p dist
+          SRC="out/${{ matrix.exe }}"
+          DEST="dist/${{ matrix.exe == 'roslyn-cli.exe' && 'roslyn-cli-' || 'roslyn-cli-' }}${{ matrix.rid }}${{ matrix.exe == 'roslyn-cli.exe' && '.exe' || '' }}"
+          cp "$SRC" "$DEST"
+          if [ "$RUNNER_OS" != "Windows" ]; then chmod +x "$DEST"; fi
+          sha256sum "$DEST" > dist/SHA256-${{ matrix.rid }}.txt || shasum -a 256 "$DEST" > dist/SHA256-${{ matrix.rid }}.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: roslyn-cli-${{ matrix.rid }}
+          path: dist/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: collected
+      - name: Assemble checksums
+        shell: bash
+        run: |
+          set -euxo pipefail
+          find collected -type f -name 'SHA256-*.txt' -exec cat {} + > collected/roslyn-cli-checksums.txt
+          ls -la collected
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.version && format('roslyn-cli-v{0}', github.event.inputs.version) || github.ref_name }}
+          name: ${{ github.event.inputs.version && format('roslyn-cli v{0}', github.event.inputs.version) || github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            collected/**/roslyn-cli-*
+            collected/roslyn-cli-checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
