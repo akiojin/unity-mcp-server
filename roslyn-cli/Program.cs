@@ -6,9 +6,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.FindSymbols;
 
 // roslyn-cli: On-demand CLI for C# symbol queries and structured edits.
-// Commands: find-symbol, replace-symbol-body (with preflight/apply).
+// Commands: find-symbol, find-references, replace-symbol-body, insert-before/after, rename-symbol, remove-symbol
 
 var app = new App();
 return await app.RunAsync(args);
@@ -43,6 +44,7 @@ sealed class App
             "insert-before-symbol" => await InsertAroundSymbolAsync(rest, before:true),
             "insert-after-symbol" => await InsertAroundSymbolAsync(rest, before:false),
             "rename-symbol" => await RenameSymbolAsync(rest),
+            "remove-symbol" => await RemoveSymbolAsync(rest),
             _ => Fail(new { error = "unknown_command", command = cmd })
         };
     }
@@ -51,7 +53,7 @@ sealed class App
     {
         var help = new
         {
-            commands = new[] { "find-symbol", "find-references", "replace-symbol-body", "insert-before-symbol", "insert-after-symbol", "rename-symbol" },
+            commands = new[] { "find-symbol", "find-references", "replace-symbol-body", "insert-before-symbol", "insert-after-symbol", "rename-symbol", "remove-symbol" },
             usage = new
             {
                 serve = "serve  # JSON-over-stdin server: {id,cmd,args[]} per line; returns {id,...}",
@@ -60,7 +62,8 @@ sealed class App
                 replaceSymbolBody = "replace-symbol-body --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> --body-file <path> [--apply true|false]",
                 insertBefore = "insert-before-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> --body-file <path> [--apply true|false]",
                 insertAfter = "insert-after-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> --body-file <path> [--apply true|false]",
-                renameSymbol = "rename-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> --new-name <New> [--apply true|false]"
+                renameSymbol = "rename-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> --new-name <New> [--apply true|false]",
+                removeSymbol = "remove-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> [--apply true|false] [--fail-on-references true|false] [--remove-empty-file true|false]"
             }
         };
         Console.WriteLine(JsonSerializer.Serialize(help, JsonOpts));
@@ -92,6 +95,7 @@ sealed class App
                     "insert-before-symbol" => InsertAroundSymbolAsync(args, before:true),
                     "insert-after-symbol" => InsertAroundSymbolAsync(args, before:false),
                     "rename-symbol" => RenameSymbolAsync(args),
+                    "remove-symbol" => RemoveSymbolAsync(args),
                     "help" => Task.FromResult(PrintHelpAndOk()),
                     _ => Task.FromResult(Fail(new { error = "unknown_command", command = doc.cmd }))
                 });
@@ -575,6 +579,171 @@ sealed class App
 
             var ok = ws.TryApplyChanges(newDoc.Project.Solution);
             Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors = diags }, JsonOpts));
+            return ok ? 0 : 1;
+        }
+        catch (Exception ex)
+        {
+            return Fail(new { error = ex.Message, trace = ex.StackTrace });
+        }
+    }
+
+    private async Task<int> RemoveSymbolAsync(string[] args)
+    {
+        try
+        {
+            var relative = Args.Get(args, "--relative") ?? throw new ArgumentException("--relative is required");
+            var namePath = Args.Get(args, "--name-path") ?? throw new ArgumentException("--name-path is required");
+            var apply = (Args.Get(args, "--apply") ?? "false").Equals("true", StringComparison.OrdinalIgnoreCase);
+            var failOnRefs = (Args.Get(args, "--fail-on-references") ?? "true").Equals("true", StringComparison.OrdinalIgnoreCase);
+            var removeEmptyFile = (Args.Get(args, "--remove-empty-file") ?? "false").Equals("true", StringComparison.OrdinalIgnoreCase);
+
+            var (ws, solution, rootDir) = await OpenSolutionOrProjectAsync(args);
+            var relNorm = relative.Replace('\\', '/');
+            var doc = solution.Projects.Where(p => p.Language == LanguageNames.CSharp)
+                .SelectMany(p => p.Documents)
+                .FirstOrDefault(d => ToRel(d.FilePath ?? "", rootDir).Equals(relNorm, StringComparison.OrdinalIgnoreCase));
+            if (doc is null) throw new FileNotFoundException($"Document not found: {relative}");
+
+            var model = (await doc.GetSemanticModelAsync())!;
+            var root = (await doc.GetSyntaxRootAsync())!;
+
+            var segments = namePath.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (segments.Length == 0) throw new ArgumentException("--name-path invalid");
+
+            SyntaxNode cursor = root;
+            for (int i = 0; i < segments.Length - 1; i++)
+            {
+                var seg = segments[i];
+                var next = cursor.DescendantNodes().FirstOrDefault(n => n is ClassDeclarationSyntax c && c.Identifier.ValueText == seg
+                                                                      || n is StructDeclarationSyntax s && s.Identifier.ValueText == seg
+                                                                      || n is InterfaceDeclarationSyntax ii && ii.Identifier.ValueText == seg
+                                                                      || n is EnumDeclarationSyntax en && en.Identifier.ValueText == seg);
+                if (next is null) throw new InvalidOperationException($"Container type not found: {seg}");
+                cursor = next;
+            }
+            var targetName = segments[^1];
+            // Prefer exact member/type by name
+            SyntaxNode? target = cursor.DescendantNodes().FirstOrDefault(n => n is ClassDeclarationSyntax c && c.Identifier.ValueText == targetName
+                                                                            || n is StructDeclarationSyntax s && s.Identifier.ValueText == targetName
+                                                                            || n is InterfaceDeclarationSyntax ii && ii.Identifier.ValueText == targetName
+                                                                            || n is EnumDeclarationSyntax en && en.Identifier.ValueText == targetName
+                                                                            || n is MethodDeclarationSyntax m && m.Identifier.ValueText == targetName
+                                                                            || n is PropertyDeclarationSyntax p && p.Identifier.ValueText == targetName
+                                                                            || n is FieldDeclarationSyntax f && f.Declaration.Variables.Any(v => v.Identifier.ValueText == targetName));
+            if (target is null) throw new InvalidOperationException($"Symbol not found: {targetName}");
+
+            // Bind symbol for reference search
+            ISymbol? symbol = target switch
+            {
+                ClassDeclarationSyntax or StructDeclarationSyntax or InterfaceDeclarationSyntax or EnumDeclarationSyntax => model.GetDeclaredSymbol(target),
+                MethodDeclarationSyntax m => model.GetDeclaredSymbol(m),
+                PropertyDeclarationSyntax p => model.GetDeclaredSymbol(p),
+                FieldDeclarationSyntax f => model.GetDeclaredSymbol(f.Declaration.Variables.First(v => v.Identifier.ValueText == targetName)),
+                _ => null
+            };
+            if (symbol is null) throw new InvalidOperationException("Failed to resolve symbol");
+
+            // Reference preflight
+            var references = new List<object>();
+            var refResults = await SymbolFinder.FindReferencesAsync(symbol, solution);
+            foreach (var rr in refResults)
+            {
+                foreach (var loc in rr.Locations)
+                {
+                    if (loc.Location.IsInSource && !loc.IsCandidateLocation && !loc.IsImplicit)
+                    {
+                        // Exclude the declaration location(s)
+                        if (rr.Definition != null && loc.Document.Id == doc.Id)
+                        {
+                            var span = loc.Location.GetLineSpan();
+                            // crude check: allow hits at the declaration line to be skipped
+                            // keep simple; real filter is rr.Locations where IsWriteAccess/IsCandidate false
+                        }
+                        references.Add(new
+                        {
+                            path = ToRel(loc.Document.FilePath ?? "", rootDir),
+                            line = loc.Location.GetLineSpan().StartLinePosition.Line + 1,
+                            column = loc.Location.GetLineSpan().StartLinePosition.Character + 1
+                        });
+                    }
+                }
+            }
+            // Remove declaration locations from reference list
+            references = references
+                .Where(r =>
+                {
+                    var p = (string)r.GetType().GetProperty("path")!.GetValue(r)!;
+                    var l = (int)r.GetType().GetProperty("line")!.GetValue(r)!;
+                    // very lightweight: keep all; consumers will decide. Do not over-filter.
+                    return true;
+                }).ToList();
+
+            if (failOnRefs && references.Count > 0)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, references }, JsonOpts));
+                return 0;
+            }
+
+            // Build new syntax root with removal
+            SyntaxNode newRoot;
+            if (target is FieldDeclarationSyntax fd && fd.Declaration.Variables.Count > 1)
+            {
+                // Remove only the target variable
+                var varToRemove = fd.Declaration.Variables.First(v => v.Identifier.ValueText == targetName);
+                var newVars = fd.Declaration.WithVariables(new SeparatedSyntaxList<VariableDeclaratorSyntax>().AddRange(fd.Declaration.Variables.Where(v => v != varToRemove)));
+                var newField = fd.WithDeclaration(newVars);
+                newRoot = root.ReplaceNode(fd, newField);
+            }
+            else
+            {
+                newRoot = root.RemoveNode(target, SyntaxRemoveOptions.KeepNoTrivia);
+            }
+
+            var newDoc = doc.WithSyntaxRoot(newRoot);
+            var newSolution = newDoc.Project.Solution;
+
+            // Optionally remove file if becomes empty or whitespace
+            if (removeEmptyFile)
+            {
+                var text = (await newDoc.GetTextAsync()).ToString();
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    newSolution = newSolution.RemoveDocument(newDoc.Id);
+                }
+            }
+
+            // Preflight compile changed projects
+            var changedProjIds = new HashSet<ProjectId>(newSolution.GetChanges(solution).GetProjectChanges().Select(pc => pc.ProjectId));
+            var errors = new List<object>();
+            foreach (var pid in changedProjIds)
+            {
+                var proj = newSolution.GetProject(pid);
+                var comp = await proj!.GetCompilationAsync();
+                var diags = comp?.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)
+                    .Select(d => (object)new
+                    {
+                        id = d.Id,
+                        message = d.GetMessage(),
+                        file = d.Location.GetLineSpan().Path,
+                        line = d.Location.GetLineSpan().StartLinePosition.Line + 1,
+                        column = d.Location.GetLineSpan().StartLinePosition.Character + 1
+                    }) ?? Enumerable.Empty<object>();
+                errors.AddRange(diags);
+            }
+
+            if ((errors.Count > 0 || (failOnRefs && references.Count > 0)) && apply)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors, references }, JsonOpts));
+                return 0;
+            }
+            if (!apply)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, references }, JsonOpts));
+                return 0;
+            }
+
+            var ok = ws.TryApplyChanges(newSolution);
+            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, references }, JsonOpts));
             return ok ? 0 : 1;
         }
         catch (Exception ex)
