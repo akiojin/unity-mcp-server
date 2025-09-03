@@ -108,15 +108,15 @@
 - [x] 要件定義の確定（デフォルト値/制約を文書反映）
 - [x] コマンド仕様の最終化（引数/戻り値/エラー）
 - [x] ルータへのコマンド追加（start/stop/status）
-- [x] VideoCaptureHandler スケルトン実装（状態管理/出力パス生成）
+- [x] VideoCaptureHandler 実装（Recorder直統合・GameView）
 - [x] PlayMode ポリシー反映（許可コマンド追加）
-- [x] Recorder 依存導入（manifest.json 追加とガード）
-- [x] Game/Scene/Window/Explorer キャプチャ基盤（初期版はPNGフォールバックで網羅、RecorderはGameView対応）
-- [x] Recorder による mp4 出力実装（GameView：リフレクション統合）
-- [x] 音声キャプチャ（任意）※RecorderのAudioInputSettingsを最小有効化（ベストエフォート）
-- [x] Fallback: 画像連番（PNG）
+- [x] Recorder 依存導入（manifest.json）
+- [ ] Scene/Window/Explorer のRecorder対応（次段）
+- [x] Recorder による mp4/webm 出力実装（GameView）
+- [x] 音声キャプチャ（AudioInputSettings）
+- [x] フォールバック削除（PNG連番を廃止）
 - [x] エラー/ガード実装（基本）
-- [x] 自動/手動テスト追加（PNG連番の基本動作）
+- [ ] 自動/手動テスト更新（Recorder前提に置き換え）
 - [x] README リンク追加・設計詳細 docs 分離
 - [x] バージョン更新（mcp-server 2.12.0 / unity package 2.12.0）
 - [ ] リリース手順（npm publish 等）

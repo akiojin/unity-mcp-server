@@ -7,10 +7,10 @@
 - 入口: MCPコマンド `capture_video_start` / `capture_video_stop` / `capture_video_status`
 - ルーティング: `UnityEditorMCP/Editor/Core/UnityEditorMCP.cs`
 - ハンドラ: `VideoCaptureHandler`（セッション状態・各実装の委譲）
-- 実装段階:
-  1) Fallback（PNG連番）
-  2) Unity Recorder による mp4 出力（GameView → Scene/Window/Explorerへ拡張）
-  3) 音声キャプチャ（ゲームオーディオ）
+ - 実装段階:
+  1) Unity Recorder による mp4/webm 出力（GameView、必須依存）
+  2) 音声キャプチャ（ゲームオーディオ）
+  3) Scene/Window/Explorer への拡張（次段）
 
 ## キャプチャ対象
 
@@ -36,10 +36,7 @@
 - コントローラ: `RecorderControllerSettings` + `RecorderController`
 - 段階的拡張: `scene`/`window`/`explorer` の入力切替（必要に応じてカスタム入力）
 
-## Fallback（PNG連番）
-
-- EditorApplication.update で一定間隔（1/fps）ごとに `ScreenCapture.CaptureScreenshot` を保存
-- パス: `Assets/Screenshots/recordings/<session>/frame_000001.png` 形式
+（注）フォールバックは廃止。Recorderが必須依存。
 
 ## エラー/ガード
 
@@ -53,4 +50,3 @@
 - ffmpeg によるエンコード（Rawフレーム→パイプ）
 - 複数同時録画（排他制御の見直し）
 - メタデータ付与（開始・停止・フレームドロップ統計）
-
