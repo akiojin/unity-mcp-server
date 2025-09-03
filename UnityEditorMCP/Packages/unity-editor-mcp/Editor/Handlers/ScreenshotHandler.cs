@@ -18,8 +18,8 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
-                // Parse parameters
-                string outputPath = parameters["outputPath"]?.ToString();
+                // Parse parameters (保存先は固定のため outputPath は無視)
+                string outputPath = null;
                 string captureMode = parameters["captureMode"]?.ToString() ?? "game"; // game, scene, or window
                 int width = parameters["width"]?.ToObject<int>() ?? 0;
                 int height = parameters["height"]?.ToObject<int>() ?? 0;
@@ -33,8 +33,7 @@ namespace UnityEditorMCP.Handlers
                     return new { error = "Invalid capture mode. Must be 'game', 'scene', or 'window'" };
                 }
                 
-                // Generate output path if not provided (fixed location: <project>/.unity/capture)
-                if (string.IsNullOrEmpty(outputPath))
+                // 保存先は固定: <project>/.unity/capture/screenshot_<mode>_<timestamp>.png
                 {
                     string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
                     var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
