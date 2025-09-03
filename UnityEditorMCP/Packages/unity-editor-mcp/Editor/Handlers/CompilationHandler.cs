@@ -115,10 +115,11 @@ namespace UnityEditorMCP.Handlers
                 // Only use messages from CompilationPipeline events for accuracy
                 // var compilationLogMessages = ReadCompilationLogFile();
                 
-                // Use only monitored messages from current compilation
+                // Merge monitored messages and a snapshot of current console (errors/warnings only)
                 var allMessages = new List<CompilationMessage>();
                 allMessages.AddRange(lastCompilationMessages);
-                // allMessages.AddRange(compilationLogMessages); // Disabled - causes stale errors
+                var consoleSnapshot = SnapshotConsoleMessages(maxMessages);
+                allMessages.AddRange(consoleSnapshot);
                 
                 // Remove duplicates and sort by timestamp
                 var uniqueMessages = allMessages
@@ -163,6 +164,54 @@ namespace UnityEditorMCP.Handlers
                 Debug.LogError($"[CompilationHandler] Error getting compilation state: {e.Message}");
                 return new { error = $"Failed to get compilation state: {e.Message}" };
             }
+        }
+
+        /// <summary>
+        /// Take a snapshot of current Unity console for Error/Warning logs and convert to CompilationMessage list.
+        /// Uses existing ConsoleHandler.ReadConsole to avoid duplicated reflection logic.
+        /// </summary>
+        private static List<CompilationMessage> SnapshotConsoleMessages(int maxMessages)
+        {
+            var list = new List<CompilationMessage>();
+            try
+            {
+                var p = new JObject
+                {
+                    ["count"] = Math.Max(maxMessages, 50), // capture reasonably large window
+                    ["logTypes"] = new JArray("Error", "Warning"),
+                    ["includeStackTrace"] = false,
+                    ["format"] = "detailed",
+                    ["sortOrder"] = "newest",
+                    ["groupBy"] = "none"
+                };
+
+                var resultObj = ConsoleHandler.ReadConsole(p);
+                var result = JObject.FromObject(resultObj);
+                var logs = result["logs"] as JArray;
+                if (logs != null)
+                {
+                    foreach (var l in logs)
+                    {
+                        var type = l["logType"]?.ToString();
+                        if (type != "Error" && type != "Warning") continue;
+
+                        list.Add(new CompilationMessage
+                        {
+                            type = type,
+                            message = l["message"]?.ToString() ?? string.Empty,
+                            file = l["file"]?.ToString(),
+                            line = l["line"]?.ToObject<int?>() ?? 0,
+                            column = 0,
+                            timestamp = DateTime.Now.ToString("o")
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[CompilationHandler] SnapshotConsoleMessages failed: {ex.Message}");
+            }
+            return list;
         }
 
         /// <summary>
@@ -268,21 +317,85 @@ namespace UnityEditorMCP.Handlers
         private static List<CompilationMessage> ReadUnityConsoleBuffer()
         {
             var messages = new List<CompilationMessage>();
-            
+
             try
             {
-                // Use reflection to access Unity's console window entries
-                var consoleWindowType = typeof(EditorWindow).Assembly.GetType("UnityEditor.ConsoleWindow");
-                if (consoleWindowType != null)
+                // Reflect internal LogEntries API (same approach as ConsoleHandler)
+                var editorAsm = typeof(EditorApplication).Assembly;
+                var logEntriesType = editorAsm.GetType("UnityEditor.LogEntries");
+                var logEntryType = editorAsm.GetType("UnityEditor.LogEntry");
+
+                if (logEntriesType == null || logEntryType == null)
                 {
-                    var getEntriesMethod = consoleWindowType.GetMethod("GetEntries", 
-                        System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-                    
-                    if (getEntriesMethod != null)
+                    Debug.LogWarning("[CompilationHandler] LogEntries/LogEntry types not found; skipping console read");
+                    return messages;
+                }
+
+                var startGettingEntries = logEntriesType.GetMethod("StartGettingEntries", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                var endGettingEntries = logEntriesType.GetMethod("EndGettingEntries", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                var getCount = logEntriesType.GetMethod("GetCount", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                var getEntryInternal = logEntriesType.GetMethod("GetEntryInternal", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+
+                var modeField = logEntryType.GetField("mode", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                var messageField = logEntryType.GetField("message", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                var fileField = logEntryType.GetField("file", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                var lineField = logEntryType.GetField("line", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+
+                if (startGettingEntries == null || endGettingEntries == null || getCount == null || getEntryInternal == null ||
+                    modeField == null || messageField == null || fileField == null || lineField == null)
+                {
+                    Debug.LogWarning("[CompilationHandler] Console reflection incomplete; skipping console read");
+                    return messages;
+                }
+
+                startGettingEntries.Invoke(null, null);
+                try
+                {
+                    int total = (int)getCount.Invoke(null, null);
+                    var entry = Activator.CreateInstance(logEntryType);
+
+                    // Iterate newest → oldest (stop if too many collected to avoid large allocations)
+                    for (int i = total - 1; i >= 0; i--)
                     {
-                        // This is a simplified approach - Unity's internal API may vary
-                        Debug.Log("[CompilationHandler] Attempting to read console buffer");
+                        getEntryInternal.Invoke(null, new object[] { i, entry });
+
+                        int mode = (int)modeField.GetValue(entry);
+                        string fullMessage = (string)messageField.GetValue(entry);
+                        string file = (string)fileField.GetValue(entry);
+                        int line = (int)lineField.GetValue(entry);
+
+                        if (string.IsNullOrEmpty(fullMessage))
+                            continue;
+
+                        // Classify as Error/Warning/Other based on mode bits (aligned with ConsoleHandler)
+                        bool isError = (mode & (1 << 0)) != 0   /* Error */
+                                     || (mode & (1 << 4)) != 0   /* Fatal/Exception */
+                                     || (mode & (1 << 9)) != 0   /* ScriptingError */
+                                     || (mode & (1 << 18)) != 0; /* ScriptingException */
+
+                        bool isWarning = (mode & (1 << 2)) != 0 /* Warning */
+                                       || (mode & (1 << 10)) != 0; /* ScriptingWarning */
+
+                        if (!isError && !isWarning)
+                            continue;
+
+                        // Use first line as the concise message
+                        string concise = fullMessage.Split(new[] { '\\n', '\\r' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? fullMessage;
+
+                        messages.Add(new CompilationMessage
+                        {
+                            type = isError ? "Error" : "Warning",
+                            message = concise,
+                            file = file,
+                            line = line,
+                            column = 0,
+                            timestamp = DateTime.Now.ToString("o")
+                        });
                     }
+                }
+                finally
+                {
+                    endGettingEntries.Invoke(null, null);
                 }
             }
             catch (Exception ex)
