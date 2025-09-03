@@ -123,12 +123,7 @@ export { ScriptSymbolsGetToolHandler } from './script/ScriptSymbolsGetToolHandle
 export { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHandler.js';
 export { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
 // Deprecated Unity-communication handlers removed: ScriptEditPatchToolHandler, ScriptReplacePatternToolHandler
-// Roslyn CLI (external)
-export { RoslynFindSymbolToolHandler } from './roslyn/RoslynFindSymbolToolHandler.js';
-export { RoslynFindReferencesToolHandler } from './roslyn/RoslynFindReferencesToolHandler.js';
-export { RoslynReplaceSymbolBodyToolHandler } from './roslyn/RoslynReplaceSymbolBodyToolHandler.js';
-export { RoslynInsertSymbolToolHandler } from './roslyn/RoslynInsertSymbolToolHandler.js';
-export { RoslynRemoveSymbolToolHandler } from './roslyn/RoslynRemoveSymbolToolHandler.js';
+// Roslyn CLI tool exports removed (script_*に統一)
 
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';
@@ -221,13 +216,7 @@ import { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHand
 import { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
 import { ScriptCreateClassFileToolHandler } from './script/ScriptCreateClassFileToolHandler.js';
 import { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
-// Roslyn (external CLI) handlers
-import { RoslynFindSymbolToolHandler } from './roslyn/RoslynFindSymbolToolHandler.js';
-import { RoslynFindReferencesToolHandler } from './roslyn/RoslynFindReferencesToolHandler.js';
-import { RoslynReplaceSymbolBodyToolHandler } from './roslyn/RoslynReplaceSymbolBodyToolHandler.js';
-import { RoslynInsertSymbolToolHandler } from './roslyn/RoslynInsertSymbolToolHandler.js';
-import { RoslynRemoveSymbolToolHandler } from './roslyn/RoslynRemoveSymbolToolHandler.js';
-import { RoslynCreateTypeFileToolHandler } from './roslyn/RoslynCreateTypeFileToolHandler.js';
+// Roslyn (external CLI) tool handlers removed（内部ユーティリティのみ存続）
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -332,13 +321,7 @@ const HANDLER_CLASSES = [
   ScriptRefactorRenameToolHandler,
   ScriptCreateClassFileToolHandler,
   ScriptRemoveSymbolToolHandler,
-  // Roslyn CLI handlers (external)
-  RoslynFindSymbolToolHandler,
-  RoslynFindReferencesToolHandler,
-  RoslynReplaceSymbolBodyToolHandler,
-  RoslynInsertSymbolToolHandler,
-  RoslynRemoveSymbolToolHandler,
-  RoslynCreateTypeFileToolHandler,
+  // roslyn_* ツール群は script_* に統一のため削除
   
   // Component handlers
   AddComponentToolHandler,
