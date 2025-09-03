@@ -18,7 +18,7 @@ Unity Editor MCP は、LLMクライアントからUnity Editorを自動化しま
 
 初回セットアップ（roslyn-cli のビルド）
 
-前提: .NET 8+ SDK
+前提: .NET 9 SDK
 
 - macOS/Linux: `./scripts/bootstrap-roslyn-cli.sh osx-arm64|osx-x64|linux-x64`
 - Windows: `powershell -ExecutionPolicy Bypass -File scripts/bootstrap-roslyn-cli.ps1 -Rid win-x64`
