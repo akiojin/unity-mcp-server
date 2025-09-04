@@ -96,8 +96,8 @@ namespace UnityEditorMCP.Core
                 string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
                 string userPath = string.IsNullOrEmpty(homeDir) ? null : Path.Combine(homeDir, ".unity", "config.json");
 
-                // Also search ancestors for a workspace-level .unity/config.json whose project.root resolves to this project
-                string ancestorPath = FindAncestorConfigForProject(projectRoot, maxLevels: 10);
+                // Also search ancestors (最大3階層) で .unity/config.json を探索（最初に見つかったものを採用）
+                string ancestorPath = FindAncestorConfigSimple(projectRoot, maxLevels: 3);
 
                 // Build candidates in priority order:
                 // 1) UNITY_MCP_CONFIG (explicit)
@@ -172,60 +172,25 @@ namespace UnityEditorMCP.Core
         }
 
         /// <summary>
-        /// Walk up parent directories from the Unity project root to locate a workspace-level .unity/config.json
-        /// whose project.root points back to this Unity project. Returns the first match (nearest ancestor) or null.
+        /// Walk up parent directories from the Unity project root (最大 maxLevels=3)
+        /// and return the first found <dir>/.unity/config.json. Returns null if none.
         /// </summary>
-        private static string FindAncestorConfigForProject(string projectRoot, int maxLevels = 10)
+        private static string FindAncestorConfigSimple(string projectRoot, int maxLevels = 3)
         {
             try
             {
                 string dir = projectRoot;
                 for (int i = 0; i < maxLevels; i++)
                 {
-                    var parent = Directory.GetParent(dir);
+                    var parent = (i == 0) ? new DirectoryInfo(dir) : Directory.GetParent(dir);
                     if (parent == null) break;
                     dir = parent.FullName;
                     var configPath = Path.Combine(dir, ".unity", "config.json");
-                    if (!File.Exists(configPath)) continue;
-
-                    // Validate that project.root in this config targets our projectRoot
-                    try
-                    {
-                        var txt = File.ReadAllText(configPath);
-                        var json = JObject.Parse(txt);
-                        var prToken = json.SelectToken("project.root");
-                        if (prToken != null)
-                        {
-                            string pr = prToken.ToString();
-                            if (!string.IsNullOrWhiteSpace(pr))
-                            {
-                                string prAbs = Path.IsPathRooted(pr) ? pr : Path.GetFullPath(Path.Combine(dir, pr));
-                                if (PathsEqual(prAbs, projectRoot))
-                                {
-                                    return configPath;
-                                }
-                            }
-                        }
-                    }
-                    catch { /* ignore and continue search */ }
+                    if (File.Exists(configPath)) return configPath;
                 }
             }
             catch { }
             return null;
-        }
-
-        private static bool PathsEqual(string a, string b)
-        {
-            try
-            {
-                var na = Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                var nb = Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                return string.Equals(na, nb, StringComparison.OrdinalIgnoreCase);
-            }
-            catch
-            {
-                return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
-            }
         }
 
         private static IPAddress ResolveBindAddress(string host)

@@ -83,22 +83,12 @@ namespace UnityEditorMCP.Handlers
         {
             try
             {
+                // 現在のプロジェクト直下から親方向に最大3階層まで探索
                 string dir = projectRoot;
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < 3; i++)
                 {
-                    var configPath = Path.Combine(dir, ".unity", "config.json");
-                    if (File.Exists(configPath))
-                    {
-                        var json = File.ReadAllText(configPath);
-                        var cfg = JObject.Parse(json);
-                        var pr = cfg?["project"]?["root"]?.ToString();
-                        if (!string.IsNullOrEmpty(pr))
-                        {
-                            string prAbs = pr;
-                            if (!Path.IsPathRooted(prAbs)) prAbs = Path.GetFullPath(Path.Combine(dir, prAbs));
-                            if (PathsEqual(prAbs, projectRoot)) return dir;
-                        }
-                    }
+                    var cfgPath = Path.Combine(dir, ".unity", "config.json");
+                    if (File.Exists(cfgPath)) return dir;
                     var parent = Directory.GetParent(dir);
                     if (parent == null) break;
                     dir = parent.FullName;
