@@ -84,10 +84,16 @@ jobs:
         with:
           path: dist
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Generate manifest
         id: manifest
-        shell: node
+        shell: bash
         run: |
+          node - <<'JS'
           const fs = require('fs');
           const path = require('path');
           const crypto = require('crypto');
@@ -97,12 +103,14 @@ jobs:
           const assets = {};
           const rids = fs.readdirSync('dist');
           for (const dir of rids) {
-            const files = fs.readdirSync(path.join('dist', dir));
+            const full = path.join('dist', dir);
+            if (!fs.statSync(full).isDirectory()) continue;
+            const files = fs.readdirSync(full);
             for (const f of files) {
               const m = f.match(/^roslyn-cli-([^\.]+)(\.exe)?$/);
               if (!m) continue;
               const rid = m[1];
-              const bin = path.join('dist', dir, f);
+              const bin = path.join(full, f);
               const buf = fs.readFileSync(bin);
               const sha = crypto.createHash('sha256').update(buf).digest('hex');
               const size = fs.statSync(bin).size;
@@ -112,6 +120,7 @@ jobs:
           const manifest = { version: tag.replace(/^v/, ''), assets };
           fs.writeFileSync('roslyn-cli-manifest.json', JSON.stringify(manifest, null, 2));
           console.log('generated manifest with RIDs:', Object.keys(assets).join(','));
+          JS
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
