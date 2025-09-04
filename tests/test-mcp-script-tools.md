@@ -1,6 +1,6 @@
 # MCP Script ツール テスト計画（カテゴリ: Script系）
 
-本ドキュメントは、roslyn-cli 連携の Script 系 MCP ツール（`script_*`）を「テスターが迷わず実行・判定・復元できる」ように記述した実行仕様です。結果の JSON Lines 形式は `tests/RESULTS_FORMAT.md` に準拠します。全テストは原状回復までを含め、Git へのコミットやバージョン変更は行いません。
+本ドキュメントは、roslyn-cli 連携の Script 系 MCP ツール（`script_*`）を「テスターが迷わず実行・判定・復元できる」ように記述した実行仕様です。結果のレポートは Markdown 形式とし、`tests/RESULTS_FORMAT.md` のテンプレートに準拠します。全テストは原状回復までを含め、Git へのコミットやバージョン変更は行いません。
 
 チェックリスト（Markdown）
 - [ ] S00-00: 前提チェック（.sln 必須・無ければ即終了）
@@ -29,43 +29,15 @@
 - [ ] S80-E01: 不正範囲で fail
 - [ ] S90-01: 後片付け（元状態へ完全復元）
 
-出力フォーマット要約（Script系における例）
-- ケース行（PASS 例）:
-  ```
-  {"testId":"S20-01","name":"置換適用","status":"pass","startedAt":"<ISO>","finishedAt":"<ISO>","durationMs":250,"restored":true,"retries":0,"reasonCode":null,
-   "beforeAfter":{"path":"Assets/Scripts/GigaTestFile.cs","startLine":2580,"endLine":2600,"beforeHash":"sha1:a1","afterHash":"sha1:a1","verified":true},
-   "notes":"applied=true, 整形OK","error":null}
-  ```
-- 前提未充足（S00）で即時終了する場合（BLOCKED_ENV 例）:
-  ```
-  {"testId":"S00-00","name":"前提チェック","status":"fail","startedAt":"<ISO>","finishedAt":"<ISO>","durationMs":5,"restored":true,"retries":0,"reasonCode":"BLOCKED_ENV","notes":"Missing .sln","error":"環境前提不足"}
-  ```
-  サマリ行:
-  ```
-  {"summary":{"total":0,"pass":0,"fail":1,"skip":0,"reasons":{"BLOCKED_ENV":1}},"startedAt":"<ISO>","finishedAt":"<ISO>","durationMs":5}
-  ```
+出力フォーマット要約（Script系の例: Markdown レポート）
+- チェックリスト行（PASS 例）:
+  - [x] S20-01 置換適用 — pass (250 ms) restored:true
+- 前提未充足（S00）で即時終了の場合（BLOCKED_ENV 例）:
+  - [ ] S00-00 前提チェック — blocked（Missing .sln） restored:true
+  サマリはテーブルで集計（`tests/RESULTS_FORMAT.md` 参照）。
 
 ToDo 作成（必須）
-- 実行開始前に、本ファイルのすべてのケース（S00, S10, S20, S30, S40, S50, S60, S70, S80, S90）を ToDo として登録してください。
-- 形式は JSON または Markdown いずれでも構いません（推奨: `tests/.todo/script-<timestamp>.json`）。
-- 例（JSON）:
-  ```json
-  {
-    "category": "script",
-    "todos": [
-      {"id":"S00-00","name":"前提チェック（.sln 必須）","status":"pending"},
-      {"id":"S10-01","name":"script_symbols_get で FinalTestClass 確認","status":"pending"},
-      {"id":"S20-01","name":"replace_body（TestMethod12 を 99 に）","status":"pending"},
-      {"id":"S30-01","name":"rename（TestMethod11→Renamed）","status":"pending"},
-      {"id":"S40-01","name":"remove_symbol（TestMethod12）","status":"pending"},
-      {"id":"S50-01","name":"refs_find ページング/要約","status":"pending"},
-      {"id":"S60-01","name":"要約上限（errors≤30 等）","status":"pending"},
-      {"id":"S70-01","name":"誤用ガード（パス/曖昧 namePath）","status":"pending"},
-      {"id":"S80-01","name":"部分読み取り/サイズ制限","status":"pending"},
-      {"id":"S90-01","name":"後片付け（すべて復元）","status":"pending"}
-    ]
-  }
-  ```
+- 実行開始前に、本ファイルのすべてのケース（S00, S10, S20, S30, S40, S50, S60, S70, S80, S90）を Markdown チェックリストとして ToDo 登録してください（保存先例: `tests/.todo/script-<timestamp>.md`）。
 - 例（Markdown）:
   - [ ] S00-00: 前提チェック（.sln 必須）
   - [ ] S10-01: script_symbols_get で FinalTestClass 確認
@@ -85,7 +57,7 @@ ToDo 作成（必須）
 - Git へのコミット/プッシュや `npm version` 等は行わない。
 
 判定・報告（全ケース共通）:
-- JSONL 1 行/ケースで出力（`tests/RESULTS_FORMAT.md`）。`status`（pass/fail/skip）、`durationMs`、`restored`（true必須）、`notes`、`error` を必ず含める。
+- レポートは Markdown（`tests/RESULTS_FORMAT.md`）に準拠し、チェックリスト行に `pass/fail/skip/BLOCKED_ENV` と `restored:true/false` を明記する。
 - 失敗時は `reasonCode`（例: FAIL_EXPECTATION/BLOCKED_ENV/TOOL_ERROR/TIMEOUT）と上位診断の要約（`diagnosticsTopN`）を記載してよい。
 - リトライは最大3回。実施回数は `retries` に記録。
 
@@ -102,7 +74,7 @@ S00) 実行前準備（必須・sln 非存在時は即終了）
 
 即時終了ポリシー（厳守）:
 - `.sln` が存在しない場合は、テストを続行不可とし、その時点で終了する。以降のケースは一切実行しない。
-- この場合、JSONL には 1 行の前提エラー（`status=fail`, `reasonCode=BLOCKED_ENV`, `notes="Missing .sln (Unity not running/solution not generated)"`）と、サマリ JSON（`total=0, fail=1` 等）を出力する。
+- この場合、Markdown レポートのチェックリストに `S00-00: 前提チェック — blocked（Missing .sln）` を1行追記し、サマリテーブルで `BLOCKED_ENV` を 1 にする。
 
 ## 前提・共通ルール
 

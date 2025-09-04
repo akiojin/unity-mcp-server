@@ -10,8 +10,8 @@ Markdown 例（状態は都度書き戻し）
 ステータス定義
 - `pending`: 未着手
 - `in_progress`: 実行中（同時に 1 件のみ推奨）
-- `completed`: 実行完了（JSONL にも出力済み）
-- `blocked`: 実行不能（`reasonCode` を JSONL のケース行に出力）
+- `completed`: 実行完了（レポートにも反映済み）
+- `blocked`: 実行不能（`reasonCode` をレポートにも記載）
 
 運用ルール
 - 各ケース開始時に `in_progress`、終了時に `completed`（または `blocked`）。状態変更のたびにファイルへ即時書き戻し（バッチ更新不可）。
