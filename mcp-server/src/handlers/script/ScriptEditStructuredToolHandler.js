@@ -177,7 +177,8 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
                 }
                 return obj;
             });
-            out.errorCount = res.errors.length;
+            out.errorCount = trimmed.length; // summarized count (<= MAX_ERRORS)
+            out.totalErrors = res.errors.length; // raw count for reference
             out.errors = trimmed;
         }
 

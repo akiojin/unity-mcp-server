@@ -59,7 +59,8 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
                 } else { o.message = String(e).slice(0, MAX_MSG_LEN); }
                 return o;
             });
-            out.errorCount = res.errors.length;
+            out.errorCount = trimmed.length;
+            out.totalErrors = res.errors.length;
             out.errors = trimmed;
         }
         // workspace情報は返さない（厳格: .sln必須のため）

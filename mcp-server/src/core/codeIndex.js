@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import Database from 'better-sqlite3';
 import { ProjectInfoProvider } from './projectInfo.js';
 
 export class CodeIndex {
@@ -9,21 +8,41 @@ export class CodeIndex {
     this.projectInfo = new ProjectInfoProvider(unityConnection);
     this.db = null;
     this.dbPath = null;
+    this.disabled = false; // set true if better-sqlite3 is unavailable
+    this._Database = null;
+  }
+
+  async _ensureDriver() {
+    if (this.disabled) return false;
+    if (this._Database) return true;
+    try {
+      // Dynamic import to avoid hard failure when native binding is missing
+      const mod = await import('better-sqlite3');
+      this._Database = mod.default || mod;
+      return true;
+    } catch (e) {
+      // Mark as disabled and operate in fallback (index unavailable)
+      this.disabled = true;
+      return false;
+    }
   }
 
   async open() {
     if (this.db) return this.db;
+    const ok = await this._ensureDriver();
+    if (!ok) return null; // index disabled
     const info = await this.projectInfo.get();
     const dir = info.codeIndexRoot;
     fs.mkdirSync(dir, { recursive: true });
     const dbPath = path.join(dir, 'code-index.db');
     this.dbPath = dbPath;
-    this.db = new Database(dbPath);
+    this.db = new this._Database(dbPath);
     this._initSchema();
     return this.db;
   }
 
   _initSchema() {
+    if (!this.db) return;
     const db = this.db;
     db.exec(`
       PRAGMA journal_mode=WAL;
@@ -47,14 +66,15 @@ export class CodeIndex {
   }
 
   async isReady() {
-    await this.open();
-    const row = this.db.prepare('SELECT COUNT(*) AS c FROM symbols').get();
+    const db = await this.open();
+    if (!db) return false;
+    const row = db.prepare('SELECT COUNT(*) AS c FROM symbols').get();
     return (row?.c || 0) > 0;
   }
 
   async clearAndLoad(symbols) {
-    await this.open();
-    const db = this.db;
+    const db = await this.open();
+    if (!db) throw new Error('CodeIndex is unavailable (better-sqlite3 not installed)');
     const insert = db.prepare('INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)');
     const tx = db.transaction((rows) => {
       db.exec('DELETE FROM symbols');
@@ -68,7 +88,8 @@ export class CodeIndex {
   }
 
   async querySymbols({ name, kind, scope = 'all', exact = false }) {
-    await this.open();
+    const db = await this.open();
+    if (!db) return [];
     let sql = 'SELECT path,name,kind,container,namespace,line,column FROM symbols WHERE 1=1';
     const params = {};
     if (name) {
@@ -76,7 +97,7 @@ export class CodeIndex {
       else { sql += ' AND name LIKE @name'; params.name = `%${name}%`; }
     }
     if (kind) { sql += ' AND kind = @kind'; params.kind = kind; }
-    const rows = this.db.prepare(sql).all(params);
+    const rows = db.prepare(sql).all(params);
     // Apply path-based scope filter in JS (simpler than CASE in SQL)
     const filtered = rows.filter(r => {
       const p = String(r.path || '').replace(/\\\\/g, '/');
@@ -89,9 +110,10 @@ export class CodeIndex {
   }
 
   async getStats() {
-    await this.open();
-    const total = this.db.prepare('SELECT COUNT(*) AS c FROM symbols').get().c || 0;
-    const last = this.db.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
+    const db = await this.open();
+    if (!db) return { total: 0, lastIndexedAt: null };
+    const total = db.prepare('SELECT COUNT(*) AS c FROM symbols').get().c || 0;
+    const last = db.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
     return { total, lastIndexedAt: last };
   }
 }
