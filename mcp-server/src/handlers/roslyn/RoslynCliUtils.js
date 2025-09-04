@@ -21,7 +21,6 @@ export class RoslynCliUtils {
     const exeName = process.platform === 'win32' ? 'roslyn-cli.exe' : 'roslyn-cli';
     const pkgCandidates = [
       path.join(pkgRoot, 'roslyn-cli', rid, exeName),
-      path.join(pkgRoot, '.tools', 'roslyn-cli', rid, exeName), // legacy fallback under package
       path.join(pkgRoot, '.unity', 'tools', 'roslyn-cli', rid, exeName),
     ];
     for (const p of pkgCandidates) {
@@ -34,12 +33,10 @@ export class RoslynCliUtils {
     // 2) リポジトリ開発環境（このリポジトリ内）
     const repoRoot = this._resolveRepoRoot() || WORKSPACE_ROOT || process.cwd();
     const localPreferred = path.resolve(repoRoot, '.unity', 'tools', 'roslyn-cli', rid, exeName);
-    const localLegacy = path.resolve(repoRoot, '.tools', 'roslyn-cli', rid, exeName);
     if (fs.existsSync(localPreferred)) {
       logger.info(`[roslyn-cli] using workspace binary: ${localPreferred}`);
       return localPreferred;
     }
-    if (fs.existsSync(localLegacy)) return localLegacy;
 
     // Auto-build exactly once per process if missing (bootstrap behavior)
     if (!AUTO_BUILD_ATTEMPTED) {
@@ -57,7 +54,6 @@ export class RoslynCliUtils {
     }
 
     if (fs.existsSync(localPreferred)) return localPreferred;
-    if (fs.existsSync(localLegacy)) return localLegacy;
 
     // Always auto-download from GitHub Releases into WORKSPACE_ROOT when missing
     try {
@@ -68,7 +64,7 @@ export class RoslynCliUtils {
     }
 
     // Not found after (optional) auto-build — return explicit guidance
-    const expected = (pkgCandidates.find(p => p) || localPreferred || localLegacy).replace(/\\/g, '/');
+    const expected = (pkgCandidates.find(p => p) || localPreferred).replace(/\\/g, '/');
     const hint = process.platform === 'win32'
       ? 'powershell -ExecutionPolicy Bypass -File scripts/bootstrap-roslyn-cli.ps1 -Rid win-x64'
       : `./scripts/bootstrap-roslyn-cli.sh ${rid}`;
