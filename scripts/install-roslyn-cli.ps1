@@ -47,7 +47,7 @@ function Get-FileSha256([string]$Path) {
 }
 
 if (-not $Rid) { $Rid = Detect-Rid }
-if (-not $Version) { $Version = Detect-VersionFromPkg }
+# Always use latest when -Version is not provided
 
 $exeName = if ($Rid -eq 'win-x64') { 'roslyn-cli.exe' } else { 'roslyn-cli' }
 $tagUrl = if ($Version) { "https://api.github.com/repos/akiojin/unity-editor-mcp/releases/tags/roslyn-cli-v$Version" } else { 'https://api.github.com/repos/akiojin/unity-editor-mcp/releases/latest' }

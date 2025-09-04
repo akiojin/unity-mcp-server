@@ -1,6 +1,3 @@
-*.local.json
-.serena/cache/
-
 # Unity generated
 [Ll]ibrary/
 [Tt]emp/
@@ -92,6 +89,9 @@ tests/.todo/
 dist/
 build/
 CLAUDE.local.md
+
 unity-mcp-reference-project/
-.tools/
 roslyn-cli/bin/
+.unity/tools/
+.tools/
+*.local.json

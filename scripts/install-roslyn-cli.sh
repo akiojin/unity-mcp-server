@@ -99,7 +99,7 @@ confirm() {
 
 main() {
   if [[ -z "$RID" ]]; then RID="$(detect_rid)"; fi
-  if [[ -z "$VERSION" ]]; then VERSION="$(detect_version_from_pkg)"; fi
+  # Always use latest when --version is not provided
 
   local tag_url asset_name exe_name
   exe_name="roslyn-cli"

@@ -186,6 +186,18 @@ async function main() {
       logger.error('Initial Unity connection failed:', error.message);
       logger.info('Unity connection will retry automatically');
     }
+
+    // Best-effort: pre-provision roslyn-cli binary at startup (non-blocking)
+    ;(async () => {
+      try {
+        const { RoslynCliUtils } = await import('../handlers/roslyn/RoslynCliUtils.js');
+        const roslyn = new RoslynCliUtils(unityConnection);
+        const cliPath = await roslyn.getCliPath();
+        logger.info(`[startup] roslyn-cli ready at: ${cliPath}`);
+      } catch (e) {
+        logger.warn(`[startup] roslyn-cli not ready: ${e.message}`);
+      }
+    })();
     
     // Handle shutdown
     process.on('SIGINT', async () => {

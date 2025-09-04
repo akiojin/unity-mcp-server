@@ -2597,7 +2597,7 @@ namespace GigaTestNamespace
             UnityEngine.Debug.Log($"Processing batch!");
         }
         private void LLMTEST_TestMethod12() { UnityEngine.Debug.Log("LLMTEST 12"); }
-        private int LLMTEST_ReturnInt() { return 0; }
+        private int LLMTEST_ReturnInt() { return 99; }
         private void LLMTEST_RenameMe() { }
         private void LLMTEST_RemoveMe() { }
     }

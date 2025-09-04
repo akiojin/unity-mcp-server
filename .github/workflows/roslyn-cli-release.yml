@@ -1,0 +1,117 @@
+name: roslyn-cli release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: build ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            ext: ''
+          - os: ubuntu-latest
+            rid: linux-arm64
+            ext: ''
+          - os: macos-latest
+            rid: osx-x64
+            ext: ''
+          - os: macos-latest
+            rid: osx-arm64
+            ext: ''
+          - os: windows-latest
+            rid: win-x64
+            ext: '.exe'
+          - os: windows-latest
+            rid: win-arm64
+            ext: '.exe'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Publish roslyn-cli (self-contained single-file)
+        shell: bash
+        run: |
+          dotnet publish roslyn-cli/roslyn-cli.csproj \
+            -c Release -r "${{ matrix.rid }}" \
+            --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
+            -o out/${{ matrix.rid }}
+          BIN="out/${{ matrix.rid }}/roslyn-cli${{ matrix.ext }}"
+          ASSET="roslyn-cli-${{ matrix.rid }}${{ matrix.ext }}"
+          cp "$BIN" "$ASSET"
+          if [ "${{ runner.os }}" != "Windows" ]; then chmod +x "$ASSET"; fi
+          shasum -a 256 "$ASSET" | awk '{print $1}' > "${ASSET}.sha256"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: asset-${{ matrix.rid }}
+          path: |
+            roslyn-cli-${{ matrix.rid }}${{ matrix.ext }}
+            roslyn-cli-${{ matrix.rid }}${{ matrix.ext }}.sha256
+
+  release:
+    name: publish release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Generate manifest
+        id: manifest
+        shell: node
+        run: |
+          const fs = require('fs');
+          const path = require('path');
+          const tag = process.env.GITHUB_REF_NAME; // vX.Y.Z
+          const repo = process.env.GITHUB_REPOSITORY; // owner/name
+          const base = `https://github.com/${repo}/releases/download/${tag}`;
+          const assets = {};
+          const rids = fs.readdirSync('dist');
+          for (const dir of rids) {
+            const files = fs.readdirSync(path.join('dist', dir));
+            for (const f of files) {
+              const m = f.match(/^roslyn-cli-([^\.]+)(\.exe)?$/);
+              if (!m) continue;
+              const rid = m[1];
+              const bin = path.join('dist', dir, f);
+              const sha = fs.readFileSync(path.join('dist', dir, f + '.sha256'), 'utf8').trim();
+              const size = fs.statSync(bin).size;
+              assets[rid] = { url: `${base}/${f}`, sha256: sha, size };
+            }
+          }
+          const manifest = { version: tag.replace(/^v/, ''), assets };
+          fs.writeFileSync('roslyn-cli-manifest.json', JSON.stringify(manifest, null, 2));
+          console.log('generated manifest with RIDs:', Object.keys(assets).join(','));
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/**/roslyn-cli-*
+            roslyn-cli-manifest.json
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
