@@ -149,12 +149,35 @@ export class RoslynCliUtils {
     const res = await fetch(url, { headers: { 'User-Agent': 'unity-editor-mcp' } });
     if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
     const file = fs.createWriteStream(dest);
-    await new Promise((resolve, reject) => {
-      res.body.pipe(file);
-      res.body.on('error', reject);
-      file.on('finish', resolve);
-      file.on('error', reject);
-    });
+    const body = res.body;
+    if (!body) throw new Error('empty response body');
+
+    // Node fetch returns Web ReadableStream; older code expected Node stream.
+    // Handle both: prefer piping via Readable.fromWeb, fallback to arrayBuffer.
+    const isNodeStream = typeof body.pipe === 'function';
+    if (isNodeStream) {
+      await new Promise((resolve, reject) => {
+        body.pipe(file);
+        body.on('error', reject);
+        file.on('finish', resolve);
+        file.on('error', reject);
+      });
+      return;
+    }
+    try {
+      const { Readable } = await import('node:stream');
+      const nodeStream = Readable.fromWeb(body);
+      await new Promise((resolve, reject) => {
+        nodeStream.pipe(file);
+        nodeStream.on('error', reject);
+        file.on('finish', resolve);
+        file.on('error', reject);
+      });
+    } catch (e) {
+      // Fallback: buffer whole response then write.
+      const ab = await res.arrayBuffer();
+      await fs.promises.writeFile(dest, Buffer.from(ab));
+    }
   }
 
   async _sha256File(file) {
