@@ -80,9 +80,10 @@ export class RoslynCliUtils {
   }
 
   _detectRid() {
-    if (process.platform === 'win32') return 'win-x64';
+    if (process.platform === 'win32') return process.arch === 'arm64' ? 'win-arm64' : 'win-x64';
     if (process.platform === 'darwin') return process.arch === 'arm64' ? 'osx-arm64' : 'osx-x64';
-    return 'linux-x64';
+    // linux
+    return process.arch === 'arm64' ? 'linux-arm64' : 'linux-x64';
   }
 
   _spawnOnce(cmd, args, opts = {}) {

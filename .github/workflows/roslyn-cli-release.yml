@@ -53,7 +53,6 @@ jobs:
           ASSET="roslyn-cli-${{ matrix.rid }}${{ matrix.ext }}"
           cp "$BIN" "$ASSET"
           if [ "${{ runner.os }}" != "Windows" ]; then chmod +x "$ASSET"; fi
-          shasum -a 256 "$ASSET" | awk '{print $1}' > "${ASSET}.sha256"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -83,6 +82,7 @@ jobs:
         run: |
           const fs = require('fs');
           const path = require('path');
+          const crypto = require('crypto');
           const tag = process.env.GITHUB_REF_NAME; // vX.Y.Z
           const repo = process.env.GITHUB_REPOSITORY; // owner/name
           const base = `https://github.com/${repo}/releases/download/${tag}`;
@@ -95,7 +95,8 @@ jobs:
               if (!m) continue;
               const rid = m[1];
               const bin = path.join('dist', dir, f);
-              const sha = fs.readFileSync(path.join('dist', dir, f + '.sha256'), 'utf8').trim();
+              const buf = fs.readFileSync(bin);
+              const sha = crypto.createHash('sha256').update(buf).digest('hex');
               const size = fs.statSync(bin).size;
               assets[rid] = { url: `${base}/${f}`, sha256: sha, size };
             }
@@ -114,4 +115,3 @@ jobs:
           prerelease: ${{ contains(github.ref_name, '-') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

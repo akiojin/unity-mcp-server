@@ -1,10 +1,10 @@
 <Project>
   <PropertyGroup>
     <!-- このVersionは mcp-server の npm version で同期更新されます -->
-    <Version>0.0.0</Version>
-    <AssemblyVersion>0.0.0.0</AssemblyVersion>
-    <FileVersion>0.0.0.0</FileVersion>
-    <AssemblyInformationalVersion>0.0.0</AssemblyInformationalVersion>
+    <Version>2.13.3</Version>
+    <AssemblyVersion>2.13.3.0</AssemblyVersion>
+    <FileVersion>2.13.3.0</FileVersion>
+    <AssemblyInformationalVersion>2.13.3</AssemblyInformationalVersion>
   </PropertyGroup>
 </Project>
 
