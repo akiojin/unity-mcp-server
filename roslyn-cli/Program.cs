@@ -781,6 +781,8 @@ sealed class App
             }
 
             var newDoc = doc.WithSyntaxRoot(newRoot);
+            // Format document to keep indentation/trivia consistent after removal
+            newDoc = await Formatter.FormatAsync(newDoc);
             var newSolution = newDoc.Project.Solution;
 
             // Optionally remove file if becomes empty or whitespace
@@ -812,14 +814,15 @@ sealed class App
                 errors.AddRange(diags);
             }
 
-            if ((errors.Count > 0 || (failOnRefs && references.Count > 0)) && apply)
-            {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors, references }, JsonOpts));
-                return 0;
-            }
+            // Do not block apply solely due to diagnostics; block only when failOnReferences=true and references exist
             if (!apply)
             {
                 Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, references }, JsonOpts));
+                return 0;
+            }
+            if (failOnRefs && references.Count > 0)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors, references }, JsonOpts));
                 return 0;
             }
 
