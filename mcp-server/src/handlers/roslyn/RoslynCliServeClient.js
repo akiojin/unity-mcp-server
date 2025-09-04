@@ -13,7 +13,15 @@ const roslynUtils = new RoslynCliUtils(null);
 async function startServer() {
   // Use built self-contained binary (auto-build once if missing)
   const cli = await roslynUtils.getCliPath();
-  const proc = spawn(cli, ['serve'], { stdio: ['pipe', 'pipe', 'pipe'] });
+  // Strict: require solution at serve start
+  let solArgs = [];
+  try {
+    solArgs = await roslynUtils.getSolutionOrProjectArgs(); // e.g., ['--solution', '/abs/path/UnityProject.sln']
+  } catch (e) {
+    logger.error(`[roslyn-cli serve] solution resolve failed: ${e.message}`);
+    throw e;
+  }
+  const proc = spawn(cli, ['serve', ...solArgs], { stdio: ['pipe', 'pipe', 'pipe'] });
   proc.on('error', (e) => logger.error(`[roslyn-cli serve] error: ${e.message}`));
   proc.stderr.on('data', d => logger.debug(`[roslyn-cli serve] ${d.toString().trim()}`));
   let buffer = '';

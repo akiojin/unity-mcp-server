@@ -44,7 +44,7 @@ sealed class App
         var rest = args.Skip(1).ToArray();
         return cmd switch
         {
-            "serve" => await ServeAsync(),
+            "serve" => await ServeAsync(rest),
             "index-summary" => await IndexSummaryAsync(rest),
             "workspace-info" => await WorkspaceInfoAsync(),
             "scan-symbols" => await ScanSymbolsAsync(rest),
@@ -89,9 +89,27 @@ sealed class App
         return 1;
     }
 
-    private async Task<int> ServeAsync()
+    private async Task<int> ServeAsync(string[] args)
     {
-        Console.Error.WriteLine("[roslyn-cli] serve mode started (stdin JSON per line)");
+        try
+        {
+            // Require solution or project at serve start (strict mode)
+            var (sln, proj) = ParseSolutionOrProject(args);
+            var key = !string.IsNullOrEmpty(sln) ? sln : proj;
+            if (string.IsNullOrEmpty(key))
+            {
+                return Fail(new { error = "serve_requires_solution_or_project", message = "Use: serve --solution <sln> or --project <csproj>" });
+            }
+            // Open once and cache
+            await OpenSolutionOrProjectAsync(args);
+            Console.Error.WriteLine($"[roslyn-cli] serve mode started with {(string.IsNullOrEmpty(sln) ? "project" : "solution")}: {key}");
+        }
+        catch (Exception ex)
+        {
+            return Fail(new { error = "serve_open_failed", message = ex.Message });
+        }
+
+        Console.Error.WriteLine("[roslyn-cli] serve mode ready (stdin JSON per line)");
         string? line;
         while ((line = await Console.In.ReadLineAsync()) != null)
         {
