@@ -20,20 +20,16 @@ jobs:
         include:
           - os: ubuntu-latest
             rid: linux-x64
-            arch: x64
             ext: ''
           # arm64 Linux は後続で追加（まずは安定化）
           - os: macos-latest
             rid: osx-x64
-            arch: x64
             ext: ''
           - os: macos-latest
             rid: osx-arm64
-            arch: arm64
             ext: ''
           - os: windows-latest
             rid: win-x64
-            arch: x64
             ext: '.exe'
 
     steps:
@@ -59,7 +55,6 @@ jobs:
         run: |
           dotnet publish roslyn-cli/roslyn-cli.csproj \
             -c Release -r "${{ matrix.rid }}" \
-            --arch "${{ matrix.arch }}" \
             --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
             -o out/${{ matrix.rid }}
           BIN="out/${{ matrix.rid }}/roslyn-cli${{ matrix.ext }}"
