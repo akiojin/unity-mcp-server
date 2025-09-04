@@ -5,7 +5,7 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_refactor_rename',
-            'Refactor: rename a symbol across the project using external Roslyn CLI（Unity無通信）。必須: relative, namePath, newName。まずプレビューで診断確認後に適用。',
+            'Refactor: rename a symbol across the project using external Roslyn CLI（Unity無通信）。必須: relative, namePath, newName。まずプレビューで診断確認後に適用。応答はLLM向けに要約され、errorsは最大30件・messageは200文字、preview/diff等は1000文字にトリムされます。',
             {
                 type: 'object',
                 properties: {
@@ -34,7 +34,43 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
         args.push('--name-path', String(namePath));
         args.push('--new-name', String(newName));
         if (!preview) args.push('--apply', 'true');
-        return await this.roslyn.runCli(args);
+        const res = await this.roslyn.runCli(args);
+        return this._summarizeResult(res);
+    }
+
+    _summarizeResult(res) {
+        if (!res || typeof res !== 'object') return res;
+        const MAX_ERRORS = 30;
+        const MAX_MSG_LEN = 200;
+        const MAX_TEXT_LEN = 1000;
+        const out = {};
+        if ('id' in res) out.id = res.id;
+        if ('success' in res) out.success = !!res.success;
+        if ('applied' in res) out.applied = !!res.applied;
+        if (Array.isArray(res.errors)) {
+            const trimmed = res.errors.slice(0, MAX_ERRORS).map(e => {
+                const o = {};
+                if (e && typeof e === 'object') {
+                    if ('id' in e) o.id = e.id;
+                    if ('message' in e) o.message = String(e.message).slice(0, MAX_MSG_LEN);
+                    if ('file' in e) o.file = String(e.file).slice(0, 260);
+                    if ('line' in e) o.line = e.line;
+                    if ('column' in e) o.column = e.column;
+                } else { o.message = String(e).slice(0, MAX_MSG_LEN); }
+                return o;
+            });
+            out.errorCount = res.errors.length;
+            out.errors = trimmed;
+        }
+        for (const k of ['preview','diff','text','content']) {
+            if (typeof res[k] === 'string' && res[k].length > 0) {
+                out[k] = res[k].slice(0, MAX_TEXT_LEN);
+                if (res[k].length > MAX_TEXT_LEN) out[`${k}Truncated`] = true;
+            }
+        }
+        for (const k of ['operation','path','relative','symbolName']) {
+            if (res[k] !== undefined) out[k] = res[k];
+        }
+        return Object.keys(out).length ? out : res;
     }
 }
-
