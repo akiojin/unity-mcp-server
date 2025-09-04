@@ -36,7 +36,7 @@
 - 出力フォーマット: すべてのテスト結果は Markdown。仕様とテンプレートは `tests/RESULTS_FORMAT.md` を参照。
 - 出力先: 1 ラン＝1 ファイル運用。`tests/.reports/run-<YYYYMMDD_HHmmss>.md` に集約（Git管理外、.gitignore 済）。任意で `tests/.reports/latest.md` を上書き更新。
 - ラン初期化: 最初に Run ID を採番し、パスを `tests/.reports/.current-run` に保存。以降の全カテゴリはこのパスへ追記（別ファイル作成禁止）。
-- ToDo運用: ファイル出力は不要。エージェント（LLM）の ToDo/プラン機能（update_plan 等）に、各カテゴリの全テスト項目を登録し、実行中は `in_progress`、完了時に `completed` へ「都度」更新する。必要であればローカルのMarkdownにミラーしてもよいが任意。
+- ToDo運用: ファイル出力は不要。エージェント（LLM）の ToDo/プラン機能（update_plan 等）に、各カテゴリの全テスト項目を登録し、実行中は `in_progress`、完了時に `completed` へ「都度」更新する。
 - 原状回復: 各ケース終了時に必ず原状復帰（チェックリスト行に `restored:true` を明記）。
 - コミット禁止: テスト結果/ToDo/キャプチャは成果物扱いで Git には含めない（`.unity/capture/`, `tests/.reports/`, `tests/.todo/` は .gitignore 済）。
 - 参照場所の要約:
