@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# デバッグ: 環境変数で有効化（例: PUBLISH_DEBUG=1）
+[ "${PUBLISH_DEBUG:-0}" = "1" ] && set -x
 
 # publish.sh <major|minor|patch>
 # 一括処理: 版上げ → バージョン同期（C#/UPM）→ コミット → タグ作成 → プッシュ
@@ -14,6 +16,7 @@ LEVEL=${1-}
 [[ "$LEVEL" =~ ^(major|minor|patch)$ ]] || usage
 
 ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
+REMOTE=${REMOTE:-origin}
 cd "$ROOT_DIR"
 
 if ! command -v node >/dev/null 2>&1; then
@@ -50,12 +53,35 @@ else
   git tag -a "$TAG" -m "$TAG"
 fi
 
-# プッシュ（本体＋タグ）
+# リモート接続確認
+if ! git ls-remote --exit-code "$REMOTE" >/dev/null 2>&1; then
+  echo "[error] remote not accessible: $REMOTE" >&2
+  exit 2
+fi
+
+# プッシュ（本体＋タグ）: follow-tags で関連タグも送信、その後明示的にタグ送信
 echo "[step] push commits and tag"
-git push
-git push origin "$TAG"
+git push --follow-tags "$REMOTE" || echo "[warn] git push --follow-tags failed; will try explicit tag push"
+git push "$REMOTE" "$TAG" || true
+
+# タグがリモートに存在するか検証し、必要に応じて再試行
+echo "[step] verify tag on remote: $TAG"
+if git ls-remote --tags "$REMOTE" | awk '{print $2}' | grep -qx "refs/tags/$TAG"; then
+  echo "[ok] tag exists on remote: $TAG"
+else
+  echo "[warn] tag not found on remote; retrying explicit push"
+  for i in 1 2 3; do
+    sleep $((i*2))
+    git push "$REMOTE" "$TAG" && break || true
+  done
+  if git ls-remote --tags "$REMOTE" | awk '{print $2}' | grep -qx "refs/tags/$TAG"; then
+    echo "[ok] tag exists on remote after retry: $TAG"
+  else
+    echo "[error] failed to push tag $TAG to $REMOTE" >&2
+    exit 3
+  fi
+fi
 
 echo "[done] v$NEW_VER pushed. Check GitHub Actions: Release: roslyn-cli / Publish: mcp-server (npm)"
 echo "- Release URL (runs): https://github.com/akiojin/unity-editor-mcp/actions/workflows/roslyn-cli-release.yml"
 echo "- Publish URL (runs): https://github.com/akiojin/unity-editor-mcp/actions/workflows/mcp-server-publish.yml"
-
