@@ -25,14 +25,20 @@ export class RoslynCliUtils {
       path.join(pkgRoot, '.unity', 'tools', 'roslyn-cli', rid, exeName),
     ];
     for (const p of pkgCandidates) {
-      if (p && fs.existsSync(p)) return p;
+      if (p && fs.existsSync(p)) {
+        logger.info(`[roslyn-cli] using packaged binary: ${p}`);
+        return p;
+      }
     }
 
     // 2) リポジトリ開発環境（このリポジトリ内）
     const repoRoot = this._resolveRepoRoot() || WORKSPACE_ROOT || process.cwd();
     const localPreferred = path.resolve(repoRoot, '.unity', 'tools', 'roslyn-cli', rid, exeName);
     const localLegacy = path.resolve(repoRoot, '.tools', 'roslyn-cli', rid, exeName);
-    if (fs.existsSync(localPreferred)) return localPreferred;
+    if (fs.existsSync(localPreferred)) {
+      logger.info(`[roslyn-cli] using workspace binary: ${localPreferred}`);
+      return localPreferred;
+    }
     if (fs.existsSync(localLegacy)) return localLegacy;
 
     // Auto-build exactly once per process if missing (bootstrap behavior)
@@ -142,81 +148,48 @@ export class RoslynCliUtils {
   async _autoDownloadCli(rid, workspaceRoot) {
     const owner = 'akiojin';
     const repo = 'unity-editor-mcp';
-    const version = await this._getPackageVersion();
-    const tag = version ? `roslyn-cli-v${version}` : 'latest';
-
-    // Try specific tag first; if missing (404), fall back to latest
-    let release = null;
-    const tagUrl = `https://api.github.com/repos/${owner}/${repo}/releases/tags/${encodeURIComponent(tag)}`;
-    try {
-      release = await this._fetchJson(tag === 'latest'
-        ? `https://api.github.com/repos/${owner}/${repo}/releases/latest`
-        : tagUrl);
-    } catch (e) {
-      if (String(e.message || '').includes('HTTP 404') || String(e.message || '').includes('Not Found')) {
-        release = await this._fetchJson(`https://api.github.com/repos/${owner}/${repo}/releases/latest`);
-      } else {
-        throw e;
-      }
-    }
-
-    if (!release || !Array.isArray(release.assets)) throw new Error('release info not found');
-    // Prefer plain binary assets, fall back to archive if present
     const exeName = process.platform === 'win32' ? 'roslyn-cli.exe' : 'roslyn-cli';
-    const matchers = [
-      // exact filename patterns we publish
-      new RegExp(`^roslyn-cli-${rid}\\.exe$`, 'i'),
-      new RegExp(`^roslyn-cli-${rid}$`, 'i'),
-      // more relaxed contains matcher
-      new RegExp(`roslyn-cli.*${rid}.*`, 'i'),
-    ];
-    const asset = release.assets.find(a => matchers.some(rx => rx.test(a.name)));
-    if (!asset) throw new Error(`no asset for RID ${rid} under tag ${release.tag_name}`);
 
-    // optional checksums
-    let checksums = null;
-    const sumAsset = release.assets.find(a => /checksums?/i.test(a.name));
-    if (sumAsset) {
-      try { checksums = await this._fetchText(sumAsset.browser_download_url); } catch {}
-    }
+    // 1) バージョンは mcp-server/package.json の version と一致させる（厳密固定）
+    const version = await this._getMcpServerVersion();
+    if (!version) throw new Error('mcp-server version not found; cannot resolve roslyn-cli tag');
+    const tag = `v${version}`;
 
-    // Prefer workspace/.unity/tools path for auto-download
+    // 2) マニフェスト（rid→url/sha256/size）を取得
+    const manifestUrl = `https://github.com/${owner}/${repo}/releases/download/${tag}/roslyn-cli-manifest.json`;
+    const manifest = await this._fetchJson(manifestUrl);
+    if (!manifest?.assets) throw new Error(`manifest not found for tag ${tag}`);
+    const ridEntry = manifest.assets[rid];
+    if (!ridEntry?.url || !ridEntry?.sha256) throw new Error(`manifest has no entry for RID ${rid} under tag ${tag}`);
+
+    // 3) ダウンロード→検証→配置（原子置換）
     const destDir = path.resolve(workspaceRoot, '.unity', 'tools', 'roslyn-cli', rid);
     fs.mkdirSync(destDir, { recursive: true });
     const dest = path.join(destDir, exeName);
     const tmp = dest + '.download';
-    await this._downloadTo(asset.browser_download_url, tmp);
+    await this._downloadTo(ridEntry.url, tmp);
 
-    // verify checksum if available
-    if (checksums) {
-      const expected = this._extractChecksum(checksums, asset.name);
-      if (expected) {
-        const actual = await this._sha256File(tmp);
-        if (expected.toLowerCase() !== actual.toLowerCase()) {
-          try { fs.unlinkSync(tmp); } catch {}
-          throw new Error(`checksum mismatch for ${asset.name}`);
-        }
-      }
+    const actual = await this._sha256File(tmp);
+    if (ridEntry.sha256.toLowerCase() !== actual.toLowerCase()) {
+      try { fs.unlinkSync(tmp); } catch {}
+      throw new Error(`checksum mismatch for ${path.basename(ridEntry.url)}`);
     }
 
     fs.renameSync(tmp, dest);
     try { if (process.platform !== 'win32') fs.chmodSync(dest, 0o755); } catch {}
-    logger.info(`[roslyn-cli] downloaded ${asset.name} -> ${dest}`);
+    logger.info(`[roslyn-cli] downloaded ${path.basename(ridEntry.url)} -> ${dest}`);
     return dest;
   }
 
-  async _getPackageVersion() {
-    // Prefer the npx wrapper version (tools/roslyn-cli-npx), which tracks roslyn-cli releases
+  async _getMcpServerVersion() {
     try {
       const root = this._resolvePackageRoot();
-      const npxPkg = path.resolve(root, '../tools/roslyn-cli-npx/package.json');
-      if (fs.existsSync(npxPkg)) {
-        const raw = fs.readFileSync(npxPkg, 'utf8');
-        const json = JSON.parse(raw);
-        if (json?.version) return json.version;
-      }
-    } catch {}
-    return null; // force fallback to latest
+      const pkg = path.resolve(root, 'package.json');
+      if (!fs.existsSync(pkg)) return null;
+      const raw = fs.readFileSync(pkg, 'utf8');
+      const json = JSON.parse(raw);
+      return json?.version || null;
+    } catch { return null; }
   }
 
   async _fetchJson(url) {
@@ -240,6 +213,17 @@ export class RoslynCliUtils {
       res.body.on('error', reject);
       file.on('finish', resolve);
       file.on('error', reject);
+    });
+  }
+
+  async _sha256File(file) {
+    const { createHash } = await import('crypto');
+    return new Promise((resolve, reject) => {
+      const hash = createHash('sha256');
+      const stream = fs.createReadStream(file);
+      stream.on('data', d => hash.update(d));
+      stream.on('error', reject);
+      stream.on('end', () => resolve(hash.digest('hex')));
     });
   }
 
