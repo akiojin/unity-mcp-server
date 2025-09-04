@@ -181,6 +181,15 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
             out.errors = trimmed;
         }
 
+        // Propagate workspace info if present (which .sln/.csproj is open)
+        if (res.workspace && typeof res.workspace === 'object') {
+            out.workspace = {
+                key: res.workspace.key,
+                kind: res.workspace.kind,
+                rootDir: res.workspace.rootDir
+            };
+        }
+
         // Generic handling for any large text properties commonly returned by tools
         for (const key of ['preview', 'diff', 'text', 'content']) {
             if (typeof res[key] === 'string' && res[key].length > 0) {
