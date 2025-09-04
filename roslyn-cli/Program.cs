@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.FindSymbols;
 
 // roslyn-cli: On-demand CLI for C# symbol queries and structured edits.
@@ -514,6 +515,8 @@ sealed class App
             var newMethod = method.WithBody(newBlock);
             var newRoot = root.ReplaceNode(method, newMethod);
             var newDoc = doc.WithSyntaxRoot(newRoot);
+            // Format document to preserve indentation/trivia after structured edit
+            newDoc = await Formatter.FormatAsync(newDoc);
             var newSolution = newDoc.Project.Solution;
 
             // Preflight diagnostics
@@ -635,6 +638,8 @@ sealed class App
 
             // Preflight by compiling updated document
             var newDoc = doc.WithText(Microsoft.CodeAnalysis.Text.SourceText.From(newText, Encoding.UTF8));
+            // Format document to preserve indentation after insertion
+            newDoc = await Formatter.FormatAsync(newDoc);
             var comp = await newDoc.Project.GetCompilationAsync();
             var diags = comp?.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)
                 .Select(d => (object)new
