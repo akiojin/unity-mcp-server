@@ -1,6 +1,6 @@
 {
   "name": "@akiojin/unity-editor-mcp",
-  "version": "2.13.25",
+  "version": "2.13.26",
   "description": "MCP server for Unity Editor integration - enables AI assistants to control Unity Editor",
   "type": "module",
   "main": "src/core/server.js",
