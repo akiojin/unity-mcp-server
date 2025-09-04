@@ -29,7 +29,7 @@ export class RoslynCliUtils {
     }
 
     // 2) リポジトリ開発環境（このリポジトリ内）
-    const repoRoot = this._resolveRepoRoot() || WORKSPACE_ROOT || process.cwd();
+    const repoRoot = WORKSPACE_ROOT || this._resolveRepoRoot() || process.cwd();
     const localPreferred = path.resolve(repoRoot, '.unity', 'tools', 'roslyn-cli', rid, exeName);
     if (fs.existsSync(localPreferred)) {
       logger.info(`[roslyn-cli] using workspace binary: ${localPreferred}`);
