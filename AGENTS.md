@@ -43,9 +43,14 @@
 - コミット禁止: テスト結果/ToDo/キャプチャは成果物扱いで Git には含めない（`.unity/capture/`, `tests/.reports/`, `tests/.todo/` は .gitignore 済）。
 - 参照場所の要約:
   - 実行ログ: ターミナル（stdout）
-  - ファイル保存した結果: `tests/.reports/`（任意）
+  - テストレポート本体: `tests/.reports/run-<YYYYMMDD_HHmmss>.md`（Git管理外。.gitignore 済）
+  - 最新ポインタ: `tests/.reports/latest.md`（当該ランの内容を都度上書き）
+  - 追記先ポインタ: `tests/.reports/.current-run`（各カテゴリはこのパスに追記）
   - ToDo 台帳: `tests/.todo/` または `tests/TODO.md`
   - フォーマット仕様: `tests/RESULTS_FORMAT.md`
+
+備考（アーカイブ）:
+- スクリーンショット/動画の保存先は固定で `<workspace>/.unity/capture/`。レポートから相対参照可。
 
 ## コミュニケーションガイドライン
 
