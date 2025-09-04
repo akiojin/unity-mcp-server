@@ -38,6 +38,14 @@ export class RoslynCliUtils {
       return localPreferred;
     }
 
+    // Prefer auto-download first (user expectation). If unavailable, fall back to auto-build.
+    try {
+      const dl = await this._autoDownloadCli(rid, repoRoot);
+      if (dl && fs.existsSync(dl)) return dl;
+    } catch (e) {
+      logger.warn(`roslyn-cli auto-download failed: ${e.message}`);
+    }
+
     // Auto-build exactly once per process if missing (bootstrap behavior)
     if (!AUTO_BUILD_ATTEMPTED) {
       AUTO_BUILD_ATTEMPTED = true;
@@ -54,14 +62,6 @@ export class RoslynCliUtils {
     }
 
     if (fs.existsSync(localPreferred)) return localPreferred;
-
-    // Always auto-download from GitHub Releases into WORKSPACE_ROOT when missing
-    try {
-      const dl = await this._autoDownloadCli(rid, repoRoot);
-      if (dl && fs.existsSync(dl)) return dl;
-    } catch (e) {
-      logger.warn(`roslyn-cli auto-download failed: ${e.message}`);
-    }
 
     // Not found after (optional) auto-build — return explicit guidance
     const expected = (pkgCandidates.find(p => p) || localPreferred).replace(/\\/g, '/');
@@ -115,7 +115,8 @@ export class RoslynCliUtils {
     if (isWin) {
       await this._spawnOnce('powershell', ['-ExecutionPolicy','Bypass','-File', script, '-Rid', rid], { cwd: repoRoot });
     } else {
-      await this._spawnOnce(script, [rid], { cwd: repoRoot });
+      // Run via bash to avoid EACCES when execute bit is not set
+      await this._spawnOnce('bash', [script, rid], { cwd: repoRoot });
     }
   }
 
