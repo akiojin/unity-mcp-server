@@ -237,6 +237,27 @@ sealed class App
             }
 
             var ok = ws.TryApplyChanges(newSolution);
+            if (!ok)
+            {
+                try
+                {
+                    // Fallback: write only the changed declaration document to disk
+                    var changedDoc = newSolution.GetDocument(doc.Id);
+                    if (changedDoc != null)
+                    {
+                        var text = await changedDoc.GetTextAsync();
+                        var fullPath = doc.FilePath ?? string.Empty;
+                        if (!string.IsNullOrEmpty(fullPath))
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+                            await File.WriteAllTextAsync(fullPath, text.ToString(), Encoding.UTF8);
+                            Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = true, errors }, JsonOpts));
+                            return 0;
+                        }
+                    }
+                }
+                catch { /* ignore and fall-through */ }
+            }
             Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors }, JsonOpts));
             return ok ? 0 : 1;
         }
@@ -559,6 +580,26 @@ sealed class App
             }
 
             var ok = ws.TryApplyChanges(newSolution);
+            if (!ok)
+            {
+                try
+                {
+                    var changedDoc = newSolution.GetDocument(doc.Id);
+                    if (changedDoc != null)
+                    {
+                        var text = await changedDoc.GetTextAsync();
+                        var fullPath = doc.FilePath ?? string.Empty;
+                        if (!string.IsNullOrEmpty(fullPath))
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+                            await File.WriteAllTextAsync(fullPath, text.ToString(), Encoding.UTF8);
+                            Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = true, errors = diags }, JsonOpts));
+                            return 0;
+                        }
+                    }
+                }
+                catch { }
+            }
             Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors = diags }, JsonOpts));
             return ok ? 0 : 1;
         }
@@ -872,6 +913,26 @@ sealed class App
             }
 
             var ok = ws.TryApplyChanges(newSolution);
+            if (!ok)
+            {
+                try
+                {
+                    var changedDoc = newSolution.GetDocument(doc.Id);
+                    if (changedDoc != null)
+                    {
+                        var text = await changedDoc.GetTextAsync();
+                        var fullPath = doc.FilePath ?? string.Empty;
+                        if (!string.IsNullOrEmpty(fullPath))
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+                            await File.WriteAllTextAsync(fullPath, text.ToString(), Encoding.UTF8);
+                            Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = true, errors, references }, JsonOpts));
+                            return 0;
+                        }
+                    }
+                }
+                catch { }
+            }
             Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, references }, JsonOpts));
             return ok ? 0 : 1;
         }
