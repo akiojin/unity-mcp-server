@@ -3,17 +3,42 @@ set -euo pipefail
 # デバッグ: 環境変数で有効化（例: PUBLISH_DEBUG=1）
 [ "${PUBLISH_DEBUG:-0}" = "1" ] && set -x
 
-# publish.sh <major|minor|patch>
+# publish.sh <major|minor|patch> [--tags-only|--no-push] [--remote <name>]
 # 一括処理: 版上げ → バージョン同期（C#/UPM）→ コミット → タグ作成 → プッシュ
 # 期待値: GitHub Actions が自動で
 #  - Release: roslyn-cli（各RIDビルド＋manifest公開）
 #  - Publish: mcp-server (npm)
 # を実行。
 
-usage() { echo "Usage: $0 <major|minor|patch>"; exit 1; }
+usage() { echo "Usage: $0 <major|minor|patch> [--tags-only|--no-push] [--remote <name>]"; exit 1; }
 
 LEVEL=${1-}
 [[ "$LEVEL" =~ ^(major|minor|patch)$ ]] || usage
+shift || true
+
+# push 動作: all(既定)/tags/none
+PUSH_MODE=${PUBLISH_PUSH:-all}
+
+# オプション解析
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --tags-only)
+      PUSH_MODE=tags
+      ;;
+    --no-push)
+      PUSH_MODE=none
+      ;;
+    --remote)
+      shift
+      [ $# -gt 0 ] || { echo "[error] --remote requires a value" >&2; exit 1; }
+      REMOTE="$1"
+      ;;
+    *)
+      echo "[warn] unknown option: $1" >&2
+      ;;
+  esac
+  shift || true
+done
 
 ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 REMOTE=${REMOTE:-origin}
@@ -59,14 +84,31 @@ if ! git ls-remote --exit-code "$REMOTE" >/dev/null 2>&1; then
   exit 2
 fi
 
-# プッシュ（本体＋タグ）: follow-tags で関連タグも送信、その後明示的にタグ送信
-echo "[step] push commits and tag"
-git push --follow-tags "$REMOTE" || echo "[warn] git push --follow-tags failed; will try explicit tag push"
-git push "$REMOTE" "$TAG" || true
+case "$PUSH_MODE" in
+  all)
+    # プッシュ（本体＋タグ）: follow-tags で関連タグも送信、その後明示的にタグ送信
+    echo "[step] push commits and tag (mode=all)"
+    git push --follow-tags "$REMOTE" || echo "[warn] git push --follow-tags failed; will try explicit tag push"
+    git push "$REMOTE" "$TAG" || true
+    ;;
+  tags)
+    echo "[step] push tag only (mode=tags)"
+    git push "$REMOTE" "$TAG" || true
+    ;;
+  none)
+    echo "[step] skip push (mode=none)"
+    ;;
+  *)
+    echo "[error] unknown PUSH_MODE: $PUSH_MODE" >&2
+    exit 2
+    ;;
+esac
 
 # タグがリモートに存在するか検証し、必要に応じて再試行
 echo "[step] verify tag on remote: $TAG"
-if git ls-remote --tags "$REMOTE" | awk '{print $2}' | grep -qx "refs/tags/$TAG"; then
+if [ "$PUSH_MODE" = "none" ]; then
+  echo "[skip] verification skipped (no push)"
+elif git ls-remote --tags "$REMOTE" | awk '{print $2}' | grep -qx "refs/tags/$TAG"; then
   echo "[ok] tag exists on remote: $TAG"
 else
   echo "[warn] tag not found on remote; retrying explicit push"
