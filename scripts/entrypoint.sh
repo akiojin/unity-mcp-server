@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+# Normalize line endings for Windows-mounted files (best-effort)
+if command -v dos2unix >/dev/null 2>&1; then
+  for f in /unity-editor-mcp/scripts/*.sh; do
+    [ -f "$f" ] && dos2unix "$f" >/dev/null 2>&1 || true
+  done
+fi
+
 # Git設定（node:22-bookwormにはGitが含まれている）
 # グローバルGit設定（安全なディレクトリを追加）
 git config --global --add safe.directory /unity-editor-mcp
