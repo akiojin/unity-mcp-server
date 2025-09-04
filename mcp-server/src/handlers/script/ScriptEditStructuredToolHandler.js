@@ -116,7 +116,7 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
             if (!preview) args.push('--apply', 'true');
             try {
                 const res = await this.roslyn.runCli(args);
-                return res;
+                return this._summarizeResult(res, { preview });
             } finally {
                 try { await fs.promises.rm(tmp, { recursive: true, force: true }); } catch {}
             }
@@ -135,12 +135,70 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
             if (!preview) args.push('--apply', 'true');
             try {
                 const res = await this.roslyn.runCli(args);
-                return res;
+                return this._summarizeResult(res, { preview });
             } finally {
                 try { await fs.promises.rm(tmp, { recursive: true, force: true }); } catch {}
             }
         }
 
         return { error: `Unsupported operation: ${operation}` };
+    }
+
+    /**
+     * Summarize/trim Roslyn CLI payloads to avoid huge token usage.
+     * - Caps error items and message lengths
+     * - Trims large text fields (e.g., preview/diff) to a short excerpt
+     */
+    _summarizeResult(res, { preview }) {
+        if (!res || typeof res !== 'object') return res;
+
+        const MAX_ERRORS = 30;
+        const MAX_MSG_LEN = 200;
+        const MAX_TEXT_LEN = 1000; // generic cap for any preview-like text
+
+        const out = {};
+        // Preserve common flags if present
+        if ('id' in res) out.id = res.id;
+        if ('success' in res) out.success = !!res.success;
+        if ('applied' in res) out.applied = !!res.applied;
+
+        // Errors trimming
+        if (Array.isArray(res.errors)) {
+            const trimmed = res.errors.slice(0, MAX_ERRORS).map(e => {
+                const obj = {};
+                if (e && typeof e === 'object') {
+                    if ('id' in e) obj.id = e.id;
+                    if ('message' in e) obj.message = this._trimString(String(e.message), MAX_MSG_LEN);
+                    if ('file' in e) obj.file = this._trimString(String(e.file), 260);
+                    if ('line' in e) obj.line = e.line;
+                    if ('column' in e) obj.column = e.column;
+                } else {
+                    obj.message = this._trimString(String(e), MAX_MSG_LEN);
+                }
+                return obj;
+            });
+            out.errorCount = res.errors.length;
+            out.errors = trimmed;
+        }
+
+        // Generic handling for any large text properties commonly returned by tools
+        for (const key of ['preview', 'diff', 'text', 'content']) {
+            if (typeof res[key] === 'string' && res[key].length > 0) {
+                out[key] = this._trimString(res[key], MAX_TEXT_LEN);
+                if (res[key].length > MAX_TEXT_LEN) out[`${key}Truncated`] = true;
+            }
+        }
+
+        // Echo minimal identifiers to aid clients
+        for (const key of ['operation', 'path', 'relative', 'symbolName']) {
+            if (res[key] !== undefined) out[key] = res[key];
+        }
+
+        return Object.keys(out).length ? out : res;
+    }
+
+    _trimString(s, max) {
+        if (typeof s !== 'string') return s;
+        return s.length > max ? (s.slice(0, max) + '…') : s;
     }
 }
