@@ -78,7 +78,8 @@
 
 ToDo 管理（必須）
 - テスト開始前に、当該カテゴリ内のすべてのケースを ToDo 化してください（AGENTS.md の「作業開始前にToDo登録」に準拠）。
-- ToDo には少なくとも以下を含めます: `id`（= `testId`）、`name`、`status`（`pending`/`in_progress`/`completed`/`blocked`）、`reasonCode`（任意）、`assignee`（任意）。
+- ToDo には少なくとも以下を含めます: `id`（= `testId`）、`name`、`status`（`pending`/`in_progress`/`completed`/`blocked`）、`reasonCode`（任意）、`assignee`（任意）、`lastUpdated`（ISO）。
 - 推奨保存先: `tests/.todo/<category>-<YYYYMMDD_HHmmss>.json`（JSON）または `tests/TODO.md`（Markdown チェックボックス）。
-- 実行中は ToDo の状態を逐次更新し、完了時に `completed` とします（`blocked` は `reasonCode` を必須に）。
+- 重要: ToDo は「各項目の状態変更ごと」に即時書き戻し（開始→`in_progress`、終了→`completed`/`blocked`）。最後にまとめて更新しないこと。
+- 併用可: 競合回避のため、単一ライター/原子的な書き込み（tempファイル→rename）を推奨。
 - JSONL の各ケース出力と ToDo の `id` を一致させ、機械集計しやすくしてください。
