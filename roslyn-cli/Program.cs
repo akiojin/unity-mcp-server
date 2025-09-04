@@ -22,7 +22,6 @@ sealed class App
     private static Solution? CachedSolution;
     private static string? CachedRootDir;
     private static string? CachedKey; // full path to sln or csproj
-    private static string? CachedKind; // "solution" or "project"
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -46,7 +45,6 @@ sealed class App
         {
             "serve" => await ServeAsync(rest),
             "index-summary" => await IndexSummaryAsync(rest),
-            "workspace-info" => await WorkspaceInfoAsync(),
             "scan-symbols" => await ScanSymbolsAsync(rest),
             "find-symbol" => await FindSymbolAsync(rest),
             "find-references" => await FindReferencesAsync(rest),
@@ -64,7 +62,7 @@ sealed class App
     {
         var help = new
         {
-            commands = new[] { "find-symbol", "find-references", "replace-symbol-body", "insert-before-symbol", "insert-after-symbol", "rename-symbol", "remove-symbol", "create-type-file", "workspace-info", "index-summary" },
+            commands = new[] { "find-symbol", "find-references", "replace-symbol-body", "insert-before-symbol", "insert-after-symbol", "rename-symbol", "remove-symbol", "create-type-file", "index-summary" },
             usage = new
             {
                 serve = "serve  # JSON-over-stdin server: {id,cmd,args[]} per line; returns {id,...}",
@@ -76,7 +74,7 @@ sealed class App
                 renameSymbol = "rename-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> --new-name <New> [--apply true|false]",
                 removeSymbol = "remove-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> [--apply true|false] [--fail-on-references true|false] [--remove-empty-file true|false]",
                 createTypeFile = "create-type-file --solution <sln>|--project <csproj> --relative <path.cs> --name <ClassName> [--namespace <NS>] [--base <BaseType>] [--usings <CSV>] [--partial true|false] [--apply true|false]",
-                workspaceInfo = "workspace-info  # Returns currently loaded solution/project path and root (serve mode cache)"
+                
             }
         };
         Console.WriteLine(JsonSerializer.Serialize(help, JsonOpts));
@@ -117,19 +115,18 @@ sealed class App
             {
                 var doc = JsonSerializer.Deserialize<ServeRequest>(line);
                 if (doc == null || string.IsNullOrWhiteSpace(doc.cmd)) { Console.WriteLine("{\"error\":\"bad_request\"}"); continue; }
-                var args = doc.args ?? Array.Empty<string>();
+                var cargs = doc.args ?? Array.Empty<string>();
                 int code = await ((doc.cmd.ToLowerInvariant()) switch
                 {
-                    "index-summary" => IndexSummaryAsync(args),
-                    "scan-symbols" => ScanSymbolsAsync(args),
-                    "find-symbol" => FindSymbolAsync(args),
-                    "find-references" => FindReferencesAsync(args),
-                    "replace-symbol-body" => ReplaceSymbolBodyAsync(args),
-                    "insert-before-symbol" => InsertAroundSymbolAsync(args, before:true),
-                    "insert-after-symbol" => InsertAroundSymbolAsync(args, before:false),
-                    "rename-symbol" => RenameSymbolAsync(args),
-                    "remove-symbol" => RemoveSymbolAsync(args),
-                    "workspace-info" => Task.FromResult(WorkspaceInfo()),
+                    "index-summary" => IndexSummaryAsync(cargs),
+                    "scan-symbols" => ScanSymbolsAsync(cargs),
+                    "find-symbol" => FindSymbolAsync(cargs),
+                    "find-references" => FindReferencesAsync(cargs),
+                    "replace-symbol-body" => ReplaceSymbolBodyAsync(cargs),
+                    "insert-before-symbol" => InsertAroundSymbolAsync(cargs, before:true),
+                    "insert-after-symbol" => InsertAroundSymbolAsync(cargs, before:false),
+                    "rename-symbol" => RenameSymbolAsync(cargs),
+                    "remove-symbol" => RemoveSymbolAsync(cargs),
                     "help" => Task.FromResult(PrintHelpAndOk()),
                     _ => Task.FromResult(Fail(new { error = "unknown_command", command = doc.cmd }))
                 });
@@ -235,12 +232,12 @@ sealed class App
             // Always include diagnostics in response, but do not block apply solely due to compile errors.
             if (!apply)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors }, JsonOpts));
                 return 0;
             }
 
             var ok = ws.TryApplyChanges(newSolution);
-            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors }, JsonOpts));
             return ok ? 0 : 1;
         }
         catch (Exception ex)
@@ -282,14 +279,14 @@ sealed class App
         if (!string.IsNullOrEmpty(sln))
         {
             var solution = await ws.OpenSolutionAsync(key);
-            CachedWs = ws; CachedSolution = solution; CachedKey = key; CachedRootDir = Path.GetDirectoryName(key) ?? Directory.GetCurrentDirectory(); CachedKind = "solution";
+            CachedWs = ws; CachedSolution = solution; CachedKey = key; CachedRootDir = Path.GetDirectoryName(key) ?? Directory.GetCurrentDirectory();
             return (ws, solution, CachedRootDir);
         }
         else
         {
             var project = await ws.OpenProjectAsync(key);
             var sol = project.Solution;
-            CachedWs = ws; CachedSolution = sol; CachedKey = key; CachedRootDir = Path.GetDirectoryName(key) ?? Directory.GetCurrentDirectory(); CachedKind = "project";
+            CachedWs = ws; CachedSolution = sol; CachedKey = key; CachedRootDir = Path.GetDirectoryName(key) ?? Directory.GetCurrentDirectory();
             return (ws, sol, CachedRootDir);
         }
     }
@@ -316,39 +313,8 @@ sealed class App
                     else other++;
                 }
             }
-            Console.WriteLine(JsonSerializer.Serialize(new { success = true, totalFiles = total, breakdown = new { assets, packages, packageCache, other }, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = true, totalFiles = total, breakdown = new { assets, packages, packageCache, other } }, JsonOpts));
             return 0;
-        }
-        catch (Exception ex)
-        {
-            return Fail(new { error = ex.Message, trace = ex.StackTrace });
-        }
-    }
-
-    private static int WorkspaceInfo()
-    {
-        var info = new
-        {
-            success = true,
-            hasWorkspace = CachedSolution != null,
-            key = CachedKey,
-            rootDir = CachedRootDir,
-            kind = CachedKind
-        };
-        Console.WriteLine(JsonSerializer.Serialize(info, JsonOpts));
-        return 0;
-    }
-
-    private async Task<int> WorkspaceInfoAsync()
-    {
-        try
-        {
-            // If nothing cached yet, try opening from args (optional)
-            if (CachedSolution == null)
-            {
-                // No-op: just print empty info
-            }
-            return WorkspaceInfo();
         }
         catch (Exception ex)
         {
@@ -386,7 +352,7 @@ sealed class App
                     }
                 }
             }
-            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results = list, total = list.Count, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results = list, total = list.Count }, JsonOpts));
             return 0;
         }
         catch (Exception ex)
@@ -506,7 +472,7 @@ sealed class App
                 }
             }
 
-            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results = list, total = list.Count, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results = list, total = list.Count }, JsonOpts));
             return 0;
         }
         catch (Exception ex)
@@ -588,12 +554,12 @@ sealed class App
             // Always include diagnostics in response, but do not block apply solely due to compile errors.
             if (!apply)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors = diags, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors = diags }, JsonOpts));
                 return 0;
             }
 
             var ok = ws.TryApplyChanges(newSolution);
-            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors = diags, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors = diags }, JsonOpts));
             return ok ? 0 : 1;
         }
         catch (Exception ex)
@@ -638,7 +604,7 @@ sealed class App
                 }
             }
 
-            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results, total = results.Count, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results, total = results.Count }, JsonOpts));
             return 0;
         }
         catch (Exception ex)
@@ -733,12 +699,12 @@ sealed class App
             // Always include diagnostics in response, but do not block apply solely due to compile errors.
             if (!apply)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors = diags, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors = diags }, JsonOpts));
                 return 0;
             }
 
             var ok = ws.TryApplyChanges(newDoc.Project.Solution);
-            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors = diags, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors = diags }, JsonOpts));
             return ok ? 0 : 1;
         }
         catch (Exception ex)
@@ -840,7 +806,7 @@ sealed class App
 
             if (failOnRefs && references.Count > 0)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, references, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, references }, JsonOpts));
                 return 0;
             }
 
@@ -896,17 +862,17 @@ sealed class App
             // Do not block apply solely due to diagnostics; block only when failOnReferences=true and references exist
             if (!apply)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, references, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, references }, JsonOpts));
                 return 0;
             }
             if (failOnRefs && references.Count > 0)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors, references, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors, references }, JsonOpts));
                 return 0;
             }
 
             var ok = ws.TryApplyChanges(newSolution);
-            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, references, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, references }, JsonOpts));
             return ok ? 0 : 1;
         }
         catch (Exception ex)
@@ -995,17 +961,17 @@ sealed class App
 
             if (errors.Count > 0 && apply)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors, relative = relPath, preview = source, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors, relative = relPath, preview = source }, JsonOpts));
                 return 0;
             }
             if (!apply)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, relative = relPath, preview = source, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, relative = relPath, preview = source }, JsonOpts));
                 return 0;
             }
 
             var ok = ws.TryApplyChanges(newSolution);
-            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, relative = relPath, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, relative = relPath }, JsonOpts));
             return ok ? 0 : 1;
         }
         catch (Exception ex)
