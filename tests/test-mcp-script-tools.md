@@ -2,6 +2,33 @@
 
 本ドキュメントは、roslyn-cli 連携の Script 系 MCP ツール（`script_*`）を「テスターが迷わず実行・判定・復元できる」ように記述した実行仕様です。結果の JSON Lines 形式は `tests/RESULTS_FORMAT.md` に準拠します。全テストは原状回復までを含め、Git へのコミットやバージョン変更は行いません。
 
+チェックリスト（Markdown）
+- [ ] S00-00: 前提チェック（.sln 必須・無ければ即終了）
+- [ ] S10-01: script_symbols_get で FinalTestClass/TestMethod11/12 確認
+- [ ] S10-02: script_symbol_find で namePath 補助確定
+- [ ] S10-E01: 存在しないファイルで script_symbols_get は fail
+- [ ] S10-E02: 極端な大ファイルで上限越え時の挙動確認
+- [ ] S20-01: replace_body（TestMethod12 を `{ return 99; }`）→ 整形確認
+- [ ] S20-E01: 不正シンボルで fail
+- [ ] S20-E02: 構文不正 newText で診断要約・未適用
+- [ ] S30-01: rename（TestMethod11→Renamed）→ 宣言更新確認
+- [ ] S30-02: 旧名 refs=0 確認
+- [ ] S30-E01: 既存名への衝突で fail
+- [ ] S30-E02: 曖昧 namePath で applied=false
+- [ ] S40-01: remove_symbol（TestMethod12）→ 欠落確認
+- [ ] S40-E01: failOnReferences=true でブロック
+- [ ] S40-E02: 存在しないシンボルで fail
+- [ ] S50-01: refs_find ページング/トリム（truncated, snippetTruncated）
+- [ ] S50-E01: 極端な上限設定での挙動
+- [ ] S60-01: 要約上限（errors<=30, message<=200, 1000文字+Truncated）
+- [ ] S60-E01: 要約不能データで fail
+- [ ] S70-01: パス/曖昧 namePath のガード動作
+- [ ] S70-E01: 破壊的誤用（型/名前空間削除）で fail
+- [ ] S80-01: 部分読み取り（開始行±）が抜粋で返る
+- [ ] S80-02: maxBytes 指定でカット
+- [ ] S80-E01: 不正範囲で fail
+- [ ] S90-01: 後片付け（元状態へ完全復元）
+
 出力フォーマット要約（Script系における例）
 - ケース行（PASS 例）:
   ```

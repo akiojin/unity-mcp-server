@@ -8,6 +8,13 @@
 
 前提: `Assets/LLMTEST_Materials/LLMTEST_Mat.mat`
 
+チェックリスト（Markdown）
+- [ ] U40-01: create_material（Unlit/Color, 赤）
+- [ ] U40-02: modify_material（青へ変更）
+- [ ] U40-E01: Assets 外パスで fail
+- [ ] U40-E02: 不正シェーダで fail
+- [ ] U40-E03: 未存在プロパティ/型不一致で fail
+
 ## 正常系
 
 - U40-01: `create_material`（`shader=Unlit/Color`, 色=赤）→ 成功

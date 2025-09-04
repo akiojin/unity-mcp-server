@@ -1,85 +1,55 @@
-# テスト結果フォーマット（共通仕様）
+# テスト結果フォーマット（共通仕様／Markdown）
 
-各テストケースは 1 行 1 JSON（JSON Lines）で出力してください。LLM ランナーはこの JSONL を収集・集約します。すべてのテストは原状回復（変更のロールバック）までを含めて完了とし、Git へのコミット・バージョン変更は一切行わないでください。
+本プロジェクトのテスト結果・レポートは「Markdown」に統一します。各カテゴリの結果は 1 ファイルにまとめ、チェックリストとテーブル要約で構成してください。
 
 出力先
-- 原則: 標準出力（stdout）へ逐次出力
-- 併用可: ファイル保存時は `tests/.reports/<category>-<YYYYMMDD_HHmmss>.jsonl` を推奨
+- `tests/.reports/<category>-<YYYYMMDD_HHmmss>.md` に保存（Git管理外。.gitignore 済）
 
-ケース行（必須フィールドを含む例）
+テンプレート（例）
 ```
-{"testId":"U10-01","name":"シーン作成","status":"pass|fail|skip",
- "startedAt":"2025-01-01T12:00:00.000Z","finishedAt":"2025-01-01T12:00:01.234Z","durationMs":1234,
- "restored":true,"retries":0,"reasonCode":null,
- "artifacts":{"paths":[".unity/capture/screenshot_game_20250101_120000.png"],"ids":["/LLMTEST_Cube"]},
- "beforeAfter":{"path":"Assets/Scripts/GigaTestFile.cs","startLine":2580,"endLine":2600,
-                 "beforeHash":"sha1:...","afterHash":"sha1:...","verified":true},
- "diagnosticsTopN":[{"code":"CS0234","count":2}],
- "dependsOn":[],
- "notes":"期待どおりに作成できた","error":null}
-```
+# <Category> テストレポート
 
-フィールド仕様（厳格）
-- `testId` (string, required): 一意 ID（例: S20-01, U10-01）
-- `name` (string, required): テスト名
-- `status` (string, required): `pass` | `fail` | `skip`
-- `startedAt` (RFC3339 string, required): 開始時刻（UTC推奨）
-- `finishedAt` (RFC3339 string, required): 終了時刻（UTC推奨）
-- `durationMs` (number, required): 実測ミリ秒
-- `restored` (boolean, required): 原状回復完了（非破壊でも true を出力）
-- `retries` (integer, required): リトライ回数（0以上）
-- `reasonCode` (string|null, optional): 失敗/スキップ理由の分類。推奨: `FAIL_EXPECTATION` | `BLOCKED_ENV` | `TOOL_ERROR` | `TIMEOUT` | `SKIP_CONDITION` | null
-- `artifacts` (object, optional): `{ paths: string[], ids: string[] }`
-- `beforeAfter` (object, optional): 変更検証 `{ path, startLine, endLine, beforeHash, afterHash, verified }`
-- `diagnosticsTopN` (array, optional): 診断上位 `[{ code: string, count: number }]`
-- `dependsOn` (array, optional): 依存テスト ID
-- `notes` (string, optional, ≤300 chars 目安)
-- `error` (string|null, optional, ≤200 chars 目安)
+- 実行者: <agent or name>
+- 実行時刻: 2025-01-01T12:00:00Z 〜 2025-01-01T12:03:45Z（合計 225000 ms）
+- 前提: .sln あり / roslyn-cli serve 稼働 / インデックス coverage: 95%
 
-制約と上限
-- `error` は最大 200 文字、`notes` は最大 300 文字の要約を推奨
-- 大きな本文や差分は出力しない。必要なら `beforeAfter` と `artifacts` のみに留める（1KB 目安）
+## サマリ
+| total | pass | fail | skip | BLOCKED_ENV | FAIL_EXPECTATION | TOOL_ERROR | TIMEOUT |
+|------:|-----:|-----:|-----:|------------:|-----------------:|-----------:|--------:|
+|   20  |  18  |   1  |   1  |           0 |                1 |          0 |       0 |
 
-ステータス別サンプル
-1) PASS 例
-```
-{"testId":"S20-01","name":"置換適用","status":"pass","startedAt":"2025-01-01T12:00:00Z","finishedAt":"2025-01-01T12:00:00.250Z","durationMs":250,"restored":true,"retries":0,"reasonCode":null,"beforeAfter":{"path":"Assets/Scripts/GigaTestFile.cs","startLine":2580,"endLine":2600,"beforeHash":"sha1:a1","afterHash":"sha1:a1","verified":true},"notes":"applied=true, 整形OK","error":null}
-```
-2) FAIL 例（期待不一致）
-```
-{"testId":"S20-01","name":"置換適用","status":"fail","startedAt":"2025-01-01T12:00:00Z","finishedAt":"2025-01-01T12:00:00.200Z","durationMs":200,"restored":true,"retries":1,"reasonCode":"FAIL_EXPECTATION","diagnosticsTopN":[{"code":"CS0234","count":5}],"notes":"applied=false","error":"構造編集が未適用"}
-```
-3) SKIP 例（条件スキップ）
-```
-{"testId":"U60-01","name":"Input 状態取得","status":"skip","startedAt":"2025-01-01T12:00:00Z","finishedAt":"2025-01-01T12:00:00.010Z","durationMs":10,"restored":true,"retries":0,"reasonCode":"SKIP_CONDITION","notes":"Input アセット無し","error":null}
-```
-4) BLOCKED_ENV 例（前提未充足）
-```
-{"testId":"S00-00","name":"前提チェック","status":"fail","startedAt":"2025-01-01T12:00:00Z","finishedAt":"2025-01-01T12:00:00.005Z","durationMs":5,"restored":true,"retries":0,"reasonCode":"BLOCKED_ENV","notes":"Missing .sln","error":"環境前提不足"}
+## チェックリスト（各ケースは1行）
+- [x] S20-01 置換適用 — pass (250 ms) restored:true
+- [x] S30-01 リネーム — pass (310 ms) restored:true
+- [ ] U60-01 Input 状態取得 — skip（アセット無し） restored:true
+- [x] S20-02 置換（構文不正）— fail（FAIL_EXPECTATION） restored:true
+
+## 詳細（必要なケースのみ）
+<details>
+<summary>S20-01 置換適用（詳細）</summary>
+
+- startedAt: 2025-01-01T12:00:00Z / finishedAt: 2025-01-01T12:00:00.250Z / durationMs: 250
+- retries: 0 / reasonCode: -
+- artifacts: [.unity/capture/screenshot_game_20250101_120000.png]
+- beforeAfter: Assets/Scripts/GigaTestFile.cs 2580-2600 / beforeHash=sha1:a1 / afterHash=sha1:a1 / verified=true
+- notes: applied=true, 整形OK
+- error: 
+
+</details>
 ```
 
-サマリ行（最後に 1 行）
-```
-{"summary":{"total":N,"pass":A,"fail":B,"skip":C,
-             "reasons":{"BLOCKED_ENV":x,"FAIL_EXPECTATION":y,"TOOL_ERROR":z,"TIMEOUT":w,"SKIP_CONDITION":s},
-             "passRate": (A/(A+B))},
- "startedAt":"2025-01-01T12:00:00Z","finishedAt":"2025-01-01T12:03:45Z","durationMs":225000}
-```
-
-注意
-- 人間可読の補助として Markdown テーブル併用は可。ただし JSONL が主系です。
-- 失敗（`fail`）時は、可能であれば直近のリクエスト/レスポンスからエラーメッセージを 1～2 文で要約して `error` に格納してください。
+ステータス規約
+- pass / fail / skip / BLOCKED_ENV は語で明示
+- 各行（チェックリスト）は `- [ ]` / `- [x]` を必須とし、末尾に `restored:true/false` を付記
 
 実行ポリシー（必須）
-- 変更前の状態を取得・保存し、各テストケースの終了時に必ず復元する（`restored=true` を出力）
+- 変更前の状態を取得・保存し、各テストケースの終了時に必ず復元する（チェックリスト行に restored:true を明記）
 - 破壊的操作はテストで新規作成した `LLMTEST_` 系資産に限定し、テスト末尾で削除する
 - プロジェクト設定は必ず元の値へ戻す。既存アセット/Prefab/シーンへ加えた変更はすべてロールバックする
 - Git のコミット/プッシュ、`npm version` などのバージョン変更は行わない
 
-ToDo 管理（必須）
-- テスト開始前に、当該カテゴリ内のすべてのケースを ToDo 化してください（AGENTS.md の「作業開始前にToDo登録」に準拠）。
-- ToDo には少なくとも以下を含めます: `id`（= `testId`）、`name`、`status`（`pending`/`in_progress`/`completed`/`blocked`）、`reasonCode`（任意）、`assignee`（任意）、`lastUpdated`（ISO）。
-- 推奨保存先: `tests/.todo/<category>-<YYYYMMDD_HHmmss>.json`（JSON）または `tests/TODO.md`（Markdown チェックボックス）。
-- 重要: ToDo は「各項目の状態変更ごと」に即時書き戻し（開始→`in_progress`、終了→`completed`/`blocked`）。最後にまとめて更新しないこと。
-- 併用可: 競合回避のため、単一ライター/原子的な書き込み（tempファイル→rename）を推奨。
-- JSONL の各ケース出力と ToDo の `id` を一致させ、機械集計しやすくしてください。
+ToDo 管理（必須／Markdown）
+- テスト開始前に、当該カテゴリ内のすべてのケースを Markdown チェックリストとして ToDo 化してください（AGENTS.md に準拠）
+- 保存先: `tests/.todo/<category>-<YYYYMMDD_HHmmss>.md` または `tests/TODO.md`（Git管理外）
+- 重要: 各項目の状態変更ごとに「即時」書き戻し（開始→in_progress、終了→completed/blocked）。最後にまとめて更新しないこと
+- 競合回避: 一時ファイル→rename の原子的書き込みを推奨

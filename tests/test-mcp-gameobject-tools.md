@@ -8,6 +8,15 @@
 
 前提: 対象名 `/LLMTEST_Cube`
 
+チェックリスト（Markdown）
+- [ ] U20-01: create_gameobject（Cube）
+- [ ] U20-02: get_gameobject_details（Transform/Renderer）
+- [ ] U20-03: modify_gameobject（位置/回転/スケール）
+- [ ] U20-04: get_hierarchy（ルートに LLMTEST_Cube）
+- [ ] U20-E01: 不在 parentPath で fail
+- [ ] U20-E02: 不正 path で fail
+- [ ] U20-E03: 無効スケール等でバリデーション fail
+
 ## 正常系
 
 - U20-01: `create_gameobject`（`primitiveType=Cube`）→ 生成

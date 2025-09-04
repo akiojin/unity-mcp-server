@@ -8,6 +8,15 @@
 
 前提: 対象 `/LLMTEST_Cube`（未存在なら先に作成）
 
+チェックリスト（Markdown）
+- [ ] U30-01: add_component（Rigidbody）
+- [ ] U30-02: get_component_values（Rigidbody）
+- [ ] U30-03: modify_component（useGravity=false 等）
+- [ ] U30-04: list_components（Rigidbody を含む）
+- [ ] U30-E01: 未知 componentType で fail
+- [ ] U30-E02: 不正プロパティ/型不一致で fail
+- [ ] U30-E03: 対象なしで fail
+
 ## 正常系
 
 - U30-01: `add_component`（`Rigidbody`）→ 成功

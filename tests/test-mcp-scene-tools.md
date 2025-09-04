@@ -8,6 +8,15 @@
 
 前提: 新規シーン名 `LLMTEST_Scene`
 
+チェックリスト（Markdown）
+- [ ] U10-01: create_scene（loadScene=true）
+- [ ] U10-02: get_scene_info（現在シーンが LLMTEST_Scene）
+- [ ] U10-03: list_scenes（LLMTEST_Scene を含む）
+- [ ] U10-04: save_scene（保存確認）
+- [ ] U10-E01: 重複作成はエラー or skip
+- [ ] U10-E02: 無効名でバリデーションエラー
+- [ ] U10-E03: 存在しないシーンで get_scene_info は fail
+
 ## 正常系
 
 - U10-01: `create_scene`（`loadScene=true`）→ 成功/ロード済

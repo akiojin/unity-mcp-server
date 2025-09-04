@@ -1,21 +1,11 @@
 # テスト ToDo テンプレート
 
-本テンプレートをコピーして、カテゴリごとの ToDo を作成してください。保存先は `tests/.todo/<category>-<YYYYMMDD_HHmmss>.json` 推奨です。
+本テンプレートをコピーして、カテゴリごとの ToDo を作成してください。保存先は `tests/.todo/<category>-<YYYYMMDD_HHmmss>.md` 推奨です。
 
-JSON 例（`lastUpdated` は状態変更ごとに更新、`history` に遷移ログを保持可能）
-```json
-{
-  "category": "<category>",
-  "todos": [
-    {"id":"<testId>","name":"<name>","status":"pending","assignee":"<optional>",
-     "lastUpdated":"<ISO>",
-     "history":[{"at":"<ISO>","from":null,"to":"pending"}]}
-  ]
-}
-```
-
-Markdown 例
-- [ ] <testId>: <name>
+Markdown 例（状態は都度書き戻し）
+- [ ] S00-00: 前提チェック（.sln 必須） — lastUpdated: 2025-01-01T12:00:00Z
+- [ ] S10-01: script_symbols_get で FinalTestClass 確認 — lastUpdated: 2025-01-01T12:00:00Z
+- [ ] S20-01: replace_body（TestMethod12 を 99 に） — lastUpdated: 2025-01-01T12:00:00Z
 
 ステータス定義
 - `pending`: 未着手
@@ -25,7 +15,10 @@ Markdown 例
 
 運用ルール
 - 各ケース開始時に `in_progress`、終了時に `completed`（または `blocked`）。状態変更のたびにファイルへ即時書き戻し（バッチ更新不可）。
-- JSONL の `testId` と ToDo の `id` を一致させ、集計時に突合可能とする。
+- チェックリストのチェック状態（[ ] / [x]）は `completed` に同期させる。
+
+実装ヒント
+- 競合・破損回避のため、一時ファイルへ書き出してからアトミックに rename する方式を推奨（例: `<file>.tmp` → `<file>`）。
 
 実装ヒント
 - 競合・破損回避のため、一時ファイルへ書き出してからアトミックに rename する方式を推奨（例: `<file>.tmp` → `<file>`）。

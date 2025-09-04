@@ -33,11 +33,9 @@
 
 ### テスト実行・出力ポリシー（エージェント向け）
 
-- 出力フォーマット: すべてのテスト結果は JSON Lines（1行=1JSON）。仕様は `tests/RESULTS_FORMAT.md` を参照。
-- 出力先（原則）: 標準出力（stdout）へ逐次出力。
-- 出力先（任意ファイル）: 必要に応じて同内容を `tests/.reports/<category>-<YYYYMMDD_HHmmss>.jsonl` に保存可（Git管理外。.gitignore 登録済）。
-- サマリ行: 実行終了時に 1 行のサマリ JSON を併せて出力。
-- ToDo運用: 実行前に該当カテゴリの全テストを ToDo 化。保存は `tests/.todo/<category>-<timestamp>.json` または `tests/TODO.md` を推奨（Git管理外）。テンプレートは `tests/TODO_TEMPLATE.md` を参照。各ケースの状態変更（pending→in_progress→completed/blocked）は「都度」ファイルへ書き戻すこと（最後にまとめて更新しない）。必要に応じて一時ファイルからのアトミック rename を用いて競合・破損を回避。
+- 出力フォーマット: すべてのテスト結果は Markdown。仕様とテンプレートは `tests/RESULTS_FORMAT.md` を参照。
+- 出力先: `tests/.reports/<category>-<YYYYMMDD_HHmmss>.md`（Git管理外、.gitignore 済）。チェックリスト＋サマリテーブル形式。
+- ToDo運用: 実行前に該当カテゴリの全テストを Markdown チェックリストとして ToDo 化。保存は `tests/.todo/<category>-<timestamp>.md` または `tests/TODO.md`（Git管理外）。テンプレートは `tests/TODO_TEMPLATE.md` を参照。各ケースの状態変更（pending→in_progress→completed/blocked）は「都度」ファイルへ書き戻すこと（最後にまとめて更新しない）。必要に応じて一時ファイルからのアトミック rename を用いて競合・破損を回避。
 - 原状回復: 各ケース終了時に必ず原状復帰（`restored=true` をJSONに含める）。
 - コミット禁止: テスト結果/ToDo/キャプチャは成果物扱いで Git には含めない（`.unity/capture/`, `tests/.reports/`, `tests/.todo/` は .gitignore 済）。
 - 参照場所の要約:
