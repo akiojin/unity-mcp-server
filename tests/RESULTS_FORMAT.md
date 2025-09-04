@@ -78,7 +78,7 @@
 ステータス定義（厳密規約）
 - pass: 期待した結果が観測できた場合。
 - fail: ツール呼び出しは成立したが「期待と観測が不一致」の場合（期待したトリム/エラーが発生しない等）。必ず `reasonCode: FAIL_EXPECTATION` を付す。
-- skip: 事前条件不足・環境限定により「検証そのものが実行不能/観測不能」の場合（例: 必須アセット無し、UI不存在、ツール応答に診断が無く判断不可）。`reasonCode: ENV_LIMITATION` または `OBSERVATION_GAP` 等を付す。
+- skip: 事前条件不足・環境限定により「検証そのものが実行不能/観測不能」の場合（例: 必須アセット無し、UI不存在、ツール応答に診断が無く判断不可）。`reasonCode: ENV_LIMITATION` または `OBSERVATION_GAP`、`TOOL_ERROR` 等を付す（ツールのネイティブ依存欠如・クラッシュ等は原則 skip 扱い）。
 - BLOCKED_ENV: カテゴリ全体の前提（S00-00）が満たせず以降を実施不可。
 
 判定フロー（原則）
@@ -98,10 +98,15 @@
   3) 参照検証: `script_refs_find` で参照件数の期待（例: rename 後の旧名=0 件）を確認。
   4) なお判定不能（診断も差分も得られない）なら、初めて skip（OBSERVATION_GAP）とする。
 - details テンプレ（例）:
-  - evidence:
-    - read.beforeHash=sha1:..., afterHash=sha1:..., verified=false
-    - symbols.before=[...], symbols.after=[...]
-    - refs_find.oldNameCount=0
+- evidence:
+  - read.beforeHash=sha1:..., afterHash=sha1:..., verified=false
+  - symbols.before=[...], symbols.after=[...]
+  - refs_find.oldNameCount=0
+  - toolError: better-sqlite3: not found（発生時は skip（TOOL_ERROR）で継続）
+
+リトライ/バックオフ（必須）
+- API 呼び出しは最大3回までリトライし、待機は 250ms → 500ms → 1000ms の指数バックオフ。
+- 復元（restore）が `applied=false` などで失敗した場合も同様にリトライを行い、それでも復元できない場合は当該ケースを `fail（RESTORE_FAILED）` とし、S90 での原状回復を直ちに実施する。
   - expectation: applied=true / guard=no-change など
 
 BLOCKED_ENV の記録ルール（必須）

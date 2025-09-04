@@ -122,9 +122,10 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 異常系:
 - S10-E01: `Assets/Nope.cs` で `script_symbols_get` → `fail`
-- S10-E02: 極端に大きいファイルでの上限超過 → 期待: トリム発生 または 明確な `fail`
-  - 観測: トリム/失敗が発生しなかった場合 → `fail（FAIL_EXPECTATION）`
-  - 観測不能（診断未返却 等）の場合 → `skip（OBSERVATION_GAP）`
+- S10-E02: 極端に大きいファイルでの完了性確認（本APIは上限/ページ指定無し）
+  - 期待: `script_symbols_get` が正常完了し、`symbols` が非空。完了時間が実用範囲（目安 ≤ 10s）。
+  - 観測: タイムアウト/エラー → `fail`。空結果 → `fail（FAIL_EXPECTATION）`。
+  - 観測不能（診断未返却 等）やツール依存不足 → `skip（OBSERVATION_GAP or TOOL_ERROR）`
 
 判定条件・復元:
 - 判定: 期待どおりのシンボルが列挙され、`startLine` と `container` が取得できること。
@@ -146,6 +147,12 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 - 復元: 実行前に `script_read` で本体スニペットを保存。終了時に `replace_body` で元本体に戻し、`beforeHash==afterHash` を確認。
   備考: 既存 `TestMethod12` は戻り値 `void` のため、本ケースは LLMTEST_ReturnInt を用いる。
   備考: 改行差等でハッシュ不一致でも動作が等価なら restored:true とし、details に理由を記載。
+  復元失敗時のフォールバック:
+  - 即時復元が `applied=false` となる場合は、以下を順に実施し、それでも復元不能なら当該ケースは `fail（RESTORE_FAILED）` とする。
+    1) リトライ（3回、250→500→1000ms バックオフ）
+    2) 差分検証で対象スニペットを再特定して `replace_body` 再適用
+    3) `insert_after/before` による復元スニペット再挿入（重複時は重複除去）
+    4) S90 での原状回復を直ちに実施（ケースは fail として記録し、以降を継続）
 
 ---
 
