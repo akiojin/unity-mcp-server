@@ -117,7 +117,9 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 異常系:
 - S10-E01: `Assets/Nope.cs` で `script_symbols_get` → `fail`
-- S10-E02: 極端に大きいファイルでの上限超過 → トリム/`fail` を記録
+- S10-E02: 極端に大きいファイルでの上限超過 → 期待: トリム発生 または 明確な `fail`
+  - 観測: トリム/失敗が発生しなかった場合 → `fail（FAIL_EXPECTATION）`
+  - 観測不能（診断未返却 等）の場合 → `skip（OBSERVATION_GAP）`
 
 判定条件・復元:
 - 判定: 期待どおりのシンボルが列挙され、`startLine` と `container` が取得できること。
@@ -198,6 +200,7 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 判定条件・復元:
 - 判定: `truncated` と各スニペットの `snippetTruncated` の有無が期待値通り（最大400文字トリム）。件数・上限は実行パラメータに合致。
+  - 極端上限（S50-E01）で `truncated:true` にならない等の期待不一致は `fail（FAIL_EXPECTATION）`。
 - 復元: 非破壊のため不要（`restored=true`）。
 
 実行手順（パラメータ完全指定）:
@@ -211,15 +214,16 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 ## S60) 要約応答の上限検証（全 script_* 共通）
 
 正常系:
-- S60-01: `preview=true` で大量診断 → `errors<=30`、`message<=200` 文字
-- S60-02: `preview`/`diff`/`text`/`content` が 1000 文字以内＋ `Truncated` フラグ
+- S60-01: `preview=true` で大量診断 → `errors<=30`、`message<=200` 文字（満たさない場合は `fail（FAIL_EXPECTATION）`）
+- S60-02: `preview`/`diff`/`text`/`content` が 1000 文字以内＋ `Truncated` フラグ（満たさない場合は `fail（FAIL_EXPECTATION）`）
 
 異常系:
 - S60-E01: 要約不能データ → 安全に `fail`
 
 判定条件・復元:
-- 判定: `errors`<=30、各 `message`<=200 文字、`preview/diff/text/content`<=1000 文字＋ `Truncated` フラグ。
+- 判定: `errors`<=30、各 `message`<=200 文字、`preview/diff/text/content`<=1000 文字＋ `Truncated` フラグ。満たさない場合は `fail（FAIL_EXPECTATION）`。
 - 復元: 非破壊（`preview=true`）を優先。適用した場合は必ず復元。
+  - 観測不能（診断未返却/ペイロード無し）の場合のみ `skip（OBSERVATION_GAP）`。
 
 実行手順（テストドライバの例）:
 - S60-01: `script_edit_structured(operation=replace_body, path=Assets/Scripts/GigaTestFile.cs, symbolName=FinalTestClass/TestMethod11, newText="{\n    this is not valid C#;\n}\n", preview=true)`

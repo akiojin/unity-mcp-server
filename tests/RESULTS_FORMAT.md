@@ -75,6 +75,19 @@
 - pass / fail / skip / BLOCKED_ENV は語で明示
 - 各行（チェックリスト）は `- [ ]` / `- [x]` を必須とし、末尾に `restored:true/false` を付記
 
+ステータス定義（厳密規約）
+- pass: 期待した結果が観測できた場合。
+- fail: ツール呼び出しは成立したが「期待と観測が不一致」の場合（期待したトリム/エラーが発生しない等）。必ず `reasonCode: FAIL_EXPECTATION` を付す。
+- skip: 事前条件不足・環境限定により「検証そのものが実行不能/観測不能」の場合（例: 必須アセット無し、UI不存在、ツール応答に診断が無く判断不可）。`reasonCode: ENV_LIMITATION` または `OBSERVATION_GAP` 等を付す。
+- BLOCKED_ENV: カテゴリ全体の前提（S00-00）が満たせず以降を実施不可。
+
+判定フロー（原則）
+1) グローバル前提が崩れている → BLOCKED_ENV
+2) ケースの事前条件が欠如（入力アセット無し/対象シンボル不在 等） → skip（ENV_LIMITATION または INPUT_MISSING）
+3) ツールの応答が簡略すぎて判断不能（診断未返却/空） → skip（OBSERVATION_GAP）
+4) 検証は実行され観測できたが期待に不一致 → fail（FAIL_EXPECTATION）
+5) それ以外で期待どおり → pass
+
 BLOCKED_ENV の記録ルール（必須）
 - チェックリスト行に「原因」を短い語句で必ず併記してください（例: `blocked（Missing .sln）`, `blocked（UnityMCP tools unavailable）`, `blocked（index coverage < 50%）`）。
 - 併せて「環境詳細」の details セクションを追加し、前提チェック結果を箇条書きで明示します。
@@ -88,6 +101,7 @@ fail / skip の記録ルール（必須）
 - skip の場合:
   - チェックリスト行に「スキップ理由」を括弧付きで併記（例: `skip（Input アセット無し）`、`skip（UI 無し）`）。
   - details は任意ですが、依存 testId があるときはその ID と結果を1行で示す（例: `depends: U60-01=skip`）。
+  - 注意: 「期待不一致」は skip ではなく fail に分類する（例: 期待したトリム/エラーが発生しなかった → fail（FAIL_EXPECTATION））。
 
 実行ポリシー（必須）
 - 変更前の状態を取得・保存し、各テストケースの終了時に必ず復元する（チェックリスト行に restored:true を明記）
