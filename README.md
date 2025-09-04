@@ -69,6 +69,8 @@ Suggested caps
 ## Safe Structured Edit Playbook
 
 1) Locate symbols: `script_symbols_get` or `script_symbol_find` (prefer `kind` and `exact`).
+   - Use project-relative paths under `Assets/` or `Packages/` only.
+   - Use results’ container to build `namePath` like `Outer/Nested/Member`.
 2) Inspect minimal code: `script_read` with 30–40 lines around the symbol.
 3) Edit safely: `script_edit_structured` (insert_before/insert_after/replace_body).
    - Insert targets class/namespace (never method).

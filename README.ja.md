@@ -68,6 +68,8 @@ roslyn-cli の配備（npx 実行時）
 ## 安全な構造化編集プレイブック
 
 1) シンボル特定: `script_symbols_get` または `script_symbol_find`（`kind`/`exact` 指定推奨）。
+   - パスは `Assets/` または `Packages/` 起点のプロジェクト相対パスのみ使用。
+   - 検索結果の container から `Outer/Nested/Member` のような `namePath` を組み立てる。
 2) 最小限のコード確認: `script_read` で対象の前後30–40行。
 3) 安全な編集: `script_edit_structured`（insert_before/insert_after/replace_body）。
    - insert_* はクラス/名前空間が対象（メソッド直下は不可）。

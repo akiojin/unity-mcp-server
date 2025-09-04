@@ -6,7 +6,7 @@ export class ScriptCreateClassFileToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'script_create_class_file',
-      'Create a new C# class file (project-relative path, Roslyn preflight; no Unity comms). Responses are summarized for LLMs: errors up to 30 items, message up to 200 chars, and preview text trimmed to 1000 chars.',
+      'Create a new C# class file. Required: path under Assets/ or Packages/ (".cs" appended if missing), className. Optional: namespace, baseType (adds using UnityEngine if MonoBehaviour), usings (CSV), partial. Roslyn preflight (no Unity comms). Responses summarized for LLMs (errors≤30, message≤200 chars, preview≤1000 chars).',
       {
         type: 'object',
         properties: {

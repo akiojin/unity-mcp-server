@@ -7,7 +7,7 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_symbols_get',
-            'FIRST STEP: Identify symbols (classes, methods, fields, properties) with spans before any edit. Use this to scope changes to a single symbol and avoid line‑based edits. Returns line/column positions and containers; works with large files and Japanese identifiers.',
+            'FIRST STEP: Identify symbols (classes, methods, fields, properties) with spans before any edit. Path must start with Assets/ or Packages/. Use this to scope changes to a single symbol and avoid line-based edits. Returns line/column positions and container names (helpful to build container namePath like Outer/Nested/Member).',
             {
                 type: 'object',
                 properties: {

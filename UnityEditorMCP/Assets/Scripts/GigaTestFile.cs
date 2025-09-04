@@ -637,10 +637,9 @@ namespace GigaTestNamespace
         }
 
         public int MCP_ScriptToolProbe()
-        {
-            return 42;
-        }
-
+{
+    return 99;
+}
         #endregion
         
         #region コルーチン

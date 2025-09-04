@@ -6,7 +6,7 @@ export class ScriptRemoveSymbolToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'script_remove_symbol',
-      'Remove a C# symbol (type/member) with reference preflight. No Unity comms (Roslyn-based). Responses are summarized for LLMs: errors up to 30 items, message up to 200 chars, and preview/diff/text/content trimmed to 1000 chars.',
+      'Remove a C# symbol (type/member) with reference preflight. Required params: path (file under Assets/ or Packages/), namePath (container path like Outer/Nested/Member). No Unity comms (Roslyn-based). Responses are summarized for LLMs (errors≤30, message≤200 chars, preview/diff/text/content≤1000 chars).',
       {
         type: 'object',
         properties: {
