@@ -9,7 +9,7 @@
 - 復元の検証では、改行差などでハッシュ不一致でも「機能等価（元の挙動へ復帰）」であれば restored:true とし、details に根拠を記す。
 
 チェックリスト（Markdown）
-- [ ] S00-00: 前提チェック（.sln 必須・無ければ即終了）
+- [ ] S00-00: ラン初期化（事前 .sln チェックは行わない）
 - [ ] S10-01: script_symbols_get で FinalTestClass/TestMethod11/12 確認
 - [ ] S10-02: script_symbol_find で namePath 補助確定
 - [ ] S10-E01: 存在しないファイルで script_symbols_get は fail
@@ -38,13 +38,13 @@
 出力フォーマット要約（Script系の例: Markdown レポート）
 - 追記先: `tests/.reports/.current-run` のパスを必ず参照し、同一レポートへ追記（新規ファイル作成禁止）
 - チェックリスト行（PASS 例）: `- [x] S20-01 置換適用 — pass (250 ms) restored:true`
-- 前提未充足（S00）例: `- [ ] S00-00 前提チェック — blocked（Missing .sln） restored:true`
+  
   サマリはレポート先頭のテーブルで集計（`tests/RESULTS_FORMAT.md` 参照）。
 
 ToDo 登録（エージェント内）
 - 実行開始前に、本ファイルのすべてのケース（S00, S10, S20, S30, S40, S50, S60, S70, S80, S90）を、エージェントの ToDo/プラン機能（update_plan 等）に登録してください。
 - 例（概念）:
-  - S00-00: 前提チェック（.sln 必須） → pending
+  - S00-00: ラン初期化（.sln 事前チェックは行わない） → pending
   - S10-01: script_symbols_get で FinalTestClass 確認 → pending
   - S20-01: replace_body（TestMethod12 を 99 に） → pending
   …（以降同様）
@@ -61,21 +61,19 @@ ToDo 登録（エージェント内）
 - 失敗時は `reasonCode`（例: FAIL_EXPECTATION/BLOCKED_ENV/TOOL_ERROR/TIMEOUT）と上位診断の要約（`diagnosticsTopN`）を記載してよい。
 - リトライは最大3回。実施回数は `retries` に記録。
 
-S00) 実行前準備（必須・sln 非存在時は即終了）
+S00) ラン初期化（.sln 事前チェックは行わない）
 
-目的: 適用系（rename/remove/replace）が成立するための前提確認を行い、満たさない場合は「テスト続行不可」として即時終了する。
+目的: レポート初期化と最低限の到達性確認のみを行う。`.sln` の存在判定は行わず、以降の Script ツール呼び出し内部のチェックに委譲する。
 
 チェックリスト（順に実施）:
-1. ソリューション確認（必須・生成禁止）: ワークスペース直下（または既定のプロジェクトルート）に Unity が生成した `.sln` が存在するか確認する。ここで Unity を起動して新規に `.sln` を生成しようとしてはならない（テスト設計側の前提）。
-2. UnityMCP ツール到達性: `UnityMCP__script_symbols_get` など最小呼び出しが応答することを確認する（0件でも可）。
+1. レポート/ポインタ初期化（必須）: `tests/.reports/.current-run` へランファイルのパスを書き出す。
+2. UnityMCP ツール到達性: `UnityMCP__script_symbols_get` など最小呼び出しが応答することを確認（0件でも可）。
 3. パス制約: 以降の `path`/`relative` は必ず `Assets/` または `Packages/` 起点で指定する。
-4. インデックス状況: `script_index_status` でカバレッジを確認し、低ければ（任意）`UnityMCP__build_code_index` を実行して再確認する（`.sln` が存在する場合のみ）。
+4. インデックス状況: `script_index_status` でカバレッジを確認し、低ければ（任意）`UnityMCP__build_code_index` を実行して再確認する。
 5. 到達性確認: 最小ファイルに対して `script_symbols_get` が成功することを確認（0件でも可）。
 
-即時終了ポリシー（厳守）:
-- `.sln` が存在しない場合は、テストを続行不可とし、その時点で終了する。以降のケースは一切実行しない。
-- この場合、Markdown レポートのチェックリストに `S00-00: 前提チェック — blocked（Missing .sln）` を1行追記し、サマリテーブルで `BLOCKED_ENV` を 1 にする。
-- さらに details セクションで前提チェックの内訳を明記する（例: `.sln: missing / UnityMCP: unreachable / code index: not built`）。
+ブロック方針:
+- `.sln` の有無は個別に判定しない。Script ツール呼び出し内部のチェックで失敗した場合に限り、`blocked（<短い原因>）` として記録し、details に根拠を記す。
 
 ## 前提・共通ルール
 

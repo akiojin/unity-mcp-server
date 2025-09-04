@@ -36,7 +36,7 @@
 
 - 実行者: <agent or name>
 - 実行時刻: 2025-01-01T12:00:00Z 〜 2025-01-01T12:03:45Z（合計 225000 ms）
-- 前提: .sln あり / UnityMCP script_* 到達性 / インデックス coverage: 95%
+- 前提: UnityMCP script_* 到達性 / インデックス coverage: 95%
 
 ## サマリ
 | total | pass | fail | skip | BLOCKED_ENV | FAIL_EXPECTATION | TOOL_ERROR | TIMEOUT |
@@ -46,7 +46,7 @@
 ## Script（各ケースは1行）
 - [x] S20-01 置換適用 — pass (250 ms) restored:true
 - [x] S30-01 リネーム — pass (310 ms) restored:true
-- [ ] S00-00 前提チェック — blocked（Missing .sln） restored:true
+- [x] S00-00 ラン初期化 — pass (0 ms) restored:true
 
 ## Scene
 - [ ] U10-01 create_scene … restored:true
@@ -99,4 +99,4 @@ fail / skip の記録ルール（必須）
 
 ToDo 管理（エージェント内運用）
 - ファイル出力は不要。エージェント（LLM）の ToDo/プラン機能（update_plan 等）に、各カテゴリの全テストを登録して進捗更新する。
-- 登録例: 1) S00 前提チェック → pending、2) 実行時に in_progress、3) 完了で completed。
+- 登録例: 1) S00 ラン初期化 → pending、2) 実行時に in_progress、3) 完了で completed。
