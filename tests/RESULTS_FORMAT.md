@@ -64,8 +64,7 @@
 - プロジェクト設定は必ず元の値へ戻す。既存アセット/Prefab/シーンへ加えた変更はすべてロールバックする
 - Git のコミット/プッシュ、`npm version` などのバージョン変更は行わない
 
-ToDo 管理（必須／Markdown）
-- テスト開始前に、当該カテゴリ内のすべてのケースを Markdown チェックリストとして ToDo 化してください（AGENTS.md に準拠）
-- 保存先: `tests/.todo/<category>-<YYYYMMDD_HHmmss>.md` または `tests/TODO.md`（Git管理外）
-- 重要: 各項目の状態変更ごとに「即時」書き戻し（開始→in_progress、終了→completed/blocked）。最後にまとめて更新しないこと
-- 競合回避: 一時ファイル→rename の原子的書き込みを推奨
+ToDo 管理（エージェント内運用）
+- ファイル出力は不要。エージェント（LLM）の ToDo/プラン機能（update_plan 等）に、各カテゴリの全テストを登録して進捗更新する。
+- 登録例: 1) S00 前提チェック → pending、2) 実行時に in_progress、3) 完了で completed。
+- 任意で Markdown チェックリストにミラーしてもよいが必須ではない。

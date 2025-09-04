@@ -35,19 +35,13 @@
 - 前提未充足（S00）例: `- [ ] S00-00 前提チェック — blocked（Missing .sln） restored:true`
   サマリはレポート先頭のテーブルで集計（`tests/RESULTS_FORMAT.md` 参照）。
 
-ToDo 作成（必須）
-- 実行開始前に、本ファイルのすべてのケース（S00, S10, S20, S30, S40, S50, S60, S70, S80, S90）を Markdown チェックリストとして ToDo 登録してください（保存先例: `tests/.todo/script-<timestamp>.md`）。
-- 例（Markdown）:
-  - [ ] S00-00: 前提チェック（.sln 必須）
-  - [ ] S10-01: script_symbols_get で FinalTestClass 確認
-  - [ ] S20-01: replace_body（TestMethod12 を 99 に）
-  - [ ] S30-01: rename（TestMethod11→Renamed）
-  - [ ] S40-01: remove_symbol（TestMethod12）
-  - [ ] S50-01: refs_find ページング/要約
-  - [ ] S60-01: 要約上限（errors≤30 等）
-  - [ ] S70-01: 誤用ガード（パス/曖昧 namePath）
-  - [ ] S80-01: 部分読み取り/サイズ制限
-  - [ ] S90-01: 後片付け（すべて復元）
+ToDo 登録（エージェント内）
+- 実行開始前に、本ファイルのすべてのケース（S00, S10, S20, S30, S40, S50, S60, S70, S80, S90）を、エージェントの ToDo/プラン機能（update_plan 等）に登録してください。
+- 例（概念）:
+  - S00-00: 前提チェック（.sln 必須） → pending
+  - S10-01: script_symbols_get で FinalTestClass 確認 → pending
+  - S20-01: replace_body（TestMethod12 を 99 に） → pending
+  …（以降同様）
 
 原状回復（必須）・禁止事項（全ケース共通）:
 - 各ケース開始時に対象の「変更前状態」を取得・保存（例: 本体スニペットとハッシュ、宣言名、開始行）。
