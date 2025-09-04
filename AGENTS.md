@@ -79,14 +79,20 @@
 
 **重要**: package.jsonを直接編集してのバージョン変更は禁止
 
-### バージョンアップ手順
+### バージョンアップ手順（推奨: スクリプト）
+
+- コマンド: `bash scripts/publish.sh <major|minor|patch>`
+  - やること: 版上げ（npm version）→ バージョン同期（C#/UPM）→ コミット → タグ作成 → プッシュ
+  - 以降は GitHub Actions が自動でリリース（CLI）と npm 公開（MCP）を実行
+
+手動で行う場合:
 
 1. 変更内容に応じて適切なバージョンコマンドを選択
-2. mcp-serverディレクトリで: `npm version [patch|minor|major]`
-3. （自動同期）`roslyn-cli/Directory.Build.props` と `UnityEditorMCP/Packages/unity-editor-mcp/package.json` の `version` が更新される（npm version フック）
-4. `git push --follow-tags` を実行（タグ `vX.Y.Z` を必ずプッシュ）
-5. GitHub Actions の `roslyn-cli release` ワークフロー完了を確認（各RIDビルド＋Release公開）
-6. 必要に応じて `mcp-server` で `npm publish`
+2. `cd mcp-server && npm version [patch|minor|major]`
+3. （自動同期）`roslyn-cli/Directory.Build.props` と `UnityEditorMCP/Packages/unity-editor-mcp/package.json` の `version` が更新される
+4. 変更をコミット＆プッシュ、タグ `vX.Y.Z` を作成してプッシュ（`git push && git push origin vX.Y.Z`）
+5. GitHub Actions の `Release: roslyn-cli` 完了を確認（各RIDビルド＋Release公開）
+6. `Publish: mcp-server (npm)` の成功を確認（npm公開）
 
 ### リリース（自動公開）
 
