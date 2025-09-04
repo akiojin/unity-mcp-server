@@ -2,6 +2,12 @@
 
 本ドキュメントは、UnityMCP の Script 系ツール（`script_*`）を「テスターが迷わず実行・判定・復元できる」ように記述した実行仕様です。結果のレポートは Markdown 形式とし、`tests/RESULTS_FORMAT.md` のテンプレートに準拠します。全テストは原状回復までを含め、Git へのコミットやバージョン変更は行いません。
 
+完走ポリシー（Fail-Safe）
+- 本カテゴリは必ず完走する。各項目は pass/fail/skip のいずれかで記録し、途中で停止しない。
+- 適用系 API が安全側で拒否される場合（例: 参照あり削除、曖昧 namePath、パスガード）は「skip（理由）」で続行。
+- 破壊的操作は `apply=false` のプレビューを優先し、適用不能なら skip として次へ進む。
+- 復元の検証では、改行差などでハッシュ不一致でも「機能等価（元の挙動へ復帰）」であれば restored:true とし、details に根拠を記す。
+
 チェックリスト（Markdown）
 - [ ] S00-00: 前提チェック（.sln 必須・無ければ即終了）
 - [ ] S10-01: script_symbols_get で FinalTestClass/TestMethod11/12 確認
@@ -110,6 +116,7 @@ S00) 実行前準備（必須・sln 非存在時は即終了）
 判定条件・復元:
 - 判定: 応答 `applied=true` かつ `script_read` 抜粋に `return 99;` が反映。インデント崩れがない。
 - 復元: 実行前に `script_read` で本体スニペットを保存。終了時に `replace_body` で元本体に戻し、`beforeHash==afterHash` を確認。
+  備考: 改行差等でハッシュ不一致でも動作が等価なら restored:true とし、details に理由を記載。
 
 ---
 
