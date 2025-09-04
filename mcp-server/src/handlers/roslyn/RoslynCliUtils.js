@@ -6,8 +6,6 @@ import { WORKSPACE_ROOT } from '../../core/config.js';
 import { fileURLToPath } from 'url';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
-let AUTO_BUILD_ATTEMPTED = false;
-
 export class RoslynCliUtils {
   constructor(unityConnection) {
     this.unityConnection = unityConnection;
@@ -38,43 +36,24 @@ export class RoslynCliUtils {
       return localPreferred;
     }
 
-    // Prefer auto-download first (user expectation). If unavailable, fall back to auto-build.
+    // 自動ダウンロードのみを許可（失敗時はエラー）
     try {
       const dl = await this._autoDownloadCli(rid, repoRoot);
       if (dl && fs.existsSync(dl)) return dl;
     } catch (e) {
       logger.warn(`roslyn-cli auto-download failed: ${e.message}`);
     }
+    if (fs.existsSync(localPreferred)) return localPreferred; // 競合状態の最終確認
 
-    // Auto-build exactly once per process if missing (bootstrap behavior)
-    if (!AUTO_BUILD_ATTEMPTED) {
-      AUTO_BUILD_ATTEMPTED = true;
-      try {
-        // Only attempt bootstrap if scripts exist in the resolved repo root
-        const hasScript = this._hasBootstrapScript(repoRoot);
-        if (hasScript) {
-          await this._autoBuildCli(rid, repoRoot);
-        }
-      } catch (e) {
-        // Fall-through to standardized error below
-        logger.error(`[roslyn-cli] auto-build failed: ${e.message}`);
-      }
-    }
-
-    if (fs.existsSync(localPreferred)) return localPreferred;
-
-    // Not found after (optional) auto-build — return explicit guidance
+    // 自動DLに失敗したため、明示的にエラーを返す（開発用フォールバックは行わない）
     const expected = (pkgCandidates.find(p => p) || localPreferred).replace(/\\/g, '/');
-    const hint = process.platform === 'win32'
-      ? 'powershell -ExecutionPolicy Bypass -File scripts/bootstrap-roslyn-cli.ps1 -Rid win-x64'
-      : `./scripts/bootstrap-roslyn-cli.sh ${rid}`;
     const msg = [
       'roslyn-cli binary not found.',
       `Expected: ${expected} (.unity/tools/roslyn-cli/<rid>)`,
-      'Provision options:',
-      `  - Build from source if present: ${hint}`,
-      '  - Or place a prebuilt binary at the above path',
-      '  - Auto-download is performed automatically from GitHub Releases'
+      'Provision required:',
+      '  - Auto-download must succeed from GitHub Releases (tag = mcp-server version)',
+      '  - Or place a prebuilt binary at the expected path',
+      'Note: Development fallback build is disabled.'
     ].join('\n');
     throw new Error(msg);
   }
@@ -86,39 +65,7 @@ export class RoslynCliUtils {
     return process.arch === 'arm64' ? 'linux-arm64' : 'linux-x64';
   }
 
-  _spawnOnce(cmd, args, opts = {}) {
-    return new Promise((resolve, reject) => {
-      const proc = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'], ...opts });
-      let out = '';
-      let err = '';
-      proc.stdout.on('data', d => out += d.toString());
-      proc.stderr.on('data', d => err += d.toString());
-      proc.on('error', reject);
-      proc.on('close', code => {
-        if (code !== 0) {
-          const trimmed = (err || out).toString().slice(0, 4000);
-          return reject(new Error(`${cmd} exited with code ${code}. Output:\n${trimmed}`));
-        }
-        resolve({ out, err });
-      });
-    });
-  }
-
-  async _autoBuildCli(rid, repoRoot) {
-    const isWin = process.platform === 'win32';
-    const script = isWin
-      ? path.resolve(repoRoot, 'scripts', 'bootstrap-roslyn-cli.ps1')
-      : path.resolve(repoRoot, 'scripts', 'bootstrap-roslyn-cli.sh');
-    const exists = fs.existsSync(script);
-    if (!exists) throw new Error(`bootstrap script not found: ${script}`);
-    logger.info(`[roslyn-cli] bootstrapping for ${rid} using ${path.basename(script)} ...`);
-    if (isWin) {
-      await this._spawnOnce('powershell', ['-ExecutionPolicy','Bypass','-File', script, '-Rid', rid], { cwd: repoRoot });
-    } else {
-      // Run via bash to avoid EACCES when execute bit is not set
-      await this._spawnOnce('bash', [script, rid], { cwd: repoRoot });
-    }
-  }
+  // 開発向けの自動ビルドは削除
 
   // mcp-server パッケージルートを import.meta.url から解決
   _resolvePackageRoot() {
@@ -137,11 +84,7 @@ export class RoslynCliUtils {
     }
   }
 
-  _hasBootstrapScript(repoRoot) {
-    const ps1 = path.resolve(repoRoot, 'scripts', 'bootstrap-roslyn-cli.ps1');
-    const sh = path.resolve(repoRoot, 'scripts', 'bootstrap-roslyn-cli.sh');
-    return fs.existsSync(ps1) || fs.existsSync(sh);
-  }
+  // _hasBootstrapScript: removed
 
   async _autoDownloadCli(rid, workspaceRoot) {
     const owner = 'akiojin';
