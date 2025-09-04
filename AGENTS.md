@@ -36,6 +36,7 @@
 - 出力フォーマット: すべてのテスト結果は Markdown。仕様とテンプレートは `tests/RESULTS_FORMAT.md` を参照。
 - 出力先: 1 ラン＝1 ファイル運用。`tests/.reports/run-<YYYYMMDD_HHmmss>.md` に集約（Git管理外、.gitignore 済）。任意で `tests/.reports/latest.md` を上書き更新。
 - ラン初期化: 最初に Run ID を採番し、パスを `tests/.reports/.current-run` に保存。以降の全カテゴリはこのパスへ追記（別ファイル作成禁止）。
+  - サマリ更新: 各カテゴリ追記後とラン終了時に、先頭のサマリテーブルを再計算して上書き。更新後の全文を `tests/.reports/latest.md` にも上書きする。
 - ToDo運用: ファイル出力は不要。エージェント（LLM）の ToDo/プラン機能（update_plan 等）に、各カテゴリの全テスト項目を登録し、実行中は `in_progress`、完了時に `completed` へ「都度」更新する。
 - 原状回復: 各ケース終了時に必ず原状復帰（チェックリスト行に `restored:true` を明記）。
 - BLOCKED_ENV の原因記録: ブロック時はチェックリスト行に短い原因語句を必ず併記（例: `blocked（Missing .sln）`）。加えて details に前提チェック結果の内訳（.sln/roslyn-cli/index など）を記載する。

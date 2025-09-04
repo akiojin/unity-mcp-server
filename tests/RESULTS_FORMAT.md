@@ -16,6 +16,20 @@
 - カテゴリ先頭で見出し `## <Category>` を一度だけ追記し、以降はチェックリスト行を追加。
 - 別ファイルの新規作成は禁止（1 ラン＝1 ファイル）。
 
+サマリ更新（必須）
+- 各カテゴリの追記後・およびラン終了時に、先頭の「サマリ」テーブルを再計算して上書き更新する。
+- カウント規約:
+  - `pass`: 行に `- [x]` かつ `— pass` を含む数
+  - `fail`: 行に `- [ ]` かつ `— fail` を含む数
+  - `skip`: 行に `- [ ]` かつ `— skip` を含む数
+  - `BLOCKED_ENV`: 行に `- [ ]` かつ `— blocked（...）` を含む数（グローバル前提のS00を含む）
+  - `FAIL_EXPECTATION`: 詳細内に `reasonCode: FAIL_EXPECTATION` を含む、または行本文に `FAIL_EXPECTATION` を含む数（無ければ0）
+  - `TOOL_ERROR`: 詳細に `reasonCode: TOOL_ERROR` を含む数（無ければ0）
+  - `TIMEOUT`: 詳細に `reasonCode: TIMEOUT` を含む数（無ければ0）
+  - `total`: チェックリスト行（`- [ ]` または `- [x]`）の合計
+- latest 更新: 再計算後のレポート全文を `tests/.reports/latest.md` にも上書きする。
+
+
 テンプレート（ランファイルの雛形・例）
 ```
 # <Run Title> テストレポート
