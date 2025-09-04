@@ -2,6 +2,12 @@
 
 結果フォーマットは `tests/RESULTS_FORMAT.md` を参照。全テストは原状回復までを含め、Git へのコミットやバージョン変更は行いません。
 
+完走ポリシー（Fail-Safe）
+- 本カテゴリは必ず完走する。各項目は pass/fail/skip のいずれかで記録し、途中で停止しない。
+- 作成や保存が安全側で拒否される場合や前提未充足の項目は「skip（理由）」で継続する。
+- 復元は必須。差分が残らない状態に戻せば restored:true とする。
+
+
 前提・共通ルール:
 - 禁止: UnityMCP 以外のコマンド・独自スクリプトで操作しない。
 - 使用ツール: `UnityMCP__create_scene`, `UnityMCP__get_scene_info`, `UnityMCP__list_scenes`, `UnityMCP__save_scene`。

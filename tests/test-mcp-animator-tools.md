@@ -2,6 +2,12 @@
 
 結果フォーマットは `tests/RESULTS_FORMAT.md` を参照。全テストは原状回復までを含め、Git へのコミットやバージョン変更は行いません。
 
+完走ポリシー（Fail-Safe）
+- 本カテゴリは必ず完走する。各項目は pass/fail/skip のいずれかで記録し、途中で停止しない。
+- Animator 対象が無い場合は全項目を `skip（Animator 無し）` として継続（カテゴリ完走）。
+- Play 依存の項目は条件未満なら `skip（Playでない）` として継続。
+
+
 前提・共通ルール:
 - 禁止: UnityMCP 以外のコマンド・独自スクリプトで操作しない。
 - 使用ツール: `UnityMCP__get_animator_state`, `UnityMCP__get_animator_runtime_info`。

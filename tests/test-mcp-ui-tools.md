@@ -2,6 +2,12 @@
 
 結果フォーマットは `tests/RESULTS_FORMAT.md` を参照。UI がなければ `skip`。全テストは原状回復までを含め、Git へのコミットやバージョン変更は行いません。
 
+完走ポリシー（Fail-Safe）
+- 本カテゴリは必ず完走する。各項目は pass/fail/skip のいずれかで記録し、途中で停止しない。
+- UI が存在しない場合は全項目を `skip（UI 無し）` で埋めて継続（カテゴリ完走）。
+- 操作系が安全側で拒否される場合は `skip（理由）` とし、復元の要否を確認する。
+
+
 前提・共通ルール:
 - 禁止: UnityMCP 以外のコマンド・独自スクリプトで操作しない。
 - 使用ツール: `UnityMCP__find_ui_elements`, `UnityMCP__get_ui_element_state`, `UnityMCP__click_ui_element`, `UnityMCP__set_ui_element_value`。
