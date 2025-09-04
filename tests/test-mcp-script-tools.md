@@ -30,11 +30,10 @@
 - [ ] S90-01: 後片付け（元状態へ完全復元）
 
 出力フォーマット要約（Script系の例: Markdown レポート）
-- チェックリスト行（PASS 例）:
-  - [x] S20-01 置換適用 — pass (250 ms) restored:true
-- 前提未充足（S00）で即時終了の場合（BLOCKED_ENV 例）:
-  - [ ] S00-00 前提チェック — blocked（Missing .sln） restored:true
-  サマリはテーブルで集計（`tests/RESULTS_FORMAT.md` 参照）。
+- 追記先: `tests/.reports/.current-run` のパスを必ず参照し、同一レポートへ追記（新規ファイル作成禁止）
+- チェックリスト行（PASS 例）: `- [x] S20-01 置換適用 — pass (250 ms) restored:true`
+- 前提未充足（S00）例: `- [ ] S00-00 前提チェック — blocked（Missing .sln） restored:true`
+  サマリはレポート先頭のテーブルで集計（`tests/RESULTS_FORMAT.md` 参照）。
 
 ToDo 作成（必須）
 - 実行開始前に、本ファイルのすべてのケース（S00, S10, S20, S30, S40, S50, S60, S70, S80, S90）を Markdown チェックリストとして ToDo 登録してください（保存先例: `tests/.todo/script-<timestamp>.md`）。
