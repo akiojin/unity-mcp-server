@@ -37,13 +37,13 @@
 - [ ] S80-E01: 不正範囲で fail
 - [ ] S90-01: 後片付け（元状態へ完全復元）
 
-出力フォーマット要約（Script系の例: Markdown レポート）
-- 追記先: `tests/.reports/.current-run` のパスを必ず参照し、同一レポートへ追記（新規ファイル作成禁止）
-- チェックリスト行（PASS 例）: `- [x] S20-01 置換適用 — pass (250 ms) restored:true`
- - 対象ファイルの明記（必須）:
-   - Run ヘッダに `- 対象ファイル: <相対パス一覧>` を記載（カテゴリ横断で合算、重複排除）。
-   - 本カテゴリ見出し直後に `- 対象ファイル: Assets/Scripts/GigaTestFile.cs` を記載（Script系で触れたファイルのみ）。
-   - 各ケースの details には `targetPaths: [Assets/Scripts/GigaTestFile.cs]` を付記（単一でも配列）。
+ 出力フォーマット要約（Script系の例: Markdown レポート）
+ - 追記先: `tests/.reports/.current-run` のパスを必ず参照し、同一レポートへ追記（新規ファイル作成禁止）
+ - チェックリスト行（PASS 例）: `- [x] S20-01 置換適用 — pass (250 ms) restored:true`
+ - テスト仕様・所感・操作対象の明記（必須）:
+   - Run ヘッダ: `- テスト仕様: tests/test-mcp-script-tools.md`、`- 所感: <短文>`
+   - 本カテゴリ見出し直後: `- テスト仕様: tests/test-mcp-script-tools.md`、任意で `- 操作対象ファイル: Assets/Scripts/GigaTestFile.cs`
+   - 各ケース details: `targetPaths: [Assets/Scripts/GigaTestFile.cs]`（単一でも配列）
   
   サマリはレポート先頭のテーブルで集計（`tests/RESULTS_FORMAT.md` 参照）。
 

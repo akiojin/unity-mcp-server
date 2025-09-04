@@ -37,7 +37,8 @@
 - 実行者: <agent or name>
 - 実行時刻: 2025-01-01T12:00:00Z 〜 2025-01-01T12:03:45Z（合計 225000 ms）
 - 前提: UnityMCP script_* 到達性 / インデックス coverage: 95%
-- 対象ファイル: Assets/Scripts/GigaTestFile.cs, Assets/Scripts/Another.cs（重複排除・相対パス、カテゴリ横断の合算）
+- テスト仕様: tests/test-mcp-<category>-tools.md（本レポートの根拠となる仕様ファイル名）
+- 所感: <実施時の短い所感・気づき（任意だが推奨）>
 
 ## サマリ
 | total | pass | fail | skip | BLOCKED_ENV | FAIL_EXPECTATION | TOOL_ERROR | TIMEOUT |
@@ -45,7 +46,9 @@
 |   20  |  18  |   1  |   1  |           0 |                1 |          0 |       0 |
 
 ## Script（各ケースは1行）
-- 対象ファイル: Assets/Scripts/GigaTestFile.cs（当カテゴリで操作・参照したファイルの一覧）
+- テスト仕様: tests/test-mcp-script-tools.md
+- 操作対象ファイル: Assets/Scripts/GigaTestFile.cs（当カテゴリで操作・参照したファイルの一覧／任意）
+- 所感: <当カテゴリの簡単な所感（任意）>
 - [x] S20-01 置換適用 — pass (250 ms) restored:true
 - [x] S30-01 リネーム — pass (310 ms) restored:true
 - [x] S00-00 ラン初期化 — pass (0 ms) restored:true
@@ -139,8 +142,10 @@ ToDo 管理（エージェント内運用）
 - ファイル出力は不要。エージェント（LLM）の ToDo/プラン機能（update_plan 等）に、各カテゴリの全テストを登録して進捗更新する。
 - 登録例: 1) S00 ラン初期化 → pending、2) 実行時に in_progress、3) 完了で completed。
 
-対象ファイルの記録（必須）
-- Run ヘッダに `- 対象ファイル:` を記載すること（相対パス、重複排除、カテゴリ横断で集約）。
-- 各カテゴリ見出し直後にも `- 対象ファイル:` を1行で記載（当該カテゴリで読み書きや解析対象となったファイルのみ）。
-- 可能であれば各ケースの details に `targetPaths: [ ... ]` を付記する（単一でも配列形式）。
-- ファイルパスはワークスペースルート基準の相対パスで統一し、`Assets/` と `Packages/` を最優先で表記する。
+テスト仕様・操作対象の記録（必須）
+- Run ヘッダに `- テスト仕様:` を記載すること（tests/ 配下の仕様ファイル相対パス）。
+- Run ヘッダに `- 所感:` を1行で記載（任意だが推奨）。
+- 各カテゴリ見出し直後にも `- テスト仕様:` を1行で記載（当該カテゴリの仕様ファイル）。
+- 各カテゴリ見出し直後に `- 操作対象ファイル:` を任意で記載（当該カテゴリで読み書きや解析対象となったファイル）。
+- 各ケースの details には `targetPaths: [ ... ]` を付記する（単一でも配列形式）。
+- パスはワークスペースルート基準の相対パスで統一し、`tests/`（仕様）と `Assets/`/`Packages/`（操作対象）を明確に分けて表記する。
