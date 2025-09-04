@@ -1,8 +1,9 @@
 name: Publish mcp-server (npm)
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 permissions:
@@ -25,7 +26,12 @@ jobs:
       - name: Verify tag equals mcp-server version
         working-directory: mcp-server
         run: |
-          TAG="${GITHUB_REF_NAME}"
+          # release イベントでは github.event.release.tag_name を用いる
+          TAG="${{ github.event.release.tag_name }}"
+          if [ -z "$TAG" ]; then
+            echo "tag_name not found in release payload; fallback to GITHUB_REF_NAME" >&2
+            TAG="${GITHUB_REF_NAME}"
+          fi
           PKG_VER=$(node -p "require('./package.json').version")
           echo "tag: $TAG / package: $PKG_VER"
           if [ "v$PKG_VER" != "$TAG" ]; then
