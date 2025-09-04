@@ -36,13 +36,19 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Publish roslyn-cli (self-contained)
+      - name: Publish roslyn-cli (single-file)
         run: |
-          dotnet publish roslyn-cli/roslyn-cli.csproj -c Release -r ${{ matrix.rid }} --self-contained true -o out/${{ matrix.rid }}
+          dotnet publish roslyn-cli/roslyn-cli.csproj \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:EnableCompressionInSingleFile=true \
+            -o out/${{ matrix.rid }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: roslyn-cli-${{ matrix.rid }}
           path: out/${{ matrix.rid }}
-

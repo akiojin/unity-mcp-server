@@ -34,12 +34,19 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      - name: Publish roslyn-cli
+      - name: Publish roslyn-cli (single-file)
         shell: bash
         run: |
           set -euxo pipefail
-          dotnet publish roslyn-cli/roslyn-cli.csproj -c Release -r "${{ matrix.rid }}" --self-contained true -o out
-          ls -la out
+          dotnet publish roslyn-cli/roslyn-cli.csproj \
+            -c Release \
+            -r "${{ matrix.rid }}" \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:EnableCompressionInSingleFile=true \
+            -o out
+          ls -la out || true
       - name: Prepare artifact
         shell: bash
         run: |
@@ -49,7 +56,12 @@ jobs:
           DEST="dist/${{ matrix.exe == 'roslyn-cli.exe' && 'roslyn-cli-' || 'roslyn-cli-' }}${{ matrix.rid }}${{ matrix.exe == 'roslyn-cli.exe' && '.exe' || '' }}"
           cp "$SRC" "$DEST"
           if [ "$RUNNER_OS" != "Windows" ]; then chmod +x "$DEST"; fi
-          sha256sum "$DEST" > dist/SHA256-${{ matrix.rid }}.txt || shasum -a 256 "$DEST" > dist/SHA256-${{ matrix.rid }}.txt
+          # generate checksum (sha256sum (GNU) or shasum (BSD))
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum "$DEST" > dist/SHA256-${{ matrix.rid }}.txt
+          else
+            shasum -a 256 "$DEST" > dist/SHA256-${{ matrix.rid }}.txt
+          fi
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -83,4 +95,3 @@ jobs:
             collected/roslyn-cli-checksums.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
