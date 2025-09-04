@@ -2586,7 +2586,7 @@ namespace GigaTestNamespace
         private void TestMethod9() { UnityEngine.Debug.Log("Test 9"); }
         private void TestMethod10() { UnityEngine.Debug.Log("Test 10"); }
         private void TestMethod11() { UnityEngine.Debug.Log("Test 11"); }
-        private void TestMethod12() { UnityEngine.Debug.LogWarning("Test Warning"); }
+        private int TestMethod12() { return 12; }
         // 日本語コメントのテスト
         /// <summary>
         /// これは日本語のサマリーコメントです
