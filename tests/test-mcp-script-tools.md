@@ -65,6 +65,11 @@ ToDo 登録（エージェント内）
 - レポートは Markdown（`tests/RESULTS_FORMAT.md`）に準拠し、チェックリスト行に `pass/fail/skip/BLOCKED_ENV` と `restored:true/false` を明記する。
 - fail / skip 時は「理由」を必ず併記（例: `fail（expectation mismatch: applied=false）`、`skip（Input アセット無し）`）。必要に応じ details に根拠（入力・期待・観測・主要診断上位）を箇条書きで記載。
 - 返却が `id` のみ等で詳細診断が取得できない場合は、観測不能として `skip（診断未返却）` を明記し、details にツール応答の主要フィールド（例: `success/applied/errorCount`）を記録する。
+- ただし、可能な限り以下のエビデンス・エスカレーションで再判定を試みる（RESULTS_FORMAT.md 参照）。
+  - 差分検証: `script_read` で before/after を取り `beforeHash/afterHash/verified` を記録。期待に照らして pass/fail を再判定。
+  - 構造検証: `script_symbols_get` によりシンボル有無/開始行の変化を確認。
+  - 参照検証: `script_refs_find` により参照件数の期待を確認。
+  - なお判定不能時のみ最終的に `skip（OBSERVATION_GAP）` とする。
 - 失敗時は `reasonCode`（例: FAIL_EXPECTATION/BLOCKED_ENV/TOOL_ERROR/TIMEOUT）と上位診断の要約（`diagnosticsTopN`）を記載してよい。
 - リトライは最大3回。実施回数は `retries` に記録。
 
@@ -183,7 +188,8 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 - S40-E01 実行: 参照が存在するシンボル例 `BaseProcessor/GetProcessorName` を対象
   - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=BaseProcessor/GetProcessorName, apply=true, failOnReferences=true)`
   - 期待: `applied:false`（ブロック）。`errors` に参照あり旨の診断が要約される。
-  - 観測不能時: `skip（参照検出できず観測不能 or 診断未返却）` とし details に実引数と応答主要フィールドを記載。
+  - 観測不能時の再判定: 差分検証でファイル変更が「無い」ことが取れれば pass／「有る」なら fail（FAIL_EXPECTATION）。
+    - なお差分も取れない場合に限り `skip（OBSERVATION_GAP）`。
 - S40-E02 実行: `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/ThisDoesNotExist, apply=true, failOnReferences=false)`
   - 期待: `success:false` または `applied:false` とエラーメッセージ。
   - 観測不能時の扱いは E01 と同様に `skip（診断未返却）`。
@@ -223,7 +229,8 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 判定条件・復元:
 - 判定: `errors`<=30、各 `message`<=200 文字、`preview/diff/text/content`<=1000 文字＋ `Truncated` フラグ。満たさない場合は `fail（FAIL_EXPECTATION）`。
 - 復元: 非破壊（`preview=true`）を優先。適用した場合は必ず復元。
-  - 観測不能（診断未返却/ペイロード無し）の場合のみ `skip（OBSERVATION_GAP）`。
+  - 観測不能時の観測性向上策: `newText` を意図的に難読化（複数行・未終了ブロック等）して診断量を増やす／`snippetContext` や対象を増やす等で生応答を得やすくする。
+  - それでも診断やペイロードが得られない場合のみ `skip（OBSERVATION_GAP）`。
 
 実行手順（テストドライバの例）:
 - S60-01: `script_edit_structured(operation=replace_body, path=Assets/Scripts/GigaTestFile.cs, symbolName=FinalTestClass/TestMethod11, newText="{\n    this is not valid C#;\n}\n", preview=true)`

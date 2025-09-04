@@ -88,6 +88,22 @@
 4) 検証は実行され観測できたが期待に不一致 → fail（FAIL_EXPECTATION）
 5) それ以外で期待どおり → pass
 
+観測不能時の再判定（エビデンス・エスカレーション）
+- 目的: 可能な限り skip を pass/fail に再分類する。
+- 手順（上から順に試行。どれかで判定できたら確定）
+  1) 差分検証: `script_read` で対象範囲を「実行前/実行後」取得し、`beforeHash/afterHash` と `verified`（等価判定）を記録。
+     - 期待=適用される（applied=true）: 差分なし → fail（FAIL_EXPECTATION）／差分あり → pass。
+     - 期待=未適用（ガード/ブロック）: 差分なし → pass／差分あり → fail（FAIL_EXPECTATION）。
+  2) 構造検証: `script_symbols_get` でシンボルの有無/開始行が期待どおりに変化しているか確認（rename/remove/insert）。
+  3) 参照検証: `script_refs_find` で参照件数の期待（例: rename 後の旧名=0 件）を確認。
+  4) なお判定不能（診断も差分も得られない）なら、初めて skip（OBSERVATION_GAP）とする。
+- details テンプレ（例）:
+  - evidence:
+    - read.beforeHash=sha1:..., afterHash=sha1:..., verified=false
+    - symbols.before=[...], symbols.after=[...]
+    - refs_find.oldNameCount=0
+  - expectation: applied=true / guard=no-change など
+
 BLOCKED_ENV の記録ルール（必須）
 - チェックリスト行に「原因」を短い語句で必ず併記してください（例: `blocked（Missing .sln）`, `blocked（UnityMCP tools unavailable）`, `blocked（index coverage < 50%）`）。
 - 併せて「環境詳細」の details セクションを追加し、前提チェック結果を箇条書きで明示します。
