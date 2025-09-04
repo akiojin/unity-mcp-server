@@ -88,6 +88,21 @@
 5. GitHub Actions の `roslyn-cli release` ワークフロー完了を確認（各RIDビルド＋Release公開）
 6. 必要に応じて `mcp-server` で `npm publish`
 
+### リリース（自動公開）
+
+- roslyn-cli（GitHub Release に自動公開）
+  - トリガ: タグ `vX.Y.Z` のプッシュ
+  - CI: self-contained + 単一ファイルで各RIDを `dotnet publish`、`roslyn-cli-manifest.json` を生成し Release に添付
+  - Node側: `mcp-server/package.json` の `version` と同一タグの `manifest.json` を参照し、RID資産をダウンロード（sha256検証）
+- mcp-server（npm 公開に自動対応）
+  - トリガ: GitHub Release の published（`vX.Y.Z`）
+  - CI: `mcp-server` の `npm ci && npm run test:ci && npm publish --access public`
+  - 前提: リポジトリSecret `NPM_TOKEN` を設定（npmのPublish権限付きトークン）
+- Unity UPM（GitHubパス指定で配布）
+  - 消費側は `Packages/manifest.json` に Git URL を記載（例）:
+    - `"com.unity.editor-mcp": "https://github.com/akiojin/unity-editor-mcp.git#vX.Y.Z"`
+  - レジストリ公開は不要。タグに対応した `package.json.version` が使われます。
+
 ### リリース自動化（LLM用手順）
 
 - 前提:
