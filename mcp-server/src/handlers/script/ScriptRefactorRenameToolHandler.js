@@ -5,7 +5,7 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_refactor_rename',
-            'Refactor: rename a symbol across the project using external Roslyn CLI (no Unity comms). Required: relative, namePath, newName. Start with preview for diagnostics, then apply. Responses are summarized for LLMs: errors up to 30 items, message up to 200 chars, and preview/diff fields trimmed to 1000 chars.',
+            'Refactor: rename a symbol across the project using external Roslyn CLI (no Unity comms). Required params: relative (file path starting with Assets/ or Packages/), namePath (container path like Outer/Nested/Member), newName. Guidance: resolve targets first (script_symbols_get/script_symbol_find), prefer fully-qualified namePath to avoid ambiguity, and use preview for diagnostics only (apply proceeds even if diagnostics exist; errors are returned in response). Responses are summarized (errors≤30, message≤200 chars, large text≤1000 chars).',
             {
                 type: 'object',
                 properties: {

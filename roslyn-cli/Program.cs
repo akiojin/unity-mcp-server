@@ -209,11 +209,7 @@ sealed class App
                 errors.AddRange(diags);
             }
 
-            if (errors.Count > 0 && apply)
-            {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors }, JsonOpts));
-                return 0;
-            }
+            // Always include diagnostics in response, but do not block apply solely due to compile errors.
             if (!apply)
             {
                 Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors }, JsonOpts));
@@ -533,13 +529,7 @@ sealed class App
                     column = d.Location.GetLineSpan().StartLinePosition.Character + 1
                 }).ToList() ?? new List<object>();
 
-            if (diags.Count > 0 && apply)
-            {
-                // Block apply if errors exist
-                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors = diags }, JsonOpts));
-                return 0;
-            }
-
+            // Always include diagnostics in response, but do not block apply solely due to compile errors.
             if (!apply)
             {
                 Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors = diags }, JsonOpts));
@@ -656,11 +646,7 @@ sealed class App
                     column = d.Location.GetLineSpan().StartLinePosition.Character + 1
                 }).ToList() ?? new List<object>();
 
-            if (diags.Count > 0 && apply)
-            {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors = diags }, JsonOpts));
-                return 0;
-            }
+            // Always include diagnostics in response, but do not block apply solely due to compile errors.
             if (!apply)
             {
                 Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors = diags }, JsonOpts));
