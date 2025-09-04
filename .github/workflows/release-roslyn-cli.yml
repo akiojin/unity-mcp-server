@@ -93,8 +93,10 @@ jobs:
           name: ${{ github.event.inputs.version && format('roslyn-cli v{0}', github.event.inputs.version) || github.ref_name }}
           draft: false
           prerelease: false
+          # 注意: '**/roslyn-cli-*' は root の checksums と重複しうるため1階層に限定
           files: |
-            collected/**/roslyn-cli-*
+            collected/*/roslyn-cli-*
             collected/roslyn-cli-checksums.txt
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
