@@ -22,7 +22,7 @@
 
 - 実行者: <agent or name>
 - 実行時刻: 2025-01-01T12:00:00Z 〜 2025-01-01T12:03:45Z（合計 225000 ms）
-- 前提: .sln あり / roslyn-cli serve 稼働 / インデックス coverage: 95%
+- 前提: .sln あり / UnityMCP script_* 到達性 / インデックス coverage: 95%
 
 ## サマリ
 | total | pass | fail | skip | BLOCKED_ENV | FAIL_EXPECTATION | TOOL_ERROR | TIMEOUT |
@@ -59,9 +59,9 @@
 - 各行（チェックリスト）は `- [ ]` / `- [x]` を必須とし、末尾に `restored:true/false` を付記
 
 BLOCKED_ENV の記録ルール（必須）
-- チェックリスト行に「原因」を短い語句で必ず併記してください（例: `blocked（Missing .sln）`, `blocked（roslyn-cli not running）`, `blocked（index coverage < 50%）`）。
+- チェックリスト行に「原因」を短い語句で必ず併記してください（例: `blocked（Missing .sln）`, `blocked（UnityMCP tools unavailable）`, `blocked（index coverage < 50%）`）。
 - 併せて「環境詳細」の details セクションを追加し、前提チェック結果を箇条書きで明示します。
-  - 例: `.sln: missing / roslyn-cli: running / code index: 32%` のように可視化。
+  - 例: `.sln: present / UnityMCP: reachable / code index: 32%` のように可視化。
   - S00 でのブロック時は、以降カテゴリの見出しは作らず、グローバルサマリの BLOCKED_ENV を増分してください。
 
 fail / skip の記録ルール（必須）

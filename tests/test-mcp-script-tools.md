@@ -1,6 +1,6 @@
 # MCP Script ツール テスト計画（カテゴリ: Script系）
 
-本ドキュメントは、roslyn-cli 連携の Script 系 MCP ツール（`script_*`）を「テスターが迷わず実行・判定・復元できる」ように記述した実行仕様です。結果のレポートは Markdown 形式とし、`tests/RESULTS_FORMAT.md` のテンプレートに準拠します。全テストは原状回復までを含め、Git へのコミットやバージョン変更は行いません。
+本ドキュメントは、UnityMCP の Script 系ツール（`script_*`）を「テスターが迷わず実行・判定・復元できる」ように記述した実行仕様です。結果のレポートは Markdown 形式とし、`tests/RESULTS_FORMAT.md` のテンプレートに準拠します。全テストは原状回復までを含め、Git へのコミットやバージョン変更は行いません。
 
 チェックリスト（Markdown）
 - [ ] S00-00: 前提チェック（.sln 必須・無ければ即終了）
@@ -61,7 +61,7 @@ S00) 実行前準備（必須・sln 非存在時は即終了）
 
 チェックリスト（順に実施）:
 1. ソリューション確認（必須・生成禁止）: ワークスペース直下（または既定のプロジェクトルート）に Unity が生成した `.sln` が存在するか確認する。ここで Unity を起動して新規に `.sln` を生成しようとしてはならない（テスト設計側の前提）。
-2. roslyn-cli serve 起動確認: 最新バイナリで serve が稼働し、上記 `.sln`（または代表 `.csproj`）を解決対象としていることを確認する。
+2. UnityMCP ツール到達性: `UnityMCP__script_symbols_get` など最小呼び出しが応答することを確認する（0件でも可）。
 3. パス制約: 以降の `path`/`relative` は必ず `Assets/` または `Packages/` 起点で指定する。
 4. インデックス状況: `script_index_status` でカバレッジを確認し、低ければ（任意）`UnityMCP__build_code_index` を実行して再確認する（`.sln` が存在する場合のみ）。
 5. 到達性確認: 最小ファイルに対して `script_symbols_get` が成功することを確認（0件でも可）。
@@ -69,11 +69,11 @@ S00) 実行前準備（必須・sln 非存在時は即終了）
 即時終了ポリシー（厳守）:
 - `.sln` が存在しない場合は、テストを続行不可とし、その時点で終了する。以降のケースは一切実行しない。
 - この場合、Markdown レポートのチェックリストに `S00-00: 前提チェック — blocked（Missing .sln）` を1行追記し、サマリテーブルで `BLOCKED_ENV` を 1 にする。
-- さらに details セクションで前提チェックの内訳を明記する（例: `.sln: missing / roslyn-cli: running / code index: not built`）。
+- さらに details セクションで前提チェックの内訳を明記する（例: `.sln: missing / UnityMCP: unreachable / code index: not built`）。
 
 ## 前提・共通ルール
 
-- roslyn-cli serve は最新バイナリで起動済み（再起動は人間側で実施）
+- 禁止: roslyn-cli を直接実行しない。必ず UnityMCP の `script_*` ツールで検証する（例: `UnityMCP__script_symbols_get`, `UnityMCP__script_edit_structured`）。
 - パスは必ず `Assets/` または `Packages/` 起点の相対パス
 - `namePath`/`symbolName` は `Outer/Nested/Member` 形式（例: `FinalTestClass/TestMethod12`）を優先
 - 大量診断（CS0234 等）は想定内。適用可否は `applied` で判断し、実ファイルは `script_read` で確認
