@@ -16,14 +16,14 @@ Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on
 - Existing `script_*` tools now call the CLI under the hood, so edits are robust to Unity compilation/domain reload.
 - Risky line-based patch/pattern replace tools were removed.
 
-Initial setup (roslyn-cli build)
+Development setup (building roslyn-cli)
 
-Prereq: .NET 9 SDK
+Note: End users do NOT need .NET. The MCP server auto-provisions roslyn-cli (auto-build/auto-download), and you can also use npx or the one-liner installers. .NET 9 SDK is only required if you want to build the CLI from source as a contributor.
 
 - macOS/Linux: `./scripts/bootstrap-roslyn-cli.sh osx-arm64|osx-x64|linux-x64`
 - Windows: `powershell -ExecutionPolicy Bypass -File scripts/bootstrap-roslyn-cli.ps1 -Rid win-x64`
 
-Outputs to `./.tools/roslyn-cli/<rid>/roslyn-cli` (self-contained, no install).
+Outputs to `./.tools/roslyn-cli/<rid>/roslyn-cli`.
 
 roslyn-cli provisioning (multiple entry points)
 
