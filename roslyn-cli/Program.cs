@@ -632,14 +632,40 @@ sealed class App
             var insertText = await File.ReadAllTextAsync(bodyFile, Encoding.UTF8);
             if (!insertText.EndsWith("\n")) insertText += "\n";
 
-            var fileText = sourceText.ToString();
-            var pos = before ? target.FullSpan.Start : target.FullSpan.End;
-            var newText = fileText.Substring(0, pos) + insertText + fileText.Substring(pos);
-
-            // Preflight by compiling updated document
-            var newDoc = doc.WithText(Microsoft.CodeAnalysis.Text.SourceText.From(newText, Encoding.UTF8));
-            // Format document to preserve indentation after insertion
-            newDoc = await Formatter.FormatAsync(newDoc);
+            Document newDoc;
+            if (target is TypeDeclarationSyntax typeDecl)
+            {
+                // Try AST-based member insertion when target is a type (class/struct/interface)
+                MemberDeclarationSyntax? member = null;
+                try { member = SyntaxFactory.ParseMemberDeclaration(insertText); } catch { /* ignore */ }
+                if (member != null)
+                {
+                    var updated = before
+                        ? typeDecl.WithMembers(typeDecl.Members.Insert(0, member))
+                        : typeDecl.WithMembers(typeDecl.Members.Add(member));
+                    var newRoot = root.ReplaceNode(typeDecl, updated);
+                    newDoc = doc.WithSyntaxRoot(newRoot);
+                    try { newDoc = await Formatter.FormatAsync(newDoc); } catch { }
+                }
+                else
+                {
+                    // Fallback to text insertion
+                    var fileText = sourceText.ToString();
+                    var pos = before ? target.FullSpan.Start : target.FullSpan.End;
+                    var newText = fileText.Substring(0, pos) + insertText + fileText.Substring(pos);
+                    newDoc = doc.WithText(Microsoft.CodeAnalysis.Text.SourceText.From(newText, Encoding.UTF8));
+                    try { newDoc = await Formatter.FormatAsync(newDoc); } catch { }
+                }
+            }
+            else
+            {
+                // Non-type targets: simple text insertion before/after target span
+                var fileText = sourceText.ToString();
+                var pos = before ? target.FullSpan.Start : target.FullSpan.End;
+                var newText = fileText.Substring(0, pos) + insertText + fileText.Substring(pos);
+                newDoc = doc.WithText(Microsoft.CodeAnalysis.Text.SourceText.From(newText, Encoding.UTF8));
+                try { newDoc = await Formatter.FormatAsync(newDoc); } catch { }
+            }
             var comp = await newDoc.Project.GetCompilationAsync();
             var diags = comp?.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)
                 .Select(d => (object)new
