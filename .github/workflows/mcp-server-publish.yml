@@ -1,4 +1,4 @@
-name: Publish: mcp-server (npm)
+name: Publish mcp-server (npm)
 
 on:
   release:

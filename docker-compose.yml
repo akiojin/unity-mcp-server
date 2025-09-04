@@ -7,7 +7,6 @@ services:
       - bash-history:/root/.bash_history_dir
       - claude_config:/root/.claude
       - ~/.codex:/root/.codex
-      - ~/.serena:/root/.serena
     environment:
       - NPM_USER
       - NPM_EMAIL
