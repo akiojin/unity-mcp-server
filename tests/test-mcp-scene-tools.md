@@ -2,6 +2,10 @@
 
 結果フォーマットは `tests/RESULTS_FORMAT.md` を参照。全テストは原状回復までを含め、Git へのコミットやバージョン変更は行いません。
 
+前提・共通ルール:
+- 禁止: UnityMCP 以外のコマンド・独自スクリプトで操作しない。
+- 使用ツール: `UnityMCP__create_scene`, `UnityMCP__get_scene_info`, `UnityMCP__list_scenes`, `UnityMCP__save_scene`。
+
 原状回復（必須）・禁止事項:
 - 作成したシーンはテスト内で保存後、必要に応じて削除または閉じる。既存シーンの変更は行わない。
 - `LLMTEST_Scene` などテスト専用名を使用し、テスト終了時に片付ける。

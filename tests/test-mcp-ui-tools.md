@@ -2,6 +2,10 @@
 
 結果フォーマットは `tests/RESULTS_FORMAT.md` を参照。UI がなければ `skip`。全テストは原状回復までを含め、Git へのコミットやバージョン変更は行いません。
 
+前提・共通ルール:
+- 禁止: UnityMCP 以外のコマンド・独自スクリプトで操作しない。
+- 使用ツール: `UnityMCP__find_ui_elements`, `UnityMCP__get_ui_element_state`, `UnityMCP__click_ui_element`, `UnityMCP__set_ui_element_value`。
+
 原状回復（必須）・禁止事項:
 - 値設定やトグル変更を行った場合は、終了時に元の値に戻す。テスト専用 UI を対象にすることが望ましい。
 

@@ -2,6 +2,10 @@
 
 結果フォーマットは `tests/RESULTS_FORMAT.md` を参照。全テストは原状回復までを含め、Git へのコミットやバージョン変更は行いません。
 
+前提・共通ルール:
+- 禁止: UnityMCP 以外のコマンド・独自スクリプトで操作しない。
+- 使用ツール: `UnityMCP__get_animator_state`, `UnityMCP__get_animator_runtime_info`。
+
 前提:
 - シーン内に Animator コンポーネントを持つ対象が存在しない場合は `skip`。
 
