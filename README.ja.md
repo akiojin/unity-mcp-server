@@ -25,13 +25,22 @@ Unity Editor MCP は、LLMクライアントからUnity Editorを自動化しま
 
 出力先: `./.tools/roslyn-cli/<rid>/roslyn-cli`（自己完結バイナリ、インストール不要）
 
-roslyn-cli の配備（npx 実行時）
+roslyn-cli の配備（オプションの入口）
 
-- 配備/解決:
-  - 既定の配置先は `WORKSPACE_ROOT/.tools/roslyn-cli/<rid>/roslyn-cli`
-  - リポジトリ開発環境でブートストラップスクリプトが存在する場合は一度だけ自動ビルドして上記に配置
-  - それ以外の場合は GitHub Releases から自動ダウンロードし、`WORKSPACE_ROOT/.tools/roslyn-cli/<rid>/` に配置（SHA256 検証対応）
-  - 追加設定や環境変数は不要です
+- 既定の自動配備（推奨・実装済み）
+  - 配置先: `WORKSPACE_ROOT/.tools/roslyn-cli/<rid>/roslyn-cli`
+  - リポジトリにビルドスクリプトがあれば「自動ビルド」、無ければ GitHub Releases から「自動ダウンロード（SHA256 検証）」
+  - 追加設定不要（MCPサーバが自動で解決）
+
+- ワンライナー（UNIX系／Windows PowerShell）
+  - UNIX系: `curl -fsSL https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.sh | bash -s -- --version <ver> --rid <rid>`
+  - PowerShell: `irm https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.ps1 | iex`（引数例: `-Version 2.9.1 -Rid win-x64`）
+  - いずれも配置先は `./.tools/roslyn-cli/<rid>/` 固定（MCPサーバの自動検出に一致）
+
+- npx（利用可能）
+  - 例: `npx -y @akiojin/roslyn-cli ak-roslyn serve --solution <path>`
+  - 初回実行時に RID 判定→GitHub Releases から取得→SHA256 検証→実行に委譲
+  - 実行ファイルは `./.tools/roslyn-cli/<rid>/roslyn-cli(.exe)` に配置され、以降は再利用されます
 
 代表的な使い方（MCPツール）
 
