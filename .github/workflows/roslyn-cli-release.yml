@@ -68,7 +68,7 @@ jobs:
           name: asset-${{ matrix.rid }}
           path: |
             roslyn-cli-${{ matrix.rid }}${{ matrix.ext }}
-            roslyn-cli-${{ matrix.rid }}${{ matrix.ext }}.sha256
+          if-no-files-found: error
 
   release:
     name: publish release
