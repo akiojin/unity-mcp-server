@@ -72,7 +72,7 @@ async function ensureServer() {
     } catch (e) {
       logger.error(`[roslyn-cli serve] failed to start: ${e.message}`);
       serverProc = null;
-      return null;
+      throw e; // 明示的に失敗を伝播（フォールバックなし）
     } finally {
       starting = null;
     }
@@ -82,6 +82,9 @@ async function ensureServer() {
 
 export async function sendServe(cmd, args = []) {
   await ensureServer();
+  if (!serverProc) {
+    throw new Error('roslyn-cli serve unavailable (server process not running)');
+  }
   const attempt = async (retry) => {
     const id = String(nextId++);
     return new Promise((resolve, reject) => {
@@ -90,10 +93,7 @@ export async function sendServe(cmd, args = []) {
         serverProc.stdin.write(JSON.stringify({ id, cmd, args }) + '\n');
       } catch (e) {
         pending.delete(id);
-        if (retry) return reject(e);
-        // restart and retry once
-        ensureServer().then(() => attempt(true).then(resolve, reject));
-        return;
+        return reject(e);
       }
       // Heavy Roslyn ops on large projects may take >60s. Use generous timeout.
       const to = setTimeout(() => {
@@ -112,13 +112,5 @@ export async function sendServe(cmd, args = []) {
       }
     });
   };
-  try {
-    return await attempt(false);
-  } catch (e) {
-    // Hard restart then one final attempt
-    try { if (serverProc) serverProc.kill('SIGKILL'); } catch {}
-    serverProc = null;
-    await ensureServer();
-    return await attempt(true);
-  }
+  return await attempt(false);
 }
