@@ -19,13 +19,21 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
   }
 
   async execute() {
-    const args = ['scan-symbols'];
-    args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
-    const res = await this.roslyn.runCli(args);
-    const symbols = res.results || [];
-    const r = await this.index.clearAndLoad(symbols);
-    const stats = await this.index.getStats();
-    return { success: true, inserted: r.total, total: stats.total, lastIndexedAt: stats.lastIndexedAt };
+    try {
+      const args = ['scan-symbols'];
+      args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
+      const res = await this.roslyn.runCli(args);
+      const symbols = res.results || [];
+      const r = await this.index.clearAndLoad(symbols);
+      const stats = await this.index.getStats();
+      return { success: true, inserted: r.total, total: stats.total, lastIndexedAt: stats.lastIndexedAt };
+    } catch (e) {
+      return {
+        success: false,
+        error: 'build_index_failed',
+        message: e.message,
+        hint: 'roslyn-cli may be missing. Run scripts/install-roslyn-cli.sh (or .ps1) to provision .tools/roslyn-cli/<rid>/roslyn-cli.'
+      };
+    }
   }
 }
-

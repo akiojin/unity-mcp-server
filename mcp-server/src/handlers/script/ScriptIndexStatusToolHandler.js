@@ -16,25 +16,28 @@ export class ScriptIndexStatusToolHandler extends BaseToolHandler {
         this.projectInfo = new ProjectInfoProvider(unityConnection);
     }
 
-    async execute(params) {
+  async execute(params) {
+        // まず永続インデックスの有無を確認。未構築なら明示エラーで build_code_index を促す。
+        const { CodeIndex } = await import('../../core/codeIndex.js');
+        const idx = new CodeIndex(this.unityConnection);
+        const ready = await idx.isReady();
+        if (!ready) {
+            return { success: false, error: 'index_not_built', message: 'Code index is not built. Please run UnityMCP.build_code_index first.' };
+        }
+
+        // 構築済みなら roslyn-cli 経由で総ファイル数を取得
         try {
-            // slnベースの全文書解析で、Library/PackageCache を含めた総数を取得
             const { RoslynCliUtils } = await import('../roslyn/RoslynCliUtils.js');
             const roslyn = new RoslynCliUtils(this.unityConnection);
             const args = ['index-summary'];
             args.push(...(await roslyn.getSolutionOrProjectArgs()));
             const res = await roslyn.runCli(args);
             const total = res.totalFiles ?? 0;
-            // DBの有無
-            const { CodeIndex } = await import('../../core/codeIndex.js');
-            const idx = new CodeIndex(this.unityConnection);
-            const ready = await idx.isReady();
-            const stats = ready ? await idx.getStats() : { total: 0, lastIndexedAt: null };
-            const indexed = total; // 永続インデックスではなくても、serve常駐+ワークスペースキャッシュで即応
-            const coverage = total > 0 ? 1 : 0;
-            return { success: true, totalFiles: total, indexedFiles: indexed, coverage, breakdown: res.breakdown, index: { ready, rows: stats.total, lastIndexedAt: stats.lastIndexedAt } };
+            const stats = await idx.getStats();
+            const coverage = total > 0 ? Math.min(1, stats.total / total) : 0;
+            return { success: true, totalFiles: total, indexedFiles: stats.total, coverage, breakdown: res.breakdown, index: { ready: true, rows: stats.total, lastIndexedAt: stats.lastIndexedAt } };
         } catch (e) {
-            return { success: false, error: e.message };
+            return { success: false, error: 'roslyn_cli_unavailable', message: e.message };
         }
-    }
+  }
 }
