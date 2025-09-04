@@ -39,6 +39,7 @@
 - ToDo運用: ファイル出力は不要。エージェント（LLM）の ToDo/プラン機能（update_plan 等）に、各カテゴリの全テスト項目を登録し、実行中は `in_progress`、完了時に `completed` へ「都度」更新する。
 - 原状回復: 各ケース終了時に必ず原状復帰（チェックリスト行に `restored:true` を明記）。
 - BLOCKED_ENV の原因記録: ブロック時はチェックリスト行に短い原因語句を必ず併記（例: `blocked（Missing .sln）`）。加えて details に前提チェック結果の内訳（.sln/roslyn-cli/index など）を記載する。
+- fail / skip の理由記録: fail は簡潔な原因（期待不一致・検証エラー等）をチェックリスト行に併記し、details に根拠（入力・期待・観測・主要診断）を箇条書き。skip も理由を併記（例: `skip（UI 無し）`）。
 - コミット禁止: テスト結果/ToDo/キャプチャは成果物扱いで Git には含めない（`.unity/capture/`, `tests/.reports/`, `tests/.todo/` は .gitignore 済）。
 - 参照場所の要約:
   - 実行ログ: ターミナル（stdout）

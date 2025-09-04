@@ -51,6 +51,7 @@ ToDo 登録（エージェント内）
 
 判定・報告（全ケース共通）:
 - レポートは Markdown（`tests/RESULTS_FORMAT.md`）に準拠し、チェックリスト行に `pass/fail/skip/BLOCKED_ENV` と `restored:true/false` を明記する。
+- fail / skip 時は「理由」を必ず併記（例: `fail（expectation mismatch: applied=false）`、`skip（Input アセット無し）`）。必要に応じ details に根拠（入力・期待・観測・主要診断上位）を箇条書きで記載。
 - 失敗時は `reasonCode`（例: FAIL_EXPECTATION/BLOCKED_ENV/TOOL_ERROR/TIMEOUT）と上位診断の要約（`diagnosticsTopN`）を記載してよい。
 - リトライは最大3回。実施回数は `retries` に記録。
 

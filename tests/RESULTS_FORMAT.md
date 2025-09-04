@@ -64,6 +64,14 @@ BLOCKED_ENV の記録ルール（必須）
   - 例: `.sln: missing / roslyn-cli: running / code index: 32%` のように可視化。
   - S00 でのブロック時は、以降カテゴリの見出しは作らず、グローバルサマリの BLOCKED_ENV を増分してください。
 
+fail / skip の記録ルール（必須）
+- fail の場合:
+  - チェックリスト行に「短い原因」を括弧付きで必ず併記（例: `fail（expectation mismatch: applied=false）`、`fail（validation: invalid path）`）。
+  - details に最小限の根拠を箇条書きで明示（例: 入力値、期待、観測、主要診断コード上位3件）。
+- skip の場合:
+  - チェックリスト行に「スキップ理由」を括弧付きで併記（例: `skip（Input アセット無し）`、`skip（UI 無し）`）。
+  - details は任意ですが、依存 testId があるときはその ID と結果を1行で示す（例: `depends: U60-01=skip`）。
+
 実行ポリシー（必須）
 - 変更前の状態を取得・保存し、各テストケースの終了時に必ず復元する（チェックリスト行に restored:true を明記）
 - 破壊的操作はテストで新規作成した `LLMTEST_` 系資産に限定し、テスト末尾で削除する
