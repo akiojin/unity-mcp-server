@@ -6,7 +6,7 @@ export class ScriptRemoveSymbolToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'script_remove_symbol',
-      'Remove a C# symbol (type/member) with reference preflight. Unity非通信・Roslynベース。応答はLLM向けに要約され、errorsは最大30件・messageは200文字、preview/diff等は1000文字にトリムされます。',
+      'Remove a C# symbol (type/member) with reference preflight. No Unity comms (Roslyn-based). Responses are summarized for LLMs: errors up to 30 items, message up to 200 chars, and preview/diff/text/content trimmed to 1000 chars.',
       {
         type: 'object',
         properties: {

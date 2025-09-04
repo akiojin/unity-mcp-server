@@ -7,7 +7,7 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'capture_screenshot',
-      'Capture Game/Scene/Window/Explorer screenshots. Output path is fixed to <project>/.unity/capture/. Explorer mode is AI/LLM‑optimized (auto‑framing, clear visibility).',
+      'Capture Game/Scene/Window/Explorer screenshots. Output path is fixed to <workspace>/.unity/capture/. For LLM use, prefer explorer mode (auto-framing, clarity). Use encodeAsBase64=true only for immediate analysis, and keep resolution minimal.',
       {
         type: 'object',
         properties: {

@@ -9,7 +9,7 @@ export class AnalyzeScreenshotToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'analyze_screenshot',
-      'Analyze a screenshot: dimensions/colors, UI elements, and scene content (basic/ui/content/full).',
+      'Analyze a screenshot: dimensions/colors, UI elements, and scene content (basic/ui/content/full). For LLMs, prefer basic/ui; use full only when necessary. Provide either imagePath (preferred) or base64 (not both).',
       {
         type: 'object',
         properties: {

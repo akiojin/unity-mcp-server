@@ -6,7 +6,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_refs_find',
-            'Find code references/usages using external Roslyn CLI（Unity無通信）。',
+            'Find code references/usages using external Roslyn CLI (no Unity comms). LLM-friendly paging/summary: respects pageSize and maxBytes, caps matches per file (maxMatchesPerFile), and trims snippet text to ~400 chars. Use scope/name/kind/path to narrow results.',
             {
                 type: 'object',
                 properties: {
@@ -72,20 +72,31 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
     }
 
     async execute(params) {
-        const { name, path, scope = 'all' } = params;
-        let results = [];
-        if (await this.index.isReady()) {
-            // DBには使用箇所のスパンは保持していないため、現時点では参照検索はRoslynに委譲
-            // ただし将来の拡張でトークン位置を保持する設計に移行可能
-        }
+        const {
+            name,
+            path,
+            kind,
+            namespace,
+            container,
+            scope = 'all',
+            pageSize = 50,
+            maxBytes = 1024 * 64,
+            snippetContext = 2, // 現状CLIは±1行固定。ハンドラ側では文字数トリムのみ行う。
+            maxMatchesPerFile = 5
+        } = params;
+
+        // Roslyn CLIへ委譲
         const args = ['find-references'];
         args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
         args.push('--name', String(name));
         if (path) args.push('--relative', String(path).replace(/\\\\/g, '/'));
+
         const res = await this.roslyn.runCli(args);
-        results = res.results || [];
+        let raw = Array.isArray(res?.results) ? res.results : [];
+
+        // スコープ絞り込み
         if (scope && scope !== 'all') {
-            results = results.filter(r => {
+            raw = raw.filter(r => {
                 const p = (r.path || '').replace(/\\\\/g, '/');
                 switch (scope) {
                     case 'assets': return p.startsWith('Assets/');
@@ -95,6 +106,38 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
                 }
             });
         }
+
+        // ファイル毎の件数制限 + スニペット文字数トリム
+        const MAX_SNIPPET = 400;
+        const perFile = new Map();
+        for (const item of raw) {
+            const key = (item.path || '').replace(/\\\\/g, '/');
+            const list = perFile.get(key) || [];
+            if (list.length < maxMatchesPerFile) {
+                if (typeof item.snippet === 'string' && item.snippet.length > MAX_SNIPPET) {
+                    item.snippet = item.snippet.slice(0, MAX_SNIPPET) + '…';
+                    item.snippetTruncated = true;
+                }
+                list.push(item);
+                perFile.set(key, list);
+            }
+        }
+
+        // ページング/サイズ上限
+        const results = [];
+        let bytes = 0;
+        for (const [_, arr] of perFile) {
+            for (const it of arr) {
+                const json = JSON.stringify(it);
+                const size = Buffer.byteLength(json, 'utf8');
+                if (results.length >= pageSize || (bytes + size) > maxBytes) {
+                    return { success: true, results, total: results.length, truncated: true };
+                }
+                results.push(it);
+                bytes += size;
+            }
+        }
+
         return { success: true, results, total: results.length, truncated: false };
     }
 }

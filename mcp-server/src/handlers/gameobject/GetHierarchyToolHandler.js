@@ -8,7 +8,7 @@ export class GetHierarchyToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'get_hierarchy',
-      'Get scene hierarchy. Use nameOnly/maxObjects to limit size and avoid token limits on large scenes.',
+      'Get scene hierarchy. For large scenes, prefer nameOnly=true. With nameOnly, use maxObjects ~100–500; when requesting details, keep maxObjects ~10–50 to conserve tokens. Only enable includeComponents/includeTransform when necessary.',
       {
         type: 'object',
         properties: {

@@ -5,7 +5,7 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_refactor_rename',
-            'Refactor: rename a symbol across the project using external Roslyn CLI（Unity無通信）。必須: relative, namePath, newName。まずプレビューで診断確認後に適用。応答はLLM向けに要約され、errorsは最大30件・messageは200文字、preview/diff等は1000文字にトリムされます。',
+            'Refactor: rename a symbol across the project using external Roslyn CLI (no Unity comms). Required: relative, namePath, newName. Start with preview for diagnostics, then apply. Responses are summarized for LLMs: errors up to 30 items, message up to 200 chars, and preview/diff fields trimmed to 1000 chars.',
             {
                 type: 'object',
                 properties: {

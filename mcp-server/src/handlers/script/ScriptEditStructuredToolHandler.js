@@ -5,7 +5,7 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_edit_structured',
-            'PRIORITY: Use this for ALL code changes. Perform structured symbol edits (insert_before/insert_after/replace_body) scoped to a known symbol. Prefer this over line-based patching. Rules: (1) Identify the target with script_symbols_get first, (2) Do NOT insert members inside methods — insert at class level only, (3) For replace_body include opening/closing braces and make the body self‑contained (returns, try/catch/finally closed). Token advice: skip preview unless the change is risky; validate by compiling.',
+            'PRIORITY: Use this for ALL code changes. Perform structured symbol edits (insert_before/insert_after/replace_body) scoped to a known symbol. Guidance: (1) Locate targets with script_symbols_get first, (2) insert_* must target a class/namespace (never a method), (3) replace_body requires a self-contained body including braces. LLM summary limits: errors up to 30 items, each message up to 200 chars (file up to 260). Large text fields (preview/diff/text/content) are trimmed to 1000 chars with a Truncated flag. Use preview only when necessary.',
             {
                 type: 'object',
                 properties: {
