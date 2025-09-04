@@ -85,6 +85,8 @@ ehthumbs_vista.db
 # Test output
 coverage/
 .nyc_output/
+tests/.reports/
+tests/.todo/
 
 # Build output
 dist/
