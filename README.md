@@ -51,6 +51,32 @@ Performance mode (default)
 - The server tries to use a persistent `roslyn-cli serve` by default to avoid cold starts.
 - To opt-out (one-shot per request), set `ROSLYN_CLI_MODE=oneshot` (or `off`).
 
+## LLM Optimization Principles
+
+- Prefer small responses: enable paging and set conservative limits.
+- Use snippets: avoid full file reads; favor short context windows (1–2 lines).
+- Scope aggressively: restrict by `Assets/` or `Packages/`, kind, and exact names.
+- Favor summaries: rely on tool-side summarized payloads where available.
+- Avoid previews unless necessary: apply directly when safe to reduce payload.
+- Keep image/video resolutions minimal and avoid base64 unless immediately analyzed.
+
+Suggested caps
+- Search: `pageSize≤20`, `maxBytes≤64KB`, `snippetContext=1–2`, `maxMatchesPerFile≤5`.
+- Hierarchy: `nameOnly=true`, `maxObjects 100–500` (details: 10–50).
+- Script read: 30–40 lines around the target; set `maxBytes`.
+- Structured edits: responses are summarized (errors ≤30, message ≤200 chars; large text ≤1000 chars).
+
+## Safe Structured Edit Playbook
+
+1) Locate symbols: `script_symbols_get` or `script_symbol_find` (prefer `kind` and `exact`).
+2) Inspect minimal code: `script_read` with 30–40 lines around the symbol.
+3) Edit safely: `script_edit_structured` (insert_before/insert_after/replace_body).
+   - Insert targets class/namespace (never method).
+   - `replace_body` must include braces and be self-contained.
+   - Use `preview=true` only when risk is high; otherwise apply to avoid extra tokens.
+4) Optional refactor/remove: `script_refactor_rename`, `script_remove_symbol` with preflight.
+5) Verify: compile state and, if needed, targeted `script_read` again.
+
 ## What It Can Do
 
 - Editor automation: create/modify scenes, GameObjects, components, prefabs, materials

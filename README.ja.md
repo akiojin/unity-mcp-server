@@ -50,6 +50,32 @@ roslyn-cli の配備（npx 実行時）
 - 既定で `roslyn-cli serve`（常駐）を試行し、初回以降の起動コストを回避します。
 - 明示的に無効化したい場合は `ROSLYN_CLI_MODE=oneshot`（または `off`）を設定してください。
 
+## LLM最適化の原則
+
+- 応答を小さく: ページングと保守的な上限を有効にする。
+- スニペット優先: 全文読み取りを避け、前後1–2行の短い文脈に限定。
+- 厳密に絞る: `Assets/`/`Packages/` 配下、kind、exact などで絞り込み。
+- サマリ活用: 可能なツール側の要約結果を信頼して利用。
+- previewは必要時のみ: 安全であれば直接適用してトークン節約。
+- 画像/動画は最小解像度・base64は即時解析時のみ。
+
+推奨上限
+- 検索: `pageSize≤20`、`maxBytes≤64KB`、`snippetContext=1–2`、`maxMatchesPerFile≤5`。
+- ヒエラルキー: `nameOnly=true`、`maxObjects 100–500`（詳細が必要な場合は10–50）。
+- script_read: 対象の前後30–40行、`maxBytes` を設定。
+- 構造化編集: 応答は要約（errors≤30、message≤200文字、長文≤1000文字）。
+
+## 安全な構造化編集プレイブック
+
+1) シンボル特定: `script_symbols_get` または `script_symbol_find`（`kind`/`exact` 指定推奨）。
+2) 最小限のコード確認: `script_read` で対象の前後30–40行。
+3) 安全な編集: `script_edit_structured`（insert_before/insert_after/replace_body）。
+   - insert_* はクラス/名前空間が対象（メソッド直下は不可）。
+   - `replace_body` はブレースを含む自己完結ボディ。
+   - リスクが高い時のみ `preview=true`、それ以外は適用でトークン節約。
+4) 任意: `script_refactor_rename` や `script_remove_symbol` をプリフライト付きで実施。
+5) 検証: コンパイル状態を確認し、必要に応じて対象周辺を `script_read` で再確認。
+
 ## できること
 
 - エディタ自動化: シーン/ゲームオブジェクト/コンポーネント/プレハブ/マテリアルの作成・変更
