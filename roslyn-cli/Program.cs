@@ -217,12 +217,12 @@ sealed class App
             // Always include diagnostics in response, but do not block apply solely due to compile errors.
             if (!apply)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
                 return 0;
             }
 
             var ok = ws.TryApplyChanges(newSolution);
-            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
             return ok ? 0 : 1;
         }
         catch (Exception ex)
@@ -368,7 +368,7 @@ sealed class App
                     }
                 }
             }
-            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results = list, total = list.Count }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results = list, total = list.Count, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
             return 0;
         }
         catch (Exception ex)
@@ -488,7 +488,7 @@ sealed class App
                 }
             }
 
-            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results = list, total = list.Count }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results = list, total = list.Count, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
             return 0;
         }
         catch (Exception ex)
@@ -570,12 +570,12 @@ sealed class App
             // Always include diagnostics in response, but do not block apply solely due to compile errors.
             if (!apply)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors = diags }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors = diags, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
                 return 0;
             }
 
             var ok = ws.TryApplyChanges(newSolution);
-            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors = diags }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors = diags, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
             return ok ? 0 : 1;
         }
         catch (Exception ex)
@@ -620,7 +620,7 @@ sealed class App
                 }
             }
 
-            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results, total = results.Count }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = true, results, total = results.Count, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
             return 0;
         }
         catch (Exception ex)
@@ -715,12 +715,12 @@ sealed class App
             // Always include diagnostics in response, but do not block apply solely due to compile errors.
             if (!apply)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors = diags }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors = diags, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
                 return 0;
             }
 
             var ok = ws.TryApplyChanges(newDoc.Project.Solution);
-            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors = diags }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors = diags, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
             return ok ? 0 : 1;
         }
         catch (Exception ex)
@@ -822,7 +822,7 @@ sealed class App
 
             if (failOnRefs && references.Count > 0)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, references }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, references, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
                 return 0;
             }
 
@@ -878,17 +878,17 @@ sealed class App
             // Do not block apply solely due to diagnostics; block only when failOnReferences=true and references exist
             if (!apply)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, references }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, references, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
                 return 0;
             }
             if (failOnRefs && references.Count > 0)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors, references }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors, references, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
                 return 0;
             }
 
             var ok = ws.TryApplyChanges(newSolution);
-            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, references }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, references, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
             return ok ? 0 : 1;
         }
         catch (Exception ex)
@@ -977,17 +977,17 @@ sealed class App
 
             if (errors.Count > 0 && apply)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors, relative = relPath, preview = source }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = false, applied = false, errors, relative = relPath, preview = source, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
                 return 0;
             }
             if (!apply)
             {
-                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, relative = relPath, preview = source }, JsonOpts));
+                Console.WriteLine(JsonSerializer.Serialize(new { success = true, applied = false, errors, relative = relPath, preview = source, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
                 return 0;
             }
 
             var ok = ws.TryApplyChanges(newSolution);
-            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, relative = relPath }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = ok, applied = ok, errors, relative = relPath, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
             return ok ? 0 : 1;
         }
         catch (Exception ex)
