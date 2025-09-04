@@ -1,4 +1,4 @@
-name: roslyn-cli release
+name: Release: roslyn-cli
 
 on:
   push:

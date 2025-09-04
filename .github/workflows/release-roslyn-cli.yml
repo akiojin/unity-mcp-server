@@ -1,4 +1,4 @@
-name: Release roslyn-cli binaries
+name: Release: roslyn-cli (legacy)
 
 on:
   workflow_dispatch:
@@ -6,9 +6,6 @@ on:
       version:
         description: roslyn-cli version (e.g., 2.13.1)
         required: true
-  push:
-    tags:
-      - 'roslyn-cli-v*'
 
 permissions:
   contents: write

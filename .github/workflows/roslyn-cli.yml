@@ -1,4 +1,4 @@
-name: Build roslyn-cli
+name: Build: roslyn-cli
 
 on:
   push:
