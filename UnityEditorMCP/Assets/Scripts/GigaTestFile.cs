@@ -638,8 +638,8 @@ namespace GigaTestNamespace
 
         public int MCP_ScriptToolProbe()
         {
-            // MCP script tool apply: change return value for test
-            return 100;
+            // MCP structured edit test: return a distinct value
+            return 12345;
         }
         #endregion
 
