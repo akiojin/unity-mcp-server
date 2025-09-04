@@ -21,7 +21,9 @@ jobs:
           - os: ubuntu-latest
             rid: linux-x64
             ext: ''
-          # arm64 Linux は後続で追加（まずは安定化）
+          - os: ubuntu-latest
+            rid: linux-arm64
+            ext: ''
           - os: macos-latest
             rid: osx-x64
             ext: ''
