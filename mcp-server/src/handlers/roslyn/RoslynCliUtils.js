@@ -294,31 +294,21 @@ export class RoslynCliUtils {
 
   async getSolutionOrProjectArgs() {
     const info = await this.projectInfo.get();
-    const root = info.projectRoot;
-    // Prefer .sln under project root
-    const sln = this._findFirst(root, '.sln');
-    if (sln) return ['--solution', sln];
-    const csproj = this._findFirst(root, '.csproj');
-    if (csproj) return ['--project', csproj];
-    throw new Error(`No .sln or .csproj found under ${root}`);
+    const root = info.projectRoot.replace(/\\/g, '/');
+    // Unity の既定: ルートディレクトリ名.sln
+    const path = await import('path');
+    const fs = await import('fs');
+    const dirName = path.default.basename(root);
+    const slnPath = path.default.resolve(root, `${dirName}.sln`).replace(/\\/g, '/');
+    if (fs.existsSync(slnPath)) {
+      return ['--solution', slnPath];
+    }
+    // 厳格運用: .sln がない場合はエラー（フォールバックしない）
+    throw new Error(`Solution not found. Expected: ${slnPath}`);
   }
 
   _findFirst(dir, ext) {
-    try {
-      const entries = fs.readdirSync(dir, { withFileTypes: true });
-      for (const e of entries) {
-        if (e.isFile() && e.name.toLowerCase().endsWith(ext)) return path.resolve(dir, e.name);
-      }
-      // shallow search (depth 2)
-      for (const e of entries) {
-        if (!e.isDirectory()) continue;
-        const sub = path.join(dir, e.name);
-        const subEntries = fs.readdirSync(sub, { withFileTypes: true });
-        for (const s of subEntries) {
-          if (s.isFile() && s.name.toLowerCase().endsWith(ext)) return path.resolve(sub, s.name);
-        }
-      }
-    } catch {}
+    // 使用しない（厳格運用）
     return null;
   }
 

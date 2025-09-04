@@ -46,13 +46,7 @@ export class ScriptCreateClassFileToolHandler extends BaseToolHandler {
     const MAX_TEXT_LEN = 1000;
     const out = {};
     if ('id' in res) out.id = res.id;
-    if (res.workspace && typeof res.workspace === 'object') {
-      out.workspace = {
-        key: res.workspace.key,
-        kind: res.workspace.kind,
-        rootDir: res.workspace.rootDir
-      };
-    }
+    // workspace情報は返さない（厳格: .sln必須のため）
     if ('success' in res) out.success = !!res.success;
     if ('applied' in res) out.applied = !!res.applied;
     if (Array.isArray(res.errors)) {

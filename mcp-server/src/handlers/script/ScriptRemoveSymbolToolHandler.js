@@ -59,13 +59,7 @@ export class ScriptRemoveSymbolToolHandler extends BaseToolHandler {
       out.errorCount = res.errors.length;
       out.errors = trimmed;
     }
-    if (res.workspace && typeof res.workspace === 'object') {
-      out.workspace = {
-        key: res.workspace.key,
-        kind: res.workspace.kind,
-        rootDir: res.workspace.rootDir
-      };
-    }
+    // workspace情報は返さない（厳格: .sln必須のため）
 
     for (const k of ['preview','diff','text','content']) {
       if (typeof res[k] === 'string' && res[k].length > 0) {

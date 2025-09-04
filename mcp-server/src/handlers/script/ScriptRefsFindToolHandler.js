@@ -138,14 +138,6 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
             }
         }
 
-        const out = { success: true, results, total: results.length, truncated: false };
-        if (res && res.workspace) {
-            out.workspace = {
-                key: res.workspace.key,
-                kind: res.workspace.kind,
-                rootDir: res.workspace.rootDir
-            };
-        }
-        return out;
+        return { success: true, results, total: results.length, truncated: false };
     }
 }
