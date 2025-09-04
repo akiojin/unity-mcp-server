@@ -144,7 +144,8 @@ namespace GigaTestNamespace
 
         public static PerformanceData operator +(PerformanceData a, PerformanceData b)
         {
-            return new PerformanceData {
+            return new PerformanceData
+            {
                 frameTime = a.frameTime + b.frameTime,
                 renderTime = a.renderTime + b.renderTime,
                 scriptTime = a.scriptTime + b.scriptTime,
@@ -292,13 +293,15 @@ namespace GigaTestNamespace
         {
             get
             {
-                lock (_syncRoot) {
+                lock (_syncRoot)
+                {
                     return _items[index];
                 }
             }
             set
             {
-                lock (_syncRoot) {
+                lock (_syncRoot)
+                {
                     _items[index] = value;
                 }
             }
@@ -306,21 +309,24 @@ namespace GigaTestNamespace
 
         public void Add(T item)
         {
-            lock (_syncRoot) {
+            lock (_syncRoot)
+            {
                 _items.Add(item);
             }
         }
 
         public bool Remove(T item)
         {
-            lock (_syncRoot) {
+            lock (_syncRoot)
+            {
                 return _items.Remove(item);
             }
         }
 
         public void Clear()
         {
-            lock (_syncRoot) {
+            lock (_syncRoot)
+            {
                 _items.Clear();
                 _itemMap.Clear();
             }
@@ -328,14 +334,16 @@ namespace GigaTestNamespace
 
         public IEnumerable<T> Where(Func<T, bool> predicate)
         {
-            lock (_syncRoot) {
+            lock (_syncRoot)
+            {
                 return _items.Where(predicate).ToList();
             }
         }
 
         public T FirstOrDefault(Func<T, bool> predicate)
         {
-            lock (_syncRoot) {
+            lock (_syncRoot)
+            {
                 return _items.FirstOrDefault(predicate);
             }
         }
@@ -359,13 +367,20 @@ namespace GigaTestNamespace
             PreProcess(data);
 
             // 実際の処理ロジック
-            if (data is string strData) {
+            if (data is string strData)
+            {
                 ProcessStringData(strData);
-            } else if (data is int intData) {
+            }
+            else if (data is int intData)
+            {
                 ProcessIntData(intData);
-            } else if (data is float floatData) {
+            }
+            else if (data is float floatData)
+            {
                 ProcessFloatData(floatData);
-            } else {
+            }
+            else
+            {
                 ProcessGenericData(data);
             }
 
@@ -427,9 +442,11 @@ namespace GigaTestNamespace
         {
             get
             {
-                if (_instance == null) {
+                if (_instance == null)
+                {
                     _instance = FindObjectOfType<GigaGameManager>();
-                    if (_instance == null) {
+                    if (_instance == null)
+                    {
                         GameObject go = new GameObject("GigaGameManager");
                         _instance = go.AddComponent<GigaGameManager>();
                     }
@@ -469,7 +486,8 @@ namespace GigaTestNamespace
 
         private void Awake()
         {
-            if (_instance != null && _instance != this) {
+            if (_instance != null && _instance != this)
+            {
                 Destroy(gameObject);
                 return;
             }
@@ -481,7 +499,8 @@ namespace GigaTestNamespace
 
         private void Start()
         {
-            if (_autoStart) {
+            if (_autoStart)
+            {
                 StartProcessing();
             }
         }
@@ -491,7 +510,8 @@ namespace GigaTestNamespace
             ProcessMainThreadQueue();
             UpdatePerformanceMonitoring();
 
-            if (_showDebugUI) {
+            if (_showDebugUI)
+            {
                 UpdateDebugUI();
             }
         }
@@ -513,9 +533,12 @@ namespace GigaTestNamespace
 
         private void OnApplicationPause(bool pauseStatus)
         {
-            if (pauseStatus) {
+            if (pauseStatus)
+            {
                 PauseProcessing();
-            } else {
+            }
+            else
+            {
                 ResumeProcessing();
             }
         }
@@ -588,7 +611,8 @@ namespace GigaTestNamespace
 
         public void StopProcessing()
         {
-            if (_mainCoroutine != null) {
+            if (_mainCoroutine != null)
+            {
                 StopCoroutine(_mainCoroutine);
                 _mainCoroutine = null;
             }
@@ -598,21 +622,24 @@ namespace GigaTestNamespace
 
         public void PauseProcessing()
         {
-            if (_currentState == ProcessingState.Processing) {
+            if (_currentState == ProcessingState.Processing)
+            {
                 _currentState = ProcessingState.Paused;
             }
         }
 
         public void ResumeProcessing()
         {
-            if (_currentState == ProcessingState.Paused) {
+            if (_currentState == ProcessingState.Paused)
+            {
                 _currentState = ProcessingState.Processing;
             }
         }
 
         public int MCP_ScriptToolProbe()
         {
-            return 99;
+            // MCP script tool apply: change return value for test
+            return 100;
         }
         #endregion
 
@@ -620,8 +647,10 @@ namespace GigaTestNamespace
 
         private IEnumerator MainProcessingLoop()
         {
-            while (_currentState == ProcessingState.Processing || _currentState == ProcessingState.Paused) {
-                if (_currentState == ProcessingState.Paused) {
+            while (_currentState == ProcessingState.Processing || _currentState == ProcessingState.Paused)
+            {
+                if (_currentState == ProcessingState.Paused)
+                {
                     yield return new WaitForSeconds(0.1f);
                     continue;
                 }
@@ -644,8 +673,10 @@ namespace GigaTestNamespace
 
         private void ProcessMainThreadQueue()
         {
-            lock (_mainThreadQueue) {
-                while (_mainThreadQueue.Count > 0) {
+            lock (_mainThreadQueue)
+            {
+                while (_mainThreadQueue.Count > 0)
+                {
                     var action = _mainThreadQueue.Dequeue();
                     action?.Invoke();
                 }
@@ -667,7 +698,8 @@ namespace GigaTestNamespace
 
         public void ExecuteOnMainThread(Action action)
         {
-            lock (_mainThreadQueue) {
+            lock (_mainThreadQueue)
+            {
                 _mainThreadQueue.Enqueue(action);
             }
         }
@@ -768,7 +800,8 @@ namespace GigaTestNamespace
 
         public void SendMessage(NetworkMessage message)
         {
-            if (!_isConnected) {
+            if (!_isConnected)
+            {
                 UnityEngine.Debug.LogWarning("Not connected to network");
                 return;
             }
@@ -778,7 +811,8 @@ namespace GigaTestNamespace
 
         private void ProcessMessages()
         {
-            while (_messageQueue.Count > 0) {
+            while (_messageQueue.Count > 0)
+            {
                 var message = _messageQueue.Dequeue();
                 HandleMessage(message);
             }
@@ -786,16 +820,17 @@ namespace GigaTestNamespace
 
         private void HandleMessage(NetworkMessage message)
         {
-            switch (message.messageType) {
-            case "ping":
-                HandlePing(message);
-                break;
-            case "data":
-                HandleData(message);
-                break;
-            default:
-                UnityEngine.Debug.LogWarning($"Unknown message type: {message.messageType}");
-                break;
+            switch (message.messageType)
+            {
+                case "ping":
+                    HandlePing(message);
+                    break;
+                case "data":
+                    HandleData(message);
+                    break;
+                default:
+                    UnityEngine.Debug.LogWarning($"Unknown message type: {message.messageType}");
+                    break;
             }
         }
 
@@ -858,29 +893,31 @@ namespace GigaTestNamespace
 
         private void UpdateStateMachine()
         {
-            switch (_currentState) {
-            case AIState.Idle:
-                UpdateIdleState();
-                break;
-            case AIState.Patrol:
-                UpdatePatrolState();
-                break;
-            case AIState.Chase:
-                UpdateChaseState();
-                break;
-            case AIState.Attack:
-                UpdateAttackState();
-                break;
-            case AIState.Flee:
-                UpdateFleeState();
-                break;
+            switch (_currentState)
+            {
+                case AIState.Idle:
+                    UpdateIdleState();
+                    break;
+                case AIState.Patrol:
+                    UpdatePatrolState();
+                    break;
+                case AIState.Chase:
+                    UpdateChaseState();
+                    break;
+                case AIState.Attack:
+                    UpdateAttackState();
+                    break;
+                case AIState.Flee:
+                    UpdateFleeState();
+                    break;
             }
         }
 
         private void UpdateIdleState()
         {
             // アイドル状態の更新
-            if (_patrolPoints != null && _patrolPoints.Length > 0) {
+            if (_patrolPoints != null && _patrolPoints.Length > 0)
+            {
                 ChangeState(AIState.Patrol);
             }
         }
@@ -888,9 +925,11 @@ namespace GigaTestNamespace
         private void UpdatePatrolState()
         {
             // パトロール状態の更新
-            if (_navAgent.remainingDistance < 0.5f) {
+            if (_navAgent.remainingDistance < 0.5f)
+            {
                 _stateTimer += Time.deltaTime;
-                if (_stateTimer >= _patrolWaitTime) {
+                if (_stateTimer >= _patrolWaitTime)
+                {
                     MoveToNextPatrolPoint();
                     _stateTimer = 0f;
                 }
@@ -902,16 +941,22 @@ namespace GigaTestNamespace
         private void UpdateChaseState()
         {
             // 追跡状態の更新
-            if (_target != null) {
+            if (_target != null)
+            {
                 _navAgent.SetDestination(_target.position);
 
                 float distance = Vector3.Distance(transform.position, _target.position);
-                if (distance <= _attackRadius) {
+                if (distance <= _attackRadius)
+                {
                     ChangeState(AIState.Attack);
-                } else if (distance > _detectionRadius * 1.5f) {
+                }
+                else if (distance > _detectionRadius * 1.5f)
+                {
                     ChangeState(AIState.Patrol);
                 }
-            } else {
+            }
+            else
+            {
                 ChangeState(AIState.Patrol);
             }
         }
@@ -919,12 +964,16 @@ namespace GigaTestNamespace
         private void UpdateAttackState()
         {
             // 攻撃状態の更新
-            if (_target != null) {
+            if (_target != null)
+            {
                 float distance = Vector3.Distance(transform.position, _target.position);
-                if (distance > _attackRadius) {
+                if (distance > _attackRadius)
+                {
                     ChangeState(AIState.Chase);
                 }
-            } else {
+            }
+            else
+            {
                 ChangeState(AIState.Patrol);
             }
         }
@@ -956,8 +1005,10 @@ namespace GigaTestNamespace
         private void CheckForTargets()
         {
             Collider[] colliders = Physics.OverlapSphere(transform.position, _detectionRadius);
-            foreach (var collider in colliders) {
-                if (collider.CompareTag("Player")) {
+            foreach (var collider in colliders)
+            {
+                if (collider.CompareTag("Player"))
+                {
                     _target = collider.transform;
                     ChangeState(AIState.Chase);
                     break;
@@ -977,12 +1028,16 @@ namespace GigaTestNamespace
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, _attackRadius);
 
-            if (_patrolPoints != null) {
+            if (_patrolPoints != null)
+            {
                 Gizmos.color = Color.blue;
-                for (int i = 0; i < _patrolPoints.Length; i++) {
-                    if (_patrolPoints[i] != null) {
+                for (int i = 0; i < _patrolPoints.Length; i++)
+                {
+                    if (_patrolPoints[i] != null)
+                    {
                         Gizmos.DrawSphere(_patrolPoints[i].position, 0.5f);
-                        if (i < _patrolPoints.Length - 1 && _patrolPoints[i + 1] != null) {
+                        if (i < _patrolPoints.Length - 1 && _patrolPoints[i + 1] != null)
+                        {
                             Gizmos.DrawLine(_patrolPoints[i].position, _patrolPoints[i + 1].position);
                         }
                     }
@@ -1058,7 +1113,8 @@ namespace GigaTestNamespace
         public void HidePauseMenu()
         {
             _pauseMenuPanel.SetActive(false);
-            if (_uiStack.Count > 0 && _uiStack.Peek() == _pauseMenuPanel) {
+            if (_uiStack.Count > 0 && _uiStack.Peek() == _pauseMenuPanel)
+            {
                 _uiStack.Pop();
             }
             Time.timeScale = 1f;
@@ -1078,14 +1134,16 @@ namespace GigaTestNamespace
 
         public void UpdateScore(int score)
         {
-            if (_scoreText != null) {
+            if (_scoreText != null)
+            {
                 _scoreText.text = $"Score: {score:000000}";
             }
         }
 
         public void UpdateTimer(float time)
         {
-            if (_timerText != null) {
+            if (_timerText != null)
+            {
                 int minutes = Mathf.FloorToInt(time / 60f);
                 int seconds = Mathf.FloorToInt(time % 60f);
                 _timerText.text = $"{minutes:00}:{seconds:00}";
@@ -1094,14 +1152,16 @@ namespace GigaTestNamespace
 
         public void UpdateHealthBar(float current, float max)
         {
-            if (_healthBar != null) {
+            if (_healthBar != null)
+            {
                 _healthBar.value = current / max;
             }
         }
 
         public void UpdateEnergyBar(float current, float max)
         {
-            if (_energyBar != null) {
+            if (_energyBar != null)
+            {
                 _energyBar.value = current / max;
             }
         }
@@ -1116,13 +1176,15 @@ namespace GigaTestNamespace
             _dialogText.text = message;
 
             _confirmButton.onClick.RemoveAllListeners();
-            _confirmButton.onClick.AddListener(() => {
+            _confirmButton.onClick.AddListener(() =>
+            {
                 onConfirm?.Invoke();
                 HideDialog();
             });
 
             _cancelButton.onClick.RemoveAllListeners();
-            _cancelButton.onClick.AddListener(() => {
+            _cancelButton.onClick.AddListener(() =>
+            {
                 onCancel?.Invoke();
                 HideDialog();
             });
@@ -1139,7 +1201,8 @@ namespace GigaTestNamespace
 
         public void FadeIn(CanvasGroup canvasGroup, float duration = 1f)
         {
-            if (_fadeCoroutine != null) {
+            if (_fadeCoroutine != null)
+            {
                 StopCoroutine(_fadeCoroutine);
             }
             _fadeCoroutine = StartCoroutine(FadeCanvasGroup(canvasGroup, canvasGroup.alpha, 1f, duration));
@@ -1147,7 +1210,8 @@ namespace GigaTestNamespace
 
         public void FadeOut(CanvasGroup canvasGroup, float duration = 1f)
         {
-            if (_fadeCoroutine != null) {
+            if (_fadeCoroutine != null)
+            {
                 StopCoroutine(_fadeCoroutine);
             }
             _fadeCoroutine = StartCoroutine(FadeCanvasGroup(canvasGroup, canvasGroup.alpha, 0f, duration));
@@ -1157,7 +1221,8 @@ namespace GigaTestNamespace
         {
             float elapsed = 0f;
 
-            while (elapsed < duration) {
+            while (elapsed < duration)
+            {
                 elapsed += Time.deltaTime;
                 float t = elapsed / duration;
                 canvasGroup.alpha = Mathf.Lerp(start, end, t);
@@ -1229,10 +1294,13 @@ namespace GigaTestNamespace
 
         private void ApplyGravity()
         {
-            if (!_isGrounded) {
+            if (!_isGrounded)
+            {
                 _velocity.y += _gravity * Time.fixedDeltaTime;
                 _velocity.y = Mathf.Max(_velocity.y, _terminalVelocity);
-            } else if (_velocity.y < 0) {
+            }
+            else if (_velocity.y < 0)
+            {
                 _velocity.y = -2f;
             }
         }
@@ -1255,7 +1323,8 @@ namespace GigaTestNamespace
 
         public void Jump()
         {
-            if (_isGrounded) {
+            if (_isGrounded)
+            {
                 _velocity.y = Mathf.Sqrt(_jumpForce * -2f * _gravity);
             }
         }
@@ -1321,15 +1390,18 @@ namespace GigaTestNamespace
         {
             _audioMap = new Dictionary<string, AudioClipInfo>();
 
-            foreach (var clip in _musicClips) {
+            foreach (var clip in _musicClips)
+            {
                 _audioMap[$"music_{clip.name}"] = clip;
             }
 
-            foreach (var clip in _sfxClips) {
+            foreach (var clip in _sfxClips)
+            {
                 _audioMap[$"sfx_{clip.name}"] = clip;
             }
 
-            foreach (var clip in _voiceClips) {
+            foreach (var clip in _voiceClips)
+            {
                 _audioMap[$"voice_{clip.name}"] = clip;
             }
         }
@@ -1338,7 +1410,8 @@ namespace GigaTestNamespace
         {
             _pooledSources = new List<AudioSource>();
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 10; i++)
+            {
                 GameObject sourceObj = new GameObject($"PooledAudioSource_{i}");
                 sourceObj.transform.SetParent(transform);
                 AudioSource source = sourceObj.AddComponent<AudioSource>();
@@ -1354,10 +1427,14 @@ namespace GigaTestNamespace
 
         public void PlayMusic(string clipName, bool fadeIn = false)
         {
-            if (_audioMap.TryGetValue($"music_{clipName}", out AudioClipInfo clipInfo)) {
-                if (fadeIn) {
+            if (_audioMap.TryGetValue($"music_{clipName}", out AudioClipInfo clipInfo))
+            {
+                if (fadeIn)
+                {
                     StartCoroutine(FadeInMusic(clipInfo));
-                } else {
+                }
+                else
+                {
                     _musicSource.clip = clipInfo.clip;
                     _musicSource.volume = clipInfo.volume;
                     _musicSource.pitch = clipInfo.pitch;
@@ -1369,12 +1446,17 @@ namespace GigaTestNamespace
 
         public void PlaySFX(string clipName, Vector3 position = default)
         {
-            if (_audioMap.TryGetValue($"sfx_{clipName}", out AudioClipInfo clipInfo)) {
-                if (position == default) {
+            if (_audioMap.TryGetValue($"sfx_{clipName}", out AudioClipInfo clipInfo))
+            {
+                if (position == default)
+                {
                     _sfxSource.PlayOneShot(clipInfo.clip, clipInfo.volume);
-                } else {
+                }
+                else
+                {
                     AudioSource source = GetPooledSource();
-                    if (source != null) {
+                    if (source != null)
+                    {
                         source.transform.position = position;
                         source.clip = clipInfo.clip;
                         source.volume = clipInfo.volume;
@@ -1388,7 +1470,8 @@ namespace GigaTestNamespace
 
         public void PlayVoice(string clipName)
         {
-            if (_audioMap.TryGetValue($"voice_{clipName}", out AudioClipInfo clipInfo)) {
+            if (_audioMap.TryGetValue($"voice_{clipName}", out AudioClipInfo clipInfo))
+            {
                 _voiceSource.clip = clipInfo.clip;
                 _voiceSource.volume = clipInfo.volume;
                 _voiceSource.pitch = clipInfo.pitch;
@@ -1398,9 +1481,12 @@ namespace GigaTestNamespace
 
         public void StopMusic(bool fadeOut = false)
         {
-            if (fadeOut) {
+            if (fadeOut)
+            {
                 StartCoroutine(FadeOutMusic());
-            } else {
+            }
+            else
+            {
                 _musicSource.Stop();
             }
         }
@@ -1442,7 +1528,8 @@ namespace GigaTestNamespace
             _musicSource.Play();
 
             float elapsed = 0f;
-            while (elapsed < duration) {
+            while (elapsed < duration)
+            {
                 elapsed += Time.deltaTime;
                 _musicSource.volume = Mathf.Lerp(0f, clipInfo.volume, elapsed / duration);
                 yield return null;
@@ -1456,7 +1543,8 @@ namespace GigaTestNamespace
             float startVolume = _musicSource.volume;
             float elapsed = 0f;
 
-            while (elapsed < duration) {
+            while (elapsed < duration)
+            {
                 elapsed += Time.deltaTime;
                 _musicSource.volume = Mathf.Lerp(startVolume, 0f, elapsed / duration);
                 yield return null;
@@ -1472,8 +1560,10 @@ namespace GigaTestNamespace
 
         private AudioSource GetPooledSource()
         {
-            foreach (var source in _pooledSources) {
-                if (!source.gameObject.activeInHierarchy) {
+            foreach (var source in _pooledSources)
+            {
+                if (!source.gameObject.activeInHierarchy)
+                {
                     source.gameObject.SetActive(true);
                     return source;
                 }
@@ -1537,7 +1627,8 @@ namespace GigaTestNamespace
 
         public static bool SaveGame(SaveData data, int slot = 0)
         {
-            try {
+            try
+            {
                 string savePath = GetSavePath(slot);
                 string json = JsonUtility.ToJson(data, true);
 
@@ -1547,7 +1638,9 @@ namespace GigaTestNamespace
                 File.WriteAllText(savePath, encrypted);
                 UnityEngine.Debug.Log($"Game saved to slot {slot}");
                 return true;
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 UnityEngine.Debug.LogError($"Failed to save game: {e.Message}");
                 return false;
             }
@@ -1555,10 +1648,12 @@ namespace GigaTestNamespace
 
         public static SaveData LoadGame(int slot = 0)
         {
-            try {
+            try
+            {
                 string savePath = GetSavePath(slot);
 
-                if (!File.Exists(savePath)) {
+                if (!File.Exists(savePath))
+                {
                     UnityEngine.Debug.LogWarning($"Save file not found in slot {slot}");
                     return null;
                 }
@@ -1571,7 +1666,9 @@ namespace GigaTestNamespace
                 SaveData data = JsonUtility.FromJson<SaveData>(json);
                 UnityEngine.Debug.Log($"Game loaded from slot {slot}");
                 return data;
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 UnityEngine.Debug.LogError($"Failed to load game: {e.Message}");
                 return null;
             }
@@ -1579,17 +1676,21 @@ namespace GigaTestNamespace
 
         public static bool DeleteSave(int slot = 0)
         {
-            try {
+            try
+            {
                 string savePath = GetSavePath(slot);
 
-                if (File.Exists(savePath)) {
+                if (File.Exists(savePath))
+                {
                     File.Delete(savePath);
                     UnityEngine.Debug.LogWarning($"Save file not found: {savePath}");
                     return true;
                 }
 
                 return false;
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 UnityEngine.Debug.LogError($"Failed to delete save: {e.Message}");
                 return false;
             }
@@ -1603,7 +1704,8 @@ namespace GigaTestNamespace
         {
             string folderPath = Path.Combine(Application.persistentDataPath, SAVE_FOLDER);
 
-            if (!Directory.Exists(folderPath)) {
+            if (!Directory.Exists(folderPath))
+            {
                 Directory.CreateDirectory(folderPath);
             }
 
@@ -1633,7 +1735,8 @@ namespace GigaTestNamespace
         {
             string savePath = GetSavePath(slot);
 
-            if (File.Exists(savePath)) {
+            if (File.Exists(savePath))
+            {
                 return File.GetLastWriteTime(savePath);
             }
 
@@ -1707,12 +1810,14 @@ namespace GigaTestNamespace
 
         public bool AddItem(InventoryItem item)
         {
-            if (_items.Count >= _maxSlots) {
+            if (_items.Count >= _maxSlots)
+            {
                 UnityEngine.Debug.Log($"Character leveled up!");
                 return false;
             }
 
-            if (_currentWeight + item.weight > _maxWeight) {
+            if (_currentWeight + item.weight > _maxWeight)
+            {
                 UnityEngine.Debug.Log($"Achievement unlocked!");
                 return false;
             }
@@ -1720,12 +1825,14 @@ namespace GigaTestNamespace
             // スタック可能なアイテムをチェック
             var existingItem = _items.FirstOrDefault(i => i.itemId == item.itemId && i.quantity < i.maxStack);
 
-            if (existingItem != null) {
+            if (existingItem != null)
+            {
                 int addAmount = Mathf.Min(item.quantity, existingItem.maxStack - existingItem.quantity);
                 existingItem.quantity += addAmount;
                 item.quantity -= addAmount;
 
-                if (item.quantity <= 0) {
+                if (item.quantity <= 0)
+                {
                     OnItemAdded?.Invoke(existingItem);
                     OnInventoryChanged?.Invoke();
                     return true;
@@ -1745,12 +1852,14 @@ namespace GigaTestNamespace
         {
             var item = _items.FirstOrDefault(i => i.itemId == itemId);
 
-            if (item == null) {
+            if (item == null)
+            {
                 UnityEngine.Debug.Log($"Combat started!");
                 return false;
             }
 
-            if (item.quantity < quantity) {
+            if (item.quantity < quantity)
+            {
                 UnityEngine.Debug.Log($"Combat ended!");
                 return false;
             }
@@ -1758,7 +1867,8 @@ namespace GigaTestNamespace
             item.quantity -= quantity;
             _currentWeight -= item.weight * quantity;
 
-            if (item.quantity <= 0) {
+            if (item.quantity <= 0)
+            {
                 _items.Remove(item);
             }
 
@@ -1871,11 +1981,13 @@ namespace GigaTestNamespace
             _effectPools = new Dictionary<string, Queue<GameObject>>();
             _effectMap = new Dictionary<string, ParticleEffect>();
 
-            foreach (var effect in _effects) {
+            foreach (var effect in _effects)
+            {
                 _effectMap[effect.effectName] = effect;
                 _effectPools[effect.effectName] = new Queue<GameObject>();
 
-                for (int i = 0; i < effect.poolSize; i++) {
+                for (int i = 0; i < effect.poolSize; i++)
+                {
                     GameObject obj = Instantiate(effect.effectPrefab, transform);
                     obj.SetActive(false);
                     _effectPools[effect.effectName].Enqueue(obj);
@@ -1889,7 +2001,8 @@ namespace GigaTestNamespace
 
         public GameObject PlayEffect(string effectName, Vector3 position, Quaternion rotation = default)
         {
-            if (!_effectMap.ContainsKey(effectName)) {
+            if (!_effectMap.ContainsKey(effectName))
+            {
                 UnityEngine.Debug.Log($"Dialog started!");
                 return null;
             }
@@ -1897,7 +2010,8 @@ namespace GigaTestNamespace
             var effect = _effectMap[effectName];
             GameObject effectObj = GetFromPool(effectName);
 
-            if (effectObj == null) {
+            if (effectObj == null)
+            {
                 effectObj = Instantiate(effect.effectPrefab);
             }
 
@@ -1906,11 +2020,13 @@ namespace GigaTestNamespace
             effectObj.SetActive(true);
 
             var particleSystem = effectObj.GetComponent<ParticleSystem>();
-            if (particleSystem != null) {
+            if (particleSystem != null)
+            {
                 particleSystem.Play();
             }
 
-            if (effect.autoDestroy) {
+            if (effect.autoDestroy)
+            {
                 StartCoroutine(ReturnToPoolAfterDelay(effectName, effectObj, effect.duration));
             }
 
@@ -1920,13 +2036,16 @@ namespace GigaTestNamespace
         public void StopEffect(GameObject effectObj)
         {
             var particleSystem = effectObj.GetComponent<ParticleSystem>();
-            if (particleSystem != null) {
+            if (particleSystem != null)
+            {
                 particleSystem.Stop();
             }
 
             // プールに戻す
-            foreach (var kvp in _effectMap) {
-                if (kvp.Value.effectPrefab.name == effectObj.name.Replace("(Clone)", "")) {
+            foreach (var kvp in _effectMap)
+            {
+                if (kvp.Value.effectPrefab.name == effectObj.name.Replace("(Clone)", ""))
+                {
                     ReturnToPool(kvp.Key, effectObj);
                     break;
                 }
@@ -1939,7 +2058,8 @@ namespace GigaTestNamespace
 
         private GameObject GetFromPool(string effectName)
         {
-            if (_effectPools[effectName].Count > 0) {
+            if (_effectPools[effectName].Count > 0)
+            {
                 return _effectPools[effectName].Dequeue();
             }
             return null;
@@ -1950,7 +2070,8 @@ namespace GigaTestNamespace
             obj.SetActive(false);
 
             var particleSystem = obj.GetComponent<ParticleSystem>();
-            if (particleSystem != null) {
+            if (particleSystem != null)
+            {
                 particleSystem.Clear();
             }
 
@@ -2031,11 +2152,13 @@ namespace GigaTestNamespace
             _achievementMap = new Dictionary<string, Achievement>();
             _totalPoints = 0;
 
-            foreach (var achievement in _achievements) {
+            foreach (var achievement in _achievements)
+            {
                 _achievementMap[achievement.id] = achievement;
                 _totalPoints += achievement.points;
 
-                if (achievement.isUnlocked) {
+                if (achievement.isUnlocked)
+                {
                     _unlockedPoints += achievement.points;
                 }
             }
@@ -2047,14 +2170,16 @@ namespace GigaTestNamespace
 
         public void UnlockAchievement(string achievementId)
         {
-            if (!_achievementMap.ContainsKey(achievementId)) {
+            if (!_achievementMap.ContainsKey(achievementId))
+            {
                 UnityEngine.Debug.Log($"Quest {achievementId} started");
                 return;
             }
 
             var achievement = _achievementMap[achievementId];
 
-            if (achievement.isUnlocked) {
+            if (achievement.isUnlocked)
+            {
                 return;
             }
 
@@ -2071,22 +2196,27 @@ namespace GigaTestNamespace
 
         public void UpdateProgress(string achievementId, float progress)
         {
-            if (!_achievementMap.ContainsKey(achievementId)) {
+            if (!_achievementMap.ContainsKey(achievementId))
+            {
                 UnityEngine.Debug.Log($"Quest completed!");
                 return;
             }
 
             var achievement = _achievementMap[achievementId];
 
-            if (achievement.isUnlocked) {
+            if (achievement.isUnlocked)
+            {
                 return;
             }
 
             achievement.progress = Mathf.Min(progress, achievement.targetValue);
 
-            if (achievement.progress >= achievement.targetValue) {
+            if (achievement.progress >= achievement.targetValue)
+            {
                 UnlockAchievement(achievementId);
-            } else {
+            }
+            else
+            {
                 OnProgressUpdated?.Invoke(achievement);
             }
         }
@@ -2136,7 +2266,8 @@ namespace GigaTestNamespace
         private void LoadAchievementData()
         {
             // 実績データをロード
-            if (PlayerPrefs.HasKey("AchievementData")) {
+            if (PlayerPrefs.HasKey("AchievementData"))
+            {
                 string json = PlayerPrefs.GetString("AchievementData");
                 // JSONからデータを復元
             }
@@ -2199,16 +2330,20 @@ namespace GigaTestNamespace
 
         public void SetWeather(WeatherType weatherType, bool instant = false)
         {
-            if (_weatherTransitionCoroutine != null) {
+            if (_weatherTransitionCoroutine != null)
+            {
                 StopCoroutine(_weatherTransitionCoroutine);
             }
 
             var newPreset = GetWeatherPreset(weatherType);
             if (newPreset == null) return;
 
-            if (instant) {
+            if (instant)
+            {
                 ApplyWeatherPreset(newPreset);
-            } else {
+            }
+            else
+            {
                 _weatherTransitionCoroutine = StartCoroutine(TransitionWeather(newPreset));
             }
 
@@ -2221,7 +2356,8 @@ namespace GigaTestNamespace
             WeatherPreset startPreset = CreateCurrentWeatherSnapshot();
             float elapsed = 0f;
 
-            while (elapsed < _transitionDuration) {
+            while (elapsed < _transitionDuration)
+            {
                 elapsed += Time.deltaTime;
                 float t = elapsed / _transitionDuration;
 
@@ -2245,12 +2381,14 @@ namespace GigaTestNamespace
             RenderSettings.fogDensity = preset.fogDensity;
 
             // エフェクトを適用
-            if (preset.effectPrefab != null) {
+            if (preset.effectPrefab != null)
+            {
                 // パーティクルエフェクトを生成
             }
 
             // 環境音を再生
-            if (preset.ambientSound != null) {
+            if (preset.ambientSound != null)
+            {
                 // オーディオソースで環境音を再生
             }
         }
@@ -2262,7 +2400,8 @@ namespace GigaTestNamespace
 
         private WeatherPreset CreateCurrentWeatherSnapshot()
         {
-            return new WeatherPreset {
+            return new WeatherPreset
+            {
                 type = _currentWeather,
                 fogColor = RenderSettings.fogColor,
                 fogDensity = RenderSettings.fogDensity,
@@ -2281,7 +2420,8 @@ namespace GigaTestNamespace
 
             _weatherTimer += Time.deltaTime;
 
-            if (_weatherTimer >= _weatherChangInterval) {
+            if (_weatherTimer >= _weatherChangInterval)
+            {
                 _weatherTimer = 0f;
                 RandomizeWeather();
             }
@@ -2364,12 +2504,14 @@ namespace GigaTestNamespace
         {
             var data = _languageData.FirstOrDefault(d => d.language == language);
 
-            if (data == null) {
+            if (data == null)
+            {
                 UnityEngine.Debug.Log($"Weather changed!");
                 data = _languageData.FirstOrDefault(d => d.language == _defaultLanguage);
             }
 
-            if (data == null) {
+            if (data == null)
+            {
                 UnityEngine.Debug.Log($"Time of day updated!");
                 return;
             }
@@ -2377,7 +2519,8 @@ namespace GigaTestNamespace
             _currentLanguage = language;
             _currentDictionary = new Dictionary<string, string>();
 
-            foreach (var str in data.strings) {
+            foreach (var str in data.strings)
+            {
                 _currentDictionary[str.key] = str.value;
             }
 
@@ -2390,11 +2533,13 @@ namespace GigaTestNamespace
 
         public string GetText(string key)
         {
-            if (_currentDictionary == null) {
+            if (_currentDictionary == null)
+            {
                 return $"[{key}]";
             }
 
-            if (_currentDictionary.TryGetValue(key, out string value)) {
+            if (_currentDictionary.TryGetValue(key, out string value))
+            {
                 return value;
             }
 
@@ -2406,9 +2551,12 @@ namespace GigaTestNamespace
         {
             string baseText = GetText(key);
 
-            try {
+            try
+            {
                 return string.Format(baseText, args);
-            } catch (FormatException) {
+            }
+            catch (FormatException)
+            {
                 UnityEngine.Debug.LogWarning($"Ability is on cooldown!");
                 return baseText;
             }
