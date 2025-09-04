@@ -90,11 +90,21 @@ namespace UnityEditorMCP.Core
             try
             {
                 string explicitPath = Environment.GetEnvironmentVariable("UNITY_MCP_CONFIG");
-                string projectPath = Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".unity", "config.json"));
+                // Current Unity project root
+                string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+                string projectPath = Path.GetFullPath(Path.Combine(projectRoot, ".unity", "config.json"));
                 string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
                 string userPath = string.IsNullOrEmpty(homeDir) ? null : Path.Combine(homeDir, ".unity", "config.json");
 
-                var candidates = new[] { explicitPath, projectPath, userPath }
+                // Also search ancestors for a workspace-level .unity/config.json whose project.root resolves to this project
+                string ancestorPath = FindAncestorConfigForProject(projectRoot, maxLevels: 10);
+
+                // Build candidates in priority order:
+                // 1) UNITY_MCP_CONFIG (explicit)
+                // 2) <UnityProject>/.unity/config.json
+                // 3) Ancestor workspace <workspace>/.unity/config.json that points to this project via project.root
+                // 4) ~/.unity/config.json
+                var candidates = new[] { explicitPath, projectPath, ancestorPath, userPath }
                     .Where(p => !string.IsNullOrEmpty(p))
                     .ToArray();
 
@@ -158,6 +168,63 @@ namespace UnityEditorMCP.Core
             catch (Exception ex)
             {
                 Debug.LogWarning($"[Unity Editor MCP] Config load error: {ex.Message}. Using default bind={bindAddress}, clientHost={currentHost}, port={currentPort}");
+            }
+        }
+
+        /// <summary>
+        /// Walk up parent directories from the Unity project root to locate a workspace-level .unity/config.json
+        /// whose project.root points back to this Unity project. Returns the first match (nearest ancestor) or null.
+        /// </summary>
+        private static string FindAncestorConfigForProject(string projectRoot, int maxLevels = 10)
+        {
+            try
+            {
+                string dir = projectRoot;
+                for (int i = 0; i < maxLevels; i++)
+                {
+                    var parent = Directory.GetParent(dir);
+                    if (parent == null) break;
+                    dir = parent.FullName;
+                    var configPath = Path.Combine(dir, ".unity", "config.json");
+                    if (!File.Exists(configPath)) continue;
+
+                    // Validate that project.root in this config targets our projectRoot
+                    try
+                    {
+                        var txt = File.ReadAllText(configPath);
+                        var json = JObject.Parse(txt);
+                        var prToken = json.SelectToken("project.root");
+                        if (prToken != null)
+                        {
+                            string pr = prToken.ToString();
+                            if (!string.IsNullOrWhiteSpace(pr))
+                            {
+                                string prAbs = Path.IsPathRooted(pr) ? pr : Path.GetFullPath(Path.Combine(dir, pr));
+                                if (PathsEqual(prAbs, projectRoot))
+                                {
+                                    return configPath;
+                                }
+                            }
+                        }
+                    }
+                    catch { /* ignore and continue search */ }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        private static bool PathsEqual(string a, string b)
+        {
+            try
+            {
+                var na = Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                var nb = Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                return string.Equals(na, nb, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
             }
         }
 
