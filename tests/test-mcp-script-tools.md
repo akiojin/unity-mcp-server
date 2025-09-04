@@ -68,6 +68,7 @@ S00) 実行前準備（必須・sln 非存在時は即終了）
 即時終了ポリシー（厳守）:
 - `.sln` が存在しない場合は、テストを続行不可とし、その時点で終了する。以降のケースは一切実行しない。
 - この場合、Markdown レポートのチェックリストに `S00-00: 前提チェック — blocked（Missing .sln）` を1行追記し、サマリテーブルで `BLOCKED_ENV` を 1 にする。
+- さらに details セクションで前提チェックの内訳を明記する（例: `.sln: missing / roslyn-cli: running / code index: not built`）。
 
 ## 前提・共通ルール
 

@@ -58,6 +58,12 @@
 - pass / fail / skip / BLOCKED_ENV は語で明示
 - 各行（チェックリスト）は `- [ ]` / `- [x]` を必須とし、末尾に `restored:true/false` を付記
 
+BLOCKED_ENV の記録ルール（必須）
+- チェックリスト行に「原因」を短い語句で必ず併記してください（例: `blocked（Missing .sln）`, `blocked（roslyn-cli not running）`, `blocked（index coverage < 50%）`）。
+- 併せて「環境詳細」の details セクションを追加し、前提チェック結果を箇条書きで明示します。
+  - 例: `.sln: missing / roslyn-cli: running / code index: 32%` のように可視化。
+  - S00 でのブロック時は、以降カテゴリの見出しは作らず、グローバルサマリの BLOCKED_ENV を増分してください。
+
 実行ポリシー（必須）
 - 変更前の状態を取得・保存し、各テストケースの終了時に必ず復元する（チェックリスト行に restored:true を明記）
 - 破壊的操作はテストで新規作成した `LLMTEST_` 系資産に限定し、テスト末尾で削除する
