@@ -16,7 +16,7 @@ function tryBuildCli() {
   try {
     if (!fs.existsSync('.tools')) fs.mkdirSync('.tools');
     const rid = process.platform === 'win32' ? 'win-x64' : (process.platform === 'darwin' ? (process.arch === 'arm64' ? 'osx-arm64' : 'osx-x64') : 'linux-x64');
-    const out = `.tools/roslyn-cli/${rid}`;
+    const out = `.unity/tools/roslyn-cli/${rid}`;
     if (fs.existsSync(path.join(out, process.platform === 'win32' ? 'roslyn-cli.exe' : 'roslyn-cli'))) {
       console.log('[test] roslyn-cli binary already exists');
       return;

@@ -50,11 +50,11 @@ detect_rid() {
 }
 
 detect_version_from_pkg() {
-  # Try Node first, then grep fallback
-  if command -v node >/dev/null 2>&1 && [[ -f mcp-server/package.json ]]; then
-    node -p "require('./mcp-server/package.json').version" 2>/dev/null || true
-  elif [[ -f mcp-server/package.json ]]; then
-    grep -o '"version"\s*:\s*"[^"]\+"' mcp-server/package.json | head -n1 | sed 's/.*"\([^"]\+\)"/\1/' || true
+  # Prefer tools/roslyn-cli-npx version (tracks roslyn-cli releases)
+  if command -v node >/dev/null 2>&1 && [[ -f tools/roslyn-cli-npx/package.json ]]; then
+    node -p "require('./tools/roslyn-cli-npx/package.json').version" 2>/dev/null || true
+  elif [[ -f tools/roslyn-cli-npx/package.json ]]; then
+    grep -o '"version"\s*:\s*"[^"]\+"' tools/roslyn-cli-npx/package.json | head -n1 | sed 's/.*"\([^"]\+\)"/\1/' || true
   else
     echo ""
   fi

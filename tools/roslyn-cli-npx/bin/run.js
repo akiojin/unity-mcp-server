@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // npx @akiojin/roslyn-cli ...
 // - Detect RID
-// - Ensure binary at ./.tools/roslyn-cli/<rid>/roslyn-cli(.exe)
+// - Ensure binary at ./.unity/tools/roslyn-cli/<rid>/roslyn-cli(.exe)
 // - Auto-download from GitHub Releases (tag: roslyn-cli-v<package.version> or latest)
 // - Verify SHA256 when available
 // - Delegate execution with passed args

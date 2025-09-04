@@ -19,7 +19,8 @@ function Detect-Rid {
 }
 
 function Detect-VersionFromPkg {
-    $pkg = Join-Path 'mcp-server' 'package.json'
+    # Prefer tools/roslyn-cli-npx version (tracks roslyn-cli releases)
+    $pkg = Join-Path 'tools' 'roslyn-cli-npx' 'package.json'
     if (Test-Path $pkg) {
         try {
             $json = Get-Content $pkg -Raw | ConvertFrom-Json

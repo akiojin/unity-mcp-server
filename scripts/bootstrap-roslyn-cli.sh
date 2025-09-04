@@ -40,7 +40,7 @@ if [ -z "$RID" ]; then
   if [[ "$UNAME_S" == MINGW* || "$UNAME_S" == CYGWIN* ]]; then RID="win-x64"; fi
 fi
 
-OUT_DIR=".tools/roslyn-cli/${RID}"
+OUT_DIR=".unity/tools/roslyn-cli/${RID}"
 mkdir -p "$OUT_DIR"
 
 echo "Publishing roslyn-cli for RID=$RID ..."

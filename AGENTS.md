@@ -141,7 +141,7 @@
 - `roslyn-cli/`（外部 Roslyn Workspace CLI）
   - 目的: `.sln/.csproj` を MSBuildWorkspace でロードし、`find_symbol`/`find_referencing_symbols`/`replace_symbol_body`/`insert_{before,after}` を安全に提供。
   - 実行: MCPサーバ（Node）からCLIを呼び出し、Unityとは直接通信しない。
-  - 成果物: 自己完結バイナリは `.tools/roslyn-cli/<rid>/` 配下（Git管理外推奨）。
+- 成果物: 自己完結バイナリは `.unity/tools/roslyn-cli/<rid>/` 配下（Git管理外推奨）。
 
 ### パス解決ポリシー（統一）
 - スクリーンショット/動画の出力先は常にワークスペースルート固定の `./.unity/capture/`。

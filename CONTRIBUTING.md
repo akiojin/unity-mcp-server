@@ -23,7 +23,7 @@ End users do not need .NET. The MCP server auto-provisions `roslyn-cli` when use
 - Build from source (requires .NET 9 SDK):
   - macOS/Linux: `./scripts/bootstrap-roslyn-cli.sh osx-arm64|osx-x64|linux-x64`
   - Windows: `powershell -ExecutionPolicy Bypass -File scripts/bootstrap-roslyn-cli.ps1 -Rid win-x64`
-  - Output: `./.tools/roslyn-cli/<rid>/roslyn-cli(.exe)`
+- Output: `./.unity/tools/roslyn-cli/<rid>/roslyn-cli(.exe)`
 
 - One-liner installers (no .NET required):
   - UNIX: `curl -fsSL https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.sh | bash -s -- --version <ver> --rid <rid>`
@@ -31,7 +31,7 @@ End users do not need .NET. The MCP server auto-provisions `roslyn-cli` when use
 
 - npx wrapper (no .NET required):
   - `npx -y @akiojin/roslyn-cli ak-roslyn serve --solution <path>`
-  - The first run downloads the proper binary into `./.tools/roslyn-cli/<rid>/` and verifies SHA256.
+- The first run downloads the proper binary into `./.unity/tools/roslyn-cli/<rid>/` and verifies SHA256.
 
 ### Setup Instructions
 

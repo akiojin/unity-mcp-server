@@ -21,7 +21,7 @@ export class RoslynCliUtils {
     const exeName = process.platform === 'win32' ? 'roslyn-cli.exe' : 'roslyn-cli';
     const pkgCandidates = [
       path.join(pkgRoot, 'roslyn-cli', rid, exeName),
-      path.join(pkgRoot, '.tools', 'roslyn-cli', rid, exeName), // legacy fallback
+      path.join(pkgRoot, '.tools', 'roslyn-cli', rid, exeName), // legacy fallback under package
       path.join(pkgRoot, '.unity', 'tools', 'roslyn-cli', rid, exeName),
     ];
     for (const p of pkgCandidates) {
@@ -68,7 +68,7 @@ export class RoslynCliUtils {
       : `./scripts/bootstrap-roslyn-cli.sh ${rid}`;
     const msg = [
       'roslyn-cli binary not found.',
-      `Expected: ${expected} (preferred under .unity/tools/roslyn-cli/<rid> or legacy .tools/roslyn-cli/<rid>)`,
+      `Expected: ${expected} (.unity/tools/roslyn-cli/<rid>)`,
       'Provision options:',
       `  - Build from source if present: ${hint}`,
       '  - Or place a prebuilt binary at the above path',
@@ -145,9 +145,20 @@ export class RoslynCliUtils {
     const version = await this._getPackageVersion();
     const tag = version ? `roslyn-cli-v${version}` : 'latest';
 
-    const release = await this._fetchJson(tag === 'latest'
-      ? `https://api.github.com/repos/${owner}/${repo}/releases/latest`
-      : `https://api.github.com/repos/${owner}/${repo}/releases/tags/${encodeURIComponent(tag)}`);
+    // Try specific tag first; if missing (404), fall back to latest
+    let release = null;
+    const tagUrl = `https://api.github.com/repos/${owner}/${repo}/releases/tags/${encodeURIComponent(tag)}`;
+    try {
+      release = await this._fetchJson(tag === 'latest'
+        ? `https://api.github.com/repos/${owner}/${repo}/releases/latest`
+        : tagUrl);
+    } catch (e) {
+      if (String(e.message || '').includes('HTTP 404') || String(e.message || '').includes('Not Found')) {
+        release = await this._fetchJson(`https://api.github.com/repos/${owner}/${repo}/releases/latest`);
+      } else {
+        throw e;
+      }
+    }
 
     if (!release || !Array.isArray(release.assets)) throw new Error('release info not found');
     // Prefer plain binary assets, fall back to archive if present
@@ -195,12 +206,17 @@ export class RoslynCliUtils {
   }
 
   async _getPackageVersion() {
+    // Prefer the npx wrapper version (tools/roslyn-cli-npx), which tracks roslyn-cli releases
     try {
-      const pkgPath = path.resolve(this._resolvePackageRoot(), 'package.json');
-      const raw = fs.readFileSync(pkgPath, 'utf8');
-      const json = JSON.parse(raw);
-      return json.version;
-    } catch { return null; }
+      const root = this._resolvePackageRoot();
+      const npxPkg = path.resolve(root, '../tools/roslyn-cli-npx/package.json');
+      if (fs.existsSync(npxPkg)) {
+        const raw = fs.readFileSync(npxPkg, 'utf8');
+        const json = JSON.parse(raw);
+        if (json?.version) return json.version;
+      }
+    } catch {}
+    return null; // force fallback to latest
   }
 
   async _fetchJson(url) {
@@ -300,15 +316,14 @@ export class RoslynCliUtils {
   async getSolutionOrProjectArgs() {
     const info = await this.projectInfo.get();
     const root = info.projectRoot.replace(/\\/g, '/');
-    // Unity の既定: ルートディレクトリ名.sln
     const path = await import('path');
     const fs = await import('fs');
     const dirName = path.default.basename(root);
+    // Unity の既定: ルートディレクトリ名.sln のみを許容（厳格運用）
     const slnPath = path.default.resolve(root, `${dirName}.sln`).replace(/\\/g, '/');
     if (fs.existsSync(slnPath)) {
       return ['--solution', slnPath];
     }
-    // 厳格運用: .sln がない場合はエラー（フォールバックしない）
     throw new Error(`Solution not found. Expected: ${slnPath}`);
   }
 
