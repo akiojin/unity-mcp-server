@@ -22,6 +22,7 @@ sealed class App
     private static Solution? CachedSolution;
     private static string? CachedRootDir;
     private static string? CachedKey; // full path to sln or csproj
+    private static string? CachedKind; // "solution" or "project"
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -45,6 +46,7 @@ sealed class App
         {
             "serve" => await ServeAsync(),
             "index-summary" => await IndexSummaryAsync(rest),
+            "workspace-info" => await WorkspaceInfoAsync(),
             "scan-symbols" => await ScanSymbolsAsync(rest),
             "find-symbol" => await FindSymbolAsync(rest),
             "find-references" => await FindReferencesAsync(rest),
@@ -62,7 +64,7 @@ sealed class App
     {
         var help = new
         {
-            commands = new[] { "find-symbol", "find-references", "replace-symbol-body", "insert-before-symbol", "insert-after-symbol", "rename-symbol", "remove-symbol", "create-type-file" },
+            commands = new[] { "find-symbol", "find-references", "replace-symbol-body", "insert-before-symbol", "insert-after-symbol", "rename-symbol", "remove-symbol", "create-type-file", "workspace-info", "index-summary" },
             usage = new
             {
                 serve = "serve  # JSON-over-stdin server: {id,cmd,args[]} per line; returns {id,...}",
@@ -73,7 +75,8 @@ sealed class App
                 insertAfter = "insert-after-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> --body-file <path> [--apply true|false]",
                 renameSymbol = "rename-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> --new-name <New> [--apply true|false]",
                 removeSymbol = "remove-symbol --solution <sln>|--project <csproj> --relative <file> --name-path <A/B/C> [--apply true|false] [--fail-on-references true|false] [--remove-empty-file true|false]",
-                createTypeFile = "create-type-file --solution <sln>|--project <csproj> --relative <path.cs> --name <ClassName> [--namespace <NS>] [--base <BaseType>] [--usings <CSV>] [--partial true|false] [--apply true|false]"
+                createTypeFile = "create-type-file --solution <sln>|--project <csproj> --relative <path.cs> --name <ClassName> [--namespace <NS>] [--base <BaseType>] [--usings <CSV>] [--partial true|false] [--apply true|false]",
+                workspaceInfo = "workspace-info  # Returns currently loaded solution/project path and root (serve mode cache)"
             }
         };
         Console.WriteLine(JsonSerializer.Serialize(help, JsonOpts));
@@ -108,6 +111,7 @@ sealed class App
                     "insert-after-symbol" => InsertAroundSymbolAsync(args, before:false),
                     "rename-symbol" => RenameSymbolAsync(args),
                     "remove-symbol" => RemoveSymbolAsync(args),
+                    "workspace-info" => Task.FromResult(WorkspaceInfo()),
                     "help" => Task.FromResult(PrintHelpAndOk()),
                     _ => Task.FromResult(Fail(new { error = "unknown_command", command = doc.cmd }))
                 });
@@ -260,14 +264,14 @@ sealed class App
         if (!string.IsNullOrEmpty(sln))
         {
             var solution = await ws.OpenSolutionAsync(key);
-            CachedWs = ws; CachedSolution = solution; CachedKey = key; CachedRootDir = Path.GetDirectoryName(key) ?? Directory.GetCurrentDirectory();
+            CachedWs = ws; CachedSolution = solution; CachedKey = key; CachedRootDir = Path.GetDirectoryName(key) ?? Directory.GetCurrentDirectory(); CachedKind = "solution";
             return (ws, solution, CachedRootDir);
         }
         else
         {
             var project = await ws.OpenProjectAsync(key);
             var sol = project.Solution;
-            CachedWs = ws; CachedSolution = sol; CachedKey = key; CachedRootDir = Path.GetDirectoryName(key) ?? Directory.GetCurrentDirectory();
+            CachedWs = ws; CachedSolution = sol; CachedKey = key; CachedRootDir = Path.GetDirectoryName(key) ?? Directory.GetCurrentDirectory(); CachedKind = "project";
             return (ws, sol, CachedRootDir);
         }
     }
@@ -294,8 +298,39 @@ sealed class App
                     else other++;
                 }
             }
-            Console.WriteLine(JsonSerializer.Serialize(new { success = true, totalFiles = total, breakdown = new { assets, packages, packageCache, other } }, JsonOpts));
+            Console.WriteLine(JsonSerializer.Serialize(new { success = true, totalFiles = total, breakdown = new { assets, packages, packageCache, other }, workspace = new { key = CachedKey, rootDir = CachedRootDir, kind = CachedKind } }, JsonOpts));
             return 0;
+        }
+        catch (Exception ex)
+        {
+            return Fail(new { error = ex.Message, trace = ex.StackTrace });
+        }
+    }
+
+    private static int WorkspaceInfo()
+    {
+        var info = new
+        {
+            success = true,
+            hasWorkspace = CachedSolution != null,
+            key = CachedKey,
+            rootDir = CachedRootDir,
+            kind = CachedKind
+        };
+        Console.WriteLine(JsonSerializer.Serialize(info, JsonOpts));
+        return 0;
+    }
+
+    private async Task<int> WorkspaceInfoAsync()
+    {
+        try
+        {
+            // If nothing cached yet, try opening from args (optional)
+            if (CachedSolution == null)
+            {
+                // No-op: just print empty info
+            }
+            return WorkspaceInfo();
         }
         catch (Exception ex)
         {
