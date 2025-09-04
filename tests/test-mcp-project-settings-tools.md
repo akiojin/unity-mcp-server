@@ -5,6 +5,13 @@
 原状回復（必須）・禁止事項:
 - 変更前の設定値（例: `vSyncCount`）を必ず保存し、テスト終了時に元の値へ復元する。
 
+チェックリスト（Markdown）
+- [ ] U110-01: get_project_settings（quality.vSyncCount 確認）
+- [ ] U110-02: update_project_settings（confirmChanges=true で一時変更）
+- [ ] U110-03: 変更確認→復元
+- [ ] U110-E01: confirmChanges=false で fail
+- [ ] U110-E02: 不正値（例: vSyncCount=-1）で fail
+
 ## 正常系
 
 - U110-01: `get_project_settings`（quality）→ `vSyncCount` を取得

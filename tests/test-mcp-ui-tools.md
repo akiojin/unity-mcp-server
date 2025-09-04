@@ -5,6 +5,12 @@
 原状回復（必須）・禁止事項:
 - 値設定やトグル変更を行った場合は、終了時に元の値に戻す。テスト専用 UI を対象にすることが望ましい。
 
+チェックリスト（Markdown）
+- [ ] U140-01: find_ui_elements（Button 等）
+- [ ] U140-02: get_ui_element_state（interactable 等）
+- [ ] U140-03: click_ui_element / set_ui_element_value（反映確認）
+- [ ] U140-E01: 不正 elementPath で fail
+
 ## 正常系（UI が存在する場合）
 
 - U140-01: `find_ui_elements`（`Button` 等）→ 列挙

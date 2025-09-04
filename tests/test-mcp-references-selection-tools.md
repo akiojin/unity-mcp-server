@@ -7,6 +7,12 @@
 
 前提: 対象 `/LLMTEST_Cube`
 
+チェックリスト（Markdown）
+- [ ] U100-01: get_object_references（参照情報）
+- [ ] U100-02: manage_selection（set→get）
+- [ ] U100-E01: 存在しない対象で fail
+- [ ] U100-E02: 不正選択パスで fail
+
 ## 正常系
 
 - U100-01: `get_object_references` → 参照情報が返る

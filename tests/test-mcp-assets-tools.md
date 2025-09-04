@@ -5,6 +5,13 @@
 原状回復（必須）・禁止事項:
 - 取得/検索系は非破壊に。検証で作成した一時アセットはテスト終了時に削除。
 
+チェックリスト（Markdown）
+- [ ] U90-01: package_manager（list, includeBuiltIn=false）
+- [ ] U90-02: manage_asset_database（find_assets, t:Texture2D）
+- [ ] U90-03: manage_asset_import_settings（action=get）
+- [ ] U90-E01: 無効 filter で fail
+- [ ] U90-E02: 存在しない assetPath で fail
+
 ## 正常系
 
 - U90-01: `package_manager`（`action=list`, `includeBuiltIn=false`）→ 一覧取得

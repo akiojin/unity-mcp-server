@@ -5,6 +5,19 @@
 原状回復（必須）・禁止事項:
 - 追加したアクションマップ/アクション/バインディング/スキームは全てテスト終了時に削除し、既存状態に影響を残さない。
 
+チェックリスト（Markdown）
+- [ ] U60-01: get_input_actions_state（存在確認）
+- [ ] U60-02: create_action_map（LLMTEST_Map）
+- [ ] U60-03: add_input_action（Jump, Button）
+- [ ] U60-04: add_input_binding（<Keyboard>/space）
+- [ ] U60-05: create_composite_binding（2D Vector: WASD）
+- [ ] U60-06: manage_control_schemes（Keyboard&Mouse）
+- [ ] U60-07: analyze_input_actions_asset（統計）
+- [ ] U60-08: remove 系で片付け
+- [ ] U60-E01: 重複バインディングで fail or notes
+- [ ] U60-E02: 不正デバイス/パスで fail
+- [ ] U60-E03: 不正スキーム操作で fail
+
 ## 正常系（アセットが存在する場合）
 
 - U60-01: `get_input_actions_state` → 状態取得

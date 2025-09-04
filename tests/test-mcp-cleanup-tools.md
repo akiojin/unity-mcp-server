@@ -17,3 +17,8 @@
 ## 異常系
 
 - U170-E01: 不在対象の再削除 → `skip` または `fail`
+
+チェックリスト（Markdown）
+- [ ] U170-01: delete_gameobject（/LLMTEST_Cube, /LLMTEST_Cube_Instance）
+- [ ] U170-02: manage_asset_database（delete, Assets/LLMTEST_*）
+- [ ] U170-E01: 不在対象の再削除は skip/fail として扱う
