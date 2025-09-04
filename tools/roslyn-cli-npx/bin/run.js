@@ -57,7 +57,8 @@ async function sha256File(p) {
 
 async function ensureBinary(rid, opts = {}) {
   const exeName = process.platform === 'win32' ? 'roslyn-cli.exe' : 'roslyn-cli';
-  const destDir = path.resolve(process.cwd(), '.tools', 'roslyn-cli', rid);
+  // Prefer workspace/.unity/tools for npx provisioning
+  const destDir = path.resolve(process.cwd(), '.unity', 'tools', 'roslyn-cli', rid);
   const dest = path.join(destDir, exeName);
   if (fs.existsSync(dest)) return dest;
 
@@ -117,4 +118,3 @@ async function main() {
 }
 
 main();
-

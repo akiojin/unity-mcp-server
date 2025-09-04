@@ -17,7 +17,8 @@ set -euo pipefail
 
 VERSION=""
 RID=""
-DEST=".tools/roslyn-cli"
+# Default install location prefers workspace/.unity/tools (legacy .tools supported via --dest)
+DEST=".unity/tools/roslyn-cli"
 YES=false
 GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 
@@ -165,4 +166,3 @@ main() {
 }
 
 main "$@"
-

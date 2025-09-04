@@ -23,19 +23,19 @@ Developer setup and building `roslyn-cli` from source are documented in `CONTRIB
 roslyn-cli provisioning (multiple entry points)
 
 - Default auto-provisioning (implemented)
-  - Standard location: `WORKSPACE_ROOT/.tools/roslyn-cli/<rid>/roslyn-cli`
+  - Standard location: `WORKSPACE_ROOT/.unity/tools/roslyn-cli/<rid>/roslyn-cli` (legacy: `./.tools/roslyn-cli/<rid>`)
   - Auto-build if bootstrap scripts are present, otherwise auto-download from GitHub Releases (with SHA256 verification)
   - No extra configuration or env variables required
 
 - One-liner installers (UNIX / Windows PowerShell)
   - UNIX: `curl -fsSL https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.sh | bash -s -- --version <ver> --rid <rid>`
   - PowerShell: `irm https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.ps1 | iex` (e.g., `-Version 2.9.1 -Rid win-x64`)
-  - Both install to `./.tools/roslyn-cli/<rid>/` so the MCP server finds them automatically
+  - Both install to `./.unity/tools/roslyn-cli/<rid>/` (legacy `./.tools/roslyn-cli/<rid>/` also supported)
 
 - npx (available)
   - Example: `npx -y @akiojin/roslyn-cli ak-roslyn serve --solution <path>`
   - First-run resolves RID → downloads from GitHub Releases → verifies SHA256 → delegates to the binary
-  - The binary is stored under `./.tools/roslyn-cli/<rid>/roslyn-cli(.exe)` and reused next time
+  - The binary is stored under `./.unity/tools/roslyn-cli/<rid>/roslyn-cli(.exe)` and reused next time
 
 Common usage (MCP tools)
 

@@ -1,7 +1,7 @@
 Param(
     [string] $Version,
     [string] $Rid,
-    [string] $Dest = ".tools/roslyn-cli",
+    [string] $Dest = ".unity/tools/roslyn-cli",
     [switch] $Yes,
     [string] $Token
 )
@@ -99,4 +99,3 @@ if ($Rid -ne 'win-x64') {
     try { & chmod 0755 $final | Out-Null } catch {}
 }
 Write-Host "[install] Installed: $final"
-
