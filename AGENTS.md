@@ -83,9 +83,35 @@
 
 1. 変更内容に応じて適切なバージョンコマンドを選択
 2. mcp-serverディレクトリで: `npm version [patch|minor|major]`
-3. Unity packageのバージョンも同期して更新（unity-editor-mcp/package.json）
-4. git commit & push
-5. npm publish
+3. （自動同期）`roslyn-cli/Directory.Build.props` と `UnityEditorMCP/Packages/unity-editor-mcp/package.json` の `version` が更新される（npm version フック）
+4. `git push --follow-tags` を実行（タグ `vX.Y.Z` を必ずプッシュ）
+5. GitHub Actions の `roslyn-cli release` ワークフロー完了を確認（各RIDビルド＋Release公開）
+6. 必要に応じて `mcp-server` で `npm publish`
+
+### リリース自動化（LLM用手順）
+
+- 前提:
+  - 作業ツリーがクリーン、テストが成功していること
+  - GitHub Actions が有効で、Release作成権限（GITHUB_TOKEN）があること
+- 手順（実行コマンド）:
+  - `cd mcp-server`
+  - `npm version patch|minor|major`
+    - 自動で以下が同期される:
+      - `roslyn-cli/Directory.Build.props` の `<Version>` 群
+      - `UnityEditorMCP/Packages/unity-editor-mcp/package.json` の `version`
+  - `git push --follow-tags`
+  - GitHub Actions で `roslyn-cli release` の成功を確認
+  - GitHub Releases の対象タグ（例: `v2.13.4`）に以下が存在することを確認:
+    - `roslyn-cli-{win,osx,linux}-{x64,arm64}[.exe]`（6種）
+    - `roslyn-cli-manifest.json`（RIDごとの `url/sha256/size` を収録）
+  - （必要時）`cd mcp-server && npm publish`
+
+### roslyn-cli リリースの自動化仕様
+
+- トリガ: タグ `vX.Y.Z` のプッシュ（`npm version` により作成）
+- CI: self-contained + 単一ファイルで各RIDを `dotnet publish`、`roslyn-cli-manifest.json` を生成し Release に添付
+- Node側: `mcp-server/package.json` の `version` と同一タグの `manifest.json` を参照し、RID資産をダウンロード（sha256検証）
+- ポリシー: 「常に最新版DL」は行わず、必ず“同一バージョン固定”で取得
 
 ## コードクオリティガイドライン
 

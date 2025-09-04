@@ -6,6 +6,7 @@ import path from 'path';
 const root = path.resolve(path.join(process.cwd(), '..'));
 const pkgPath = path.resolve(process.cwd(), 'package.json');
 const propsPath = path.resolve(root, 'roslyn-cli', 'Directory.Build.props');
+const unityPkgPath = path.resolve(root, 'UnityEditorMCP', 'Packages', 'unity-editor-mcp', 'package.json');
 
 function die(msg) { console.error(msg); process.exit(1); }
 
@@ -29,7 +30,23 @@ try {
   // コミット対象に追加（npm version による自動コミットに含めるため）
   try { require('child_process').spawnSync('git', ['add', propsPath], { stdio: 'inherit' }); } catch {}
   console.log(`[sync] roslyn-cli version synced to ${v}`);
+
+  // Unity UPM package.json の version も同期
+  if (fs.existsSync(unityPkgPath)) {
+    try {
+      const upm = JSON.parse(fs.readFileSync(unityPkgPath, 'utf8'));
+      if (upm.version !== v) {
+        upm.version = v;
+        fs.writeFileSync(unityPkgPath, JSON.stringify(upm, null, 2) + '\n', 'utf8');
+        try { require('child_process').spawnSync('git', ['add', unityPkgPath], { stdio: 'inherit' }); } catch {}
+        console.log(`[sync] unity package version synced to ${v}`);
+      } else {
+        console.log('[sync] unity package version already up-to-date');
+      }
+    } catch (e) {
+      console.warn('[sync] unity package version sync failed:', e.message);
+    }
+  }
 } catch (e) {
   die(`sync failed: ${e.message}`);
 }
-
