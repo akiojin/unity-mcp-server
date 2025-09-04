@@ -13,6 +13,7 @@ jobs:
   build:
     name: build ${{ matrix.rid }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -53,6 +54,13 @@ jobs:
           dotnet-version: '9.0.x'
           include-prerelease: true
 
+      - name: .NET info
+        run: |
+          dotnet --info
+      - name: Restore runtime packs
+        shell: bash
+        run: |
+          dotnet restore roslyn-cli/roslyn-cli.csproj -r "${{ matrix.rid }}"
       - name: Publish roslyn-cli (self-contained single-file)
         shell: bash
         run: |
