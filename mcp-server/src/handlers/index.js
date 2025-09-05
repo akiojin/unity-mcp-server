@@ -330,7 +330,7 @@ const HANDLER_CLASSES = [
   ScriptCreateClassFileToolHandler,
   ScriptRemoveSymbolToolHandler,
   BuildCodeIndexToolHandler,
-  // roslyn_* ツール群は LSP 置換により削除済み
+  
   
   // Component handlers
   AddComponentToolHandler,

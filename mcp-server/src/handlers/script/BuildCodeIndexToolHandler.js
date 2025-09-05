@@ -9,7 +9,7 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'build_code_index',
-      'Build a persistent SQLite symbol index using roslyn-cli scan-symbols. Stores DB under Library/UnityMCP/CodeIndex/code-index.db.',
+      'Build a persistent SQLite symbol index by scanning document symbols via the C# LSP. Stores DB under Library/UnityMCP/CodeIndex/code-index.db.',
       {
         type: 'object',
         properties: {},
