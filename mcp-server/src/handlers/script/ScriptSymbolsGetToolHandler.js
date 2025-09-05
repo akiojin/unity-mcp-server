@@ -64,7 +64,7 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
                 const start = s.range?.start || s.selectionRange?.start || {};
                 list.push({
                     name: s.name || '',
-                    kind: mapKind(s.kind),
+                    kind: this.mapKind(s.kind),
                     container: container || null,
                     namespace: null,
                     startLine: (start.line ?? 0) + 1,
@@ -78,6 +78,19 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
             return { success: true, path: relPath, symbols: list };
         } catch (e) {
             return { error: e.message || 'Failed to get symbols' };
+        }
+    }
+
+    mapKind(k) {
+        switch (k) {
+            case 5: return 'class';
+            case 23: return 'struct';
+            case 11: return 'interface';
+            case 10: return 'enum';
+            case 6: return 'method';
+            case 7: return 'property';
+            case 8: return 'field';
+            default: return undefined;
         }
     }
 }

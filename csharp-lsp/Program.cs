@@ -410,6 +410,57 @@ sealed class LspServer
                 if (v != null) newRoot = root.ReplaceToken(v.Identifier, SyntaxFactory.Identifier(newName).WithTriviaFrom(v.Identifier));
             }
 
+            // 衝突検出: 同一コンテナ内に同名シンボルが既に存在する場合は失敗（安全側）
+            bool conflict = false;
+            if (decl is ClassDeclarationSyntax dc2)
+            {
+                var parent = dc2.Parent;
+                var exists = parent?.DescendantNodes().FirstOrDefault(n => n is ClassDeclarationSyntax c && c != dc2 && c.Identifier.ValueText == newName
+                                                                          || n is StructDeclarationSyntax s && s.Identifier.ValueText == newName
+                                                                          || n is InterfaceDeclarationSyntax ii && ii.Identifier.ValueText == newName
+                                                                          || n is EnumDeclarationSyntax en && en.Identifier.ValueText == newName);
+                conflict = exists != null;
+            }
+            else if (decl is StructDeclarationSyntax ds2 || decl is InterfaceDeclarationSyntax || decl is EnumDeclarationSyntax)
+            {
+                var parent = decl.Parent;
+                var exists = parent?.DescendantNodes().FirstOrDefault(n => n is ClassDeclarationSyntax c && c != decl && c.Identifier.ValueText == newName
+                                                                          || n is StructDeclarationSyntax s && s != decl && s.Identifier.ValueText == newName
+                                                                          || n is InterfaceDeclarationSyntax ii && ii != decl && ii.Identifier.ValueText == newName
+                                                                          || n is EnumDeclarationSyntax en && en != decl && en.Identifier.ValueText == newName);
+                conflict = exists != null;
+            }
+            else if (decl is MethodDeclarationSyntax dm2)
+            {
+                if (dm2.Parent is TypeDeclarationSyntax tparent)
+                {
+                    var sig = dm2.ParameterList?.ToFullString() ?? string.Empty;
+                    conflict = tparent.Members.OfType<MethodDeclarationSyntax>()
+                        .Any(m => !object.ReferenceEquals(m, dm2) && m.Identifier.ValueText == newName && (m.ParameterList?.ToFullString() ?? "") == sig);
+                }
+            }
+            else if (decl is PropertyDeclarationSyntax dp2)
+            {
+                if (dp2.Parent is TypeDeclarationSyntax tparent)
+                {
+                    conflict = tparent.Members.OfType<PropertyDeclarationSyntax>()
+                        .Any(p => !object.ReferenceEquals(p, dp2) && p.Identifier.ValueText == newName);
+                }
+            }
+            else if (decl is FieldDeclarationSyntax df2)
+            {
+                if (df2.Parent is TypeDeclarationSyntax tparent)
+                {
+                    conflict = tparent.Members.OfType<FieldDeclarationSyntax>()
+                        .SelectMany(f => f.Declaration.Variables)
+                        .Any(v => v.Identifier.ValueText == newName);
+                }
+            }
+            if (conflict)
+            {
+                return new { success = false, applied = false, error = "name_conflict" };
+            }
+
             // Extend rename: if type/member, update identifier usages across workspace within matching containers
             bool isTypeDecl = decl is ClassDeclarationSyntax || decl is StructDeclarationSyntax || decl is InterfaceDeclarationSyntax || decl is EnumDeclarationSyntax;
             bool isMemberDecl = decl is MethodDeclarationSyntax || decl is PropertyDeclarationSyntax || decl is FieldDeclarationSyntax;
@@ -740,6 +791,10 @@ sealed class LspServer
             if (last is null) return new { success = false, applied = false, error = "symbol_not_found" };
             var newRoot = root.RemoveNode(last, SyntaxRemoveOptions.KeepExteriorTrivia);
             var newText = newRoot?.ToFullString() ?? original;
+            if (newText == original)
+            {
+                return new { success = false, applied = false, error = "no_change" };
+            }
             if (apply)
             {
                 if (removeEmptyFile && string.IsNullOrWhiteSpace(newText))
