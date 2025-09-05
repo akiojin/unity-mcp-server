@@ -4,11 +4,12 @@ set -euo pipefail
 [ "${PUBLISH_DEBUG:-0}" = "1" ] && set -x
 
 # publish.sh <major|minor|patch> [--tags-only|--no-push] [--remote <name>]
-# 一括処理: 版上げ → バージョン同期（C#/UPM）→ コミット → タグ作成 → プッシュ
-# 期待値: GitHub Actions が自動で
-#  - Release: roslyn-cli（各RIDビルド＋manifest公開）
-#  - Publish: mcp-server (npm)
-# を実行。
+# 単一入口で以下を実施:
+# 1) バージョン更新（MCP/LSP/Unity の全て）
+# 2) タグ付けとコミット＆プッシュ
+# 期待動作（CI）:
+#  - Release csharp-lsp（各RID self-containedビルド + manifest公開）
+#  - Publish mcp-server (npm)
 
 usage() { echo "Usage: $0 <major|minor|patch> [--tags-only|--no-push] [--remote <name>]"; exit 1; }
 
@@ -53,7 +54,7 @@ fi
 CUR_VER=$(node -p "require('./mcp-server/package.json').version")
 echo "[info] current version: $CUR_VER"
 
-# npm version を実行（mcp-server/scripts/sync-roslyn-version.js が C#/UPM を同期更新）
+# npm version を実行（以降の同期は本スクリプトで行う）
 echo "[step] bump mcp-server version ($LEVEL)"
 pushd mcp-server >/dev/null
 npm version "$LEVEL" -m "chore(release): v%s" >/dev/null
@@ -63,12 +64,59 @@ NEW_VER=$(node -p "require('./mcp-server/package.json').version")
 TAG="v$NEW_VER"
 echo "[info] new version: $NEW_VER (tag: $TAG)"
 
+# Unity パッケージの version を同期
+echo "[step] sync Unity UPM package version -> $NEW_VER"
+node -e '
+  const fs=require("fs");
+  const p="UnityEditorMCP/Packages/unity-editor-mcp/package.json";
+  if (!fs.existsSync(p)) process.exit(0);
+  const json=JSON.parse(fs.readFileSync(p,"utf8"));
+  json.version=process.argv[1];
+  fs.writeFileSync(p, JSON.stringify(json,null,2)+"\n", "utf8");
+' "$NEW_VER"
+
+# LSP/CLI 側の Directory.Build.props を同期（新: csharp-lsp / 旧: roslyn-cli フォールバック）
+sync_props() {
+  local file="$1"; local ver="$2"
+  [ -f "$file" ] || return 0
+  echo "[step] sync props: $file -> $ver"
+  # 既存タグを書き換え（存在しなければ追加）
+  if grep -q "<Version>" "$file"; then
+    sed -i.bak -E "s|<Version>[^<]*</Version>|<Version>${ver}</Version>|" "$file"
+  else
+    sed -i.bak -E "s|<PropertyGroup>|<PropertyGroup>\n    <Version>${ver}</Version>|" "$file"
+  fi
+  if grep -q "<AssemblyVersion>" "$file"; then
+    sed -i.bak -E "s|<AssemblyVersion>[^<]*</AssemblyVersion>|<AssemblyVersion>${ver}.0</AssemblyVersion>|" "$file"
+  else
+    sed -i.bak -E "s|<PropertyGroup>|<PropertyGroup>\n    <AssemblyVersion>${ver}.0</AssemblyVersion>|" "$file"
+  fi
+  if grep -q "<FileVersion>" "$file"; then
+    sed -i.bak -E "s|<FileVersion>[^<]*</FileVersion>|<FileVersion>${ver}.0</FileVersion>|" "$file"
+  else
+    sed -i.bak -E "s|<PropertyGroup>|<PropertyGroup>\n    <FileVersion>${ver}.0</FileVersion>|" "$file"
+  fi
+  if grep -q "<AssemblyInformationalVersion>" "$file"; then
+    sed -i.bak -E "s|<AssemblyInformationalVersion>[^<]*</AssemblyInformationalVersion>|<AssemblyInformationalVersion>${ver}</AssemblyInformationalVersion>|" "$file"
+  else
+    sed -i.bak -E "s|<PropertyGroup>|<PropertyGroup>\n    <AssemblyInformationalVersion>${ver}</AssemblyInformationalVersion>|" "$file"
+  fi
+  rm -f "$file.bak"
+}
+
+if [ -f "csharp-lsp/Directory.Build.props" ]; then
+  sync_props "csharp-lsp/Directory.Build.props" "$NEW_VER"
+else
+  # フォールバック（移行期間のみ）
+  sync_props "roslyn-cli/Directory.Build.props" "$NEW_VER"
+fi
+
 # 変更ファイルをコミット（npmが自動コミットしない場合の保険）
 git add mcp-server/package.json mcp-server/package-lock.json \
         UnityEditorMCP/Packages/unity-editor-mcp/package.json \
-        roslyn-cli/Directory.Build.props || true
+        csharp-lsp/Directory.Build.props roslyn-cli/Directory.Build.props 2>/dev/null || true
 if ! git diff --cached --quiet; then
-  git commit -m "chore(release): $TAG — バージョン同期（MCP/UPM/roslyn-cli）"
+  git commit -m "chore(release): $TAG — バージョン同期（MCP/LSP/Unity）"
 fi
 
 # タグ作成（存在しない場合）
@@ -124,6 +172,6 @@ else
   fi
 fi
 
-echo "[done] v$NEW_VER pushed. Check GitHub Actions: Release: roslyn-cli / Publish: mcp-server (npm)"
-echo "- Release URL (runs): https://github.com/akiojin/unity-editor-mcp/actions/workflows/roslyn-cli-release.yml"
-echo "- Publish URL (runs): https://github.com/akiojin/unity-editor-mcp/actions/workflows/mcp-server-publish.yml"
+echo "[done] v$NEW_VER pushed. Check GitHub Actions: Release csharp-lsp / Publish mcp-server (npm)"
+echo "- Release URL (runs): https://github.com/akiojin/unity-editor-mcp/actions/workflows/release-csharp-lsp.yml"
+echo "- Publish URL (runs): https://github.com/akiojin/unity-editor-mcp/actions/workflows/publish-mcp-server.yml"
