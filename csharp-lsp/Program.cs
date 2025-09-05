@@ -243,21 +243,22 @@ sealed class LspServer
 
     private async Task<object> ReferencesByNameAsync(string name)
     {
+        if (string.IsNullOrWhiteSpace(name)) return Array.Empty<object>();
         var list = new List<object>();
         foreach (var file in EnumerateUnityCsFiles(_rootDir))
         {
             try
             {
-                var lines = await File.ReadAllLinesAsync(file);
-                for (int i = 0; i < lines.Length; i++)
+                var text = await File.ReadAllTextAsync(file);
+                var tree = CSharpSyntaxTree.ParseText(text);
+                var root = await tree.GetRootAsync();
+                foreach (var id in root.DescendantTokens().Where(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ValueText == name))
                 {
-                    var line = lines[i];
-                    int idx = IndexOfWord(line, name);
-                    if (idx >= 0)
-                    {
-                        string snippet = line.Trim();
-                        list.Add(new { path = ToRel(file, _rootDir), line = i + 1, column = idx + 1, snippet });
-                    }
+                    var span = id.GetLocation().GetLineSpan();
+                    var lineIdx = span.StartLinePosition.Line;
+                    var col = span.StartLinePosition.Character + 1;
+                    var snippet = GetLine(text, lineIdx).Trim();
+                    list.Add(new { path = ToRel(file, _rootDir), line = lineIdx + 1, column = col, snippet });
                 }
             }
             catch { }
@@ -265,15 +266,15 @@ sealed class LspServer
         return list;
     }
 
-    private static int IndexOfWord(string line, string word)
+    private static string GetLine(string text, int zeroBasedLine)
     {
-        if (string.IsNullOrEmpty(word)) return -1;
-        var idx = line.IndexOf(word, StringComparison.Ordinal);
-        if (idx < 0) return -1;
-        bool leftOk = idx == 0 || !char.IsLetterOrDigit(line[idx - 1]) && line[idx - 1] != '_';
-        int end = idx + word.Length;
-        bool rightOk = end >= line.Length || !char.IsLetterOrDigit(line[end]) && line[end] != '_';
-        return (leftOk && rightOk) ? idx : -1;
+        var sr = new System.IO.StringReader(text);
+        string? line = null; int i = 0;
+        while ((line = sr.ReadLine()) != null)
+        {
+            if (i++ == zeroBasedLine) return line;
+        }
+        return string.Empty;
     }
 
     private async Task<object> RenameByNamePathAsync(string relative, string namePath, string newName, bool apply)
@@ -356,13 +357,12 @@ sealed class LspServer
         var text = await File.ReadAllTextAsync(full);
         var tree = CSharpSyntaxTree.ParseText(text);
         var root = await tree.GetRootAsync();
-        var (cursor, last) = FindNodeByNamePath(root, namePath);
+        var (_, last) = FindNodeByNamePath(root, namePath);
         if (last is not MethodDeclarationSyntax method) return new { success = false, applied = false, error = "method_not_found" };
-        var trimmed = bodyText.Trim();
-        if (!trimmed.StartsWith("{")) trimmed = "{" + trimmed;
-        if (!trimmed.EndsWith("}")) trimmed += "}";
-        var block = SyntaxFactory.ParseStatement(trimmed) as BlockSyntax ?? SyntaxFactory.Block();
-        var newRoot = root.ReplaceNode(method, method.WithBody(block));
+        var block = ParseBlock(bodyText);
+        // handle expression-bodied to block conversion
+        var m2 = method.WithExpressionBody(null).WithSemicolonToken(default).WithBody(block);
+        var newRoot = root.ReplaceNode(method, m2);
         var newText = newRoot.ToFullString();
         if (apply) { await File.WriteAllTextAsync(full, newText, Encoding.UTF8); return new { success = true, applied = true }; }
         return new { success = true, applied = false, preview = DiffPreview(text, newText) };
@@ -372,15 +372,47 @@ sealed class LspServer
     {
         var full = Path.Combine(_rootDir, relative.Replace('/', Path.DirectorySeparatorChar));
         if (!File.Exists(full)) return new { success = false, applied = false, error = "file_not_found" };
-        var text = await File.ReadAllTextAsync(full);
-        var tree = CSharpSyntaxTree.ParseText(text);
+        var original = await File.ReadAllTextAsync(full);
+        var tree = CSharpSyntaxTree.ParseText(original);
         var root = await tree.GetRootAsync();
-        var (cursor, last) = FindNodeByNamePath(root, namePath);
+        var (_, last) = FindNodeByNamePath(root, namePath);
         if (last is null) return new { success = false, applied = false, error = "symbol_not_found" };
-        var insertPos = after ? last.FullSpan.End : last.FullSpan.Start;
-        var newText = text.Substring(0, insertPos) + textToInsert + text.Substring(insertPos);
+        // insert members at class/namespace level using Roslyn API
+        var member = SyntaxFactory.ParseMemberDeclaration(textToInsert);
+        if (member is null)
+        {
+            // fallback to textual insertion
+            var pos = after ? last.FullSpan.End : last.FullSpan.Start;
+            var newText0 = original.Substring(0, pos) + textToInsert + original.Substring(pos);
+            if (apply) { await File.WriteAllTextAsync(full, newText0, Encoding.UTF8); return new { success = true, applied = true }; }
+            return new { success = true, applied = false, preview = DiffPreview(original, newText0) };
+        }
+        SyntaxNode newRoot;
+        if (last.Parent is ClassDeclarationSyntax cls)
+        {
+            var members = after ? cls.Members.Insert(cls.Members.IndexOf((MemberDeclarationSyntax)last) + 1, member)
+                                : cls.Members.Insert(cls.Members.IndexOf((MemberDeclarationSyntax)last), member);
+            var cls2 = cls.WithMembers(members);
+            newRoot = root.ReplaceNode(cls, cls2);
+        }
+        else if (last.Parent is NamespaceDeclarationSyntax ns)
+        {
+            var members = after ? ns.Members.Insert(ns.Members.IndexOf((MemberDeclarationSyntax)last) + 1, member)
+                                : ns.Members.Insert(ns.Members.IndexOf((MemberDeclarationSyntax)last), member);
+            var ns2 = ns.WithMembers(members);
+            newRoot = root.ReplaceNode(ns, ns2);
+        }
+        else
+        {
+            // fallback textual for unsupported contexts
+            var pos = after ? last.FullSpan.End : last.FullSpan.Start;
+            var newText1 = original.Substring(0, pos) + textToInsert + original.Substring(pos);
+            if (apply) { await File.WriteAllTextAsync(full, newText1, Encoding.UTF8); return new { success = true, applied = true }; }
+            return new { success = true, applied = false, preview = DiffPreview(original, newText1) };
+        }
+        var newText = newRoot.ToFullString();
         if (apply) { await File.WriteAllTextAsync(full, newText, Encoding.UTF8); return new { success = true, applied = true }; }
-        return new { success = true, applied = false, preview = DiffPreview(text, newText) };
+        return new { success = true, applied = false, preview = DiffPreview(original, newText) };
     }
 
     private static (SyntaxNode cursor, SyntaxNode? last) FindNodeByNamePath(SyntaxNode root, string namePath)
@@ -402,6 +434,26 @@ sealed class LspServer
             cursor = next; last = next;
         }
         return (cursor, last);
+    }
+
+    private static BlockSyntax ParseBlock(string body)
+    {
+        // Try parse as a block statement first
+        var txt = body ?? string.Empty;
+        SyntaxNode? stmt = null;
+        try { stmt = SyntaxFactory.ParseStatement(txt); } catch { }
+        if (stmt is BlockSyntax b) return b;
+        // Fallback: wrap into method and extract the body
+        var code = $"class C{{ void M() {txt} }}";
+        try
+        {
+            var tree = CSharpSyntaxTree.ParseText(code);
+            var root = tree.GetRoot();
+            var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+            if (method?.Body != null) return method.Body;
+        }
+        catch { }
+        return SyntaxFactory.Block();
     }
 
     private async Task<object> RemoveSymbolAsync(string relative, string namePath, bool apply, bool failOnRefs, bool removeEmptyFile)
