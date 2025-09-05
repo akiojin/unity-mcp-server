@@ -9,6 +9,7 @@ Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on
 ### Related Docs
 
 - Video Capture Feature Plan: `docs/video-capture-plan.md`
+- Planned: C# Language Server (self-contained) RFC: `docs/RFCs/0001-csharp-lsp.md`
 
 ### C# Editing Policy (Important)
 

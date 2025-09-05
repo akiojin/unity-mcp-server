@@ -9,6 +9,7 @@ Unity Editor MCP は、LLMクライアントからUnity Editorを自動化しま
 ### 関連ドキュメント
 
 - 動画保存機能 計画: `docs/video-capture-plan.md`
+- 予定: C# LSP（自己完結配布）RFC: `docs/RFCs/0001-csharp-lsp.md`
 
 ### C#編集の方針（重要）
 
