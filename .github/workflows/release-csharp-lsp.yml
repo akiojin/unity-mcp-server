@@ -161,8 +161,8 @@ jobs:
               const sha = crypto.createHash("sha256").update(data).digest("hex");
               assets[rid] = { url: `${base}/${file}`, sha256: sha, size: stat.size };
             }
-            const manifest = { version: tag.replace(/^v/, ''), assets };
-            fs.writeFileSync('csharp-lsp-manifest.json', JSON.stringify(manifest, null, 2));
+            const manifest = { version: tag.replace(/^v/, ""), assets };
+            fs.writeFileSync("csharp-lsp-manifest.json", JSON.stringify(manifest, null, 2));
           '
 
       - name: Create GitHub Release
