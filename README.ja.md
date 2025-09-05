@@ -13,30 +13,15 @@ Unity Editor MCP は、LLMクライアントからUnity Editorを自動化しま
 
 ### C#編集の方針（重要）
 
-- C#の探索/参照/構造化編集は、Unityとは通信せず、リポジトリ同梱の外部CLI（roslyn-cli）で行います。
-- 既存の `script_*` ツールは内部実装が外部CLIに切り替わっており、Unityのコンパイル/ドメインリロードの影響を受けません。
+- C# の探索/参照/構造化編集は、同梱の自己完結 C# LSP で行います（Unityとは通信しません）。
+- `script_*` ツールは内部で LSP を呼び出すため、Unity のコンパイル/ドメインリロードの影響を受けにくくなっています。
 - 危険な行単位置換（line-based patch / pattern置換）は廃止しました。
 
 開発者向け情報
 
 ソースからのビルドや開発環境のセットアップは `CONTRIBUTING.md` に記載しています。利用者は .NET のインストールは不要です。
 
-roslyn-cli の配備（オプションの入口）
-
-- 既定の自動配備（推奨・実装済み）
-  - 配置先: `WORKSPACE_ROOT/.unity/tools/roslyn-cli/<rid>/roslyn-cli`
-  - リポジトリにビルドスクリプトがあれば「自動ビルド」、無ければ GitHub Releases から「自動ダウンロード（SHA256 検証）」
-  - 追加設定不要（MCPサーバが自動で解決）
-
-- ワンライナー（UNIX系／Windows PowerShell）
-  - UNIX系: `curl -fsSL https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.sh | bash -s -- --version <ver> --rid <rid>`
-  - PowerShell: `irm https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.ps1 | iex`（引数例: `-Version 2.9.1 -Rid win-x64`）
-  - いずれも配置先は `./.unity/tools/roslyn-cli/<rid>/`
-
-- npx（利用可能）
-  - 例: `npx -y @akiojin/roslyn-cli ak-roslyn serve --solution <path>`
-  - 初回実行時に RID 判定→GitHub Releases から取得→SHA256 検証→実行に委譲
-  - 実行ファイルは `./.unity/tools/roslyn-cli/<rid>/roslyn-cli(.exe)` に配置され、以降は再利用されます
+LSP は MCP サーバが自動ダウンロード・自動更新（固定版）を行います。ユーザー側での .NET SDK の導入は不要です。
 
 代表的な使い方（MCPツール）
 
@@ -52,7 +37,7 @@ roslyn-cli の配備（オプションの入口）
 
 パフォーマンス（既定）
 
-- 既定で `roslyn-cli serve`（常駐）を試行し、初回以降の起動コストを回避します。
+- 既定で LSP を常駐起動し、初回以降の起動コストを回避します。
 - 明示的に無効化したい場合は `ROSLYN_CLI_MODE=oneshot`（または `off`）を設定してください。
 
 ## LLM最適化の原則
@@ -89,7 +74,7 @@ roslyn-cli の配備（オプションの入口）
 - UI自動化: UI要素の探索・操作・状態検証
 - 入力シミュレーション: キーボード/マウス/ゲームパッド/タッチ（Input System のみ対応）
 - ビジュアルキャプチャ: Game/Scene/Explorer/Window の確定的スクリーンショット、解析も可能
-- コードベース認識: 外部Roslyn CLIにより、安全な構造化編集と正確な検索/参照
+- コードベース認識: 同梱 C# LSP により、安全な構造化編集と正確な検索/参照
 - プロジェクト制御: 一部のプロジェクト/エディタ設定の読み書き、ログ取得、コンパイル状態取得（スナップショット）
 
 ## 接続の仕組み（Unity ↔ MCPサーバー）
