@@ -226,7 +226,6 @@ import { ScriptCreateClassFileToolHandler } from './script/ScriptCreateClassFile
 import { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
 import { BuildCodeIndexToolHandler } from './script/BuildCodeIndexToolHandler.js';
 // Roslyn (external CLI) tool handlers removed（内部ユーティリティのみ存続）
-import { GetRoslynCliPathToolHandler } from './roslyn/GetRoslynCliPathToolHandler.js';
 
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
@@ -331,8 +330,7 @@ const HANDLER_CLASSES = [
   ScriptCreateClassFileToolHandler,
   ScriptRemoveSymbolToolHandler,
   BuildCodeIndexToolHandler,
-  GetRoslynCliPathToolHandler,
-  // roslyn_* ツール群は script_* に統一のため削除
+  // roslyn_* ツール群は LSP 置換により削除済み
   
   // Component handlers
   AddComponentToolHandler,
