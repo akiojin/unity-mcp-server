@@ -367,8 +367,9 @@ sealed class LspServer
                     SyntaxNode rr = r;
                     foreach (var tk in tokens)
                     {
-                        // using ディレクティブ内の識別子は対象外
-                        if (tk.Parent != null && tk.Parent.AncestorsAndSelf().Any(a => a is UsingDirectiveSyntax)) continue;
+                        // using ディレクティブ内の識別子は、メンバーリネーム時のみ対象外（型リネームは更新対象）
+                        bool inUsing = tk.Parent != null && tk.Parent.AncestorsAndSelf().Any(a => a is UsingDirectiveSyntax);
+                        if (isMemberDecl && inUsing) continue;
                         if (!ContainerEndsWith(GetTypeContainerChain(tk.Parent), containers)) continue;
                         if (!NamespaceEndsWith(GetNamespaceChain(tk.Parent), nsTarget)) continue;
                         // Heuristic filter by kind/context
