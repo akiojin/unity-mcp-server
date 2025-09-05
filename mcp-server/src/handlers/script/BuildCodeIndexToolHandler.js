@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { logger } from '../../core/config.js';
 
 export class BuildCodeIndexToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
@@ -22,7 +23,7 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
     this.lsp = null; // lazy init with projectRoot
   }
 
-  async execute() {
+  async execute(params = {}) {
     try {
       const info = await this.projectInfo.get();
       const roots = [
@@ -68,13 +69,13 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
 
       // Update changed files
       const absList = changed.map(rel => path.resolve(info.projectRoot, rel));
-      const concurrency = Math.max(1, Math.min(64, Number(params?.concurrency || 8)));
-      const reportEvery = Math.max(1, Number(params?.reportEvery || 100));
+      const concurrency = Math.max(1, Math.min(64, Number(params?.concurrency ?? 8)));
+      const reportEvery = Math.max(1, Number(params?.reportEvery ?? 100));
       const startAt = Date.now();
       let i = 0; let updated = 0; let processed = 0;
 
       // LSP request with small retry/backoff
-      const requestWithRetry = async (uri, maxRetries = Math.max(0, Math.min(5, Number(params?.retry || 2)))) => {
+      const requestWithRetry = async (uri, maxRetries = Math.max(0, Math.min(5, Number(params?.retry ?? 2)))) => {
         let lastErr = null;
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
           try {
