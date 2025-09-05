@@ -27,13 +27,35 @@ export class CSharpLspUtils {
     return path.resolve(root, '.unity', 'tools', 'csharp-lsp', rid, exe);
   }
 
+  getVersionMarkerPath(rid) {
+    const bin = this.getLocalPath(rid);
+    return path.resolve(path.dirname(bin), 'VERSION');
+  }
+
+  readLocalVersion(rid) {
+    try {
+      const m = this.getVersionMarkerPath(rid);
+      if (fs.existsSync(m)) return fs.readFileSync(m, 'utf8').trim();
+    } catch {}
+    return null;
+  }
+
+  writeLocalVersion(rid, version) {
+    try {
+      const m = this.getVersionMarkerPath(rid);
+      fs.writeFileSync(m, String(version || '').trim() + '\n', 'utf8');
+    } catch {}
+  }
+
   async ensureLocal(rid) {
     const p = this.getLocalPath(rid);
-    if (fs.existsSync(p)) return p;
-    const v = this.getDesiredVersion();
-    if (!v) throw new Error('mcp-server version not found; cannot resolve LSP tag');
-    await this.autoDownload(rid, v);
+    const desired = this.getDesiredVersion();
+    if (!desired) throw new Error('mcp-server version not found; cannot resolve LSP tag');
+    const current = this.readLocalVersion(rid);
+    if (fs.existsSync(p) && current === desired) return p;
+    await this.autoDownload(rid, desired);
     if (!fs.existsSync(p)) throw new Error('csharp-lsp binary not found after download');
+    this.writeLocalVersion(rid, desired);
     return p;
   }
 
@@ -54,7 +76,12 @@ export class CSharpLspUtils {
       try { fs.unlinkSync(tmp); } catch {}
       throw new Error('checksum mismatch for csharp-lsp asset');
     }
-    fs.renameSync(tmp, dest);
+    // atomic replace
+    try { fs.renameSync(tmp, dest); } catch (e) {
+      // Windows may need removal before rename
+      try { fs.unlinkSync(dest); } catch {}
+      fs.renameSync(tmp, dest);
+    }
     try { if (process.platform !== 'win32') fs.chmodSync(dest, 0o755); } catch {}
     logger.info(`[csharp-lsp] downloaded: ${path.basename(dest)} @ ${path.dirname(dest)}`);
   }
@@ -105,4 +132,3 @@ export class CSharpLspUtils {
     });
   }
 }
-

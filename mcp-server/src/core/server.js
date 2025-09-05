@@ -187,16 +187,18 @@ async function main() {
       logger.info('Unity connection will retry automatically');
     }
 
-    // Best-effort: pre-provision C# LSP binary at startup (non-blocking)
+    // Best-effort: prepare and start persistent C# LSP process (non-blocking)
     ;(async () => {
       try {
-        const { CSharpLspUtils } = await import('../lsp/CSharpLspUtils.js');
-        const lsp = new CSharpLspUtils();
-        const rid = lsp.detectRid();
-        const p = await lsp.ensureLocal(rid);
-        logger.info(`[startup] csharp-lsp ready at: ${p}`);
+        const { LspProcessManager } = await import('../lsp/LspProcessManager.js');
+        const mgr = new LspProcessManager();
+        await mgr.ensureStarted();
+        // Attach graceful shutdown
+        const shutdown = async () => { try { await mgr.stop(3000); } catch {} };
+        process.on('SIGINT', shutdown);
+        process.on('SIGTERM', shutdown);
       } catch (e) {
-        logger.warn(`[startup] csharp-lsp not ready: ${e.message}`);
+        logger.warn(`[startup] csharp-lsp start failed: ${e.message}`);
       }
     })();
     
