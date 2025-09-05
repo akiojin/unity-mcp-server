@@ -354,7 +354,8 @@ sealed class LspServer
             var updatedFiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { [full] = newRoot.ToFullString() };
             foreach (var file in EnumerateUnityCsFiles(_rootDir))
             {
-                if (string.Equals(file, full, StringComparison.OrdinalIgnoreCase)) continue;
+                // メンバーリネームは安全性のため宣言ファイル内に限定（型リネームのみワークスペース全体）
+                if (isMemberDecl && !string.Equals(file, full, StringComparison.OrdinalIgnoreCase)) continue;
                 try
                 {
                     var src = await File.ReadAllTextAsync(file);
@@ -366,6 +367,8 @@ sealed class LspServer
                     SyntaxNode rr = r;
                     foreach (var tk in tokens)
                     {
+                        // using ディレクティブ内の識別子は対象外
+                        if (tk.Parent != null && tk.Parent.AncestorsAndSelf().Any(a => a is UsingDirectiveSyntax)) continue;
                         if (!ContainerEndsWith(GetTypeContainerChain(tk.Parent), containers)) continue;
                         if (!NamespaceEndsWith(GetNamespaceChain(tk.Parent), nsTarget)) continue;
                         // Heuristic filter by kind/context
