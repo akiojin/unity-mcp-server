@@ -111,7 +111,7 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
     }
 
     /**
-     * Summarize/trim Roslyn CLI payloads to avoid huge token usage.
+     * Summarize/trim responses to avoid huge token usage.
      * - Caps error items and message lengths
      * - Trims large text fields (e.g., preview/diff) to a short excerpt
      */

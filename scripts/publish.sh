@@ -75,7 +75,7 @@ node -e '
   fs.writeFileSync(p, JSON.stringify(json,null,2)+"\n", "utf8");
 ' "$NEW_VER"
 
-# LSP/CLI 側の Directory.Build.props を同期（新: csharp-lsp / 旧: roslyn-cli フォールバック）
+# LSP 側の Directory.Build.props を同期
 sync_props() {
   local file="$1"; local ver="$2"
   [ -f "$file" ] || return 0
@@ -109,7 +109,7 @@ sync_props "csharp-lsp/Directory.Build.props" "$NEW_VER"
 # 変更ファイルをコミット（npmが自動コミットしない場合の保険）
 git add mcp-server/package.json mcp-server/package-lock.json \
         UnityEditorMCP/Packages/unity-editor-mcp/package.json \
-        csharp-lsp/Directory.Build.props roslyn-cli/Directory.Build.props 2>/dev/null || true
+        csharp-lsp/Directory.Build.props 2>/dev/null || true
 if ! git diff --cached --quiet; then
   git commit -m "chore(release): $TAG — バージョン同期（MCP/LSP/Unity）"
 fi
