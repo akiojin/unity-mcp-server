@@ -133,25 +133,33 @@ jobs:
       - name: Generate manifest
         id: gen
         if: ${{ steps.assets.outputs.found == 'true' }}
+        shell: bash
         run: |
           node -e '
             const fs = require("fs");
+            const path = require("path");
+            const crypto = require("crypto");
             const repo = process.env.GITHUB_REPOSITORY;
             const tag = process.env.GITHUB_REF_NAME;
             const base = `https://github.com/${repo}/releases/download/${tag}`;
-            const files = fs.readdirSync("dist", { withFileTypes: true })
-              .filter(d => d.isDirectory())
-              .flatMap(d => fs.readdirSync(`dist/${d.name}`))
-              .filter(f => f.startsWith("csharp-lsp-"));
+            const root = "dist";
+            const dirs = fs.readdirSync(root, { withFileTypes: true }).filter(d => d.isDirectory());
+            const files = [];
+            for (const d of dirs) {
+              for (const f of fs.readdirSync(path.join(root, d.name))) {
+                if (f.startsWith("csharp-lsp-")) files.push({ dir: d.name, file: f });
+              }
+            }
             const assets = {};
-            for (const f of files) {
-              const m = f.match(/^csharp-lsp-([^\.]+)(\.exe)?$/);
+            for (const { dir, file } of files) {
+              const m = file.match(/^csharp-lsp-([^\.]+)(\.exe)?$/);
               if (!m) continue;
               const rid = m[1];
-              const p = `dist/asset-${rid}/${f}`;
+              const p = path.join(root, `asset-${rid}`, file);
               const stat = fs.statSync(p);
-              const sha = fs.readFileSync(`${p}.sha256`, 'utf8').split(/\s+/)[0];
-              assets[rid] = { url: `${base}/${f}`, sha256: sha, size: stat.size };
+              const data = fs.readFileSync(p);
+              const sha = crypto.createHash("sha256").update(data).digest("hex");
+              assets[rid] = { url: `${base}/${file}`, sha256: sha, size: stat.size };
             }
             const manifest = { version: tag.replace(/^v/, ''), assets };
             fs.writeFileSync('csharp-lsp-manifest.json', JSON.stringify(manifest, null, 2));
