@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-// Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol / workspace/symbol / mcp/referencesByName / mcp/renameByNamePath / mcp/replaceSymbolBody / mcp/insertBeforeSymbol / mcp/insertAfterSymbol
+// Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol / workspace/symbol / mcp/referencesByName / mcp/renameByNamePath / mcp/replaceSymbolBody / mcp/insertBeforeSymbol / mcp/insertAfterSymbol / mcp/removeSymbol
 // This is a lightweight PoC that parses each file independently using Roslyn SyntaxTree.
 
 var server = new LspServer();
@@ -112,6 +112,17 @@ sealed class LspServer
                         var apply = p.TryGetProperty("apply", out var a3) && a3.GetBoolean();
                         bool after = method.EndsWith("AfterSymbol", StringComparison.Ordinal);
                         var resp = await InsertAroundSymbolAsync(relative, namePath, text, after, apply);
+                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
+                    }
+                    else if (method == "mcp/removeSymbol")
+                    {
+                        var p = root.GetProperty("params");
+                        var relative = p.GetProperty("relative").GetString() ?? p.GetProperty("path").GetString() ?? "";
+                        var namePath = p.GetProperty("namePath").GetString() ?? "";
+                        var apply = p.TryGetProperty("apply", out var a4) && a4.GetBoolean();
+                        var failOnRefs = !p.TryGetProperty("failOnReferences", out var fr) || fr.GetBoolean();
+                        var removeEmpty = p.TryGetProperty("removeEmptyFile", out var rf) && rf.GetBoolean();
+                        var resp = await RemoveSymbolAsync(relative, namePath, apply, failOnRefs, removeEmpty);
                         await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
                     }
                     else
@@ -391,6 +402,51 @@ sealed class LspServer
             cursor = next; last = next;
         }
         return (cursor, last);
+    }
+
+    private async Task<object> RemoveSymbolAsync(string relative, string namePath, bool apply, bool failOnRefs, bool removeEmptyFile)
+    {
+        var full = Path.Combine(_rootDir, relative.Replace('/', Path.DirectorySeparatorChar));
+        if (!File.Exists(full)) return new { success = false, applied = false, error = "file_not_found" };
+        try
+        {
+            if (failOnRefs)
+            {
+                var lastSeg = (namePath ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).LastOrDefault() ?? "";
+                if (!string.IsNullOrEmpty(lastSeg))
+                {
+                    var refs = await ReferencesByNameAsync(lastSeg);
+                    // if any reference outside the same file, block (naive)
+                    if (refs is IEnumerable<object> arr && arr.Cast<object>().Any())
+                    {
+                        return new { success = false, applied = false, references = refs };
+                    }
+                }
+            }
+
+            var text = await File.ReadAllTextAsync(full);
+            var tree = CSharpSyntaxTree.ParseText(text);
+            var root = await tree.GetRootAsync();
+            var (_, last) = FindNodeByNamePath(root, namePath);
+            if (last is null) return new { success = false, applied = false, error = "symbol_not_found" };
+            var newRoot = root.RemoveNode(last, SyntaxRemoveOptions.KeepExteriorTrivia);
+            var newText = newRoot?.ToFullString() ?? text;
+            if (apply)
+            {
+                if (removeEmptyFile && string.IsNullOrWhiteSpace(newText))
+                {
+                    File.Delete(full);
+                    return new { success = true, applied = true, removedFile = true };
+                }
+                await File.WriteAllTextAsync(full, newText, Encoding.UTF8);
+                return new { success = true, applied = true };
+            }
+            return new { success = true, applied = false, preview = DiffPreview(text, newText) };
+        }
+        catch (Exception ex)
+        {
+            return new { success = false, applied = false, error = ex.Message };
+        }
     }
 
     private static IEnumerable<string> EnumerateUnityCsFiles(string rootDir)
