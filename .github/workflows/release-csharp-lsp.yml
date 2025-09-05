@@ -65,15 +65,16 @@ jobs:
 
       - name: Restore
         if: ${{ steps.detect.outputs.present == 'true' }}
+        shell: bash
         run: |
-          dotnet restore csharp-lsp/*.csproj -r "${{ matrix.rid }}"
+          dotnet restore csharp-lsp/Server.csproj -r "${{ matrix.rid }}"
 
       - name: Publish csharp-lsp (self-contained single-file)
         if: ${{ steps.detect.outputs.present == 'true' }}
         shell: bash
         run: |
           mkdir -p out/${{ matrix.rid }}
-          dotnet publish csharp-lsp/*.csproj \
+          dotnet publish csharp-lsp/Server.csproj \
             -c Release -r "${{ matrix.rid }}" \
             --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
             -o out/${{ matrix.rid }}
