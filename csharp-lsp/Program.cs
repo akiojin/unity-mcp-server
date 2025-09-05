@@ -329,13 +329,51 @@ sealed class LspServer
                 if (v != null) newRoot = root.ReplaceToken(v.Identifier, SyntaxFactory.Identifier(newName).WithTriviaFrom(v.Identifier));
             }
 
-            var newText = newRoot.ToFullString();
+            // If renaming a type, also rename identifier usages under matching containers across workspace (naive, syntax-based)
+            bool isTypeDecl = decl is ClassDeclarationSyntax || decl is StructDeclarationSyntax || decl is InterfaceDeclarationSyntax || decl is EnumDeclarationSyntax;
+            if (!isTypeDecl)
+            {
+                var newText = newRoot.ToFullString();
+                if (apply)
+                {
+                    await File.WriteAllTextAsync(full, newText, Encoding.UTF8);
+                    return new { success = true, applied = true };
+                }
+                return new { success = true, applied = false, preview = DiffPreview(text, newText) };
+            }
+
+            var containers = segments.Take(segments.Length - 1).ToArray();
+            var oldName = targetName;
+            var updatedFiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { [full] = newRoot.ToFullString() };
+            foreach (var file in EnumerateUnityCsFiles(_rootDir))
+            {
+                if (string.Equals(file, full, StringComparison.OrdinalIgnoreCase)) continue;
+                try
+                {
+                    var src = await File.ReadAllTextAsync(file);
+                    var t = CSharpSyntaxTree.ParseText(src);
+                    var r = await t.GetRootAsync();
+                    var tokens = r.DescendantTokens().Where(tk => tk.IsKind(SyntaxKind.IdentifierToken) && tk.ValueText == oldName).ToArray();
+                    if (tokens.Length == 0) continue;
+                    bool changed = false;
+                    SyntaxNode rr = r;
+                    foreach (var tk in tokens)
+                    {
+                        if (!ContainerEndsWith(GetTypeContainerChain(tk.Parent), containers)) continue;
+                        rr = rr.ReplaceToken(tk, SyntaxFactory.Identifier(newName).WithTriviaFrom(tk));
+                        changed = true;
+                    }
+                    if (changed) updatedFiles[file] = rr.ToFullString();
+                }
+                catch { }
+            }
             if (apply)
             {
-                await File.WriteAllTextAsync(full, newText, Encoding.UTF8);
-                return new { success = true, applied = true };
+                foreach (var kv in updatedFiles)
+                    await File.WriteAllTextAsync(kv.Key, kv.Value, Encoding.UTF8);
+                return new { success = true, applied = true, updated = updatedFiles.Count };
             }
-            return new { success = true, applied = false, preview = DiffPreview(text, newText) };
+            return new { success = true, applied = false, preview = DiffPreview(text, updatedFiles.Values.FirstOrDefault() ?? newRoot.ToFullString()) };
         }
         catch (Exception ex)
         {
@@ -436,6 +474,30 @@ sealed class LspServer
         return (cursor, last);
     }
 
+    private static string[] GetTypeContainerChain(SyntaxNode? node)
+    {
+        var list = new List<string>();
+        for (var cur = node; cur != null; cur = cur.Parent)
+        {
+            if (cur is ClassDeclarationSyntax c) list.Add(c.Identifier.ValueText);
+            else if (cur is StructDeclarationSyntax s) list.Add(s.Identifier.ValueText);
+            else if (cur is InterfaceDeclarationSyntax i) list.Add(i.Identifier.ValueText);
+            else if (cur is EnumDeclarationSyntax e) list.Add(e.Identifier.ValueText);
+        }
+        list.Reverse();
+        return list.ToArray();
+    }
+
+    private static bool ContainerEndsWith(string[] chain, string[] suffix)
+    {
+        if (suffix.Length == 0) return true;
+        if (chain.Length < suffix.Length) return false;
+        for (int i = 1; i <= suffix.Length; i++)
+        {
+            if (!string.Equals(chain[^i], suffix[^i], StringComparison.Ordinal)) return false;
+        }
+        return true;
+    }
     private static BlockSyntax ParseBlock(string body)
     {
         // Try parse as a block statement first
