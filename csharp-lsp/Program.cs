@@ -370,8 +370,17 @@ sealed class LspServer
                         // using ディレクティブ内の識別子は、メンバーリネーム時のみ対象外（型リネームは更新対象）
                         bool inUsing = tk.Parent != null && tk.Parent.AncestorsAndSelf().Any(a => a is UsingDirectiveSyntax);
                         if (isMemberDecl && inUsing) continue;
-                        if (!ContainerEndsWith(GetTypeContainerChain(tk.Parent), containers)) continue;
                         if (!NamespaceEndsWith(GetNamespaceChain(tk.Parent), nsTarget)) continue;
+                        if (inUsing && isTypeDecl)
+                        {
+                            // using 別名/修飾名の末尾が containers + oldName に一致する場合のみ更新
+                            var chain = GetUsingNameChain(tk.Parent);
+                            if (!ChainEndsWith(chain, Concat(containers, oldName))) continue;
+                        }
+                        else
+                        {
+                            if (!ContainerEndsWith(GetTypeContainerChain(tk.Parent), containers)) continue;
+                        }
                         // Heuristic filter by kind/context
                         if (isTypeDecl)
                         {
@@ -578,6 +587,33 @@ sealed class LspServer
     }
 
     private static bool NamespaceEndsWith(string[] chain, string[] suffix)
+    {
+        if (suffix.Length == 0) return true;
+        if (chain.Length < suffix.Length) return false;
+        for (int i = 1; i <= suffix.Length; i++)
+        {
+            if (!string.Equals(chain[^i], suffix[^i], StringComparison.Ordinal)) return false;
+        }
+        return true;
+    }
+
+    private static string[] GetUsingNameChain(SyntaxNode? node)
+    {
+        var u = node?.AncestorsAndSelf().OfType<UsingDirectiveSyntax>().FirstOrDefault();
+        if (u == null || u.Name == null) return Array.Empty<string>();
+        var name = u.Name.ToString();
+        return name.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    }
+
+    private static string[] Concat(string[] prefix, string last)
+    {
+        var list = new List<string>(prefix.Length + 1);
+        list.AddRange(prefix);
+        list.Add(last);
+        return list.ToArray();
+    }
+
+    private static bool ChainEndsWith(string[] chain, string[] suffix)
     {
         if (suffix.Length == 0) return true;
         if (chain.Length < suffix.Length) return false;
