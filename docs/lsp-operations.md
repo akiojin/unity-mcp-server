@@ -19,6 +19,7 @@
   - Delete `mcp-server/bin/csharp-lsp*` and retry the operation; the client re-downloads.
 - If repeated failures occur:
   - Check logs under MCP server output; verify network is reachable for the download.
+ - For request-time failures (timeouts/process exit), the client performs a single automatic retry after re-initializing the server. Errors are standardized in English with method name and timeout.
 
 ## Configuration
 - Controlled via `mcp-server/src/core/config.js`:

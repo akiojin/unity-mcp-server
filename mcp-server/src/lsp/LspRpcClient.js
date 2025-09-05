@@ -77,9 +77,15 @@ export class LspRpcClient {
         workspaceFolders: null,
       }
     };
+    const timeoutMs = Math.max(5000, Math.min(60000, config.lsp?.requestTimeoutMs || 60000));
     const p = new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
-      setTimeout(() => { if (this.pending.has(id)) { this.pending.delete(id); reject(new Error('LSP init timeout')); } }, Math.max(5000, Math.min(60000, config.lsp?.requestTimeoutMs || 60000)));
+      setTimeout(() => {
+        if (this.pending.has(id)) {
+          this.pending.delete(id);
+          reject(new Error(`initialize timed out after ${timeoutMs} ms`));
+        }
+      }, timeoutMs);
     });
     this.writeMessage(req);
     const resp = await p; // ignore result contents for stub
@@ -90,14 +96,38 @@ export class LspRpcClient {
   }
 
   async request(method, params) {
+    return await this.#requestWithRetry(method, params, 1);
+  }
+
+  async #requestWithRetry(method, params, attempt) {
     await this.ensure();
     const id = this.seq++;
     const timeoutMs = Math.max(1000, Math.min(300000, config.lsp?.requestTimeoutMs || 60000));
     const p = new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
-      setTimeout(() => { if (this.pending.has(id)) { this.pending.delete(id); reject(new Error(`${method} timeout`)); } }, timeoutMs);
+      setTimeout(() => {
+        if (this.pending.has(id)) {
+          this.pending.delete(id);
+          reject(new Error(`${method} timed out after ${timeoutMs} ms`));
+        }
+      }, timeoutMs);
     });
-    this.writeMessage({ jsonrpc: '2.0', id, method, params });
-    return await p;
+    try {
+      this.writeMessage({ jsonrpc: '2.0', id, method, params });
+      return await p;
+    } catch (e) {
+      const msg = String(e && e.message || e);
+      const recoverable = /timed out|LSP process exited/i.test(msg);
+      if (recoverable && attempt === 1) {
+        // Auto-reinit and retry once
+        try { await this.mgr.stop(0); } catch {}
+        this.proc = null; this.initialized = false; this.buf = Buffer.alloc(0);
+        logger.warn(`[csharp-lsp] recoverable error on ${method}: ${msg}. Retrying once...`);
+        return await this.#requestWithRetry(method, params, attempt + 1);
+      }
+      // Standardize error message
+      const hint = recoverable ? 'The server was restarted. Try again if the issue persists.' : 'Check request parameters or increase lsp.requestTimeoutMs.';
+      throw new Error(`[${method}] failed: ${msg}. ${hint}`);
+    }
   }
 }
