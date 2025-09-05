@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install .NET 9 SDK (for roslyn-cli build) via official install script
+# Install .NET 9 SDK (for C# LSP build) via official install script
 ENV DOTNET_ROOT=/usr/share/dotnet
 ENV PATH="${DOTNET_ROOT}:${PATH}"
 RUN set -eux; \

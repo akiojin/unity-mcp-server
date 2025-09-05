@@ -16,22 +16,22 @@ Thank you for your interest in contributing to Unity Editor MCP! This document p
 - Node.js 18.0.0 or newer
 - Git
 
-### Developer Setup (roslyn-cli)
+### Developer Setup (csharp-lsp)
 
-End users do not need .NET. The MCP server auto-provisions `roslyn-cli` when used. As a contributor, if you want to build or provision the CLI manually, use one of the following options:
+End users do not need .NET. The MCP server auto-provisions `csharp-lsp` when used. As a contributor, if you want to build or provision the CLI manually, use one of the following options:
 
 - Build from source (requires .NET 9 SDK):
-  - macOS/Linux: `./scripts/bootstrap-roslyn-cli.sh osx-arm64|osx-x64|linux-x64`
-  - Windows: `powershell -ExecutionPolicy Bypass -File scripts/bootstrap-roslyn-cli.ps1 -Rid win-x64`
-- Output: `./.unity/tools/roslyn-cli/<rid>/roslyn-cli(.exe)`
+  - macOS/Linux: `./scripts/bootstrap-csharp-lsp.sh osx-arm64|osx-x64|linux-x64`
+  - Windows: `powershell -ExecutionPolicy Bypass -File scripts/bootstrap-csharp-lsp.ps1 -Rid win-x64`
+- Output: `./.unity/tools/csharp-lsp/<rid>/csharp-lsp(.exe)`
 
 - One-liner installers (no .NET required):
-  - UNIX: `curl -fsSL https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.sh | bash -s -- --version <ver> --rid <rid>`
-  - PowerShell: `irm https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.ps1 | iex` (e.g., `-Version 2.9.1 -Rid win-x64`)
+  - UNIX: `curl -fsSL https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-csharp-lsp.sh | bash -s -- --version <ver> --rid <rid>`
+  - PowerShell: `irm https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-csharp-lsp.ps1 | iex` (e.g., `-Version 2.9.1 -Rid win-x64`)
 
 - npx wrapper (no .NET required):
-  - `npx -y @akiojin/roslyn-cli ak-roslyn serve --solution <path>`
-- The first run downloads the proper binary into `./.unity/tools/roslyn-cli/<rid>/` and verifies SHA256.
+  - `npx -y @akiojin/csharp-lsp ak-roslyn serve --solution <path>`
+- The first run downloads the proper binary into `./.unity/tools/csharp-lsp/<rid>/` and verifies SHA256.
 
 ### Setup Instructions
 
