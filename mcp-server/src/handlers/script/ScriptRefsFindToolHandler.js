@@ -7,7 +7,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
             'script_refs_find',
-            'Find code references/usages using external Roslyn CLI (no Unity comms). LLM-friendly paging/summary: respects pageSize and maxBytes, caps matches per file (maxMatchesPerFile), and trims snippet text to ~400 chars. Use scope/name/kind/path to narrow results.',
+            'Find code references/usages using the bundled C# LSP. LLM-friendly paging/summary: respects pageSize and maxBytes, caps matches per file (maxMatchesPerFile), and trims snippet text to ~400 chars. Use scope/name/kind/path to narrow results.',
             {
                 type: 'object',
                 properties: {

@@ -105,7 +105,7 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 ## 前提・共通ルール
 
-- 禁止: roslyn-cli を直接実行しない。必ず UnityMCP の `script_*` ツールで検証する（例: `UnityMCP__script_symbols_get`, `UnityMCP__script_edit_structured`）。
+- 禁止: LSPサーバを直接起動・操作しない。必ず UnityMCP の `script_*` ツールで検証する（例: `UnityMCP__script_symbols_get`, `UnityMCP__script_edit_structured`）。
 - パスは必ず `Assets/` または `Packages/` 起点の相対パス
 - `namePath`/`symbolName` は `Outer/Nested/Member` 形式（例: `FinalTestClass/TestMethod12`）を優先
 - 大量診断（CS0234 等）は想定内。適用可否は `applied` で判断し、実ファイルは `script_read` で確認

@@ -131,7 +131,7 @@ export { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameTo
 export { ScriptCreateClassFileToolHandler } from './script/ScriptCreateClassFileToolHandler.js';
 export { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
 // Deprecated Unity-communication handlers removed: ScriptEditPatchToolHandler, ScriptReplacePatternToolHandler
-// Roslyn CLI tool exports removed (script_*に統一)
+// Script tool registry
 
 // Import all handler classes at once
 import { PingToolHandler } from './system/PingToolHandler.js';

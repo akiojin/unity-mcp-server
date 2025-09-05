@@ -37,6 +37,16 @@ export class LspProcessManager {
     const p = this.proc;
     this.proc = null;
     try {
+      // Send LSP shutdown/exit if possible
+      const shutdown = (obj) => {
+        try {
+          const json = JSON.stringify(obj);
+          const payload = `Content-Length: ${Buffer.byteLength(json, 'utf8')}\r\n\r\n${json}`;
+          p.stdin.write(payload, 'utf8');
+        } catch {}
+      };
+      shutdown({ jsonrpc: '2.0', id: 1, method: 'shutdown', params: {} });
+      shutdown({ jsonrpc: '2.0', method: 'exit' });
       p.stdin.end();
     } catch {}
     await new Promise((resolve) => {
@@ -48,4 +58,3 @@ export class LspProcessManager {
     });
   }
 }
-
