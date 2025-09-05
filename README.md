@@ -260,24 +260,45 @@ The project bundles a self-contained C# Language Server (LSP). The MCP server au
 - Edits: rename/replace/insert/remove via LSP extensions
 - Safety: structured edits, preview/apply options, no blind line-based patches
 
+Operational details (auto-download/update, recovery): see `docs/lsp-operations.md`.
+
+Tests
+
+- Script tools tests are consolidated in `tests/test-mcp-script-tools.md` (Japanese, MCP ツール前提)。
+- Additional indexing scenario: `tests/natural-language/indexing-incremental.md`.
+
+Indexing Settings
+
+- The MCP server can periodically refresh the SQLite index (incremental) when enabled.
+- Configure via environment variables (or `.unity/config.json` overrides):
+  - `INDEX_WATCH=true` to enable periodic updates (default: false)
+  - `INDEX_WATCH_INTERVAL_MS=15000` polling interval (default: 15000)
+  - `INDEX_CONCURRENCY=8` max concurrent LSP requests (default: 8)
+  - `INDEX_RETRY=2` per-file documentSymbol retry attempts (default: 2)
+  - `INDEX_REPORT_EVERY=500` progress log interval in files (default: 500)
+
 Sequence
 
 ```mermaid
 sequenceDiagram
     participant Client as MCP Client
     participant Node as MCP Server (Index/Tools)
+    participant LSP as C# LSP (self-contained)
     participant Unity as Unity Editor
     participant Index as Code Index
 
     Client->>Node: Edit or search request
     alt Edit flow
+        Node->>LSP: Edit request (replace/insert/rename)
+        LSP-->>Node: Workspace edits
         Node->>Unity: Apply changes
         Unity->>Unity: Refresh / compile
-        Node->>Index: Re-index changed files (write JSON)
+        Node->>Index: Update SQLite index for changed files (incremental)
     else Search flow
         Node->>Index: Load symbols if present
         Index-->>Node: Symbols / metadata
-        Node->>Node: Fallback parse if missing
+        Node->>LSP: Query (workspace/symbol, references)
+        LSP-->>Node: Results
     end
     Node-->>Client: Result (edits confirmed or search hits)
 ```

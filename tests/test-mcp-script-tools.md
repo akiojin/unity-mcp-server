@@ -10,6 +10,7 @@
 
 チェックリスト（Markdown）
 - [ ] S00-00: ラン初期化（事前 .sln チェックは行わない）
+ - [ ] S00-X01: LSP 自動ダウンロード/復旧（バイナリ未配置→自動取得、破損→再取得、英語エラー）
 - [ ] S10-01: script_symbols_get で FinalTestClass/TestMethod11/12 確認
 - [ ] S10-02: script_symbol_find で namePath 補助確定
 - [ ] S10-E01: 存在しないファイルで script_symbols_get は fail
@@ -21,11 +22,22 @@
 - [ ] S30-02: 旧名 refs=0 確認
 - [ ] S30-E01: 既存名への衝突で fail
 - [ ] S30-E02: 曖昧 namePath で applied=false
+ - [ ] S30-X01: using エイリアス経由の型参照（終端一致時のみ更新）
+ - [ ] S30-X02: ネスト型のリネーム（親コンテナ一致のみ）
+ - [ ] S30-X03: ジェネリック型/メソッドの識別子更新（型は横断、メンバーは宣言ファイル内）
+ - [ ] S30-X04: オーバーロードの一部のみリネーム（他は未変更）
+ - [ ] S30-X05: プロパティ/イベントのメンバーリネーム（宣言ファイル内のみ）
 - [ ] S40-01: remove_symbol（TestMethod12）→ 欠落確認
 - [ ] S40-E01: failOnReferences=true でブロック
 - [ ] S40-E02: 存在しないシンボルで fail
+ - [ ] S40-X01: 部分クラス内の私有メソッド削除（構文維持）
+ - [ ] S40-X02: 属性の削除（影響なし）
+ - [ ] S40-X03: インターフェース明示実装メソッド削除は拒否（参照あり）
+ - [ ] S40-X04: イベントフィールド削除（参照有無で挙動差）
+ - [ ] S40-X05: 未使用 enum メンバー削除
 - [ ] S50-01: refs_find ページング/トリム（truncated, snippetTruncated）
 - [ ] S50-E01: 極端な上限設定での挙動
+ - [ ] S50-X01: コメント/文字列の誤検出抑制とスニペット可読性
 - [ ] S60-01: 要約上限（errors<=30, message<=200, 1000文字+Truncated）
 - [ ] S60-02: preview/diff/text/content が 1000 文字以内＋ Truncated フラグ
 - [ ] S60-E01: 要約不能データで fail
@@ -167,6 +179,25 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 - S30-E01: 既存名への衝突 → `fail` or `errors` 記録
 - S30-E02: 曖昧 `namePath` → 安全側で `applied=false`
 
+実行手順（エッジケース例）:
+- S30-X01: using エイリアス終端一致
+  - `script_refactor_rename(relative=Assets/Scripts/DiceController.cs, namePath=DiceController, newName=DiceControllerV3, preview=false)`
+  - 期待: `using DC = <...>.DiceController;` のような別名が `...DiceControllerV3` に更新（終端一致時のみ）。
+- S30-X02: ネスト型
+  - `script_refactor_rename(relative=Assets/Scripts/GigaTestFile.cs, namePath=Outer/Inner, newName=InnerX, preview=false)`
+  - 期待: `Outer` 直下の `Inner` のみ更新（他 `Inner` は未変更）。
+- S30-X03: ジェネリック
+  - 型: `script_refactor_rename(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass, newName=FinalTestClass2, preview=false)`
+  - メンバー: `script_refactor_rename(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/GenericMethod, newName=GenericMethod2, preview=false)`
+  - 期待: 型は横断更新、メンバーは宣言ファイル内のみ。
+- S30-X04: オーバーロード
+  - `script_refactor_rename(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/Roll, newName=RollFast, preview=false)`（パラメータ無し版を対象）
+  - 期待: 他の `Roll(int)` は未変更。
+- S30-X05: プロパティ/イベント
+  - `script_refactor_rename(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/Score, newName=Score2, preview=false)`
+  - `script_refactor_rename(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/OnRolled, newName=OnRolled2, preview=false)`
+  - 期待: 宣言ファイル内のみ更新。
+
 判定条件・復元:
 - 判定: `applied=true`、宣言が新名に更新、`script_refs_find(name=旧名)` のコード参照 0。
 - 復元: `script_refactor_rename` で元名へ戻す（実行前に旧名を保存）。
@@ -182,6 +213,23 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 異常系:
 - S40-E01: `failOnReferences=true` かつ参照あり → `applied=false` でブロック
 - S40-E02: 存在しないシンボル → `fail`
+
+実行手順（エッジケース例）:
+- S40-X01: 部分クラスの私有メソッド
+  - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=PartialClass/LLMTEST_Helper, apply=true, failOnReferences=true)`
+  - 期待: 参照が無ければ削除成功／あればブロック。
+- S40-X02: 属性
+  - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/LLMTEST_Attr, apply=true, failOnReferences=true)`
+  - 期待: 削除適用（構文維持）。
+- S40-X03: 明示実装
+  - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=IFoo/Bar, apply=true, failOnReferences=true)`
+  - 期待: 参照ありでブロック。
+- S40-X04: イベント
+  - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/OnRolled, apply=true, failOnReferences=true)`
+  - 期待: 参照があればブロック、無ければ成功。
+- S40-X05: enum メンバー
+  - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=SomeEnum/MemberX, apply=true, failOnReferences=true)`
+  - 期待: 未使用なら成功。
 
 判定条件・復元:
 - 判定: `applied=true` かつ `script_read` で該当メソッドが欠落。
@@ -210,6 +258,11 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 異常系:
 - S50-E01: 極端な上限（`maxBytes=1` 等）→ `fail` または最小限応答
+
+実行手順（品質確認）:
+- S50-X01: コメント/文字列の誤検出抑制
+  - `script_refs_find(name=FinalTestClass, scope=assets, pageSize=50, maxBytes=65536, maxMatchesPerFile=5, snippetContext=2)`
+  - 期待: コード位置のみヒット（コメント/文字列は除外が望ましい）。
 
 判定条件・復元:
 - 判定: `truncated` と各スニペットの `snippetTruncated` の有無が期待値通り（最大400文字トリム）。件数・上限は実行パラメータに合致。

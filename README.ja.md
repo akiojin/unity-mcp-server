@@ -9,7 +9,7 @@ Unity Editor MCP は、LLMクライアントからUnity Editorを自動化しま
 ### 関連ドキュメント
 
 - 動画保存機能 計画: `docs/video-capture-plan.md`
-- 予定: C# LSP（自己完結配布）RFC: `docs/RFCs/0001-csharp-lsp.md`
+- 予定: C# LSP（自己完結配布）RFC: `docs/RFCs/0001-csharp-lsp.md` （運用: `docs/lsp-operations.md` 参照）
 
 ### C#編集の方針（重要）
 
@@ -268,18 +268,22 @@ sequenceDiagram
 sequenceDiagram
     participant Client as MCP クライアント
     participant Node as MCP サーバー（Index/Tools）
+    participant LSP as C# LSP（自己完結）
     participant Unity as Unity Editor
     participant Index as Code Index
 
     Client->>Node: 編集 or 検索リクエスト
     alt 編集フロー
+        Node->>LSP: 編集リクエスト（置換/追記/リネーム）
+        LSP-->>Node: Workspace Edits
         Node->>Unity: 変更適用
         Unity->>Unity: リフレッシュ / コンパイル
-        Node->>Index: 変更ファイルを再インデックス（JSON書き出し）
+        Node->>Index: 変更ファイルを再インデックス（SQLite・インクリメンタル）
     else 検索フロー
         Node->>Index: シンボルを参照
         Index-->>Node: シンボル/メタデータ
-        Node->>Node: 未インデックスは簡易パースで補完
+        Node->>LSP: 問い合わせ（workspace/symbol, references）
+        LSP-->>Node: 結果
     end
     Node-->>Client: 結果（編集確定 or 検索ヒット）
 ```
