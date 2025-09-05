@@ -113,6 +113,17 @@ jobs:
         with:
           path: dist
 
+      - name: Detect built assets
+        id: assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          if compgen -G "dist/**/csharp-lsp-*" > /dev/null; then
+            echo "found=true" >> $GITHUB_OUTPUT
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -120,6 +131,7 @@ jobs:
 
       - name: Generate manifest
         id: gen
+        if: ${{ steps.assets.outputs.found == 'true' }}
         run: |
           node -e '
             const fs = require("fs");
@@ -146,6 +158,7 @@ jobs:
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
+        if: ${{ steps.assets.outputs.found == 'true' }}
         with:
           files: |
             dist/**/csharp-lsp-*
