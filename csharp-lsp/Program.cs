@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-// Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol / workspace/symbol / mcp/referencesByName
+// Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol / workspace/symbol / mcp/referencesByName / mcp/renameByNamePath
 // This is a lightweight PoC that parses each file independently using Roslyn SyntaxTree.
 
 var server = new LspServer();
@@ -82,6 +82,16 @@ sealed class LspServer
                         var symName = root.GetProperty("params").GetProperty("name").GetString() ?? "";
                         var list = await ReferencesByNameAsync(symName);
                         await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = list });
+                    }
+                    else if (method == "mcp/renameByNamePath")
+                    {
+                        var p = root.GetProperty("params");
+                        var relative = p.GetProperty("relative").GetString() ?? "";
+                        var namePath = p.GetProperty("namePath").GetString() ?? "";
+                        var newName = p.GetProperty("newName").GetString() ?? "";
+                        var apply = p.TryGetProperty("apply", out var a) && a.GetBoolean();
+                        var resp = await RenameByNamePathAsync(relative, namePath, newName, apply);
+                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
                     }
                     else
                     {
@@ -232,6 +242,79 @@ sealed class LspServer
         int end = idx + word.Length;
         bool rightOk = end >= line.Length || !char.IsLetterOrDigit(line[end]) && line[end] != '_';
         return (leftOk && rightOk) ? idx : -1;
+    }
+
+    private async Task<object> RenameByNamePathAsync(string relative, string namePath, string newName, bool apply)
+    {
+        var full = Path.Combine(_rootDir, relative.Replace('/', Path.DirectorySeparatorChar));
+        if (!File.Exists(full)) return new { success = false, applied = false, error = "file_not_found" };
+        try
+        {
+            var text = await File.ReadAllTextAsync(full);
+            var tree = CSharpSyntaxTree.ParseText(text);
+            var root = await tree.GetRootAsync();
+            var segments = (namePath ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (segments.Length == 0) return new { success = false, applied = false, error = "invalid_namePath" };
+            SyntaxNode cursor = root;
+            for (int i = 0; i < segments.Length - 1; i++)
+            {
+                var seg = segments[i];
+                var next = cursor.DescendantNodes().FirstOrDefault(n => n is ClassDeclarationSyntax c && c.Identifier.ValueText == seg
+                                                                      || n is StructDeclarationSyntax s && s.Identifier.ValueText == seg
+                                                                      || n is InterfaceDeclarationSyntax ii && ii.Identifier.ValueText == seg
+                                                                      || n is EnumDeclarationSyntax en && en.Identifier.ValueText == seg);
+                if (next is null) return new { success = false, applied = false, error = "container_not_found", segment = seg };
+                cursor = next;
+            }
+            var targetName = segments[^1];
+            SyntaxNode? decl = cursor.DescendantNodes().FirstOrDefault(n => n is ClassDeclarationSyntax c && c.Identifier.ValueText == targetName
+                                                                          || n is StructDeclarationSyntax s && s.Identifier.ValueText == targetName
+                                                                          || n is InterfaceDeclarationSyntax ii && ii.Identifier.ValueText == targetName
+                                                                          || n is EnumDeclarationSyntax en && en.Identifier.ValueText == targetName)
+                             ?? cursor.DescendantNodes().FirstOrDefault(n => n is MethodDeclarationSyntax m && m.Identifier.ValueText == targetName
+                                                                          || n is PropertyDeclarationSyntax p && p.Identifier.ValueText == targetName
+                                                                          || n is FieldDeclarationSyntax f && f.Declaration.Variables.Any(v => v.Identifier.ValueText == targetName));
+            if (decl is null) return new { success = false, applied = false, error = "symbol_not_found" };
+
+            // Replace identifier token text (declaration only)
+            SyntaxNode newRoot = root;
+            if (decl is ClassDeclarationSyntax dc)
+                newRoot = root.ReplaceToken(dc.Identifier, SyntaxFactory.Identifier(newName).WithTriviaFrom(dc.Identifier));
+            else if (decl is StructDeclarationSyntax ds)
+                newRoot = root.ReplaceToken(ds.Identifier, SyntaxFactory.Identifier(newName).WithTriviaFrom(ds.Identifier));
+            else if (decl is InterfaceDeclarationSyntax di)
+                newRoot = root.ReplaceToken(di.Identifier, SyntaxFactory.Identifier(newName).WithTriviaFrom(di.Identifier));
+            else if (decl is EnumDeclarationSyntax de)
+                newRoot = root.ReplaceToken(de.Identifier, SyntaxFactory.Identifier(newName).WithTriviaFrom(de.Identifier));
+            else if (decl is MethodDeclarationSyntax dm)
+                newRoot = root.ReplaceToken(dm.Identifier, SyntaxFactory.Identifier(newName).WithTriviaFrom(dm.Identifier));
+            else if (decl is PropertyDeclarationSyntax dp)
+                newRoot = root.ReplaceToken(dp.Identifier, SyntaxFactory.Identifier(newName).WithTriviaFrom(dp.Identifier));
+            else if (decl is FieldDeclarationSyntax df)
+            {
+                var v = df.Declaration.Variables.FirstOrDefault(v => v.Identifier.ValueText == targetName);
+                if (v != null) newRoot = root.ReplaceToken(v.Identifier, SyntaxFactory.Identifier(newName).WithTriviaFrom(v.Identifier));
+            }
+
+            var newText = newRoot.ToFullString();
+            if (apply)
+            {
+                await File.WriteAllTextAsync(full, newText, Encoding.UTF8);
+                return new { success = true, applied = true };
+            }
+            return new { success = true, applied = false, preview = DiffPreview(text, newText) };
+        }
+        catch (Exception ex)
+        {
+            return new { success = false, applied = false, error = ex.Message };
+        }
+    }
+
+    private static string DiffPreview(string oldText, string newText)
+    {
+        // Minimal diff: return new text truncated
+        if (newText.Length > 1000) return newText.Substring(0, 1000) + "…";
+        return newText;
     }
 
     private static IEnumerable<string> EnumerateUnityCsFiles(string rootDir)
