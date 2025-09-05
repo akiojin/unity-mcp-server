@@ -96,3 +96,6 @@ roslyn-cli/bin/
 .unity/tools/
 .tools/
 *.local.json
+
+csharp-lsp/bin/
+csharp-lsp/out/

@@ -410,10 +410,6 @@ sealed class LspServer
                 if (v != null) newRoot = root.ReplaceToken(v.Identifier, SyntaxFactory.Identifier(newName).WithTriviaFrom(v.Identifier));
             }
 
-            // If renaming a type, also rename identifier usages under matching containers across workspace (naive, syntax-based)
-            bool isTypeDecl = decl is ClassDeclarationSyntax || decl is StructDeclarationSyntax || decl is InterfaceDeclarationSyntax || decl is EnumDeclarationSyntax;
-            if (!isTypeDecl)
-            {
             // Extend rename: if type/member, update identifier usages across workspace within matching containers
             bool isTypeDecl = decl is ClassDeclarationSyntax || decl is StructDeclarationSyntax || decl is InterfaceDeclarationSyntax || decl is EnumDeclarationSyntax;
             bool isMemberDecl = decl is MethodDeclarationSyntax || decl is PropertyDeclarationSyntax || decl is FieldDeclarationSyntax;
@@ -434,7 +430,7 @@ sealed class LspServer
             var updatedFiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { [full] = newRoot.ToFullString() };
             foreach (var file in EnumerateUnityCsFiles(_rootDir))
             {
-                // メンバーリネームは安全性のため宣言ファイル内に限定（型リネームのみワークスペース全体）
+                // Member rename is limited to the declaration file; type rename updates across workspace
                 if (isMemberDecl && !string.Equals(file, full, StringComparison.OrdinalIgnoreCase)) continue;
                 try
                 {
@@ -447,13 +443,11 @@ sealed class LspServer
                     SyntaxNode rr = r;
                     foreach (var tk in tokens)
                     {
-                        // using ディレクティブ内の識別子は、メンバーリネーム時のみ対象外（型リネームは更新対象）
                         bool inUsing = tk.Parent != null && tk.Parent.AncestorsAndSelf().Any(a => a is UsingDirectiveSyntax);
                         if (isMemberDecl && inUsing) continue;
                         if (!NamespaceEndsWith(GetNamespaceChain(tk.Parent), nsTarget)) continue;
                         if (inUsing && isTypeDecl)
                         {
-                            // using 別名/修飾名の末尾が containers + oldName に一致する場合のみ更新
                             var chain = GetUsingNameChain(tk.Parent);
                             if (!ChainEndsWith(chain, Concat(containers, oldName))) continue;
                         }
@@ -461,56 +455,19 @@ sealed class LspServer
                         {
                             if (!ContainerEndsWith(GetTypeContainerChain(tk.Parent), containers)) continue;
                         }
-                        // Heuristic filter by kind/context
                         if (isTypeDecl)
                         {
-                            // type usage (identifiers in type positions or simple identifiers)
                             rr = rr.ReplaceToken(tk, SyntaxFactory.Identifier(newName).WithTriviaFrom(tk));
                             changed = true;
                         }
                         else if (isMemberDecl)
                         {
-                            // method/property/field usage: identifier names and member access names
                             if (tk.Parent is IdentifierNameSyntax)
                             {
                                 rr = rr.ReplaceToken(tk, SyntaxFactory.Identifier(newName).WithTriviaFrom(tk));
                                 changed = true;
                             }
                         }
-                    }
-                    if (changed) updatedFiles[file] = rr.ToFullString();
-                }
-                catch { }
-            }
-            if (apply)
-            {
-                foreach (var kv in updatedFiles)
-                    await File.WriteAllTextAsync(kv.Key, kv.Value, Encoding.UTF8);
-                return new { success = true, applied = true, updated = updatedFiles.Count };
-            }
-            return new { success = true, applied = false, preview = DiffPreview(text, updatedFiles.Values.FirstOrDefault() ?? newRoot.ToFullString()) };
-            }
-
-            var containers = segments.Take(segments.Length - 1).ToArray();
-            var oldName = targetName;
-            var updatedFiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { [full] = newRoot.ToFullString() };
-            foreach (var file in EnumerateUnityCsFiles(_rootDir))
-            {
-                if (string.Equals(file, full, StringComparison.OrdinalIgnoreCase)) continue;
-                try
-                {
-                    var src = await File.ReadAllTextAsync(file);
-                    var t = CSharpSyntaxTree.ParseText(src);
-                    var r = await t.GetRootAsync();
-                    var tokens = r.DescendantTokens().Where(tk => tk.IsKind(SyntaxKind.IdentifierToken) && tk.ValueText == oldName).ToArray();
-                    if (tokens.Length == 0) continue;
-                    bool changed = false;
-                    SyntaxNode rr = r;
-                    foreach (var tk in tokens)
-                    {
-                        if (!ContainerEndsWith(GetTypeContainerChain(tk.Parent), containers)) continue;
-                        rr = rr.ReplaceToken(tk, SyntaxFactory.Identifier(newName).WithTriviaFrom(tk));
-                        changed = true;
                     }
                     if (changed) updatedFiles[file] = rr.ToFullString();
                 }
