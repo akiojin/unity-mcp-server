@@ -70,6 +70,21 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
       const absList = changed.map(rel => path.resolve(info.projectRoot, rel));
       const concurrency = 8;
       let i = 0; let updated = 0;
+
+      // LSP request with small retry/backoff
+      const requestWithRetry = async (uri, maxRetries = 2) => {
+        let lastErr = null;
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+          try {
+            const res = await lsp.request('textDocument/documentSymbol', { textDocument: { uri } });
+            return res?.result ?? res;
+          } catch (err) {
+            lastErr = err;
+            await new Promise(r => setTimeout(r, 200 * (attempt + 1)));
+          }
+        }
+        throw lastErr || new Error('documentSymbol failed');
+      };
       const worker = async () => {
         while (true) {
           const idx = i++;
@@ -77,8 +92,7 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
           const abs = absList[idx];
           try {
             const uri = 'file://' + abs.replace(/\\/g, '/');
-            const res = await lsp.request('textDocument/documentSymbol', { textDocument: { uri } });
-            const docSymbols = res?.result ?? res;
+            const docSymbols = await requestWithRetry(uri, 2);
             const rows = toRows(uri, docSymbols);
             const rel = this.toRel(abs, info.projectRoot);
             await this.index.replaceSymbolsForPath(rel, rows);
