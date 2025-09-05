@@ -578,27 +578,60 @@ sealed class LspServer
         if (!File.Exists(full)) return new { success = false, applied = false, error = "file_not_found" };
         try
         {
+            // Locate target declaration first
+            var original = await File.ReadAllTextAsync(full);
+            var tree0 = CSharpSyntaxTree.ParseText(original);
+            var root0 = await tree0.GetRootAsync();
+            var (_, targetNode) = FindNodeByNamePath(root0, namePath);
+            if (targetNode is null) return new { success = false, applied = false, error = "symbol_not_found" };
+
+            // Optional preflight: detect references across workspace (naive but syntax-aware)
             if (failOnRefs)
             {
                 var lastSeg = (namePath ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).LastOrDefault() ?? "";
                 if (!string.IsNullOrEmpty(lastSeg))
                 {
-                    var refs = await ReferencesByNameAsync(lastSeg);
-                    // if any reference outside the same file, block (naive)
-                    if (refs is IEnumerable<object> arr && arr.Cast<object>().Any())
+                    var declContainers = GetTypeContainerChain(targetNode);
+                    var refs = new List<object>();
+                    foreach (var file in EnumerateUnityCsFiles(_rootDir))
+                    {
+                        try
+                        {
+                            var src = await File.ReadAllTextAsync(file);
+                            var t = CSharpSyntaxTree.ParseText(src);
+                            var r = await t.GetRootAsync();
+                            foreach (var id in r.DescendantTokens().Where(tk => tk.IsKind(SyntaxKind.IdentifierToken) && tk.ValueText == lastSeg))
+                            {
+                                // ignore identifiers within the target span (same file only)
+                                if (string.Equals(file, full, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var span = targetNode.FullSpan;
+                                    var pos = id.SpanStart;
+                                    if (pos >= span.Start && pos <= span.End) continue;
+                                }
+                                if (ContainerEndsWith(GetTypeContainerChain(id.Parent), declContainers))
+                                {
+                                    var sp = id.GetLocation().GetLineSpan();
+                                    refs.Add(new { path = ToRel(file, _rootDir), line = sp.StartLinePosition.Line + 1, column = sp.StartLinePosition.Character + 1 });
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+                    if (refs.Count > 0)
                     {
                         return new { success = false, applied = false, references = refs };
                     }
                 }
             }
 
-            var text = await File.ReadAllTextAsync(full);
-            var tree = CSharpSyntaxTree.ParseText(text);
+            // Apply removal
+            var tree = CSharpSyntaxTree.ParseText(original);
             var root = await tree.GetRootAsync();
             var (_, last) = FindNodeByNamePath(root, namePath);
             if (last is null) return new { success = false, applied = false, error = "symbol_not_found" };
             var newRoot = root.RemoveNode(last, SyntaxRemoveOptions.KeepExteriorTrivia);
-            var newText = newRoot?.ToFullString() ?? text;
+            var newText = newRoot?.ToFullString() ?? original;
             if (apply)
             {
                 if (removeEmptyFile && string.IsNullOrWhiteSpace(newText))
@@ -609,7 +642,7 @@ sealed class LspServer
                 await File.WriteAllTextAsync(full, newText, Encoding.UTF8);
                 return new { success = true, applied = true };
             }
-            return new { success = true, applied = false, preview = DiffPreview(text, newText) };
+            return new { success = true, applied = false, preview = DiffPreview(original, newText) };
         }
         catch (Exception ex)
         {
