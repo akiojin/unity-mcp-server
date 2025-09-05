@@ -19,7 +19,7 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
     this.unityConnection = unityConnection;
     this.index = new CodeIndex(unityConnection);
     this.projectInfo = new ProjectInfoProvider(unityConnection);
-    this.lsp = new LspRpcClient();
+    this.lsp = null; // lazy init with projectRoot
   }
 
   async execute() {
@@ -34,6 +34,7 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
       const seen = new Set();
       for (const r of roots) this.walkCs(r, files, seen);
 
+      if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
       const lsp = this.lsp;
       const toRows = (uri, symbols) => {
         const rel = this.toRel(uri.replace('file://', ''), info.projectRoot);

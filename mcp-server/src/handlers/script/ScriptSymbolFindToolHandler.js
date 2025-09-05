@@ -1,7 +1,8 @@
 import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { RoslynCliUtils } from '../roslyn/RoslynCliUtils.js';
 import { CodeIndex } from '../../core/codeIndex.js';
+import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
 export class ScriptSymbolFindToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -35,8 +36,9 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
-        this.roslyn = new RoslynCliUtils(unityConnection);
         this.index = new CodeIndex(unityConnection);
+        this.projectInfo = new ProjectInfoProvider(unityConnection);
+        this.lsp = null;
     }
 
     validate(params) {
@@ -69,24 +71,22 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
                 }
             }));
         } else {
-            const args = ['find-symbol'];
-            args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
-            args.push('--name', String(name));
-            if (kind) args.push('--kind', String(kind));
-            const res = await this.roslyn.runCli(args);
-            // Map to legacy shape: { path, symbol }
-            results = (res.results || []).map(r => ({
-            path: r.path,
-            symbol: {
-                name: r.name,
-                kind: r.kind,
-                namespace: r.ns,
-                container: r.container,
-                startLine: r.line,
-                startColumn: r.column,
-                endLine: r.line,
-                endColumn: r.column
-            }
+            const info = await this.projectInfo.get();
+            if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
+            const resp = await this.lsp.request('workspace/symbol', { query: String(name) });
+            const arr = resp?.result || [];
+            results = arr.map(s => ({
+                path: (s.location?.uri || '').replace('file://',''),
+                symbol: {
+                    name: s.name,
+                    kind: this.mapKind(s.kind),
+                    namespace: null,
+                    container: null,
+                    startLine: (s.location?.range?.start?.line ?? 0) + 1,
+                    startColumn: (s.location?.range?.start?.character ?? 0) + 1,
+                    endLine: (s.location?.range?.end?.line ?? 0) + 1,
+                    endColumn: (s.location?.range?.end?.character ?? 0) + 1,
+                }
             }));
         }
         // Optional post-filtering: scope and exact name
@@ -106,5 +106,18 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
             results = results.filter(x => x.symbol && x.symbol.name === target);
         }
         return { success: true, results, total: results.length };
+    }
+
+    mapKind(k) {
+        switch(k){
+            case 5: return 'class';
+            case 23: return 'struct';
+            case 11: return 'interface';
+            case 10: return 'enum';
+            case 6: return 'method';
+            case 7: return 'property';
+            case 8: return 'field';
+            default: return 'symbol';
+        }
     }
 }

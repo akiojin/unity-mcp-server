@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-// Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol
+// Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol / workspace/symbol / mcp/referencesByName
 // This is a lightweight PoC that parses each file independently using Roslyn SyntaxTree.
 
 var server = new LspServer();
@@ -18,6 +18,7 @@ sealed class LspServer
         WriteIndented = false
     };
     private bool _shutdownRequested;
+    private string _rootDir = "";
 
     public async Task RunAsync()
     {
@@ -35,6 +36,12 @@ sealed class LspServer
                 {
                     if (method == "initialize")
                     {
+                        try
+                        {
+                            var rootUri = root.GetProperty("params").GetProperty("rootUri").GetString();
+                            if (!string.IsNullOrEmpty(rootUri)) _rootDir = Uri2Path(rootUri);
+                        }
+                        catch { }
                         var resp = new
                         {
                             jsonrpc = "2.0",
@@ -63,6 +70,18 @@ sealed class LspServer
                         var result = await DocumentSymbolsAsync(path);
                         var resp = new { jsonrpc = "2.0", id = id.GetInt32(), result };
                         await WriteMessageAsync(resp);
+                    }
+                    else if (method == "workspace/symbol")
+                    {
+                        var query = root.GetProperty("params").GetProperty("query").GetString() ?? "";
+                        var result = await WorkspaceSymbolAsync(query);
+                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result });
+                    }
+                    else if (method == "mcp/referencesByName")
+                    {
+                        var symName = root.GetProperty("params").GetProperty("name").GetString() ?? "";
+                        var list = await ReferencesByNameAsync(symName);
+                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = list });
                     }
                     else
                     {
@@ -137,6 +156,113 @@ sealed class LspServer
         {
             return Array.Empty<object>();
         }
+    }
+
+    private async Task<object> WorkspaceSymbolAsync(string query)
+    {
+        var results = new List<object>();
+        foreach (var file in EnumerateUnityCsFiles(_rootDir))
+        {
+            try
+            {
+                var text = await File.ReadAllTextAsync(file);
+                var tree = CSharpSyntaxTree.ParseText(text);
+                var root = await tree.GetRootAsync();
+                foreach (var node in root.DescendantNodes())
+                {
+                    (int kind, string name) = node switch
+                    {
+                        ClassDeclarationSyntax c => (5, c.Identifier.ValueText),
+                        StructDeclarationSyntax s => (23, s.Identifier.ValueText),
+                        InterfaceDeclarationSyntax i => (11, i.Identifier.ValueText),
+                        EnumDeclarationSyntax e => (10, e.Identifier.ValueText),
+                        MethodDeclarationSyntax m => (6, m.Identifier.ValueText),
+                        PropertyDeclarationSyntax p => (7, p.Identifier.ValueText),
+                        FieldDeclarationSyntax f => (8, f.Declaration.Variables.FirstOrDefault()?.Identifier.ValueText ?? ""),
+                        _ => (0, "")
+                    };
+                    if (kind == 0 || string.IsNullOrEmpty(name)) continue;
+                    if (name.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                    var span = node.GetLocation().GetLineSpan();
+                    var start = new { line = span.StartLinePosition.Line, character = span.StartLinePosition.Character };
+                    var end = new { line = span.EndLinePosition.Line, character = span.EndLinePosition.Character };
+                    results.Add(new
+                    {
+                        name,
+                        kind,
+                        location = new { uri = Path2Uri(file), range = new { start, end } }
+                    });
+                }
+            }
+            catch { }
+        }
+        return results;
+    }
+
+    private async Task<object> ReferencesByNameAsync(string name)
+    {
+        var list = new List<object>();
+        foreach (var file in EnumerateUnityCsFiles(_rootDir))
+        {
+            try
+            {
+                var lines = await File.ReadAllLinesAsync(file);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    var line = lines[i];
+                    int idx = IndexOfWord(line, name);
+                    if (idx >= 0)
+                    {
+                        string snippet = line.Trim();
+                        list.Add(new { path = ToRel(file, _rootDir), line = i + 1, column = idx + 1, snippet });
+                    }
+                }
+            }
+            catch { }
+        }
+        return list;
+    }
+
+    private static int IndexOfWord(string line, string word)
+    {
+        if (string.IsNullOrEmpty(word)) return -1;
+        var idx = line.IndexOf(word, StringComparison.Ordinal);
+        if (idx < 0) return -1;
+        bool leftOk = idx == 0 || !char.IsLetterOrDigit(line[idx - 1]) && line[idx - 1] != '_';
+        int end = idx + word.Length;
+        bool rightOk = end >= line.Length || !char.IsLetterOrDigit(line[end]) && line[end] != '_';
+        return (leftOk && rightOk) ? idx : -1;
+    }
+
+    private static IEnumerable<string> EnumerateUnityCsFiles(string rootDir)
+    {
+        IEnumerable<string> EnumDir(string dir)
+        {
+            if (!Directory.Exists(dir)) yield break;
+            foreach (var f in Directory.EnumerateFiles(dir, "*.cs", SearchOption.AllDirectories))
+            {
+                var norm = f.Replace('\\','/');
+                if (norm.Contains("/obj/") || norm.Contains("/bin/")) continue;
+                yield return f;
+            }
+        }
+        foreach (var f in EnumDir(Path.Combine(rootDir, "Assets"))) yield return f;
+        foreach (var f in EnumDir(Path.Combine(rootDir, "Packages"))) yield return f;
+        foreach (var f in EnumDir(Path.Combine(rootDir, "Library", "PackageCache"))) yield return f;
+    }
+
+    private static string Path2Uri(string path)
+    {
+        return "file://" + path.Replace('\\','/');
+    }
+
+    private static string ToRel(string fullPath, string root)
+    {
+        var normFull = fullPath.Replace('\\', '/');
+        var normRoot = root.Replace('\\', '/').TrimEnd('/');
+        if (normFull.StartsWith(normRoot, StringComparison.OrdinalIgnoreCase))
+            return normFull.Substring(normRoot.Length + 1);
+        return normFull;
     }
 
     private static object MakeSym(string name, int kind, SyntaxNode node)

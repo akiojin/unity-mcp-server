@@ -1,13 +1,14 @@
 import { LspProcessManager } from './LspProcessManager.js';
 
 export class LspRpcClient {
-  constructor() {
+  constructor(projectRoot = null) {
     this.mgr = new LspProcessManager();
     this.proc = null;
     this.seq = 1;
     this.pending = new Map();
     this.buf = Buffer.alloc(0);
     this.initialized = false;
+    this.projectRoot = projectRoot;
   }
 
   async ensure() {
@@ -55,7 +56,7 @@ export class LspRpcClient {
       method: 'initialize',
       params: {
         processId: process.pid,
-        rootUri: null,
+        rootUri: this.projectRoot ? ('file://' + String(this.projectRoot).replace(/\\/g, '/')) : null,
         capabilities: {},
         workspaceFolders: null,
       }
@@ -83,4 +84,3 @@ export class LspRpcClient {
     return await p;
   }
 }
-

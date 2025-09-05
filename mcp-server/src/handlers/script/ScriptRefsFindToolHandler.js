@@ -1,6 +1,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { RoslynCliUtils } from '../roslyn/RoslynCliUtils.js';
 import { CodeIndex } from '../../core/codeIndex.js';
+import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
 export class ScriptRefsFindToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -57,8 +58,9 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
-        this.roslyn = new RoslynCliUtils(unityConnection);
         this.index = new CodeIndex(unityConnection);
+        this.projectInfo = new ProjectInfoProvider(unityConnection);
+        this.lsp = null;
     }
 
     validate(params) {
@@ -85,14 +87,11 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
             maxMatchesPerFile = 5
         } = params;
 
-        // Roslyn CLIへ委譲
-        const args = ['find-references'];
-        args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
-        args.push('--name', String(name));
-        if (path) args.push('--relative', String(path).replace(/\\\\/g, '/'));
-
-        const res = await this.roslyn.runCli(args);
-        let raw = Array.isArray(res?.results) ? res.results : [];
+        // LSP拡張へ委譲（mcp/referencesByName）
+        const info = await this.projectInfo.get();
+        if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
+        const resp = await this.lsp.request('mcp/referencesByName', { name: String(name) });
+        let raw = Array.isArray(resp?.result) ? resp.result : [];
 
         // スコープ絞り込み
         if (scope && scope !== 'all') {
