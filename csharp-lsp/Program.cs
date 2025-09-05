@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-// Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol / workspace/symbol / mcp/referencesByName / mcp/renameByNamePath
+// Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol / workspace/symbol / mcp/referencesByName / mcp/renameByNamePath / mcp/replaceSymbolBody / mcp/insertBeforeSymbol / mcp/insertAfterSymbol
 // This is a lightweight PoC that parses each file independently using Roslyn SyntaxTree.
 
 var server = new LspServer();
@@ -91,6 +91,27 @@ sealed class LspServer
                         var newName = p.GetProperty("newName").GetString() ?? "";
                         var apply = p.TryGetProperty("apply", out var a) && a.GetBoolean();
                         var resp = await RenameByNamePathAsync(relative, namePath, newName, apply);
+                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
+                    }
+                    else if (method == "mcp/replaceSymbolBody")
+                    {
+                        var p = root.GetProperty("params");
+                        var relative = p.GetProperty("relative").GetString() ?? "";
+                        var namePath = p.GetProperty("namePath").GetString() ?? "";
+                        var body = p.GetProperty("body").GetString() ?? "";
+                        var apply = p.TryGetProperty("apply", out var a2) && a2.GetBoolean();
+                        var resp = await ReplaceSymbolBodyAsync(relative, namePath, body, apply);
+                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
+                    }
+                    else if (method == "mcp/insertBeforeSymbol" || method == "mcp/insertAfterSymbol")
+                    {
+                        var p = root.GetProperty("params");
+                        var relative = p.GetProperty("relative").GetString() ?? "";
+                        var namePath = p.GetProperty("namePath").GetString() ?? "";
+                        var text = p.GetProperty("text").GetString() ?? "";
+                        var apply = p.TryGetProperty("apply", out var a3) && a3.GetBoolean();
+                        bool after = method.EndsWith("AfterSymbol", StringComparison.Ordinal);
+                        var resp = await InsertAroundSymbolAsync(relative, namePath, text, after, apply);
                         await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
                     }
                     else
@@ -315,6 +336,61 @@ sealed class LspServer
         // Minimal diff: return new text truncated
         if (newText.Length > 1000) return newText.Substring(0, 1000) + "…";
         return newText;
+    }
+
+    private async Task<object> ReplaceSymbolBodyAsync(string relative, string namePath, string bodyText, bool apply)
+    {
+        var full = Path.Combine(_rootDir, relative.Replace('/', Path.DirectorySeparatorChar));
+        if (!File.Exists(full)) return new { success = false, applied = false, error = "file_not_found" };
+        var text = await File.ReadAllTextAsync(full);
+        var tree = CSharpSyntaxTree.ParseText(text);
+        var root = await tree.GetRootAsync();
+        var (cursor, last) = FindNodeByNamePath(root, namePath);
+        if (last is not MethodDeclarationSyntax method) return new { success = false, applied = false, error = "method_not_found" };
+        var trimmed = bodyText.Trim();
+        if (!trimmed.StartsWith("{")) trimmed = "{" + trimmed;
+        if (!trimmed.EndsWith("}")) trimmed += "}";
+        var block = SyntaxFactory.ParseStatement(trimmed) as BlockSyntax ?? SyntaxFactory.Block();
+        var newRoot = root.ReplaceNode(method, method.WithBody(block));
+        var newText = newRoot.ToFullString();
+        if (apply) { await File.WriteAllTextAsync(full, newText, Encoding.UTF8); return new { success = true, applied = true }; }
+        return new { success = true, applied = false, preview = DiffPreview(text, newText) };
+    }
+
+    private async Task<object> InsertAroundSymbolAsync(string relative, string namePath, string textToInsert, bool after, bool apply)
+    {
+        var full = Path.Combine(_rootDir, relative.Replace('/', Path.DirectorySeparatorChar));
+        if (!File.Exists(full)) return new { success = false, applied = false, error = "file_not_found" };
+        var text = await File.ReadAllTextAsync(full);
+        var tree = CSharpSyntaxTree.ParseText(text);
+        var root = await tree.GetRootAsync();
+        var (cursor, last) = FindNodeByNamePath(root, namePath);
+        if (last is null) return new { success = false, applied = false, error = "symbol_not_found" };
+        var insertPos = after ? last.FullSpan.End : last.FullSpan.Start;
+        var newText = text.Substring(0, insertPos) + textToInsert + text.Substring(insertPos);
+        if (apply) { await File.WriteAllTextAsync(full, newText, Encoding.UTF8); return new { success = true, applied = true }; }
+        return new { success = true, applied = false, preview = DiffPreview(text, newText) };
+    }
+
+    private static (SyntaxNode cursor, SyntaxNode? last) FindNodeByNamePath(SyntaxNode root, string namePath)
+    {
+        var segs = (namePath ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        SyntaxNode cursor = root;
+        SyntaxNode? last = null;
+        for (int i = 0; i < segs.Length; i++)
+        {
+            var seg = segs[i];
+            var next = cursor.DescendantNodes().FirstOrDefault(n => n is ClassDeclarationSyntax c && c.Identifier.ValueText == seg
+                                                                  || n is StructDeclarationSyntax s && s.Identifier.ValueText == seg
+                                                                  || n is InterfaceDeclarationSyntax ii && ii.Identifier.ValueText == seg
+                                                                  || n is EnumDeclarationSyntax en && en.Identifier.ValueText == seg
+                                                                  || n is MethodDeclarationSyntax m && m.Identifier.ValueText == seg
+                                                                  || n is PropertyDeclarationSyntax p && p.Identifier.ValueText == seg
+                                                                  || (n is FieldDeclarationSyntax f && f.Declaration.Variables.Any(v => v.Identifier.ValueText == seg)));
+            if (next is null) break;
+            cursor = next; last = next;
+        }
+        return (cursor, last);
     }
 
     private static IEnumerable<string> EnumerateUnityCsFiles(string rootDir)

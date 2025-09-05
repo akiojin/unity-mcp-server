@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { RoslynCliUtils } from '../roslyn/RoslynCliUtils.js';
+import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
 export class ScriptEditStructuredToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -40,7 +41,8 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
             }
         );
         this.unityConnection = unityConnection;
-        this.roslyn = new RoslynCliUtils(unityConnection);
+        this.projectInfo = new ProjectInfoProvider(unityConnection);
+        this.lsp = null;
     }
 
     validate(params) {
@@ -81,64 +83,28 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
         const preview = params?.preview === true;
         const body = String(params.newText || '');
 
-        // Map: replace_body -> roslyn_replace_symbol_body, insert_* -> roslyn_insert_symbol
+        // Map operations to LSP extensions
+        const info = await this.projectInfo.get();
+        if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
+
         if (operation === 'replace_body') {
-            // Construct namePath: if only method name provided, assume within a class? We pass "Class/Method" if possible is unknown here.
-            // To keep behavior, accept simple symbolName and let CLI resolve within file scope: namePath = symbolName
-            const tmpParams = {
+            const resp = await this.lsp.request('mcp/replaceSymbolBody', {
                 relative,
                 namePath: symbolName,
                 body,
                 apply: !preview
-            };
-            // Build CLI args
-            const args = ['replace-symbol-body'];
-            args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
-            args.push('--relative', relative, '--name-path', tmpParams.namePath);
-            // write body to temp and call through RoslynCliUtils helper would duplicate logic; inline minimal here:
-            // Simpler approach: delegate to roslyn_replace_symbol_body tool handler via CLI util wrapper not included; do CLI with temp file below.
+            });
+            return this._summarizeResult(resp?.result ?? resp, { preview });
         }
-
-        // Fallback: delegate to specialized handlers for clarity
         if (operation === 'insert_before' || operation === 'insert_after') {
-            const cmd = operation === 'insert_before' ? 'insert-before-symbol' : 'insert-after-symbol';
-            const args = [cmd];
-            args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
-            args.push('--relative', relative, '--name-path', symbolName);
-            // temp file for body
-            const fs = await import('fs');
-            const os = await import('os');
-            const path = await import('path');
-            const tmp = await fs.promises.mkdtemp(path.default.join(os.default.tmpdir(), 'roslyn-insert-'));
-            const bodyFile = path.default.join(tmp, 'insert.txt');
-            await fs.promises.writeFile(bodyFile, body, 'utf8');
-            args.push('--body-file', bodyFile);
-            if (!preview) args.push('--apply', 'true');
-            try {
-                const res = await this.roslyn.runCli(args);
-                return this._summarizeResult(res, { preview });
-            } finally {
-                try { await fs.promises.rm(tmp, { recursive: true, force: true }); } catch {}
-            }
-        }
-
-        if (operation === 'replace_body') {
-            const fs = await import('fs');
-            const os = await import('os');
-            const path = await import('path');
-            const tmp = await fs.promises.mkdtemp(path.default.join(os.default.tmpdir(), 'roslyn-body-'));
-            const bodyFile = path.default.join(tmp, 'body.txt');
-            await fs.promises.writeFile(bodyFile, body, 'utf8');
-            const args = ['replace-symbol-body'];
-            args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
-            args.push('--relative', relative, '--name-path', symbolName, '--body-file', bodyFile);
-            if (!preview) args.push('--apply', 'true');
-            try {
-                const res = await this.roslyn.runCli(args);
-                return this._summarizeResult(res, { preview });
-            } finally {
-                try { await fs.promises.rm(tmp, { recursive: true, force: true }); } catch {}
-            }
+            const method = operation === 'insert_before' ? 'mcp/insertBeforeSymbol' : 'mcp/insertAfterSymbol';
+            const resp = await this.lsp.request(method, {
+                relative,
+                namePath: symbolName,
+                text: body,
+                apply: !preview
+            });
+            return this._summarizeResult(resp?.result ?? resp, { preview });
         }
 
         return { error: `Unsupported operation: ${operation}` };
