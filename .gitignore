@@ -23,6 +23,7 @@
 ExportedObj/
 .consulo/
 *.csproj
+!csharp-lsp/*.csproj
 !roslyn-cli/*.csproj
 *.unityproj
 *.sln
