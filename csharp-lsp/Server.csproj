@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <!-- Roslyn LSP 連携は段階的に追加予定。初期PoCは最小の常駐プロセスを提供。 -->
+  <ItemGroup>
+    <!-- 将来的に Microsoft.CodeAnalysis.LanguageServer 等を追加 -->
+  </ItemGroup>
+</Project>
+
