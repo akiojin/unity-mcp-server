@@ -18,3 +18,11 @@
 - MCP clients auto-download the matching LSP on first use.
 - No user install scripts required.
 
+## Legacy Cleanup (roslyn-cli)
+- If old roslyn-cli assets remain on GitHub Releases, remove them without deleting the releases:
+  - Prereq: `gh` CLI authenticated, `jq` installed.
+  - Dry-run:
+    - `REPO="<owner>/<repo>" DRY_RUN=1 ./scripts/cleanup-roslyn-assets.sh`
+  - Apply:
+    - `REPO="<owner>/<repo>" DRY_RUN=0 ./scripts/cleanup-roslyn-assets.sh`
+- The script deletes only assets whose names match `roslyn-cli` (case-insensitive). Releases and tags are preserved.
