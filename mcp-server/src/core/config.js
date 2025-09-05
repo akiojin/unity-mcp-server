@@ -52,6 +52,11 @@ const baseConfig = {
     engine: (process.env.SEARCH_ENGINE || 'naive').toLowerCase(), // naive|treesitter (future)
   },
 
+  // LSP client defaults
+  lsp: {
+    requestTimeoutMs: Number(process.env.LSP_REQUEST_TIMEOUT_MS || 60000),
+  },
+
   // Indexing (code index) settings
   indexing: {
     // Enable periodic incremental index updates (polling watcher)

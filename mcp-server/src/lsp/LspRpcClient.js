@@ -1,4 +1,5 @@
 import { LspProcessManager } from './LspProcessManager.js';
+import { config, logger } from '../core/config.js';
 
 export class LspRpcClient {
   constructor(projectRoot = null) {
@@ -9,12 +10,27 @@ export class LspRpcClient {
     this.buf = Buffer.alloc(0);
     this.initialized = false;
     this.projectRoot = projectRoot;
+    this.boundOnData = null;
   }
 
   async ensure() {
     if (this.proc && !this.proc.killed) return this.proc;
     this.proc = await this.mgr.ensureStarted();
-    this.proc.stdout.on('data', (chunk) => this.onData(chunk));
+    // Attach data handler once per process
+    if (this.boundOnData) {
+      try { this.proc.stdout.off('data', this.boundOnData); } catch {}
+    }
+    this.boundOnData = (chunk) => this.onData(chunk);
+    this.proc.stdout.on('data', this.boundOnData);
+    // On process close: reject all pending and reset state
+    this.proc.on('close', () => {
+      for (const [id, p] of Array.from(this.pending.entries())) {
+        try { p.reject(new Error('LSP process exited')); } catch {}
+        this.pending.delete(id);
+      }
+      this.initialized = false;
+      this.proc = null;
+    });
     if (!this.initialized) await this.initialize();
     return this.proc;
   }
@@ -63,7 +79,7 @@ export class LspRpcClient {
     };
     const p = new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
-      setTimeout(() => { if (this.pending.has(id)) { this.pending.delete(id); reject(new Error('LSP init timeout')); } }, 10000);
+      setTimeout(() => { if (this.pending.has(id)) { this.pending.delete(id); reject(new Error('LSP init timeout')); } }, Math.max(5000, Math.min(60000, config.lsp?.requestTimeoutMs || 60000)));
     });
     this.writeMessage(req);
     const resp = await p; // ignore result contents for stub
@@ -76,9 +92,10 @@ export class LspRpcClient {
   async request(method, params) {
     await this.ensure();
     const id = this.seq++;
+    const timeoutMs = Math.max(1000, Math.min(300000, config.lsp?.requestTimeoutMs || 60000));
     const p = new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
-      setTimeout(() => { if (this.pending.has(id)) { this.pending.delete(id); reject(new Error(method + ' timeout')); } }, 60000);
+      setTimeout(() => { if (this.pending.has(id)) { this.pending.delete(id); reject(new Error(`${method} timeout`)); } }, timeoutMs);
     });
     this.writeMessage({ jsonrpc: '2.0', id, method, params });
     return await p;
