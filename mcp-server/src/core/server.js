@@ -11,6 +11,7 @@ import {
 import { UnityConnection } from './unityConnection.js';
 import { createHandlers } from '../handlers/index.js';
 import { config, logger } from './config.js';
+import { IndexWatcher } from './indexWatcher.js';
 
 // Create Unity connection
 const unityConnection = new UnityConnection();
@@ -201,6 +202,13 @@ async function main() {
         logger.warn(`[startup] csharp-lsp start failed: ${e.message}`);
       }
     })();
+
+    // Start periodic index watcher (incremental)
+    const watcher = new IndexWatcher(unityConnection);
+    watcher.start();
+    const stopWatch = () => { try { watcher.stop(); } catch {} };
+    process.on('SIGINT', stopWatch);
+    process.on('SIGTERM', stopWatch);
     
     // Handle shutdown
     process.on('SIGINT', async () => {

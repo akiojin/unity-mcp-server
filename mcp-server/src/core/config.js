@@ -51,6 +51,18 @@ const baseConfig = {
     defaultDetail: (process.env.SEARCH_DEFAULT_DETAIL || 'compact').toLowerCase(), // compact|metadata|snippets|full
     engine: (process.env.SEARCH_ENGINE || 'naive').toLowerCase(), // naive|treesitter (future)
   },
+
+  // Indexing (code index) settings
+  indexing: {
+    // Enable periodic incremental index updates (polling watcher)
+    watch: (process.env.INDEX_WATCH || 'false').toLowerCase() === 'true',
+    // Polling interval (ms)
+    intervalMs: Number(process.env.INDEX_WATCH_INTERVAL_MS || 15000),
+    // Build options
+    concurrency: Number(process.env.INDEX_CONCURRENCY || 8),
+    retry: Number(process.env.INDEX_RETRY || 2),
+    reportEvery: Number(process.env.INDEX_REPORT_EVERY || 500),
+  },
 };
 
 /**
