@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
-using Microsoft.CodeAnalysis.Formatting;
 
 // Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol / workspace/symbol / mcp/referencesByName / mcp/renameByNamePath / mcp/replaceSymbolBody / mcp/insertBeforeSymbol / mcp/insertAfterSymbol / mcp/removeSymbol
 // This is a lightweight PoC that parses each file independently using Roslyn SyntaxTree.
