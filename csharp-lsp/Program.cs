@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
+using Microsoft.CodeAnalysis.Formatting;
 
 // Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol / workspace/symbol / mcp/referencesByName / mcp/renameByNamePath / mcp/replaceSymbolBody / mcp/insertBeforeSymbol / mcp/insertAfterSymbol / mcp/removeSymbol
 // This is a lightweight PoC that parses each file independently using Roslyn SyntaxTree.
@@ -71,6 +72,29 @@ sealed class LspServer
                         var result = await DocumentSymbolsAsync(path);
                         var resp = new { jsonrpc = "2.0", id = id.GetInt32(), result };
                         await WriteMessageAsync(resp);
+                    }
+                    else if (method == "textDocument/definition")
+                    {
+                        var p = root.GetProperty("params");
+                        var uri = p.GetProperty("textDocument").GetProperty("uri").GetString() ?? "";
+                        var pos = p.GetProperty("position");
+                        var def = await DefinitionAsync(Uri2Path(uri), pos.GetProperty("line").GetInt32(), pos.GetProperty("character").GetInt32());
+                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = def });
+                    }
+                    else if (method == "textDocument/implementation")
+                    {
+                        var p = root.GetProperty("params");
+                        var uri = p.GetProperty("textDocument").GetProperty("uri").GetString() ?? "";
+                        var pos = p.GetProperty("position");
+                        var impl = await DefinitionAsync(Uri2Path(uri), pos.GetProperty("line").GetInt32(), pos.GetProperty("character").GetInt32());
+                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = impl });
+                    }
+                    else if (method == "textDocument/formatting")
+                    {
+                        var p = root.GetProperty("params");
+                        var uri = p.GetProperty("textDocument").GetProperty("uri").GetString() ?? "";
+                        var edits = await FormattingAsync(Uri2Path(uri));
+                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = edits });
                     }
                     else if (method == "workspace/symbol")
                     {
@@ -276,6 +300,63 @@ sealed class LspServer
             if (i++ == zeroBasedLine) return line;
         }
         return string.Empty;
+    }
+
+    private async Task<object> DefinitionAsync(string path, int line, int character)
+    {
+        try
+        {
+            var text = await File.ReadAllTextAsync(path);
+            var tree = CSharpSyntaxTree.ParseText(text);
+            var root = await tree.GetRootAsync();
+            int offset = GetOffset(text, line, character);
+            var token = root.FindToken(offset);
+            var idName = token.Parent?.AncestorsAndSelf().OfType<IdentifierNameSyntax>().FirstOrDefault();
+            if (idName == null) return Array.Empty<object>();
+            // Search same-file declarations
+            SyntaxNode? decl = root.DescendantNodes().FirstOrDefault(n =>
+                n is ClassDeclarationSyntax c && c.Identifier.ValueText == idName.Identifier.ValueText
+             || n is StructDeclarationSyntax s && s.Identifier.ValueText == idName.Identifier.ValueText
+             || n is InterfaceDeclarationSyntax i && i.Identifier.ValueText == idName.Identifier.ValueText
+             || n is EnumDeclarationSyntax e && e.Identifier.ValueText == idName.Identifier.ValueText
+             || n is MethodDeclarationSyntax m && m.Identifier.ValueText == idName.Identifier.ValueText
+             || n is PropertyDeclarationSyntax p && p.Identifier.ValueText == idName.Identifier.ValueText
+             || (n is FieldDeclarationSyntax f && f.Declaration.Variables.Any(v => v.Identifier.ValueText == idName.Identifier.ValueText))
+            );
+            if (decl == null) return Array.Empty<object>();
+            var span = decl.GetLocation().GetLineSpan();
+            var start = new { line = span.StartLinePosition.Line, character = span.StartLinePosition.Character };
+            var end = new { line = span.EndLinePosition.Line, character = span.EndLinePosition.Character };
+            return new[] { new { uri = Path2Uri(path), range = new { start, end } } };
+        }
+        catch { return Array.Empty<object>(); }
+    }
+
+    private static int GetOffset(string text, int line, int character)
+    {
+        int curLine = 0, idx = 0;
+        while (idx < text.Length && curLine < line)
+        {
+            if (text[idx++] == '\n') curLine++;
+        }
+        return Math.Min(text.Length, idx + Math.Max(0, character));
+    }
+
+    private async Task<object> FormattingAsync(string path)
+    {
+        try
+        {
+            var text = await File.ReadAllTextAsync(path);
+            var tree = CSharpSyntaxTree.ParseText(text);
+            var root = await tree.GetRootAsync();
+            // Without Workspaces dependency, return full-document replace as no-op or minimal normalized
+            var newText = root.ToFullString();
+            if (newText == text) return Array.Empty<object>();
+            var start = new { line = 0, character = 0 };
+            var end = new { line = text.Split('\n').Length, character = 0 };
+            return new[] { new { range = new { start, end }, newText } };
+        }
+        catch { return Array.Empty<object>(); }
     }
 
     private async Task<object> RenameByNamePathAsync(string relative, string namePath, string newName, bool apply)
