@@ -104,12 +104,7 @@ sync_props() {
   rm -f "$file.bak"
 }
 
-if [ -f "csharp-lsp/Directory.Build.props" ]; then
-  sync_props "csharp-lsp/Directory.Build.props" "$NEW_VER"
-else
-  # フォールバック（移行期間のみ）
-  sync_props "roslyn-cli/Directory.Build.props" "$NEW_VER"
-fi
+sync_props "csharp-lsp/Directory.Build.props" "$NEW_VER"
 
 # 変更ファイルをコミット（npmが自動コミットしない場合の保険）
 git add mcp-server/package.json mcp-server/package-lock.json \
