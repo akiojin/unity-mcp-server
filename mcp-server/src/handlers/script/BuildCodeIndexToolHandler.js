@@ -68,11 +68,13 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
 
       // Update changed files
       const absList = changed.map(rel => path.resolve(info.projectRoot, rel));
-      const concurrency = 8;
-      let i = 0; let updated = 0;
+      const concurrency = Math.max(1, Math.min(64, Number(params?.concurrency || 8)));
+      const reportEvery = Math.max(1, Number(params?.reportEvery || 100));
+      const startAt = Date.now();
+      let i = 0; let updated = 0; let processed = 0;
 
       // LSP request with small retry/backoff
-      const requestWithRetry = async (uri, maxRetries = 2) => {
+      const requestWithRetry = async (uri, maxRetries = Math.max(0, Math.min(5, Number(params?.retry || 2)))) => {
         let lastErr = null;
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
           try {
@@ -99,6 +101,14 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
             await this.index.upsertFile(rel, wanted.get(rel));
             updated += 1;
           } catch {}
+          finally {
+            processed += 1;
+            if (processed % reportEvery === 0 || processed === absList.length) {
+              const elapsed = Math.max(1, Date.now() - startAt);
+              const rate = (processed * 1000 / elapsed).toFixed(1);
+              logger.info(`[index] progress ${processed}/${absList.length} (removed:${removed.length}) rate:${rate} f/s`);
+            }
+          }
         }
       };
       const workers = Array.from({ length: Math.min(concurrency, absList.length) }, () => worker());
