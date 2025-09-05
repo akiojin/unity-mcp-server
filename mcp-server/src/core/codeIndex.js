@@ -50,6 +50,11 @@ export class CodeIndex {
         key TEXT PRIMARY KEY,
         value TEXT
       );
+      CREATE TABLE IF NOT EXISTS files (
+        path TEXT PRIMARY KEY,
+        sig TEXT,
+        updatedAt TEXT
+      );
       CREATE TABLE IF NOT EXISTS symbols (
         path TEXT NOT NULL,
         name TEXT NOT NULL,
@@ -78,6 +83,7 @@ export class CodeIndex {
     const insert = db.prepare('INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)');
     const tx = db.transaction((rows) => {
       db.exec('DELETE FROM symbols');
+      db.exec('DELETE FROM files');
       for (const r of rows) {
         insert.run(r.path, r.name, r.kind, r.container || null, r.ns || r.namespace || null, r.line || null, r.column || null);
       }
@@ -85,6 +91,44 @@ export class CodeIndex {
     });
     tx(symbols || []);
     return { total: symbols?.length || 0 };
+  }
+
+  // Incremental APIs
+  async getFiles() {
+    const db = await this.open();
+    if (!db) return new Map();
+    const rows = db.prepare('SELECT path, sig FROM files').all();
+    const map = new Map();
+    for (const r of rows) map.set(String(r.path), String(r.sig || ''));
+    return map;
+  }
+
+  async upsertFile(pathStr, sig) {
+    const db = await this.open();
+    if (!db) return;
+    db.prepare('REPLACE INTO files(path,sig,updatedAt) VALUES (?,?,?)').run(pathStr, sig || '', new Date().toISOString());
+  }
+
+  async removeFile(pathStr) {
+    const db = await this.open();
+    if (!db) return;
+    const tx = db.transaction((p) => {
+      db.prepare('DELETE FROM symbols WHERE path = ?').run(p);
+      db.prepare('DELETE FROM files WHERE path = ?').run(p);
+    });
+    tx(pathStr);
+  }
+
+  async replaceSymbolsForPath(pathStr, rows) {
+    const db = await this.open();
+    if (!db) return;
+    const tx = db.transaction((p, list) => {
+      db.prepare('DELETE FROM symbols WHERE path = ?').run(p);
+      const insert = db.prepare('INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)');
+      for (const r of list) insert.run(p, r.name, r.kind, r.container || null, r.ns || r.namespace || null, r.line || null, r.column || null);
+      db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)').run('lastIndexedAt', new Date().toISOString());
+    });
+    tx(pathStr, rows || []);
   }
 
   async querySymbols({ name, kind, scope = 'all', exact = false }) {

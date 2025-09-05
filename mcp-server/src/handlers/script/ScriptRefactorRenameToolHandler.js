@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { RoslynCliUtils } from '../roslyn/RoslynCliUtils.js';
+import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
 export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -17,7 +18,8 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
                 required: ['relative', 'namePath', 'newName']
             }
         );
-        this.roslyn = new RoslynCliUtils(unityConnection);
+        this.projectInfo = new ProjectInfoProvider(unityConnection);
+        this.lsp = null;
     }
 
     validate(params) {
@@ -28,14 +30,16 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
 
     async execute(params) {
         const { relative, namePath, newName, preview = true } = params;
-        const args = ['rename-symbol'];
-        args.push(...(await this.roslyn.getSolutionOrProjectArgs()));
-        args.push('--relative', String(relative).replace(/\\\\/g, '/'));
-        args.push('--name-path', String(namePath));
-        args.push('--new-name', String(newName));
-        if (!preview) args.push('--apply', 'true');
-        const res = await this.roslyn.runCli(args);
-        return this._summarizeResult(res);
+        const info = await this.projectInfo.get();
+        if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
+        const resp = await this.lsp.request('mcp/renameByNamePath', {
+            relative: String(relative).replace(/\\\\/g, '/'),
+            namePath: String(namePath),
+            newName: String(newName),
+            apply: !preview
+        });
+        const r = resp?.result ?? resp;
+        return this._summarizeResult(r);
     }
 
     _summarizeResult(res) {

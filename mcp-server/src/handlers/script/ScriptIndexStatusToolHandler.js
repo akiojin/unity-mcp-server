@@ -25,19 +25,37 @@ export class ScriptIndexStatusToolHandler extends BaseToolHandler {
             return { success: false, error: 'index_not_built', message: 'Code index is not built. Please run UnityMCP.build_code_index first.' };
         }
 
-        // 構築済みなら roslyn-cli 経由で総ファイル数を取得
-        try {
-            const { RoslynCliUtils } = await import('../roslyn/RoslynCliUtils.js');
-            const roslyn = new RoslynCliUtils(this.unityConnection);
-            const args = ['index-summary'];
-            args.push(...(await roslyn.getSolutionOrProjectArgs()));
-            const res = await roslyn.runCli(args);
-            const total = res.totalFiles ?? 0;
-            const stats = await idx.getStats();
-            const coverage = total > 0 ? Math.min(1, stats.total / total) : 0;
-            return { success: true, totalFiles: total, indexedFiles: stats.total, coverage, breakdown: res.breakdown, index: { ready: true, rows: stats.total, lastIndexedAt: stats.lastIndexedAt } };
-        } catch (e) {
-            return { success: false, error: 'roslyn_cli_unavailable', message: e.message };
-        }
+        // 構築済みなら .cs 総数をローカル走査で取得（軽量）
+        const info = await this.projectInfo.get();
+        const fs = await import('fs');
+        const path = await import('path');
+        const roots = [
+            path.default.resolve(info.projectRoot, 'Assets'),
+            path.default.resolve(info.projectRoot, 'Packages'),
+            path.default.resolve(info.projectRoot, 'Library/PackageCache'),
+        ];
+        let total = 0; const breakdown = { assets: 0, packages: 0, packageCache: 0, other: 0 };
+        const walk = (dir) => {
+            try {
+                if (!fs.default.existsSync(dir)) return;
+                const st = fs.default.statSync(dir);
+                if (st.isFile()) {
+                    if (dir.endsWith('.cs')) {
+                        total++;
+                        const rel = dir.replace(/\\\\/g, '/').replace(info.projectRoot.replace(/\\\\/g,'/'), '').replace(/^\//,'');
+                        if (rel.startsWith('Assets/')) breakdown.assets++; else if (rel.startsWith('Packages/')) breakdown.packages++; else if (rel.includes('Library/PackageCache/')) breakdown.packageCache++; else breakdown.other++;
+                    }
+                    return;
+                }
+                for (const e of fs.default.readdirSync(dir)) {
+                    if (e === 'obj' || e === 'bin' || e.startsWith('.')) continue;
+                    walk(path.default.join(dir, e));
+                }
+            } catch {}
+        };
+        for (const r of roots) walk(r);
+        const stats = await idx.getStats();
+        const coverage = total > 0 ? Math.min(1, stats.total / total) : 0;
+        return { success: true, totalFiles: total, indexedFiles: stats.total, coverage, breakdown, index: { ready: true, rows: stats.total, lastIndexedAt: stats.lastIndexedAt } };
   }
 }

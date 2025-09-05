@@ -54,23 +54,27 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
             const abs = path.join(info.projectRoot, relPath);
             const st = await fs.stat(abs).catch(() => null);
             if (!st || !st.isFile()) return { error: 'File not found', path: relPath };
-            // Roslyn CLIで当該ファイル内のシンボルを列挙（nameに空文字を渡し全一致）
-            const { RoslynCliUtils } = await import('../roslyn/RoslynCliUtils.js');
-            const roslyn = new RoslynCliUtils(this.unityConnection);
-            const args = ['find-symbol'];
-            args.push(...(await roslyn.getSolutionOrProjectArgs()));
-            args.push('--relative', relPath, '--name', '');
-            const res = await roslyn.runCli(args);
-            const list = (res.results || []).map(r => ({
-                name: r.name,
-                kind: r.kind,
-                container: r.container,
-                namespace: r.ns,
-                startLine: r.line,
-                startColumn: r.column,
-                endLine: r.line,
-                endColumn: r.column
-            }));
+            const { LspRpcClient } = await import('../../lsp/LspRpcClient.js');
+            const lsp = new LspRpcClient(info.projectRoot);
+            const uri = 'file://' + abs.replace(/\\\\/g, '/');
+            const res = await lsp.request('textDocument/documentSymbol', { textDocument: { uri } });
+            const docSymbols = res?.result ?? res ?? [];
+            const list = [];
+            const visit = (s, container) => {
+                const start = s.range?.start || s.selectionRange?.start || {};
+                list.push({
+                    name: s.name || '',
+                    kind: mapKind(s.kind),
+                    container: container || null,
+                    namespace: null,
+                    startLine: (start.line ?? 0) + 1,
+                    startColumn: (start.character ?? 0) + 1,
+                    endLine: (start.line ?? 0) + 1,
+                    endColumn: (start.character ?? 0) + 1
+                });
+                if (Array.isArray(s.children)) for (const c of s.children) visit(c, s.name || container);
+            };
+            if (Array.isArray(docSymbols)) for (const s of docSymbols) visit(s, null);
             return { success: true, path: relPath, symbols: list };
         } catch (e) {
             return { error: e.message || 'Failed to get symbols' };

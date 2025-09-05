@@ -4,20 +4,22 @@ RUN apt-get update && apt-get install -y \
     jq \
     ripgrep \
     wget \
+    curl \
+    dos2unix \
     ca-certificates \
     gnupg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install .NET 9 SDK (for roslyn-cli build)
+# Install .NET 9 SDK (for C# LSP build) via official install script
+ENV DOTNET_ROOT=/usr/share/dotnet
+ENV PATH="${DOTNET_ROOT}:${PATH}"
 RUN set -eux; \
-    wget https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb -O /tmp/packages-microsoft-prod.deb; \
-    dpkg -i /tmp/packages-microsoft-prod.deb; \
-    rm /tmp/packages-microsoft-prod.deb; \
-    apt-get update; \
-    apt-get install -y dotnet-sdk-9.0; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/*
+    wget -O /tmp/dotnet-install.sh https://dot.net/v1/dotnet-install.sh; \
+    chmod +x /tmp/dotnet-install.sh; \
+    /tmp/dotnet-install.sh --channel 9.0 --install-dir "$DOTNET_ROOT"; \
+    ln -sf "$DOTNET_ROOT/dotnet" /usr/bin/dotnet; \
+    dotnet --info
 
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
@@ -33,5 +35,6 @@ RUN curl -fsSL https://astral.sh/uv/install.sh | bash
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 WORKDIR /unity-editor-mcp
-ENTRYPOINT ["/unity-editor-mcp/scripts/entrypoint.sh"]
+# Use bash to invoke entrypoint to avoid exec-bit and CRLF issues on Windows mounts
+ENTRYPOINT ["bash", "/unity-editor-mcp/scripts/entrypoint.sh"]
 CMD ["bash"]

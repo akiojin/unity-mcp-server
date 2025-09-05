@@ -82,7 +82,7 @@
 
 ## プロジェクト構成（リポジトリ全体）
 
-本リポジトリは「ワークスペース（リポジトリ）ルート」を基点として、Unityプロジェクト・Node製MCPサーバ・Roslyn CLI を同居させています。パスは常にワークスペースルート基準で解決します。
+本リポジトリは「ワークスペース（リポジトリ）ルート」を基点として、Unityプロジェクト・Node製MCPサーバ・C# LSP を同居させています。パスは常にワークスペースルート基準で解決します。
 
 - ワークスペースルート
   - 定義: コーディングエージェント（Codex等）が「起動したディレクトリ」。
@@ -116,10 +116,10 @@
     - `capture_video_start` / `capture_video_for` で `workspaceRoot` を常時付与。
     - `capture_video_for` は「N秒録画→自動停止」を一括実行。
 
-- `roslyn-cli/`（外部 Roslyn Workspace CLI）
+- `csharp-lsp/`（外部 Roslyn Workspace CLI）
   - 目的: `.sln/.csproj` を MSBuildWorkspace でロードし、`find_symbol`/`find_referencing_symbols`/`replace_symbol_body`/`insert_{before,after}` を安全に提供。
   - 実行: MCPサーバ（Node）からCLIを呼び出し、Unityとは直接通信しない。
-  - 成果物: 自己完結バイナリは `.tools/roslyn-cli/<rid>/` 配下（Git管理外推奨）。
+  - 成果物: 自己完結バイナリは `.tools/csharp-lsp/<rid>/` 配下（Git管理外推奨）。
 
 ### パス解決ポリシー（統一）
 - スクリーンショット/動画の出力先は常にワークスペースルート固定の `./.unity/capture/`。

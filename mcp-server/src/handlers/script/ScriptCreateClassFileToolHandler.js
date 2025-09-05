@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { RoslynCliUtils } from '../roslyn/RoslynCliUtils.js';
+import fs from 'fs';
+import path from 'path';
 
 // script_*系に名称統一: 新規C#クラスを新規ファイルで生成
 export class ScriptCreateClassFileToolHandler extends BaseToolHandler {
@@ -21,58 +22,39 @@ export class ScriptCreateClassFileToolHandler extends BaseToolHandler {
         required: ['path','className']
       }
     );
-    this.utils = new RoslynCliUtils(unityConnection);
+    this.unityConnection = unityConnection;
   }
 
   async execute(params) {
-    const { path, className, namespace: ns, baseType, usings, partial = false, apply = false } = params;
-    const args = ['create-type-file'];
-    args.push(...(await this.utils.getSolutionOrProjectArgs()));
-    args.push('--relative', String(path).replace(/\\\\/g, '/'));
-    args.push('--name', String(className));
-    if (ns) args.push('--namespace', String(ns));
-    if (baseType) args.push('--base', String(baseType));
-    if (usings) args.push('--usings', String(usings));
-    if (partial) args.push('--partial', 'true');
-    if (apply) args.push('--apply', 'true');
-    const res = await this.utils.runCli(args);
-    return this._summarizeResult(res);
+    const { path: rel, className, namespace: ns, baseType, usings, partial = false, apply = false } = params;
+    const relative = String(rel).replace(/\\\\/g, '/').endsWith('.cs') ? String(rel).replace(/\\\\/g, '/') : String(rel).replace(/\\\\/g, '/') + '.cs';
+    const code = this._buildSource({ className: String(className), ns: ns ? String(ns) : null, baseType: baseType ? String(baseType) : null, usings: usings ? String(usings) : null, partial: !!partial });
+    if (!apply) {
+      return { success: true, applied: false, preview: code.slice(0, 1000), previewTruncated: code.length > 1000, relative: relative };
+    }
+    const full = this._resolveFullPath(relative);
+    fs.mkdirSync(path.dirname(full), { recursive: true });
+    fs.writeFileSync(full, code, 'utf8');
+    return { success: true, applied: true, relative };
   }
 
-  _summarizeResult(res) {
-    if (!res || typeof res !== 'object') return res;
-    const MAX_ERRORS = 30;
-    const MAX_MSG_LEN = 200;
-    const MAX_TEXT_LEN = 1000;
-    const out = {};
-    if ('id' in res) out.id = res.id;
-    // workspace情報は返さない（厳格: .sln必須のため）
-    if ('success' in res) out.success = !!res.success;
-    if ('applied' in res) out.applied = !!res.applied;
-    if (Array.isArray(res.errors)) {
-      const trimmed = res.errors.slice(0, MAX_ERRORS).map(e => {
-        const o = {};
-        if (e && typeof e === 'object') {
-          if ('id' in e) o.id = e.id;
-          if ('message' in e) o.message = String(e.message).slice(0, MAX_MSG_LEN);
-          if ('file' in e) o.file = String(e.file).slice(0, 260);
-          if ('line' in e) o.line = e.line;
-          if ('column' in e) o.column = e.column;
-        } else { o.message = String(e).slice(0, MAX_MSG_LEN); }
-        return o;
-      });
-      out.errorCount = res.errors.length;
-      out.errors = trimmed;
+  _resolveFullPath(relative) {
+    // Project root resolution via ProjectInfoProvider would be heavier; reconstruct by walking up
+    const cwd = process.cwd();
+    return path.resolve(cwd, relative);
+  }
+
+  _buildSource({ className, ns, baseType, usings, partial }) {
+    const useList = [];
+    if (usings) useList.push(...usings.split(',').map(s => s.trim()).filter(Boolean));
+    if (baseType === 'MonoBehaviour' && !useList.includes('UnityEngine')) useList.push('UnityEngine');
+    const header = useList.length ? useList.map(u => `using ${u};`).join('\n') + '\n\n' : '';
+    const partialKw = partial ? ' partial' : '';
+    const baseClause = baseType ? ` : ${baseType}` : '';
+    const classBlock = `public${partialKw} class ${className}${baseClause}\n{\n}\n`;
+    if (ns) {
+      return `${header}namespace ${ns}\n{\n${classBlock}\n}`;
     }
-    for (const k of ['preview','diff','text','content']) {
-      if (typeof res[k] === 'string' && res[k].length > 0) {
-        out[k] = res[k].slice(0, MAX_TEXT_LEN);
-        if (res[k].length > MAX_TEXT_LEN) out[`${k}Truncated`] = true;
-      }
-    }
-    for (const k of ['operation','path','relative','symbolName']) {
-      if (res[k] !== undefined) out[k] = res[k];
-    }
-    return Object.keys(out).length ? out : res;
+    return `${header}${classBlock}`;
   }
 }

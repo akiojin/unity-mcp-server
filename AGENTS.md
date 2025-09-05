@@ -39,7 +39,7 @@
   - サマリ更新: 各カテゴリ追記後とラン終了時に、先頭のサマリテーブルを再計算して上書き。更新後の全文を `tests/.reports/latest.md` にも上書きする。
 - ToDo運用: ファイル出力は不要。エージェント（LLM）の ToDo/プラン機能（update_plan 等）に、各カテゴリの全テスト項目を登録し、実行中は `in_progress`、完了時に `completed` へ「都度」更新する。
 - 原状回復: 各ケース終了時に必ず原状復帰（チェックリスト行に `restored:true` を明記）。
-- BLOCKED_ENV の原因記録: ブロック時はチェックリスト行に短い原因語句を必ず併記（例: `blocked（Missing .sln）`）。加えて details に前提チェック結果の内訳（.sln/roslyn-cli/index など）を記載する。
+- BLOCKED_ENV の原因記録: ブロック時はチェックリスト行に短い原因語句を必ず併記（例: `blocked（Missing .sln）`）。加えて details に前提チェック結果の内訳（.sln/LSP/index など）を記載する。
 - fail / skip の理由記録: fail は簡潔な原因（期待不一致・検証エラー等）をチェックリスト行に併記し、details に根拠（入力・期待・観測・主要診断）を箇条書き。skip も理由を併記（例: `skip（UI 無し）`）。
 - コミット禁止: テスト結果/ToDo/キャプチャは成果物扱いで Git には含めない（`.unity/capture/`, `tests/.reports/`, `tests/.todo/` は .gitignore 済）。
 - 参照場所の要約:
@@ -89,23 +89,23 @@
 
 1. 変更内容に応じて適切なバージョンコマンドを選択
 2. `cd mcp-server && npm version [patch|minor|major]`
-3. （自動同期）`roslyn-cli/Directory.Build.props` と `UnityEditorMCP/Packages/unity-editor-mcp/package.json` の `version` が更新される
+3. （自動同期）`csharp-lsp/Directory.Build.props` と `UnityEditorMCP/Packages/unity-editor-mcp/package.json` の `version` が更新される
 4. 変更をコミット＆プッシュ、タグ `vX.Y.Z` を作成してプッシュ（`git push && git push origin vX.Y.Z`）
-5. GitHub Actions の `Release: roslyn-cli` 完了を確認（各RIDビルド＋Release公開）
+5. GitHub Actions の `Release csharp-lsp` 完了を確認（各RIDビルド＋Release公開）
 6. `Publish: mcp-server (npm)` の成功を確認（npm公開）
 
 ### リリース（自動公開）
 
-- roslyn-cli（GitHub Release に自動公開）
+- csharp-lsp（GitHub Release に自動公開）
   - トリガ: タグ `vX.Y.Z` のプッシュ
-  - CI: self-contained + 単一ファイルで各RIDを `dotnet publish`、`roslyn-cli-manifest.json` を生成し Release に添付（Workflow 名: `Release: roslyn-cli`）
-  - Node側: `mcp-server/package.json` の `version` と同一タグの `manifest.json` を参照し、RID資産をダウンロード（sha256検証）
+  - CI: self-contained + 単一ファイルで各RIDを `dotnet publish`、`csharp-lsp-csharp-lsp-manifest.json` を生成し Release に添付（Workflow 名: `Release: csharp-lsp`）
+  - Node側: `mcp-server/package.json` の `version` と同一タグの `csharp-lsp-manifest.json` を参照し、RID資産をダウンロード（sha256検証）
 - mcp-server（npm 公開に自動対応）
   - トリガ: GitHub Release の published（`vX.Y.Z`）
   - CI: `mcp-server` の `npm ci && npm run test:ci && npm publish --access public`（Workflow 名: `Publish: mcp-server (npm)`）
   - 前提: リポジトリSecret `NPM_TOKEN` を設定（npmのPublish権限付きトークン）
 - Unity UPM（GitHubパス指定で配布）
-  - 消費側は `Packages/manifest.json` に Git URL を記載（例）:
+  - 消費側は `Packages/csharp-lsp-manifest.json` に Git URL を記載（例）:
     - `"com.unity.editor-mcp": "https://github.com/akiojin/unity-editor-mcp.git#vX.Y.Z"`
   - レジストリ公開は不要。タグに対応した `package.json.version` が使われます。
 
@@ -118,20 +118,20 @@
   - `cd mcp-server`
   - `npm version patch|minor|major`
     - 自動で以下が同期される:
-      - `roslyn-cli/Directory.Build.props` の `<Version>` 群
+      - `csharp-lsp/Directory.Build.props` の `<Version>` 群
       - `UnityEditorMCP/Packages/unity-editor-mcp/package.json` の `version`
   - `git push --follow-tags`
-  - GitHub Actions で `roslyn-cli release` の成功を確認
+  - GitHub Actions で `csharp-lsp release` の成功を確認
   - GitHub Releases の対象タグ（例: `v2.13.4`）に以下が存在することを確認:
-    - `roslyn-cli-{win,osx,linux}-{x64,arm64}[.exe]`（6種）
-    - `roslyn-cli-manifest.json`（RIDごとの `url/sha256/size` を収録）
+    - `csharp-lsp-{win,osx,linux}-{x64,arm64}[.exe]`（6種）
+    - `csharp-lsp-csharp-lsp-manifest.json`（RIDごとの `url/sha256/size` を収録）
   - （必要時）`cd mcp-server && npm publish`
 
-### roslyn-cli リリースの自動化仕様
+### csharp-lsp リリースの自動化仕様
 
 - トリガ: タグ `vX.Y.Z` のプッシュ（`npm version` により作成）
-- CI: self-contained + 単一ファイルで各RIDを `dotnet publish`、`roslyn-cli-manifest.json` を生成し Release に添付
-- Node側: `mcp-server/package.json` の `version` と同一タグの `manifest.json` を参照し、RID資産をダウンロード（sha256検証）
+- CI: self-contained + 単一ファイルで各RIDを `dotnet publish`、`csharp-lsp-csharp-lsp-manifest.json` を生成し Release に添付
+- Node側: `mcp-server/package.json` の `version` と同一タグの `csharp-lsp-csharp-lsp-manifest.json` を参照し、RID資産をダウンロード（sha256検証）
 - ポリシー: 「常に最新版DL」は行わず、必ず“同一バージョン固定”で取得
 
 ## コードクオリティガイドライン
@@ -151,7 +151,7 @@
 
 ## プロジェクト構成（リポジトリ全体）
 
-本リポジトリは「ワークスペース（リポジトリ）ルート」を基点として、Unityプロジェクト・Node製MCPサーバ・Roslyn CLI を同居させています。パスは常にワークスペースルート基準で解決します。
+本リポジトリは「ワークスペース（リポジトリ）ルート」を基点として、Unityプロジェクト・Node製MCPサーバ・C# LSP を同居させています。パスは常にワークスペースルート基準で解決します。
 
 - ワークスペースルート
   - 定義: コーディングエージェント（Codex等）が「起動したディレクトリ」。
@@ -185,10 +185,10 @@
     - `capture_video_start` / `capture_video_for` で `workspaceRoot` を常時付与。
     - `capture_video_for` は「N秒録画→自動停止」を一括実行。
 
-- `roslyn-cli/`（外部 Roslyn Workspace CLI）
+- `csharp-lsp/`（外部 Roslyn Workspace CLI）
   - 目的: `.sln/.csproj` を MSBuildWorkspace でロードし、`find_symbol`/`find_referencing_symbols`/`replace_symbol_body`/`insert_{before,after}` を安全に提供。
   - 実行: MCPサーバ（Node）からCLIを呼び出し、Unityとは直接通信しない。
-- 成果物: 自己完結バイナリは `.unity/tools/roslyn-cli/<rid>/` 配下（Git管理外推奨）。
+- 成果物: 自己完結バイナリは `.unity/tools/csharp-lsp/<rid>/` 配下（Git管理外推奨）。
 
 ### パス解決ポリシー（統一）
 - スクリーンショット/動画の出力先は常にワークスペースルート固定の `./.unity/capture/`。

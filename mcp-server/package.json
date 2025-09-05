@@ -1,6 +1,6 @@
 {
   "name": "@akiojin/unity-editor-mcp",
-  "version": "2.13.23",
+  "version": "2.13.27",
   "description": "MCP server for Unity Editor integration - enables AI assistants to control Unity Editor",
   "type": "module",
   "main": "src/core/server.js",
@@ -24,8 +24,7 @@
     "test:ci:all": "c8 --reporter=lcov node --test tests/unit/**/*.test.js",
     "test:verbose": "VERBOSE_TEST=true node --test tests/**/*.test.js",
     "prepublishOnly": "npm run test:ci",
-    "postinstall": "chmod +x bin/unity-editor-mcp || true",
-    "version": "node scripts/sync-roslyn-version.js"
+    "postinstall": "chmod +x bin/unity-editor-mcp || true"
   },
   "keywords": [
     "mcp",

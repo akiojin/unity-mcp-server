@@ -9,33 +9,17 @@ Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on
 ### Related Docs
 
 - Video Capture Feature Plan: `docs/video-capture-plan.md`
+- Planned: C# Language Server (self-contained) RFC: `docs/RFCs/0001-csharp-lsp.md`
 
 ### C# Editing Policy (Important)
 
-- All C# symbol/search/structured edits are performed via an external CLI (roslyn-cli) bundled in this repo; no Unity communication is involved.
-- Existing `script_*` tools now call the CLI under the hood, so edits are robust to Unity compilation/domain reload.
+- All C# symbol/search/structured edits are performed via a self-contained C# Language Server (LSP) bundled in this repo; no Unity communication is involved.
+- Existing `script_*` tools call the LSP under the hood, so edits are robust to Unity compilation/domain reload.
 - Risky line-based patch/pattern replace tools were removed.
 
 For Contributors
 
-Developer setup and building `roslyn-cli` from source are documented in `CONTRIBUTING.md`. End users can ignore this; no .NET installation is required to use the tools.
-
-roslyn-cli provisioning (multiple entry points)
-
-- Default auto-provisioning (implemented)
-  - Standard location: `WORKSPACE_ROOT/.unity/tools/roslyn-cli/<rid>/roslyn-cli`
-  - Auto-build if bootstrap scripts are present, otherwise auto-download from GitHub Releases (with SHA256 verification)
-  - No extra configuration or env variables required
-
-- One-liner installers (UNIX / Windows PowerShell)
-  - UNIX: `curl -fsSL https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.sh | bash -s -- --version <ver> --rid <rid>`
-  - PowerShell: `irm https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.ps1 | iex` (e.g., `-Version 2.9.1 -Rid win-x64`)
-  - Both install to `./.unity/tools/roslyn-cli/<rid>/`
-
-- npx (available)
-  - Example: `npx -y @akiojin/roslyn-cli ak-roslyn serve --solution <path>`
-  - First-run resolves RID → downloads from GitHub Releases → verifies SHA256 → delegates to the binary
-  - The binary is stored under `./.unity/tools/roslyn-cli/<rid>/roslyn-cli(.exe)` and reused next time
+Developer note: the LSP is self-contained and auto-provisioned by the MCP server (fixed-version by tag). No .NET SDK is required for end users.
 
 Common usage (MCP tools)
 
@@ -51,7 +35,7 @@ Run `AssetDatabase.Refresh` in Unity manually only when needed.
 
 Performance mode (default)
 
-- The server tries to use a persistent `roslyn-cli serve` by default to avoid cold starts.
+- The server runs a persistent LSP process by default to avoid cold starts.
 - To opt-out (one-shot per request), set `ROSLYN_CLI_MODE=oneshot` (or `off`).
 
 ## LLM Optimization Principles
@@ -88,7 +72,7 @@ Suggested caps
 - UI automation: locate and interact with UI, validate UI state
 - Input simulation: keyboard/mouse/gamepad/touch for playmode testing (Input System only)
 - Visual capture: deterministic screenshots from Game/Scene/Explorer/Window views, optional analysis
-- Code base awareness: safe structured edits and accurate symbol/search powered by external Roslyn CLI
+- Code base awareness: safe structured edits and accurate symbol/search powered by the bundled C# LSP
 - Project control: read/update selected project/editor settings; read logs, monitor compilation
 
 ## Unity–MCP Connection
@@ -267,45 +251,14 @@ sequenceDiagram
 - Capabilities: simulate keyboard, mouse, gamepad, and touch input for playmode testing and UI interaction.
 - Tip: Ensure your project uses Input System; otherwise simulated input will not affect gameplay.
 
-## C# Editing Backend (Roslyn CLI)
+## C# Language Server (LSP)
 
-`roslyn-cli` loads your `.sln/.csproj` via Roslyn/MSBuildWorkspace and exposes:
-`find-symbol`, `find-references`, `replace-symbol-body`, `insert-before-symbol`, `insert-after-symbol`, `rename-symbol`.
-All `script_*` tools call this CLI under the hood.
-- Triggers: Asset refresh, compilation complete, script edits applied.
+The project bundles a self-contained C# Language Server (LSP). The MCP server auto-downloads and manages its lifecycle. `script_*` tools talk to the LSP under the hood:
 
-### Code Index & Analysis (How it works)
-
-This project does not persist a JSON index anymore. Instead, it performs on-demand, authoritative analysis through Roslyn when you call `script_*` tools.
-
-- Separation of concerns
-  - Unity: editor-side automation only. No C# parsing in the Editor domain.
-  - Node: delegates C# analysis/edits to the external `roslyn-cli` (loads `.sln/.csproj`).
-
-- What the CLI builds internally
-  - Solution/Project graph with MSBuildWorkspace.
-  - Syntax trees + SemanticModel via Roslyn compilations.
-  - Symbol model (type/member with namespace/container, and their spans).
-
-- Operations flow
-  1) MCP tool called (e.g., `script_symbol_find`).
-  2) Server spawns `roslyn-cli ...` for the specific action.
-  3) CLI returns JSON with `{ path, name, kind, line, column, container, ns }` or edit results.
-  4) For edits: preflight compile (in-memory) → if errors, block; if clean, apply workspace changes atomically.
-  5) Unity `AssetDatabase.Refresh` is manual and only needed when you want the Editor to reload scripts.
-
-- Safety guarantees
-  - Structured edits only (body replace, insert before/after, semantic rename).
-  - Preflight compilation blocks error-inducing changes.
-  - No blind line-based replacements.
-
-- Performance
-  - On-demand analysis has a cold-start cost (solution load) but avoids Unity domain reload issues.
-  - You can prebuild self-contained CLI binaries (see CI workflow) to speed up environments.
-
-- Limitations
-  - Unsaved buffers are not considered (CLI reads from disk). Save files before running tools.
-  - `namePath` like `OuterType/InnerType/Method` resolves nested types/members.
+- Index: scans all `.cs` with `documentSymbol` and persists to SQLite (Library/UnityMCP/CodeIndex)
+- Find symbols/references: `workspace/symbol` + LSP extensions
+- Edits: rename/replace/insert/remove via LSP extensions
+- Safety: structured edits, preview/apply options, no blind line-based patches
 
 Sequence
 

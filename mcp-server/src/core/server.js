@@ -187,15 +187,18 @@ async function main() {
       logger.info('Unity connection will retry automatically');
     }
 
-    // Best-effort: pre-provision roslyn-cli binary at startup (non-blocking)
+    // Best-effort: prepare and start persistent C# LSP process (non-blocking)
     ;(async () => {
       try {
-        const { RoslynCliUtils } = await import('../handlers/roslyn/RoslynCliUtils.js');
-        const roslyn = new RoslynCliUtils(unityConnection);
-        const cliPath = await roslyn.getCliPath();
-        logger.info(`[startup] roslyn-cli ready at: ${cliPath}`);
+        const { LspProcessManager } = await import('../lsp/LspProcessManager.js');
+        const mgr = new LspProcessManager();
+        await mgr.ensureStarted();
+        // Attach graceful shutdown
+        const shutdown = async () => { try { await mgr.stop(3000); } catch {} };
+        process.on('SIGINT', shutdown);
+        process.on('SIGTERM', shutdown);
       } catch (e) {
-        logger.warn(`[startup] roslyn-cli not ready: ${e.message}`);
+        logger.warn(`[startup] csharp-lsp start failed: ${e.message}`);
       }
     })();
     

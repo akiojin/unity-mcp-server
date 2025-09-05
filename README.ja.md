@@ -9,33 +9,19 @@ Unity Editor MCP は、LLMクライアントからUnity Editorを自動化しま
 ### 関連ドキュメント
 
 - 動画保存機能 計画: `docs/video-capture-plan.md`
+- 予定: C# LSP（自己完結配布）RFC: `docs/RFCs/0001-csharp-lsp.md`
 
 ### C#編集の方針（重要）
 
-- C#の探索/参照/構造化編集は、Unityとは通信せず、リポジトリ同梱の外部CLI（roslyn-cli）で行います。
-- 既存の `script_*` ツールは内部実装が外部CLIに切り替わっており、Unityのコンパイル/ドメインリロードの影響を受けません。
+- C# の探索/参照/構造化編集は、同梱の自己完結 C# LSP で行います（Unityとは通信しません）。
+- `script_*` ツールは内部で LSP を呼び出すため、Unity のコンパイル/ドメインリロードの影響を受けにくくなっています。
 - 危険な行単位置換（line-based patch / pattern置換）は廃止しました。
 
 開発者向け情報
 
 ソースからのビルドや開発環境のセットアップは `CONTRIBUTING.md` に記載しています。利用者は .NET のインストールは不要です。
 
-roslyn-cli の配備（オプションの入口）
-
-- 既定の自動配備（推奨・実装済み）
-  - 配置先: `WORKSPACE_ROOT/.unity/tools/roslyn-cli/<rid>/roslyn-cli`
-  - リポジトリにビルドスクリプトがあれば「自動ビルド」、無ければ GitHub Releases から「自動ダウンロード（SHA256 検証）」
-  - 追加設定不要（MCPサーバが自動で解決）
-
-- ワンライナー（UNIX系／Windows PowerShell）
-  - UNIX系: `curl -fsSL https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.sh | bash -s -- --version <ver> --rid <rid>`
-  - PowerShell: `irm https://raw.githubusercontent.com/akiojin/unity-editor-mcp/main/scripts/install-roslyn-cli.ps1 | iex`（引数例: `-Version 2.9.1 -Rid win-x64`）
-  - いずれも配置先は `./.unity/tools/roslyn-cli/<rid>/`
-
-- npx（利用可能）
-  - 例: `npx -y @akiojin/roslyn-cli ak-roslyn serve --solution <path>`
-  - 初回実行時に RID 判定→GitHub Releases から取得→SHA256 検証→実行に委譲
-  - 実行ファイルは `./.unity/tools/roslyn-cli/<rid>/roslyn-cli(.exe)` に配置され、以降は再利用されます
+LSP は MCP サーバが自動ダウンロード・自動更新（固定版）を行います。ユーザー側での .NET SDK の導入は不要です。
 
 代表的な使い方（MCPツール）
 
@@ -51,7 +37,7 @@ roslyn-cli の配備（オプションの入口）
 
 パフォーマンス（既定）
 
-- 既定で `roslyn-cli serve`（常駐）を試行し、初回以降の起動コストを回避します。
+- 既定で LSP を常駐起動し、初回以降の起動コストを回避します。
 - 明示的に無効化したい場合は `ROSLYN_CLI_MODE=oneshot`（または `off`）を設定してください。
 
 ## LLM最適化の原則
@@ -88,7 +74,7 @@ roslyn-cli の配備（オプションの入口）
 - UI自動化: UI要素の探索・操作・状態検証
 - 入力シミュレーション: キーボード/マウス/ゲームパッド/タッチ（Input System のみ対応）
 - ビジュアルキャプチャ: Game/Scene/Explorer/Window の確定的スクリーンショット、解析も可能
-- コードベース認識: 外部Roslyn CLIにより、安全な構造化編集と正確な検索/参照
+- コードベース認識: 同梱 C# LSP により、安全な構造化編集と正確な検索/参照
 - プロジェクト制御: 一部のプロジェクト/エディタ設定の読み書き、ログ取得、コンパイル状態取得（スナップショット）
 
 ## 接続の仕組み（Unity ↔ MCPサーバー）
@@ -267,45 +253,14 @@ sequenceDiagram
 
 ### コードインデックスと解析の仕組み（How it works）
 
-本プロジェクトは、永続的なJSONインデックスを保持しません。`script_*` ツール呼び出し時に、外部の `roslyn-cli` がオンデマンドでRoslyn解析を実行し、権威的なシンボル/参照情報を返します。
-
-- 責務分離
-  - Unity: エディタ自動化のみ（シーン/オブジェクト/コンポーネント/スクリーンショットなど）。C#の解析は行いません。
-  - Node(MCPサーバー): C#の解析・編集は外部 `roslyn-cli` に委譲（`.sln/.csproj` をMSBuildWorkspaceでロード）。
-
-- CLIが内部で構築するもの
-  - ソリューション/プロジェクトグラフ（.sln/.csproj準拠の依存解決）
-  - RoslynのSyntaxTree/Compilation/SemanticModel（正確な識別子解決のため）
-  - シンボルモデル（型/メンバーの名前空間・コンテナ・スパン、識別子参照の抽出など）
-
-- 操作フロー
-  1) MCPツール呼び出し（例: `script_symbol_find`）
-  2) サーバーが `roslyn-cli ...` を生成・実行
-  3) CLIが `{ path, name, kind, line, column, container, ns }` などのJSONを返却
-  4) 編集系（`replace_body`/`insert_*`/`rename`）はプリフライト（メモリ上でコンパイル）→ エラーがあればブロック／問題なければワークスペース変更をアトミック適用
-  5) Unity側の `AssetDatabase.Refresh` は必要時のみ手動実行（スクリプト再読み込み用途）
-
-- セーフティ
-  - 構造化編集のみ（メソッド本体置換・シンボル直前/直後の挿入・セマンティックリネーム）
-  - プリフライトコンパイルでエラー誘発を事前に検知し、適用を抑止
-  - 行単位の盲目的な置換は不使用
-
-- パフォーマンス
-  - オンデマンド実行のため初回ロードのコストはありますが、Unityのドメインリロードに非依存で安定
-  - CIで自己完結バイナリを事前ビルドすると環境整備を短縮可能
-  - 将来的に短命サーバー化して起動コストを抑えることも可能（MCPのI/Fはそのまま）
-
-- 制約
-  - 未保存のバッファは対象外（CLIはディスク上のファイルを解析）。実行前に保存してください
-  - ネスト型/メンバーは `OuterType/InnerType/Method` のような `namePath` で解決
-
-要するに、本プロジェクトにおける「コードインデックス」とは、キャッシュではなく “ツール呼び出し時にRoslynが生成する正確なシンボル/セマンティック情報” を指します。
+- LSP の `documentSymbol` を用いて `.cs` を走査し、SQLite に永続化（Library/UnityMCP/CodeIndex）
+- `script_*` ツールは LSP 標準＋拡張を通じて、シンボル/参照取得や構造編集を実行
+- Unity はエディタ操作のみに集中し、C# の解析は Node（MCP）側で行います
 
 アーキテクチャ（要点）
 
 - Unity: エディタ操作のみ（解析はしない）
-- Node: 解析・編集は外部 `roslyn-cli`（.sln/.csprojロード）
-- JSONインデックス: 廃止（オンデマンド解析へ完全移行）
+- Node: 解析・編集は同梱 C# LSP に委譲
 
 シーケンス
 

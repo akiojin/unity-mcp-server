@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { RoslynCliUtils } from '../roslyn/RoslynCliUtils.js';
+import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
 // script_*系に名称統一: シンボル削除（型/メンバー）
 export class ScriptRemoveSymbolToolHandler extends BaseToolHandler {
@@ -19,20 +20,22 @@ export class ScriptRemoveSymbolToolHandler extends BaseToolHandler {
         required: ['path','namePath']
       }
     );
-    this.utils = new RoslynCliUtils(unityConnection);
+    this.projectInfo = new ProjectInfoProvider(unityConnection);
+    this.lsp = null;
   }
 
   async execute(params) {
     const { path, namePath, apply = false, failOnReferences = true, removeEmptyFile = false } = params;
-    const args = ['remove-symbol'];
-    args.push(...(await this.utils.getSolutionOrProjectArgs()));
-    args.push('--relative', String(path).replace(/\\\\/g, '/'));
-    args.push('--name-path', String(namePath));
-    if (apply) args.push('--apply', 'true');
-    if (!failOnReferences) args.push('--fail-on-references', 'false');
-    if (removeEmptyFile) args.push('--remove-empty-file', 'true');
-    const res = await this.utils.runCli(args);
-    return this._summarizeResult(res);
+    const info = await this.projectInfo.get();
+    if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
+    const resp = await this.lsp.request('mcp/removeSymbol', {
+      relative: String(path).replace(/\\\\/g, '/'),
+      namePath: String(namePath),
+      apply: !!apply,
+      failOnReferences: !!failOnReferences,
+      removeEmptyFile: !!removeEmptyFile
+    });
+    return this._summarizeResult(resp?.result ?? resp);
   }
 
   _summarizeResult(res) {
