@@ -349,6 +349,7 @@ sealed class LspServer
             }
 
             var containers = segments.Take(segments.Length - 1).ToArray();
+            var nsTarget = GetNamespaceChain(decl);
             var oldName = targetName;
             var updatedFiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { [full] = newRoot.ToFullString() };
             foreach (var file in EnumerateUnityCsFiles(_rootDir))
@@ -366,6 +367,7 @@ sealed class LspServer
                     foreach (var tk in tokens)
                     {
                         if (!ContainerEndsWith(GetTypeContainerChain(tk.Parent), containers)) continue;
+                        if (!NamespaceEndsWith(GetNamespaceChain(tk.Parent), nsTarget)) continue;
                         // Heuristic filter by kind/context
                         if (isTypeDecl)
                         {
@@ -543,6 +545,35 @@ sealed class LspServer
     }
 
     private static bool ContainerEndsWith(string[] chain, string[] suffix)
+    {
+        if (suffix.Length == 0) return true;
+        if (chain.Length < suffix.Length) return false;
+        for (int i = 1; i <= suffix.Length; i++)
+        {
+            if (!string.Equals(chain[^i], suffix[^i], StringComparison.Ordinal)) return false;
+        }
+        return true;
+    }
+
+    private static string[] GetNamespaceChain(SyntaxNode? node)
+    {
+        var list = new List<string>();
+        for (var cur = node; cur != null; cur = cur.Parent)
+        {
+            if (cur is NamespaceDeclarationSyntax ns) list.Add(ns.Name.ToString());
+            else if (cur is FileScopedNamespaceDeclarationSyntax fns) list.Add(fns.Name.ToString());
+        }
+        list.Reverse();
+        var flat = new List<string>();
+        foreach (var n in list)
+        {
+            if (string.IsNullOrWhiteSpace(n)) continue;
+            flat.AddRange(n.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        }
+        return flat.ToArray();
+    }
+
+    private static bool NamespaceEndsWith(string[] chain, string[] suffix)
     {
         if (suffix.Length == 0) return true;
         if (chain.Length < suffix.Length) return false;
