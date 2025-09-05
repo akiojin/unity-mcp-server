@@ -36,6 +36,19 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
 
       if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
       const lsp = this.lsp;
+
+      // Incremental detection based on size-mtime signature
+      const makeSig = (abs) => {
+        try { const st = fs.statSync(abs); return `${st.size}-${Math.floor(st.mtimeMs)}`; } catch { return '0-0'; }
+      };
+      const wanted = new Map(files.map(abs => [this.toRel(abs, info.projectRoot), makeSig(abs)]));
+      const current = await this.index.getFiles();
+      const changed = [];
+      const removed = [];
+      for (const [rel, sig] of wanted) {
+        if (current.get(rel) !== sig) changed.push(rel);
+      }
+      for (const [rel] of current) if (!wanted.has(rel)) removed.push(rel);
       const toRows = (uri, symbols) => {
         const rel = this.toRel(uri.replace('file://', ''), info.projectRoot);
         const rows = [];
@@ -50,30 +63,35 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
         return rows;
       };
 
+      // Remove vanished files
+      for (const rel of removed) await this.index.removeFile(rel);
+
+      // Update changed files
+      const absList = changed.map(rel => path.resolve(info.projectRoot, rel));
       const concurrency = 8;
-      const collected = [];
-      let i = 0;
+      let i = 0; let updated = 0;
       const worker = async () => {
         while (true) {
           const idx = i++;
-          if (idx >= files.length) break;
-          const f = files[idx];
+          if (idx >= absList.length) break;
+          const abs = absList[idx];
           try {
-            const uri = 'file://' + f.replace(/\\/g, '/');
+            const uri = 'file://' + abs.replace(/\\/g, '/');
             const res = await lsp.request('textDocument/documentSymbol', { textDocument: { uri } });
             const docSymbols = res?.result ?? res;
             const rows = toRows(uri, docSymbols);
-            collected.push(...rows);
+            const rel = this.toRel(abs, info.projectRoot);
+            await this.index.replaceSymbolsForPath(rel, rows);
+            await this.index.upsertFile(rel, wanted.get(rel));
+            updated += 1;
           } catch {}
         }
       };
-      const workers = Array.from({ length: Math.min(concurrency, files.length) }, () => worker());
+      const workers = Array.from({ length: Math.min(concurrency, absList.length) }, () => worker());
       await Promise.all(workers);
 
-      const symbols = collected;
-      const r = await this.index.clearAndLoad(symbols);
       const stats = await this.index.getStats();
-      return { success: true, inserted: r.total, total: stats.total, lastIndexedAt: stats.lastIndexedAt };
+      return { success: true, updatedFiles: updated, removedFiles: removed.length, totalIndexedSymbols: stats.total, lastIndexedAt: stats.lastIndexedAt };
     } catch (e) {
       return {
         success: false,
