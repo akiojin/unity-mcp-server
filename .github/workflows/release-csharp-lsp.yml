@@ -10,8 +10,6 @@ permissions:
 
 jobs:
   build:
-    # LSPプロジェクトが未導入の場合はジョブ全体をスキップ
-    if: ${{ hashFiles('csharp-lsp/**/*.csproj') != '' }}
     name: build ${{ matrix.rid }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -41,6 +39,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Detect LSP project
+        id: detect
+        shell: bash
+        run: |
+          if ls csharp-lsp/*.csproj >/dev/null 2>&1; then
+            echo "present=true" >> $GITHUB_OUTPUT
+          else
+            echo "present=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -56,11 +64,12 @@ jobs:
           node-version: '20'
 
       - name: Restore
-        if: ${{ hashFiles('csharp-lsp/**/*.csproj') != '' }}
+        if: ${{ steps.detect.outputs.present == 'true' }}
         run: |
           dotnet restore csharp-lsp/*.csproj -r "${{ matrix.rid }}"
 
       - name: Publish csharp-lsp (self-contained single-file)
+        if: ${{ steps.detect.outputs.present == 'true' }}
         shell: bash
         run: |
           mkdir -p out/${{ matrix.rid }}
@@ -81,6 +90,7 @@ jobs:
           ' "$ASSET" > "$ASSET.sha256"
 
       - name: Upload artifact
+        if: ${{ steps.detect.outputs.present == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: asset-${{ matrix.rid }}
