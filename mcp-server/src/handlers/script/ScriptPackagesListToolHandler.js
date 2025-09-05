@@ -14,8 +14,7 @@ export class ScriptPackagesListToolHandler extends BaseToolHandler {
                 properties: {
                     includeBuiltIn: {
                         type: 'boolean',
-                        default: false,
-                        description: 'If true, includes built‑in packages in results.'
+                        description: 'If true, includes built‑in packages in results (default: false).'
                     }
                 },
                 required: []

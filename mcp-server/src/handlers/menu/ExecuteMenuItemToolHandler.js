@@ -18,8 +18,7 @@ export class ExecuteMenuItemToolHandler extends BaseToolHandler {
           action: {
             type: 'string',
             enum: ['execute', 'get_available_menus'],
-            default: 'execute',
-            description: 'Action to perform: execute menu item or get available menus'
+            description: 'Action to perform: execute menu item or get available menus (default: execute)'
           },
           alias: {
             type: 'string',
@@ -31,8 +30,7 @@ export class ExecuteMenuItemToolHandler extends BaseToolHandler {
           },
           safetyCheck: {
             type: 'boolean',
-            default: true,
-            description: 'Enable safety checks to prevent execution of dangerous menu items'
+            description: 'Enable safety checks to prevent execution of dangerous menu items (default: true)'
           }
         },
         required: ['menuPath']

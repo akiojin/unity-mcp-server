@@ -13,9 +13,9 @@ export class ScriptRemoveSymbolToolHandler extends BaseToolHandler {
         properties: {
           path: { type: 'string', description: 'Project-relative C# file path' },
           namePath: { type: 'string', description: 'Symbol path like Outer/Nested/Member' },
-          apply: { type: 'boolean', default: false },
-          failOnReferences: { type: 'boolean', default: true },
-          removeEmptyFile: { type: 'boolean', default: false }
+          apply: { type: 'boolean', description: 'Apply changes immediately (default: false)' },
+          failOnReferences: { type: 'boolean', description: 'Fail if symbol has references (default: true)' },
+          removeEmptyFile: { type: 'boolean', description: 'Remove file if it becomes empty (default: false)' }
         },
         required: ['path','namePath']
       }

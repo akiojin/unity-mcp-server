@@ -26,18 +26,15 @@ export class MouseSimulationHandler extends BaseToolHandler {
                     },
                     absolute: {
                         type: 'boolean',
-                        default: true,
-                        description: 'Whether coordinates are absolute or relative'
+                        description: 'Whether coordinates are absolute or relative (default: true)'
                     },
                     button: {
                         type: 'string',
                         enum: ['left', 'right', 'middle'],
-                        default: 'left',
                         description: 'Mouse button for click/drag actions'
                     },
                     clickCount: {
                         type: 'number',
-                        default: 1,
                         description: 'Number of clicks (for double/triple click)'
                     },
                     startX: {
@@ -58,12 +55,12 @@ export class MouseSimulationHandler extends BaseToolHandler {
                     },
                     deltaX: {
                         type: 'number',
-                        default: 0,
+                        
                         description: 'Horizontal scroll delta'
                     },
                     deltaY: {
                         type: 'number',
-                        default: 0,
+                        
                         description: 'Vertical scroll delta'
                     }
                 },
@@ -95,10 +92,7 @@ export class MouseSimulationHandler extends BaseToolHandler {
             case 'click':
             case 'scroll':
                 // These actions have optional parameters
-                break;
-            default:
-                throw new Error(`Invalid action: ${action}`);
-        }
+                break;        }
     }
 
     async execute(params) {

@@ -22,8 +22,7 @@ export class FindUIElementsToolHandler extends BaseToolHandler {
                     },
                     includeInactive: {
                         type: 'boolean',
-                        description: 'If true, include inactive UI elements.',
-                        default: false
+                        description: 'If true, include inactive UI elements.'
                     },
                     canvasFilter: {
                         type: 'string',
@@ -35,7 +34,6 @@ export class FindUIElementsToolHandler extends BaseToolHandler {
         );
         this.unityConnection = unityConnection;
     }
-
 
     async execute(params = {}) {
         const {

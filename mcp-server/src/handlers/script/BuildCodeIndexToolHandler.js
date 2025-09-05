@@ -157,8 +157,6 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
       case 6: return 'method';
       case 7: return 'property';
       case 8: return 'field';
-      case 3: return 'namespace';
-      default: return 'symbol';
-    }
+      case 3: return 'namespace';    }
   }
 }

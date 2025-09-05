@@ -180,11 +180,7 @@ export default class PackageManagerToolHandler extends BaseToolHandler {
           packages: result.packages,
           allPackages: result.allPackages,
           message: result.message || 'Package recommendations retrieved'
-        };
-
-      default:
-        return result;
-    }
+        };    }
   }
 
   truncateDescription(description) {

@@ -18,7 +18,6 @@ export class ScriptReadToolHandler extends BaseToolHandler {
                     },
                     startLine: {
                         type: 'number',
-                        default: 1,
                         description: 'Starting line (1-based, inclusive). Defaults to 1.'
                     },
                     endLine: {

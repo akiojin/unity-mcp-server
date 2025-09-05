@@ -33,7 +33,6 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
                     },
                     preview: {
                         type: 'boolean',
-                        default: false,
                         description: 'If true, returns a preview without writing files. Default=false to reduce large diff payloads.'
                     }
                 },

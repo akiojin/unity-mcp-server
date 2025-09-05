@@ -72,10 +72,7 @@ export class InputSystemHandler extends BaseToolHandler {
                 break;
             case 'get_state':
                 command = 'get_current_input_state';
-                break;
-            default:
-                throw new Error(`Unknown operation: ${operation}`);
-        }
+                break;        }
 
         const result = await this.unityConnection.sendCommand(command, parameters);
         return result;

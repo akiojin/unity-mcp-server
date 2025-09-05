@@ -21,7 +21,7 @@ export class LayerManagementToolHandler extends BaseToolHandler {
             description: 'Layer name (required for add/remove/get_by_name). Letters/numbers/space/_ only.'
           },
           layerIndex: {
-            type: 'integer',
+            type: 'number',
             minimum: 0,
             maximum: 31,
             description: 'Layer index (0-31). Required for get_by_index.'

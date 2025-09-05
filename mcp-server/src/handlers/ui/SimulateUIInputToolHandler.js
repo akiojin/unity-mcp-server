@@ -43,15 +43,14 @@ export class SimulateUIInputToolHandler extends BaseToolHandler {
                     },
                     waitBetween: {
                         type: 'number',
-                        default: 100,
+                        
                         minimum: 0,
                         maximum: 10000,
                         description: 'Delay between actions in milliseconds'
                     },
                     validateState: {
                         type: 'boolean',
-                        default: true,
-                        description: 'Validate UI state between actions'
+                        description: 'Validate UI state between actions (default: true)'
                     }
                 }
             }

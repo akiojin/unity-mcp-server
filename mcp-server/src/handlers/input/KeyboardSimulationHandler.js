@@ -31,7 +31,7 @@ export class KeyboardSimulationHandler extends BaseToolHandler {
                     },
                     typingSpeed: {
                         type: 'number',
-                        default: 50,
+                        
                         description: 'Milliseconds per character when typing'
                     }
                 },
@@ -64,10 +64,7 @@ export class KeyboardSimulationHandler extends BaseToolHandler {
                 if (!keys || !Array.isArray(keys) || keys.length === 0) {
                     throw new Error('keys array is required for combo action');
                 }
-                break;
-            default:
-                throw new Error(`Invalid action: ${action}`);
-        }
+                break;        }
     }
 
     async execute(params) {

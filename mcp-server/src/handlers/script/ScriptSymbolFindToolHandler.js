@@ -23,13 +23,11 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
                     scope: {
                         type: 'string',
                         enum: ['assets', 'packages', 'embedded', 'all'],
-                        default: 'all',
-                        description: 'Search scope: assets (Assets/), packages (Packages/), embedded, or all.'
+                        description: 'Search scope: assets (Assets/), packages (Packages/), embedded, or all (default: all).'
                     },
                     exact: {
                         type: 'boolean',
-                        default: false,
-                        description: 'If true, match name exactly; otherwise allows partial matches.'
+                        description: 'If true, match name exactly; otherwise allows partial matches (default: false).'
                     }
                 },
                 required: ['name']
@@ -96,9 +94,7 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
                 switch (scope) {
                     case 'assets': return p.startsWith('Assets/');
                     case 'packages': return p.startsWith('Packages/') || p.startsWith('Library/PackageCache/');
-                    case 'embedded': return p.startsWith('Packages/');
-                    default: return true;
-                }
+                    case 'embedded': return p.startsWith('Packages/');                }
             });
         }
         if (exact) {
@@ -116,8 +112,6 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
             case 10: return 'enum';
             case 6: return 'method';
             case 7: return 'property';
-            case 8: return 'field';
-            default: return 'symbol';
-        }
+            case 8: return 'field';        }
     }
 }

@@ -18,8 +18,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
                     scope: {
                         type: 'string',
                         enum: ['assets', 'packages', 'embedded', 'all'],
-                        default: 'all',
-                        description: 'Search scope: assets (Assets/), packages (Packages/), embedded, or all.'
+                        description: 'Search scope: assets (Assets/), packages (Packages/), embedded, or all (default: all).'
                     },
                     snippetContext: {
                         type: 'number',
@@ -100,9 +99,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
                 switch (scope) {
                     case 'assets': return p.startsWith('Assets/');
                     case 'packages': return p.startsWith('Packages/') || p.startsWith('Library/PackageCache/');
-                    case 'embedded': return p.startsWith('Packages/');
-                    default: return true;
-                }
+                    case 'embedded': return p.startsWith('Packages/');                }
             });
         }
 

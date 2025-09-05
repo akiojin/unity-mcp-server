@@ -24,7 +24,7 @@ export class AnalyzeScreenshotToolHandler extends BaseToolHandler {
           analysisType: {
             type: 'string',
             enum: ['basic', 'ui', 'content', 'full'],
-            default: 'basic',
+            
             description: 'Type of analysis: basic (colors, dimensions), ui (UI element detection), content (scene content), full (all)'
           },
           prompt: {

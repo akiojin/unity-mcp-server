@@ -26,7 +26,7 @@ export class TouchSimulationHandler extends BaseToolHandler {
                     },
                     touchId: {
                         type: 'number',
-                        default: 0,
+                        
                         minimum: 0,
                         maximum: 9,
                         description: 'Touch ID (0-9)'
@@ -49,7 +49,7 @@ export class TouchSimulationHandler extends BaseToolHandler {
                     },
                     duration: {
                         type: 'number',
-                        default: 500,
+                        
                         description: 'Swipe duration in milliseconds'
                     },
                     centerX: {
@@ -62,12 +62,12 @@ export class TouchSimulationHandler extends BaseToolHandler {
                     },
                     startDistance: {
                         type: 'number',
-                        default: 100,
+                        
                         description: 'Start distance between fingers for pinch'
                     },
                     endDistance: {
                         type: 'number',
-                        default: 200,
+                        
                         description: 'End distance between fingers for pinch'
                     },
                     touches: {
@@ -127,10 +127,7 @@ export class TouchSimulationHandler extends BaseToolHandler {
                         throw new Error('Each touch must have x and y coordinates');
                     }
                 }
-                break;
-            default:
-                throw new Error(`Invalid action: ${action}`);
-        }
+                break;        }
     }
 
     async execute(params) {

@@ -14,13 +14,11 @@ export class GetUIElementStateToolHandler extends BaseToolHandler {
                     },
                     includeChildren: {
                         type: 'boolean',
-                        default: false,
-                        description: 'Include child element states'
+                        description: 'Include child element states (default: false)'
                     },
                     includeInteractableInfo: {
                         type: 'boolean',
-                        default: true,
-                        description: 'Include interaction capabilities'
+                        description: 'Include interaction capabilities (default: true)'
                     }
                 },
                 required: ['elementPath']

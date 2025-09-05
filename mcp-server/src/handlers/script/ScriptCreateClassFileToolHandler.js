@@ -16,8 +16,8 @@ export class ScriptCreateClassFileToolHandler extends BaseToolHandler {
           namespace: { type: 'string', description: 'Optional namespace' },
           baseType: { type: 'string', description: 'Optional base type (e.g., MonoBehaviour)' },
           usings: { type: 'string', description: 'Comma-separated using directives (e.g., System,Newtonsoft.Json)' },
-          partial: { type: 'boolean', default: false },
-          apply: { type: 'boolean', default: false }
+          partial: { type: 'boolean', description: 'Create as partial class (default: false)' },
+          apply: { type: 'boolean', description: 'Apply immediately (default: false)' }
         },
         required: ['path','className']
       }

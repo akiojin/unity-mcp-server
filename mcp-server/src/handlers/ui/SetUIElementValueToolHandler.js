@@ -17,8 +17,7 @@ export class SetUIElementValueToolHandler extends BaseToolHandler {
                     },
                     triggerEvents: {
                         type: 'boolean',
-                        default: true,
-                        description: 'Whether to trigger associated events'
+                        description: 'Whether to trigger associated events (default: true)'
                     }
                 },
                 required: ['elementPath', 'value']

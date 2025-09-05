@@ -18,13 +18,11 @@ export class CreatePrefabToolHandler extends BaseToolHandler {
                     },
                     createFromTemplate: {
                         type: 'boolean',
-                        default: false,
-                        description: 'If true, create an empty prefab (no source GameObject).'
+                        description: 'If true, create an empty prefab (no source GameObject) (default: false).'
                     },
                     overwrite: {
                         type: 'boolean',
-                        default: false,
-                        description: 'If true, overwrite existing prefab at the destination path.'
+                        description: 'If true, overwrite existing prefab at the destination path (default: false).'
                     }
                 },
                 required: ['prefabPath']

@@ -14,7 +14,6 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
           captureMode: {
             type: 'string',
             enum: ['game', 'scene', 'window', 'explorer'],
-            default: 'game',
             description: 'Capture mode selection:\n- "game": Game View (player\'s perspective, what the user sees)\n- "scene": Scene View (editor\'s 3D workspace view)\n- "explorer": AI/LLM exploration mode (optimized view for understanding scene content)\n- "window": Specific Unity Editor window by name'
           },
           width: {
@@ -27,8 +26,7 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
           },
           includeUI: {
             type: 'boolean',
-            default: true,
-            description: 'Whether to include UI overlay elements in Game View captures. Set to false for clean gameplay screenshots'
+            description: 'Whether to include UI overlay elements in Game View captures. Set to false for clean gameplay screenshots (default: true)'
           },
           windowName: {
             type: 'string',
@@ -36,8 +34,7 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
           },
           encodeAsBase64: {
             type: 'boolean',
-            default: false,
-            description: 'Return screenshot data as base64 string for immediate processing/analysis without file I/O'
+            description: 'Return screenshot data as base64 string for immediate processing/analysis without file I/O (default: false)'
           },
           explorerSettings: {
             type: 'object',
@@ -75,8 +72,7 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
                   },
                   includeChildren: {
                     type: 'boolean',
-                    default: true,
-                    description: 'Include child objects when calculating the target bounds for framing'
+                    description: 'Include child objects when calculating the target bounds for framing (default: true)'
                   }
                 }
               },
@@ -113,28 +109,24 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
                   },
                   fieldOfView: {
                     type: 'number',
-                    default: 60,
+                    
                     description: 'Camera field of view in degrees (1-179). Lower values zoom in, higher values zoom out'
                   },
                   nearClip: {
                     type: 'number',
-                    default: 0.3,
-                    description: 'Near clipping plane distance. Objects closer than this won\'t be rendered'
+                    description: 'Near clipping plane distance. Objects closer than this won\'t be rendered (default: 0.3)'
                   },
                   farClip: {
                     type: 'number',
-                    default: 1000,
                     description: 'Far clipping plane distance. Objects farther than this won\'t be rendered'
                   },
                   autoFrame: {
                     type: 'boolean',
-                    default: true,
-                    description: 'Automatically position camera to frame the target. Disable for manual positioning'
+                    description: 'Automatically position camera to frame the target. Disable for manual positioning (default: true)'
                   },
                   padding: {
                     type: 'number',
-                    default: 0.2,
-                    description: 'Padding around target when auto-framing (0-1). 0 = tight fit, 1 = lots of space'
+                    description: 'Padding around target when auto-framing (0-1). 0 = tight fit, 1 = lots of space (default: 0.2)'
                   },
                   offset: {
                     type: 'object',
@@ -147,12 +139,10 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
                   },
                   width: {
                     type: 'number',
-                    default: 1920,
                     description: 'Capture resolution width in pixels (1-8192)'
                   },
                   height: {
                     type: 'number',
-                    default: 1080,
                     description: 'Capture resolution height in pixels (1-8192)'
                   }
                 }
@@ -165,10 +155,10 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
                     type: 'object',
                     description: 'Background color for the capture (RGBA values 0-1)',
                     properties: {
-                      r: { type: 'number', default: 0.2, description: 'Red component (0-1)' },
-                      g: { type: 'number', default: 0.2, description: 'Green component (0-1)' },
-                      b: { type: 'number', default: 0.2, description: 'Blue component (0-1)' },
-                      a: { type: 'number', default: 1, description: 'Alpha/opacity (0-1)' }
+                      r: { type: 'number', description: 'Red component (0-1, default: 0.2)' },
+                      g: { type: 'number', description: 'Green component (0-1, default: 0.2)' },
+                      b: { type: 'number', description: 'Blue component (0-1, default: 0.2)' },
+                      a: { type: 'number', description: 'Alpha/opacity (0-1, default: 1)' }
                     }
                   },
                   layers: {
@@ -178,23 +168,19 @@ export class CaptureScreenshotToolHandler extends BaseToolHandler {
                   },
                   showGizmos: {
                     type: 'boolean',
-                    default: false,
-                    description: 'Show editor gizmos (transform handles, icons) in the capture'
+                    description: 'Show editor gizmos (transform handles, icons) in the capture (default: false)'
                   },
                   showColliders: {
                     type: 'boolean',
-                    default: false,
-                    description: 'Visualize physics colliders as wireframes'
+                    description: 'Visualize physics colliders as wireframes (default: false)'
                   },
                   showBounds: {
                     type: 'boolean',
-                    default: false,
-                    description: 'Show bounding boxes around objects'
+                    description: 'Show bounding boxes around objects (default: false)'
                   },
                   highlightTarget: {
                     type: 'boolean',
-                    default: false,
-                    description: 'Highlight the target object(s) with an outline or color'
+                    description: 'Highlight the target object(s) with an outline or color (default: false)'
                   }
                 }
               }

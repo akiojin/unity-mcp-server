@@ -12,12 +12,12 @@ export class CaptureVideoForToolHandler extends BaseToolHandler {
       {
         type: 'object',
         properties: {
-          captureMode: { type: 'string', enum: ['game'], description: 'Capture source. Currently only "game" supported.', default: 'game' },
+          captureMode: { type: 'string', enum: ['game'], description: 'Capture source. Currently only "game" supported.' },
           width: { type: 'number', description: 'Output width (0 = default 1280)' },
           height: { type: 'number', description: 'Output height (0 = default 720)' },
           fps: { type: 'number', description: 'Frames per second (default 30)' },
           durationSec: { type: 'number', description: 'Duration to record in seconds', required: true },
-          play: { type: 'boolean', description: 'Enter Play Mode before recording (default true if not already playing)', default: true }
+          play: { type: 'boolean', description: 'Enter Play Mode before recording (default true if not already playing)' }
         },
         required: ['durationSec']
       }

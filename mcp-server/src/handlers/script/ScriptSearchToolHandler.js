@@ -19,8 +19,7 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
                     patternType: {
                         type: 'string',
                         enum: ['substring', 'regex', 'glob'],
-                        default: 'substring',
-                        description: 'Pattern matching strategy: substring, regex, or glob-only scan.'
+                        description: 'Pattern matching strategy: substring (default), regex, or glob-only scan.'
                     },
                     flags: {
                         type: 'array',
@@ -30,13 +29,11 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
                     scope: {
                         type: 'string',
                         enum: ['assets', 'packages', 'embedded', 'all'],
-                        default: 'assets',
-                        description: 'Search scope: assets (Assets/), packages (Packages/), embedded, or all.'
+                        description: 'Search scope: assets (Assets/, default), packages (Packages/), embedded, or all.'
                     },
                     include: {
                         type: 'string',
-                        default: '**/*.cs',
-                        description: 'Include glob pattern (project-relative). Examples: Assets/**/*.cs or Packages/unity-editor-mcp/**/*.cs.'
+                        description: 'Include glob pattern (project-relative, default: **/*.cs). Examples: Assets/**/*.cs or Packages/unity-editor-mcp/**/*.cs.'
                     },
                     exclude: {
                         type: 'string',
@@ -78,8 +75,7 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
                     },
                     codeOnly: {
                         type: 'boolean',
-                        default: true,
-                        description: 'If true, exclude comments/whitespace to reduce noise.'
+                        description: 'If true, exclude comments/whitespace to reduce noise (default: true).'
                     },
                     container: {
                         type: 'string',

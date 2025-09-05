@@ -13,7 +13,7 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
                     relative: { type: 'string', description: 'Project-relative file path (Assets/ or Packages/)' },
                     namePath: { type: 'string', description: 'Symbol path like Class/Method' },
                     newName: { type: 'string', description: 'New name' },
-                    preview: { type: 'boolean', default: true }
+                    preview: { type: 'boolean', description: 'Preview changes before applying (default: true)' }
                 },
                 required: ['relative', 'namePath', 'newName']
             }

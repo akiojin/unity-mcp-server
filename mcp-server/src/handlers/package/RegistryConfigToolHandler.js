@@ -180,11 +180,7 @@ export default class RegistryConfigToolHandler extends BaseToolHandler {
             scope: pkg.scope
           })),
           message: result.message || `Recommendations for ${result.registry}`
-        };
-
-      default:
-        return result;
-    }
+        };    }
   }
 
   static getExamples() {

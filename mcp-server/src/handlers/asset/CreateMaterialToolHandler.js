@@ -26,8 +26,7 @@ export class CreateMaterialToolHandler extends BaseToolHandler {
                     },
                     overwrite: {
                         type: 'boolean',
-                        description: 'If true, overwrite existing material at the path.',
-                        default: false
+                        description: 'If true, overwrite existing material at the path.'
                     }
                 },
                 required: ['materialPath']

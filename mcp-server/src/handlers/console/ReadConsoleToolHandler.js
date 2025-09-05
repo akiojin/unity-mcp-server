@@ -15,8 +15,7 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
             type: 'number',
             description: 'Number of logs to retrieve (1-1000, default: 100)',
             minimum: 1,
-            maximum: 1000,
-            default: 100
+            maximum: 1000
           },
           logTypes: {
             type: 'array',
@@ -24,8 +23,7 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
             items: {
               type: 'string',
               enum: ['Info', 'Warning', 'Error', 'All']
-            },
-            default: ['All']
+            }
           },
           filterText: {
             type: 'string',
@@ -33,14 +31,12 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
           },
           includeStackTrace: {
             type: 'boolean',
-            description: 'Include stack traces in results. Unity default: false (set to true for debugging)',
-            default: false
+            description: 'Include stack traces in results. Unity default: false (set to true for debugging)'
           },
           format: {
             type: 'string',
             description: 'Output format for logs. Unity default: compact. RECOMMENDED: compact for general use, detailed for debugging',
-            enum: ['detailed', 'compact', 'json', 'plain'],
-            default: 'compact'
+            enum: ['detailed', 'compact', 'json', 'plain']
           },
           sinceTimestamp: {
             type: 'string',
@@ -52,15 +48,13 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
           },
           sortOrder: {
             type: 'string',
-            description: 'Sort order for logs',
-            enum: ['newest', 'oldest'],
-            default: 'newest'
+            description: 'Sort order for logs (default: newest)',
+            enum: ['newest', 'oldest']
           },
           groupBy: {
             type: 'string',
-            description: 'Group logs by criteria',
-            enum: ['none', 'type', 'file', 'time'],
-            default: 'none'
+            description: 'Group logs by criteria (default: none)',
+            enum: ['none', 'type', 'file', 'time']
           }
         },
         required: []
@@ -210,10 +204,7 @@ export class ReadConsoleToolHandler extends BaseToolHandler {
             // Error includes all error-related types
             expandedLogTypes.push('Error', 'Exception', 'Assert');
             break;
-          case 'All':
-          default:
-            // Treat unknown types as 'All'
-            expandedLogTypes.push('Log', 'Warning', 'Error', 'Exception', 'Assert');
+          case 'All':            expandedLogTypes.push('Log', 'Warning', 'Error', 'Exception', 'Assert');
             break;
         }
       });

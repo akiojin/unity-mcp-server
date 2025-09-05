@@ -15,12 +15,12 @@ export class ClickUIElementToolHandler extends BaseToolHandler {
                     clickType: {
                         type: 'string',
                         enum: ['left', 'right', 'middle'],
-                        default: 'left',
+                        
                         description: 'Type of click (left, right, middle)'
                     },
                     holdDuration: {
                         type: 'number',
-                        default: 0,
+                        
                         minimum: 0,
                         maximum: 10000,
                         description: 'Duration to hold click in milliseconds'

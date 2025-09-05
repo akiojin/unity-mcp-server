@@ -18,8 +18,7 @@ export class ModifyPrefabToolHandler extends BaseToolHandler {
                     },
                     applyToInstances: {
                         type: 'boolean',
-                        default: true,
-                        description: 'If true, also apply to existing scene instances.'
+                        description: 'If true, also apply to existing scene instances (default: true).'
                     }
                 },
                 required: ['prefabPath', 'modifications']

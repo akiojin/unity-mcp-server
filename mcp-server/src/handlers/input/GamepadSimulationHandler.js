@@ -23,13 +23,13 @@ export class GamepadSimulationHandler extends BaseToolHandler {
                     buttonAction: {
                         type: 'string',
                         enum: ['press', 'release'],
-                        default: 'press',
+                        
                         description: 'Button action (press or release)'
                     },
                     stick: {
                         type: 'string',
                         enum: ['left', 'right'],
-                        default: 'left',
+                        
                         description: 'Which analog stick to control'
                     },
                     x: {
@@ -47,7 +47,7 @@ export class GamepadSimulationHandler extends BaseToolHandler {
                     trigger: {
                         type: 'string',
                         enum: ['left', 'right'],
-                        default: 'left',
+                        
                         description: 'Which trigger to control'
                     },
                     value: {
@@ -101,10 +101,7 @@ export class GamepadSimulationHandler extends BaseToolHandler {
                 if (!direction) {
                     throw new Error('direction is required for dpad action');
                 }
-                break;
-            default:
-                throw new Error(`Invalid action: ${action}`);
-        }
+                break;        }
     }
 
     async execute(params) {
