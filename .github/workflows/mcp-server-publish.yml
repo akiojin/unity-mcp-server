@@ -49,17 +49,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           TAG="$TAG"
           REPO="${{ github.repository }}"
           echo "waiting for csharp-lsp-manifest.json on $REPO@$TAG..."
-          for i in $(seq 1 30); do
-            JSON=$(gh api repos/$REPO/releases/tags/$TAG || true)
-            if [ -n "$JSON" ] && echo "$JSON" | jq -r '.assets[].name' | grep -qx 'csharp-lsp-manifest.json'; then
-              echo "$JSON" | jq '.assets[].name'
-              echo "found manifest"
-              exit 0
+          # 最大 ~20分待機（120回 x 10秒）: ビルド行列が長引くケースを考慮
+          for i in $(seq 1 120); do
+            if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+              NAMES=$(gh release view "$TAG" --repo "$REPO" --json assets --jq '.assets[].name' 2>/dev/null || true)
+              if echo "$NAMES" | grep -qx 'csharp-lsp-manifest.json'; then
+                echo "$NAMES"
+                echo "found manifest"
+                exit 0
+              fi
             fi
-            sleep 4
+            sleep 10
           done
           echo "csharp-lsp-manifest.json not found in release assets for $TAG" >&2
           exit 1
