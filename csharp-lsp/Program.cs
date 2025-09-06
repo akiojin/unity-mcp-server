@@ -615,6 +615,7 @@ sealed class LspServer
         var segs = (namePath ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         SyntaxNode cursor = root;
         SyntaxNode? last = null;
+        int matched = 0;
         for (int i = 0; i < segs.Length; i++)
         {
             var seg = segs[i];
@@ -625,9 +626,16 @@ sealed class LspServer
                                                                   || n is MethodDeclarationSyntax m && m.Identifier.ValueText == seg
                                                                   || n is PropertyDeclarationSyntax p && p.Identifier.ValueText == seg
                                                                   || (n is FieldDeclarationSyntax f && f.Declaration.Variables.Any(v => v.Identifier.ValueText == seg)));
-            if (next is null) break;
-            cursor = next; last = next;
+            if (next is null)
+            {
+                // 途中で未一致 → 完全一致ではないため last=null を返す
+                return (cursor, null);
+            }
+            cursor = next;
+            matched++;
         }
+        // 全セグメント一致した場合のみ last を返す
+        last = (matched == segs.Length && segs.Length > 0) ? cursor : null;
         return (cursor, last);
     }
 
