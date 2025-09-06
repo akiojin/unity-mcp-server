@@ -923,7 +923,7 @@ PlayerSettings:
   cloudProjectId: b89ecefa-d552-4d9b-8d75-382a69927eb4
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: UnityMCPServer
+  projectName: UnityEditorMCP
   organizationId: akiojin
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0

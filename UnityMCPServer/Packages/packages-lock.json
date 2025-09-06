@@ -1,5 +1,15 @@
 {
   "dependencies": {
+    "com.akiojin.unity-mcp-server": {
+      "version": "file:unity-mcp-server",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1",
+        "com.unity.inputsystem": "1.14.2",
+        "com.unity.recorder": "4.0.0"
+      }
+    },
     "com.unity.addressables": {
       "version": "2.7.2",
       "depth": 0,
@@ -54,16 +64,6 @@
         "com.unity.test-framework.performance": "3.0.3"
       },
       "url": "https://packages.unity.com"
-    },
-    "com.unity.editor-mcp": {
-      "version": "file:unity-mcp-server",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "3.2.1",
-        "com.unity.inputsystem": "1.14.2",
-        "com.unity.recorder": "4.0.0"
-      }
     },
     "com.unity.ext.nunit": {
       "version": "2.0.5",
