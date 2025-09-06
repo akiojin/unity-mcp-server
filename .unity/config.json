@@ -6,6 +6,6 @@
     "logIncomingCommands": true
   },
   "project": {
-    "root": "./UnityEditorMCP"
+    "root": "./UnityMCPServer"
   }
 }

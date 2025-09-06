@@ -1,0 +1,31 @@
+{
+  "name": "com.akiojin.unity-mcp-server",
+  "displayName": "Unity MCP Server",
+  "version": "2.14.9",
+  "unity": "6000.0",
+  "description": "Unity Editor MCP bridge and tooling for AI-assisted development (screenshots, video capture, scene analysis, input automation).",
+  "keywords": [
+    "mcp",
+    "ai",
+    "editor",
+    "automation",
+    "claude",
+    "cursor"
+  ],
+  "author": {
+    "name": "akiojin",
+    "email": "akio-jinsenji@cloud-creative-studios.com",
+    "url": "https://github.com/akiojin"
+  },
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.inputsystem": "1.14.2",
+    "com.unity.recorder": "4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akiojin/unity-mcp-server.git"
+  },
+  "license": "MIT",
+  "hideInEditor": false
+}

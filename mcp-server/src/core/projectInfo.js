@@ -56,7 +56,7 @@ export class ProjectInfoProvider {
 
   inferFromCwd() {
     // First, check for Docker environment default path
-    const dockerDefaultPath = '/unity-editor-mcp/UnityEditorMCP';
+    const dockerDefaultPath = '/unity-mcp-server/UnityMCPServer';
     const dockerAssets = path.join(dockerDefaultPath, 'Assets');
     if (fs.existsSync(dockerAssets)) {
       const projectRoot = dockerDefaultPath.replace(/\\/g, '/');

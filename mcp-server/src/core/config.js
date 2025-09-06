@@ -32,7 +32,7 @@ const baseConfig = {
 
   // Server settings
   server: {
-    name: 'unity-editor-mcp-server',
+    name: 'unity-mcp-server',
     version: '0.1.0',
     description: 'MCP server for Unity Editor integration',
   },

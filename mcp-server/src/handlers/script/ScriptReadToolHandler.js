@@ -14,7 +14,7 @@ export class ScriptReadToolHandler extends BaseToolHandler {
                 properties: {
                     path: {
                         type: 'string',
-                        description: 'Project-relative C# path under Assets/ or Packages/ (e.g., Packages/unity-editor-mcp/Editor/Example.cs). Do NOT prefix repository folders (e.g., UnityEditorMCP/…).'
+                        description: 'Project-relative C# path under Assets/ or Packages/ (e.g., Packages/unity-mcp-server/Editor/Example.cs). Do NOT prefix repository folders (e.g., UnityMCPServer/…).'
                     },
                     startLine: {
                         type: 'number',
@@ -69,7 +69,7 @@ export class ScriptReadToolHandler extends BaseToolHandler {
             const info = await this.projectInfo.get();
 
             // Normalize and validate
-            // Normalize common mistakes like UnityEditorMCP/Packages/… → Packages/…
+            // Normalize common mistakes like UnityMCPServer/Packages/… → Packages/…
             const raw = (path || '').replace(/\\/g, '/');
             const ai = raw.indexOf('Assets/');
             const pi = raw.indexOf('Packages/');

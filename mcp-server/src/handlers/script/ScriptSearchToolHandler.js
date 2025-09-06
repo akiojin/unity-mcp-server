@@ -33,7 +33,7 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
                     },
                     include: {
                         type: 'string',
-                        description: 'Include glob pattern (project-relative, default: **/*.cs). Examples: Assets/**/*.cs or Packages/unity-editor-mcp/**/*.cs.'
+                        description: 'Include glob pattern (project-relative, default: **/*.cs). Examples: Assets/**/*.cs or Packages/unity-mcp-server/**/*.cs.'
                     },
                     exclude: {
                         type: 'string',

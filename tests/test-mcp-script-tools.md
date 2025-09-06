@@ -307,7 +307,7 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 ## S70) 誤用防止/ガード
 
 正常系（ガード動作確認）:
-- S70-01: `path`/`relative` が `Assets/`/`Packages/` 外（例: `UnityEditorMCP/...`）→ 拒否/正規化
+- S70-01: `path`/`relative` が `Assets/`/`Packages/` 外（例: `UnityMCPServer/...`）→ 拒否/正規化
 - S70-02: 曖昧 `namePath` で不必要な編集が発生しない
 
 異常系:
@@ -319,7 +319,7 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 実行手順（具体例）:
 - S70-01: パス正規化/拒否（安全側）
-  - `script_symbols_get(path=UnityEditorMCP/Assets/Scripts/GigaTestFile.cs)`（冗長/不正確パス）
+  - `script_symbols_get(path=UnityMCPServer/Assets/Scripts/GigaTestFile.cs)`（冗長/不正確パス）
   - 期待: 非破壊で安全側（正規化して成功 または 拒否）。どちらでも pass とし、応答の挙動を details に記録。
 - S70-02: 曖昧 `namePath` の安全側動作（非破壊）
   - `script_edit_structured(operation=replace_body, path=Assets/Scripts/GigaTestFile.cs, symbolName=FinalTestClass/*, newText="{ return 0; }", preview=true)`

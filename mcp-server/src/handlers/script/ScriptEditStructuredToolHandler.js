@@ -17,7 +17,7 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
                     },
                     path: {
                         type: 'string',
-                        description: 'Project-relative C# path starting with Assets/ or Packages/ (e.g., Packages/unity-editor-mcp/Editor/Foo.cs). Do NOT prefix repository folders like UnityEditorMCP/….'
+                        description: 'Project-relative C# path starting with Assets/ or Packages/ (e.g., Packages/unity-mcp-server/Editor/Foo.cs). Do NOT prefix repository folders like UnityMCPServer/….'
                     },
                     symbolName: {
                         type: 'string',

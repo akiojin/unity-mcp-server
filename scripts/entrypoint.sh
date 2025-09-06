@@ -3,14 +3,14 @@ set -e
 
 # Normalize line endings for Windows-mounted files (best-effort)
 if command -v dos2unix >/dev/null 2>&1; then
-  for f in /unity-editor-mcp/scripts/*.sh; do
+for f in /unity-mcp-server/scripts/*.sh; do
     [ -f "$f" ] && dos2unix "$f" >/dev/null 2>&1 || true
   done
 fi
 
 # Git設定（node:22-bookwormにはGitが含まれている）
 # グローバルGit設定（安全なディレクトリを追加）
-git config --global --add safe.directory /unity-editor-mcp
+git config --global --add safe.directory /unity-mcp-server
 
 # ユーザー名とメールの設定（環境変数から）
 if [ -n "$GITHUB_USERNAME" ]; then

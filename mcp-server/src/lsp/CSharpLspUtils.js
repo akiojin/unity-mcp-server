@@ -60,7 +60,7 @@ export class CSharpLspUtils {
   }
 
   async autoDownload(rid, version) {
-    const repo = process.env.GITHUB_REPOSITORY || 'akiojin/unity-editor-mcp';
+    const repo = process.env.GITHUB_REPOSITORY || 'akiojin/unity-mcp-server';
     const tag = `v${version}`;
     const manifestUrl = `https://github.com/${repo}/releases/download/${tag}/csharp-lsp-manifest.json`;
     const manifest = await this.fetchJson(manifestUrl);
@@ -87,13 +87,13 @@ export class CSharpLspUtils {
   }
 
   async fetchJson(url) {
-    const res = await fetch(url, { headers: { 'User-Agent': 'unity-editor-mcp' } });
+    const res = await fetch(url, { headers: { 'User-Agent': 'unity-mcp-server' } });
     if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
     return await res.json();
   }
 
   async downloadTo(url, dest) {
-    const res = await fetch(url, { headers: { 'User-Agent': 'unity-editor-mcp' } });
+    const res = await fetch(url, { headers: { 'User-Agent': 'unity-mcp-server' } });
     if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
     const file = fs.createWriteStream(dest);
     const body = res.body;

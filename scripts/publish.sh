@@ -68,7 +68,7 @@ echo "[info] new version: $NEW_VER (tag: $TAG)"
 echo "[step] sync Unity UPM package version -> $NEW_VER"
 node -e '
   const fs=require("fs");
-  const p="UnityEditorMCP/Packages/unity-editor-mcp/package.json";
+  const p="UnityMCPServer/Packages/unity-mcp-server/package.json";
   if (!fs.existsSync(p)) process.exit(0);
   const json=JSON.parse(fs.readFileSync(p,"utf8"));
   json.version=process.argv[1];
@@ -108,7 +108,7 @@ sync_props "csharp-lsp/Directory.Build.props" "$NEW_VER"
 
 # 変更ファイルをコミット（npmが自動コミットしない場合の保険）
 git add mcp-server/package.json mcp-server/package-lock.json \
-        UnityEditorMCP/Packages/unity-editor-mcp/package.json \
+        UnityMCPServer/Packages/unity-mcp-server/package.json \
         csharp-lsp/Directory.Build.props 2>/dev/null || true
 if ! git diff --cached --quiet; then
   git commit -m "chore(release): $TAG — バージョン同期（MCP/LSP/Unity）"
@@ -168,5 +168,5 @@ else
 fi
 
 echo "[done] v$NEW_VER pushed. Check GitHub Actions: Release csharp-lsp / Publish mcp-server (npm)"
-echo "- Release URL (runs): https://github.com/akiojin/unity-editor-mcp/actions/workflows/release-csharp-lsp.yml"
-echo "- Publish URL (runs): https://github.com/akiojin/unity-editor-mcp/actions/workflows/publish-mcp-server.yml"
+echo "- Release URL (runs): https://github.com/akiojin/unity-mcp-server/actions/workflows/release-csharp-lsp.yml"
+echo "- Publish URL (runs): https://github.com/akiojin/unity-mcp-server/actions/workflows/publish-mcp-server.yml"

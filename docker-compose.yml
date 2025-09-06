@@ -1,9 +1,9 @@
 services:
-  unity-editor-mcp:
+  unity-mcp-server:
     build: .
-    container_name: unity-editor-mcp
+    container_name: unity-mcp-server
     volumes:
-      - .:/unity-editor-mcp
+      - .:/unity-mcp-server
       - bash-history:/root/.bash_history_dir
       - claude_config:/root/.claude
       - ~/.codex:/root/.codex
@@ -29,7 +29,7 @@ services:
       - "host.docker.internal:host-gateway"
     stdin_open: true
     tty: true
-    working_dir: /unity-editor-mcp
+    working_dir: /unity-mcp-server
 
 volumes:
   bash-history: {}

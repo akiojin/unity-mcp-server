@@ -13,7 +13,7 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
                 properties: {
                     path: {
                         type: 'string',
-                        description: 'Project-relative .cs path under Assets/ or Packages/ (e.g., Packages/unity-editor-mcp/Editor/Foo.cs). Do NOT prefix repository folders (e.g., UnityEditorMCP/…).'
+                        description: 'Project-relative .cs path under Assets/ or Packages/ (e.g., Packages/unity-mcp-server/Editor/Foo.cs). Do NOT prefix repository folders (e.g., UnityMCPServer/…).'
                     }
                 },
                 required: ['path']

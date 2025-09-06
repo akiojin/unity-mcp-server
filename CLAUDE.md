@@ -42,7 +42,7 @@
 ### Assets配下の扱い（サンプル/Unityプロジェクト側）
 
 - 目的: サンプル・検証・デモ・手動動作確認用のシーン/プレハブ/補助スクリプトを配置。
-- 禁止: unity-editor-mcp 実装本体（ランタイム/エディタ拡張の主要コード）を置かない。UPM配布の対象にも含めない。
+- 禁止: unity-mcp-server 実装本体（ランタイム/エディタ拡張の主要コード）を置かない。UPM配布の対象にも含めない。
 - 編集: 必要最小限に留める。C#編集は外部CLIで行い、Assets側は参照/設定のみで成立させる。
 
 ## バージョン管理
@@ -61,7 +61,7 @@
 
 1. 変更内容に応じて適切なバージョンコマンドを選択
 2. mcp-serverディレクトリで: `npm version [patch|minor|major]`
-3. Unity packageのバージョンも同期して更新（unity-editor-mcp/package.json）
+3. Unity packageのバージョンも同期して更新（unity-mcp-server/package.json）
 4. git commit & push
 5. npm publish
 
@@ -93,8 +93,8 @@
   - `config.json`: ワークスペースの設定。特に `project.root` は Unity プロジェクトルートを指す（相対なら `.unity` の1階層上を基準）。
   - `capture/`: スクリーンショット・動画の固定保存先。一時成果物としてGit管理外（`.gitignore` 済）。
 
-- `UnityEditorMCP/`（Unityプロジェクト）
-  - `Packages/unity-editor-mcp/**`（UPMパッケージ 実装本体／ソース・オブ・トゥルース）
+- `UnityMCPServer/`（Unityプロジェクト）
+  - `Packages/unity-mcp-server/**`（UPMパッケージ 実装本体／ソース・オブ・トゥルース）
   - `Assets/**` はサンプル/検証用途（実装本体を置かない）
   - `Library/PackageCache/**` は自動生成（編集禁止）
   - エディタ拡張のスクショ/動画ハンドラ:

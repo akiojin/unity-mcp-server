@@ -120,7 +120,7 @@ sequenceDiagram
 
 ## Directory Structure
 
-- `UnityEditorMCP/`: Unity project (Editor bridge, tools, samples)
+- `UnityMCPServer/`: Unity project (Editor bridge, tools, samples)
 - `mcp-server/`: Node.js MCP server that exposes Unity tools
 - `scripts/`: Helper scripts for local development
 
@@ -131,7 +131,7 @@ sequenceDiagram
 - Claude Desktop or another MCP-compatible client
 
 Installation
-- In Unity: Package Manager → Add from git URL → `https://github.com/akiojin/unity-editor-mcp.git?path=UnityEditorMCP/Packages/unity-editor-mcp`
+- In Unity: Package Manager → Add from git URL → `https://github.com/akiojin/unity-mcp-server.git?path=UnityMCPServer/Packages/unity-mcp-server`
 - Configure MCP client (Claude Desktop example):
   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
   - Windows: `%APPDATA%\\Claude\\claude_desktop_config.json`
@@ -139,9 +139,9 @@ Installation
     ```json
     {
       "mcpServers": {
-        "unity-editor-mcp": {
+        "unity-mcp-server": {
           "command": "npx",
-          "args": ["@akiojin/unity-editor-mcp@latest"]
+          "args": ["@akiojin/unity-mcp-server@latest"]
         }
       }
     }
@@ -203,7 +203,7 @@ Tip: To avoid CWD dependency, prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.
 | `unity.maxReconnectDelay` | number (ms) | `30000` | Maximum backoff delay between reconnect attempts. | — |
 | `unity.reconnectBackoffMultiplier` | number | `2` | Exponential backoff multiplier for reconnects. | — |
 | `unity.commandTimeout` | number (ms) | `30000` | Timeout for individual Unity commands. | — |
-| `server.name` | string | `unity-editor-mcp-server` | Server name exposed via MCP. | — |
+| `server.name` | string | `unity-mcp-server` | Server name exposed via MCP. | — |
 | `server.version` | string | `0.1.0` | Server version string. | — |
 | `server.description` | string | `MCP server for Unity Editor integration` | Human-readable description. | — |
 | `logging.level` | string | `process.env.LOG_LEVEL` or `info` | Log verbosity for stderr logging. | `debug` | `info` | `warn` |
@@ -319,9 +319,9 @@ Example:
 ```json
 {
   "mcpServers": {
-    "unity-editor-mcp": {
+    "unity-mcp-server": {
       "command": "npx",
-      "args": ["@akiojin/unity-editor-mcp@latest"]
+      "args": ["@akiojin/unity-mcp-server@latest"]
     }
   }
 }

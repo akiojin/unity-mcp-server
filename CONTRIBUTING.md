@@ -5,7 +5,7 @@ Thank you for your interest in contributing to Unity Editor MCP! This document p
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/unity-editor-mcp.git`
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/unity-mcp-server.git`
 3. Create a new branch: `git checkout -b feature/your-feature-name`
 
 ## Development Setup

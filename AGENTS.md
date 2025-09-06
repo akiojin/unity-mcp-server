@@ -64,7 +64,7 @@
 ### Assets配下の扱い（サンプル/Unityプロジェクト側）
 
 - 目的: サンプル・検証・デモ・手動動作確認用のシーン/プレハブ/補助スクリプトを配置。
-- 禁止: unity-editor-mcp 実装本体（ランタイム/エディタ拡張の主要コード）を置かない。UPM配布の対象にも含めない。
+- 禁止: unity-mcp-server 実装本体（ランタイム/エディタ拡張の主要コード）を置かない。UPM配布の対象にも含めない。
 - 編集: 必要最小限に留める。C#編集は外部CLIで行い、Assets側は参照/設定のみで成立させる。
 
 ## バージョン管理
@@ -89,7 +89,7 @@
 
 1. 変更内容に応じて適切なバージョンコマンドを選択
 2. `cd mcp-server && npm version [patch|minor|major]`
-3. （自動同期）`csharp-lsp/Directory.Build.props` と `UnityEditorMCP/Packages/unity-editor-mcp/package.json` の `version` が更新される
+3. （自動同期）`csharp-lsp/Directory.Build.props` と `UnityMCPServer/Packages/unity-mcp-server/package.json` の `version` が更新される
 4. 変更をコミット＆プッシュ、タグ `vX.Y.Z` を作成してプッシュ（`git push && git push origin vX.Y.Z`）
 5. GitHub Actions の `Release csharp-lsp` 完了を確認（各RIDビルド＋Release公開）
 6. `Publish: mcp-server (npm)` の成功を確認（npm公開）
@@ -106,7 +106,7 @@
   - 前提: リポジトリSecret `NPM_TOKEN` を設定（npmのPublish権限付きトークン）
 - Unity UPM（GitHubパス指定で配布）
   - 消費側は `Packages/csharp-lsp-manifest.json` に Git URL を記載（例）:
-    - `"com.unity.editor-mcp": "https://github.com/akiojin/unity-editor-mcp.git#vX.Y.Z"`
+    - `"com.akiojin.unity-mcp-server": "https://github.com/akiojin/unity-mcp-server.git#vX.Y.Z"`
   - レジストリ公開は不要。タグに対応した `package.json.version` が使われます。
 
 ### リリース自動化（LLM用手順）
@@ -119,7 +119,7 @@
   - `npm version patch|minor|major`
     - 自動で以下が同期される:
       - `csharp-lsp/Directory.Build.props` の `<Version>` 群
-      - `UnityEditorMCP/Packages/unity-editor-mcp/package.json` の `version`
+      - `UnityMCPServer/Packages/unity-mcp-server/package.json` の `version`
   - `git push --follow-tags`
   - GitHub Actions で `csharp-lsp release` の成功を確認
   - GitHub Releases の対象タグ（例: `v2.13.4`）に以下が存在することを確認:
@@ -162,8 +162,8 @@
   - `config.json`: ワークスペースの設定。特に `project.root` は Unity プロジェクトルートを指す（相対なら `.unity` の1階層上を基準）。
   - `capture/`: スクリーンショット・動画の固定保存先。一時成果物としてGit管理外（`.gitignore` 済）。
 
-- `UnityEditorMCP/`（Unityプロジェクト）
-  - `Packages/unity-editor-mcp/**`（UPMパッケージ 実装本体／ソース・オブ・トゥルース）
+- `UnityMCPServer/`（Unityプロジェクト）
+  - `Packages/unity-mcp-server/**`（UPMパッケージ 実装本体／ソース・オブ・トゥルース）
   - `Assets/**` はサンプル/検証用途（実装本体を置かない）
   - `Library/PackageCache/**` は自動生成（編集禁止）
   - エディタ拡張のスクショ/動画ハンドラ:

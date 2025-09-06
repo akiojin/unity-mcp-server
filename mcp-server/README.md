@@ -22,26 +22,26 @@ MCP (Model Context Protocol) server for Unity Editor integration. Enables AI ass
 ### Using npx (Recommended)
 
 ```bash
-npx @akiojin/unity-editor-mcp@latest
+npx @akiojin/unity-mcp-server@latest
 ```
 
 ### Global Installation
 
 ```bash
-npm install -g @akiojin/unity-editor-mcp
-unity-editor-mcp
+npm install -g @akiojin/unity-mcp-server
+unity-mcp-server
 ```
 
 ### Local Installation
 
 ```bash
-npm install @akiojin/unity-editor-mcp
-npx unity-editor-mcp
+npm install @akiojin/unity-mcp-server
+npx unity-mcp-server
 ```
 
 ## Unity Setup
 
-1. Install the Unity package from: `https://github.com/akiojin/unity-editor-mcp.git?path=UnityEditorMCP/Packages/unity-editor-mcp`
+1. Install the Unity package from: `https://github.com/akiojin/unity-mcp-server.git?path=UnityMCPServer/Packages/unity-mcp-server`
 2. Open Unity Package Manager → Add package from git URL
 3. The package will automatically start a TCP server on port 6400
 
@@ -54,9 +54,9 @@ Add to your `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "unity-editor-mcp": {
+    "unity-mcp-server": {
       "command": "npx",
-      "args": ["@akiojin/unity-editor-mcp@latest"]
+      "args": ["@akiojin/unity-mcp-server@latest"]
     }
   }
 }
@@ -67,8 +67,8 @@ Add to your `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "unity-editor-mcp": {
-      "command": "unity-editor-mcp"
+    "unity-mcp-server": {
+      "command": "unity-mcp-server"
     }
   }
 }
@@ -193,13 +193,13 @@ Add to your `claude_desktop_config.json`:
 npm cache clean --force
 
 # Reinstall
-npm uninstall -g @akiojin/unity-editor-mcp
-npm install -g @akiojin/unity-editor-mcp
+npm uninstall -g @akiojin/unity-mcp-server
+npm install -g @akiojin/unity-mcp-server
 ```
 
 ## Repository
 
-Full source code and documentation: https://github.com/akiojin/unity-editor-mcp
+Full source code and documentation: https://github.com/akiojin/unity-mcp-server
 
 ## License
 

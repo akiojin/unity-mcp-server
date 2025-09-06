@@ -122,7 +122,7 @@ sequenceDiagram
 
 ## ディレクトリ構成
 
-- `UnityEditorMCP/`: Unityプロジェクト（Editorブリッジ、ツール、サンプル）
+- `UnityMCPServer/`: Unityプロジェクト（Editorブリッジ、ツール、サンプル）
 - `mcp-server/`: Unityツールを公開する Node.js MCP サーバー
 - `scripts/`: ローカル開発向けヘルパースクリプト
 
@@ -131,7 +131,7 @@ sequenceDiagram
 - MCPクライアント: Claude Desktop など
 
 インストール
-- Unity: Package Manager → Git URL から追加 → `https://github.com/akiojin/unity-editor-mcp.git?path=UnityEditorMCP/Packages/unity-editor-mcp`
+- Unity: Package Manager → Git URL から追加 → `https://github.com/akiojin/unity-mcp-server.git?path=UnityMCPServer/Packages/unity-mcp-server`
 - MCPクライアント設定（Claude Desktop例）:
   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
   - Windows: `%APPDATA%\\Claude\\claude_desktop_config.json`
@@ -139,9 +139,9 @@ sequenceDiagram
     ```json
     {
       "mcpServers": {
-        "unity-editor-mcp": {
+        "unity-mcp-server": {
           "command": "npx",
-          "args": ["@akiojin/unity-editor-mcp@latest"]
+          "args": ["@akiojin/unity-mcp-server@latest"]
         }
       }
     }
@@ -203,7 +203,7 @@ sequenceDiagram
 | `unity.maxReconnectDelay` | number (ms) | `30000` | 再接続バックオフの最大待機時間。 | — |
 | `unity.reconnectBackoffMultiplier` | number | `2` | 再接続の指数バックオフ倍率。 | — |
 | `unity.commandTimeout` | number (ms) | `30000` | 各Unityコマンドのタイムアウト。 | — |
-| `server.name` | string | `unity-editor-mcp-server` | MCPで公開されるサーバー名。 | — |
+| `server.name` | string | `unity-mcp-server` | MCPで公開されるサーバー名。 | — |
 | `server.version` | string | `0.1.0` | サーバーのバージョン文字列。 | — |
 | `server.description` | string | `MCP server for Unity Editor integration` | サーバーの説明。 | — |
 | `logging.level` | string | `process.env.LOG_LEVEL` または `info` | 標準エラーへのログ出力レベル。 | `debug` / `info` / `warn` |
@@ -302,9 +302,9 @@ Codex の MCP サーバー設定は次のファイルに作成してください
 ```json
 {
   "mcpServers": {
-    "unity-editor-mcp": {
+    "unity-mcp-server": {
       "command": "npx",
-      "args": ["@akiojin/unity-editor-mcp@latest"]
+      "args": ["@akiojin/unity-mcp-server@latest"]
     }
   }
 }

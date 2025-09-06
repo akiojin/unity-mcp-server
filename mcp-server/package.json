@@ -1,11 +1,11 @@
 {
-  "name": "@akiojin/unity-editor-mcp",
+  "name": "@akiojin/unity-mcp-server",
   "version": "2.14.9",
-  "description": "MCP server for Unity Editor integration - enables AI assistants to control Unity Editor",
+  "description": "MCP server and Unity Editor bridge — enables AI assistants to control Unity for AI-assisted workflows",
   "type": "module",
   "main": "src/core/server.js",
   "bin": {
-    "unity-editor-mcp": "./bin/unity-editor-mcp"
+    "unity-mcp-server": "./bin/unity-mcp-server"
   },
   "scripts": {
     "start": "node src/core/server.js",
@@ -24,7 +24,7 @@
     "test:ci:all": "c8 --reporter=lcov node --test tests/unit/**/*.test.js",
     "test:verbose": "VERBOSE_TEST=true node --test tests/**/*.test.js",
     "prepublishOnly": "npm run test:ci",
-    "postinstall": "chmod +x bin/unity-editor-mcp || true"
+    "postinstall": "chmod +x bin/unity-mcp-server || true"
   },
   "keywords": [
     "mcp",
@@ -49,12 +49,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/akiojin/unity-mcp.git",
+    "url": "https://github.com/akiojin/unity-mcp-server.git",
     "directory": "mcp-server"
   },
-  "homepage": "https://github.com/akiojin/unity-mcp#readme",
+  "homepage": "https://github.com/akiojin/unity-mcp-server#readme",
   "bugs": {
-    "url": "https://github.com/akiojin/unity-mcp/issues"
+    "url": "https://github.com/akiojin/unity-mcp-server/issues"
   },
   "files": [
     "src/",

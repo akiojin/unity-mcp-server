@@ -14,7 +14,7 @@ describe('Config', () => {
     });
 
     it('should have correct server settings', () => {
-      assert.equal(config.server.name, 'unity-editor-mcp-server');
+      assert.equal(config.server.name, 'unity-mcp-server');
       assert.equal(config.server.version, '0.1.0');
       assert.equal(config.server.description, 'MCP server for Unity Editor integration');
     });

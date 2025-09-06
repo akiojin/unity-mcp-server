@@ -44,7 +44,7 @@ RUN npm i -g \
     @openai/codex@latest \
     @google/gemini-cli@latest
 
-WORKDIR /unity-editor-mcp
+WORKDIR /unity-mcp-server
 # Use bash to invoke entrypoint to avoid exec-bit and CRLF issues on Windows mounts
-ENTRYPOINT ["bash", "/unity-editor-mcp/scripts/entrypoint.sh"]
+ENTRYPOINT ["bash", "/unity-mcp-server/scripts/entrypoint.sh"]
 CMD ["bash"]

@@ -5,7 +5,7 @@
 ## 全体構成
 
 - 入口: MCPコマンド `capture_video_start` / `capture_video_stop` / `capture_video_status`
-- ルーティング: `UnityEditorMCP/Editor/Core/UnityEditorMCP.cs`
+- ルーティング: `UnityMCPServer/Editor/Core/UnityMCPServer.cs`
 - ハンドラ: `VideoCaptureHandler`（セッション状態・各実装の委譲）
  - 実装段階:
   1) Unity Recorder による mp4/webm 出力（GameView、必須依存）
