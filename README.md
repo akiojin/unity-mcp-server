@@ -88,7 +88,7 @@ Architecture
 ┌────────────────┐        JSON-RPC (MCP)        ┌──────────────────────┐
 │  MCP Client    │ ───────────────────────────▶ │  Node MCP Server     │
 │ (Claude/Codex/ │ ◀─────────────────────────── │ (@akiojin/unity-     │
-│   Cursor …)    │        tool responses        │ editor-mcp)          │
+│   Cursor …)    │        tool responses        │ mcp-server)          │
 └────────────────┘                              └──────────┬───────────┘
                                                          TCP│6400
                                                             ▼
