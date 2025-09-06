@@ -16,7 +16,7 @@ export class CaptureVideoForToolHandler extends BaseToolHandler {
           width: { type: 'number', description: 'Output width (0 = default 1280)' },
           height: { type: 'number', description: 'Output height (0 = default 720)' },
           fps: { type: 'number', description: 'Frames per second (default 30)' },
-          durationSec: { type: 'number', description: 'Duration to record in seconds', required: true },
+          durationSec: { type: 'number', description: 'Duration to record in seconds' },
           play: { type: 'boolean', description: 'Enter Play Mode before recording (default true if not already playing)' }
         },
         required: ['durationSec']
