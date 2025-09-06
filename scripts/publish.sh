@@ -169,4 +169,4 @@ fi
 
 echo "[done] v$NEW_VER pushed. Check GitHub Actions: Release csharp-lsp / Publish mcp-server (npm)"
 echo "- Release URL (runs): https://github.com/akiojin/unity-mcp-server/actions/workflows/release-csharp-lsp.yml"
-echo "- Publish URL (runs): https://github.com/akiojin/unity-mcp-server/actions/workflows/publish-mcp-server.yml"
+echo "- Publish URL (runs): https://github.com/akiojin/unity-mcp-server/actions/workflows/mcp-server-publish.yml"
