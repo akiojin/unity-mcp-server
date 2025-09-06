@@ -1,6 +1,6 @@
 # Feature Specification: Unity向けのMCPサーバー
 
-**Feature Branch**: `001-unity-mcp`  
+**Feature ID**: `001-unity-mcp`  
 **Created**: 2025-09-05  
 **Status**: Draft  
 **Input**: User description: "Unity向けのMCPサーバー"

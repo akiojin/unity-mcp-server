@@ -1,14 +1,23 @@
 #!/bin/bash
 # Check that implementation plan exists and find optional design documents
-# Usage: ./check-task-prerequisites.sh [--json]
+# Usage: ./check-task-prerequisites.sh [--json] [--no-branch-check] [--feature-dir <abs>] [--spec <abs>]
 
 set -e
 
 JSON_MODE=false
-for arg in "$@"; do
-    case "$arg" in
-        --json) JSON_MODE=true ;;
-        --help|-h) echo "Usage: $0 [--json]"; exit 0 ;;
+NO_BRANCH_CHECK=false
+FEATURE_DIR_OVERRIDE=""
+FEATURE_SPEC_OVERRIDE=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --json) JSON_MODE=true; shift ;;
+        --no-branch-check) NO_BRANCH_CHECK=true; shift ;;
+        --feature-dir) FEATURE_DIR_OVERRIDE="$2"; shift 2 ;;
+        --spec) FEATURE_SPEC_OVERRIDE="$2"; shift 2 ;;
+        --help|-h)
+            echo "Usage: $0 [--json] [--no-branch-check] [--feature-dir <abs>] [--spec <abs>]"; exit 0 ;;
+        *) echo "Unknown option: $1" >&2; exit 1 ;;
     esac
 done
 
@@ -16,11 +25,20 @@ done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
-# Get all paths
+# Get all paths (baseline from current branch)
 eval $(get_feature_paths)
 
-# Check if on feature branch
-check_feature_branch "$CURRENT_BRANCH" || exit 1
+# Optionally bypass branch check
+if [ "$NO_BRANCH_CHECK" != true ]; then
+    check_feature_branch "$CURRENT_BRANCH" || true
+fi
+
+# Apply overrides if provided
+if [[ -n "$FEATURE_SPEC_OVERRIDE" ]]; then
+    FEATURE_DIR="$(dirname "$FEATURE_SPEC_OVERRIDE")"
+elif [[ -n "$FEATURE_DIR_OVERRIDE" ]]; then
+    FEATURE_DIR="$FEATURE_DIR_OVERRIDE"
+fi
 
 # Check if feature directory exists
 if [[ ! -d "$FEATURE_DIR" ]]; then

@@ -1,11 +1,13 @@
 #!/bin/bash
-# Create a new feature with branch, directory structure, and template
+# Create a new feature with directory structure and template
 # Usage: ./create-new-feature.sh "feature description"
 #        ./create-new-feature.sh --json "feature description"
+#        ./create-new-feature.sh --json --no-branch "feature description"  # do not create/switch git branches
 
 set -e
 
 JSON_MODE=false
+NO_BRANCH=false
 
 # Collect non-flag args
 ARGS=()
@@ -13,6 +15,9 @@ for arg in "$@"; do
     case "$arg" in
         --json)
             JSON_MODE=true
+            ;;
+        --no-branch)
+            NO_BRANCH=true
             ;;
         --help|-h)
             echo "Usage: $0 [--json] <feature_description>"; exit 0 ;;
@@ -67,8 +72,10 @@ WORDS=$(echo "$BRANCH_NAME" | tr '-' '\n' | grep -v '^$' | head -3 | tr '\n' '-'
 # Final branch name
 BRANCH_NAME="${FEATURE_NUM}-${WORDS}"
 
-# Create and switch to new branch
-git checkout -b "$BRANCH_NAME"
+# Optionally create and switch to new branch (default: create)
+if [ "$NO_BRANCH" != true ]; then
+    git checkout -b "$BRANCH_NAME"
+fi
 
 # Create feature directory
 FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
