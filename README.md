@@ -33,10 +33,9 @@ Common usage (MCP tools)
 
 Run `AssetDatabase.Refresh` in Unity manually only when needed.
 
-Performance mode (default)
+Performance
 
-- The server runs a persistent LSP process by default to avoid cold starts.
-- To opt-out (one-shot per request), set `ROSLYN_CLI_MODE=oneshot` (or `off`).
+- The server starts and keeps a persistent LSP process by default to avoid cold starts.
 
 ## LLM Optimization Principles
 
@@ -156,11 +155,12 @@ Usage Flow
 Configuration is optional; defaults work without any config. When present, the server loads configuration in this order:
 
 - `UNITY_MCP_CONFIG` (absolute path to a JSON file)
-- `./.unity/config.json` (relative to the current working directory)
+- Nearest `./.unity/config.json` discovered by walking up from the current working directory
 - `~/.unity/config.json` (user-global)
 
 Notes:
-- Paths are used as-is. Relative paths resolve from the server process current working directory (not the config file location).
+- The server derives a fixed `WORKSPACE_ROOT` from the discovered `.unity/config.json` location and uses it consistently (independent of later `process.cwd()` changes).
+- Relative paths in the config should be written relative to this workspace root.
 - `~` and environment variable expansion are not applied to path values.
 
 Common keys:
@@ -178,7 +178,7 @@ Examples:
 }
 ```
 
-Team-friendly (relative) example — ensure you always start the server from the repository root so `process.cwd()` is stable:
+Team-friendly (relative) example — recommended when the repo layout is stable:
 
 ```json
 {
@@ -189,7 +189,7 @@ Team-friendly (relative) example — ensure you always start the server from the
 }
 ```
 
-Tip: To avoid CWD dependency, prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.json` when launching the server.
+Tip: Prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.json` to make discovery explicit.
 
 #### Configuration Keys
 
@@ -226,7 +226,8 @@ Tip: To avoid CWD dependency, prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.
   - Explorer framing: `explorerSettings.camera.*` (autoFrame, FOV, near/far clip, position/rotation, padding).
   - Display aids: `explorerSettings.display.*` (highlightTarget, showBounds, showColliders, showGizmos, backgroundColor, layers).
   - Target focus: `explorerSettings.target.*` (gameObject/tag/area/position, includeChildren).
-  - Output: `outputPath` to save under `Assets/` or return base64 data.
+  - Output: always saved to `<workspace>/.unity/capture/screenshot_<mode>_<timestamp>.png`. Set `encodeAsBase64=true` only when you need inline analysis.
+  - The Node server always includes `workspaceRoot` when commanding Unity; Unity prioritizes it and falls back to `.unity/config.json` only if missing.
 - Analysis: optional UI detection and content summary.
 
 Sequence
@@ -334,4 +335,17 @@ Example:
 - C# types missing: refresh assets and wait until compilation completes.
 - Technical notes are summarized in this README.
 
-Note: This README now consolidates connection design, screenshot system, and code index specifications.
+Note: Detailed design documents are referenced from `docs/`. This README focuses on usage and repository structure.
+
+## Repository Structure (Workspace Root)
+
+- `.unity/`
+  - `config.json`: Workspace settings. `project.root` points to the Unity project root. The server fixes `WORKSPACE_ROOT` based on this.
+  - `capture/`: Fixed output location for screenshots/videos (Git-ignored).
+- `UnityMCPServer/` (Unity project)
+  - `Packages/unity-mcp-server/**`: UPM package (source of truth)
+  - `Assets/**`: samples/tests only (no implementation code)
+- `mcp-server/` (Node MCP server)
+  - Reads `./.unity/config.json` and fixes `WORKSPACE_ROOT`. Always passes it to Unity for capture commands.
+- `csharp-lsp/` (Roslyn-based CLI)
+  - Self-contained binary, invoked by the MCP server for symbol/search/edit operations.

@@ -35,10 +35,9 @@ LSP は MCP サーバが自動ダウンロード・自動更新（固定版）�
 
 必要時のみ、Unity側で手動 `AssetDatabase.Refresh` を行ってください。
 
-パフォーマンス（既定）
+パフォーマンス
 
 - 既定で LSP を常駐起動し、初回以降の起動コストを回避します。
-- 明示的に無効化したい場合は `ROSLYN_CLI_MODE=oneshot`（または `off`）を設定してください。
 
 ## LLM最適化の原則
 
@@ -156,11 +155,12 @@ sequenceDiagram
 設定は任意で、未設定でも既定値で動作します。存在する場合の読込順は次のとおりです。
 
 - `UNITY_MCP_CONFIG`（設定JSONへの絶対パス）
-- `./.unity/config.json`（サーバープロセスのカレントディレクトリ基準）
+- カレントディレクトリから上位に向けて探索した最寄りの `./.unity/config.json`
 - `~/.unity/config.json`（ユーザーグローバル）
 
 注意:
-- パスはそのまま使用されます。相対パスは設定ファイルの場所ではなく「プロセスのCWD」基準で解決されます。
+- サーバーは発見した `.unity/config.json` の所在から固定の `WORKSPACE_ROOT` を確定し、その後は `process.cwd()` の変化に依存しません。
+- 設定内の相対パスは、このワークスペースルートを基準に記述してください。
 - `~` や環境変数の展開は行いません。
 
 代表的なキー:
@@ -178,7 +178,7 @@ sequenceDiagram
 }
 ```
 
-チーム向け（相対）の例 — 常にリポジトリ直下から起動して `process.cwd()` を一定にしてください:
+チーム向け（相対）の例 — リポジトリのレイアウトが安定している場合に推奨:
 
 ```json
 {
@@ -189,7 +189,7 @@ sequenceDiagram
 }
 ```
 
-ヒント: CWD依存を避けるには、起動時に `UNITY_MCP_CONFIG=/absolute/path/to/config.json` を指定してください。
+ヒント: 発見を明示したい場合は、`UNITY_MCP_CONFIG=/absolute/path/to/config.json` を指定してください。
 
 #### 設定キー一覧
 
@@ -226,7 +226,8 @@ sequenceDiagram
   - Explorerフレーミング: `explorerSettings.camera.*`（autoFrame、FOV、near/far、position/rotation、padding）。
   - 表示補助: `explorerSettings.display.*`（highlightTarget、showBounds、showColliders、showGizmos、backgroundColor、layers）。
   - ターゲット: `explorerSettings.target.*`（gameObject/tag/area/position、includeChildren）。
-  - 出力: `outputPath`（`Assets/` 配下に保存）または base64 返却。
+- 出力: 常に `<workspace>/.unity/capture/screenshot_<mode>_<timestamp>.png` に保存します。即時解析が必要な場合のみ `encodeAsBase64=true` を使用してください。
+- Node サーバーは常に `workspaceRoot` を Unity へ付与し、Unity はそれを優先採用します（未受領時のみ `.unity/config.json` にフォールバック）。
 - 解析: UI検出や内容サマリも可能。
 
 シーケンス
@@ -316,4 +317,17 @@ Codex の MCP サーバー設定は次のファイルに作成してください
 - Node.jsが接続できない: Unity稼働確認、FW設定、Unity/Nodeのログ確認。
 - C#の型が見つからない: アセットをリフレッシュし、コンパイル完了まで待機。
 
-注意: 本READMEに接続設計・スクリーンショット・コードインデックスの要点を集約しました.
+注意: 詳細な設計は `docs/` を参照してください。本READMEは利用方法とリポジトリ構成の要点に絞っています。
+
+## リポジトリ構成（ワークスペースルート）
+
+- `.unity/`
+  - `config.json`: ワークスペース設定。`project.root` は Unity プロジェクトのルートを指します。サーバーはここから `WORKSPACE_ROOT` を確定します。
+  - `capture/`: スクリーンショット/動画の固定保存先（Git管理外）。
+- `UnityMCPServer/`（Unityプロジェクト）
+  - `Packages/unity-mcp-server/**`: UPMパッケージ（実装本体/ソース・オブ・トゥルース）
+  - `Assets/**`: サンプル/検証用途（実装本体は置かない）
+- `mcp-server/`（Node製 MCP サーバ）
+  - `./.unity/config.json` を読み、固定の `WORKSPACE_ROOT` を確定。キャプチャ系コマンドには常に `workspaceRoot` を付与します。
+- `csharp-lsp/`（RoslynベースのCLI）
+  - MCPサーバが起動・管理し、シンボル/検索/編集を提供します。
