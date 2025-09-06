@@ -93,32 +93,38 @@ export class CSharpLspUtils {
   }
 
   async downloadTo(url, dest) {
-    const res = await fetch(url, { headers: { 'User-Agent': 'unity-mcp-server' } });
-    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-    const file = fs.createWriteStream(dest);
+    const headers = { 'User-Agent': 'unity-mcp-server' };
+    const fetchOnce = async () => {
+      const r = await fetch(url, { headers });
+      if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
+      return r;
+    };
+
+    const res = await fetchOnce();
     const body = res.body;
-    if (body && typeof body.pipe === 'function') {
-      await new Promise((resolve, reject) => {
-        body.pipe(file);
-        body.on('error', reject);
-        file.on('finish', resolve);
-        file.on('error', reject);
-      });
-      return;
+
+    // Prefer WebStream -> Node stream piping
+    if (body) {
+      try {
+        const file = fs.createWriteStream(dest);
+        const { Readable } = await import('node:stream');
+        const nodeStream = Readable.fromWeb(body);
+        await new Promise((resolve, reject) => {
+          nodeStream.pipe(file);
+          nodeStream.on('error', reject);
+          file.on('finish', resolve);
+          file.on('error', reject);
+        });
+        return;
+      } catch (e) {
+        // If streaming failed or body was already consumed, re-fetch and fall back to arrayBuffer
+      }
     }
-    try {
-      const { Readable } = await import('node:stream');
-      const nodeStream = Readable.fromWeb(body);
-      await new Promise((resolve, reject) => {
-        nodeStream.pipe(file);
-        nodeStream.on('error', reject);
-        file.on('finish', resolve);
-        file.on('error', reject);
-      });
-    } catch (e) {
-      const ab = await res.arrayBuffer();
-      await fs.promises.writeFile(dest, Buffer.from(ab));
-    }
+
+    // Fallback: re-fetch fresh response and write full buffer
+    const res2 = await fetchOnce();
+    const ab = await res2.arrayBuffer();
+    await fs.promises.writeFile(dest, Buffer.from(ab));
   }
 
   async sha256File(file) {

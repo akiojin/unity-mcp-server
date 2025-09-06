@@ -56,7 +56,8 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
         if (await this.index.isReady()) {
             const rows = await this.index.querySymbols({ name, kind, scope, exact });
             results = rows.map(r => ({
-                path: r.path,
+                // Index returns project-relative paths already
+                path: (r.path || '').replace(/\\\\/g, '/'),
                 symbol: {
                     name: r.name,
                     kind: r.kind,
@@ -73,19 +74,28 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
             if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
             const resp = await this.lsp.request('workspace/symbol', { query: String(name) });
             const arr = resp?.result || [];
-            results = arr.map(s => ({
-                path: (s.location?.uri || '').replace('file://',''),
-                symbol: {
-                    name: s.name,
-                    kind: this.mapKind(s.kind),
-                    namespace: null,
-                    container: null,
-                    startLine: (s.location?.range?.start?.line ?? 0) + 1,
-                    startColumn: (s.location?.range?.start?.character ?? 0) + 1,
-                    endLine: (s.location?.range?.end?.line ?? 0) + 1,
-                    endColumn: (s.location?.range?.end?.character ?? 0) + 1,
-                }
-            }));
+            const root = String(info.projectRoot || '').replace(/\\\\/g, '/');
+            const rootWithSlash = root.endsWith('/') ? root : (root + '/');
+            results = arr.map(s => {
+                const uri = String(s.location?.uri || '');
+                // Normalize to absolute path without scheme
+                const abs = uri.replace('file://', '').replace(/\\\\/g, '/');
+                // Convert to project-relative if under project root
+                const rel = abs.startsWith(rootWithSlash) ? abs.slice(rootWithSlash.length) : abs;
+                return {
+                    path: rel,
+                    symbol: {
+                        name: s.name,
+                        kind: this.mapKind(s.kind),
+                        namespace: null,
+                        container: null,
+                        startLine: (s.location?.range?.start?.line ?? 0) + 1,
+                        startColumn: (s.location?.range?.start?.character ?? 0) + 1,
+                        endLine: (s.location?.range?.end?.line ?? 0) + 1,
+                        endColumn: (s.location?.range?.end?.character ?? 0) + 1,
+                    }
+                };
+            });
         }
         // Optional post-filtering: scope and exact name
         if (scope && scope !== 'all') {
@@ -94,7 +104,9 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
                 switch (scope) {
                     case 'assets': return p.startsWith('Assets/');
                     case 'packages': return p.startsWith('Packages/') || p.startsWith('Library/PackageCache/');
-                    case 'embedded': return p.startsWith('Packages/');                }
+                    case 'embedded': return p.startsWith('Packages/');
+                    default: return true;
+                }
             });
         }
         if (exact) {
