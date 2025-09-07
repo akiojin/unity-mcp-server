@@ -38,6 +38,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 
 RUN npm i -g \
     npm@latest \
+    bun@latest \
     typescript@latest \
     eslint@latest \
     prettier@latest \
