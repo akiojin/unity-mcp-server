@@ -29,9 +29,6 @@ RUN set -eux; \
     ln -sf "$DOTNET_ROOT/dotnet" /usr/bin/dotnet; \
     dotnet --info
 
-# Install Claude Code
-RUN curl -fsSL https://claude.ai/install.sh | bash
-
 # Install uv/uvx
 RUN curl -fsSL https://astral.sh/uv/install.sh | bash
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -42,6 +39,7 @@ RUN npm i -g \
     typescript@latest \
     eslint@latest \
     prettier@latest \
+    @anthropic-ai/claude-code@latest \
     @openai/codex@latest \
     @google/gemini-cli@latest
 
