@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     dos2unix \
     ca-certificates \
     gnupg \
+    vim \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
