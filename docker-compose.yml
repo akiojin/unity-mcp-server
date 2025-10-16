@@ -6,7 +6,12 @@ services:
       - .:/unity-mcp-server
       - bash-history:/root/.bash_history_dir
       - claude_config:/root/.claude
-      - ~/.codex:/root/.codex
+      - type: volume
+        source: codex_config
+        target: /root/.codex
+      - type: bind
+        source: ~/.codex/auth.json
+        target: /root/.codex/auth.json
     environment:
       - NPM_USER
       - NPM_EMAIL
@@ -34,3 +39,4 @@ services:
 volumes:
   bash-history: {}
   claude_config: {}
+  codex_config: {}
