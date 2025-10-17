@@ -6,21 +6,18 @@ English | [日本語](README.ja.md)
 
 Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on reliable, scriptable workflows with a simple interface and zero- or low-configuration setup.
 
-### Related Docs
+### Feature Specifications
 
-- Video Capture Feature Plan: `docs/video-capture-plan.md`
-- Planned: C# Language Server (self-contained) RFC: `docs/RFCs/0001-csharp-lsp.md`
-- **Feature Specifications**: [`specs/`](specs/) - All 14 existing features documented with SDD format
+- **All Features**: [`specs/`](specs/) - 15 features documented with SDD format (including Unity Test Execution)
 
 ### Development Process
 
 This project follows **Spec-Driven Development (SDD)** and **Test-Driven Development (TDD)** methodologies:
 
 - **Development Constitution**: [`memory/constitution.md`](memory/constitution.md) - Core development principles and requirements
-- **TDD Workflow**: [`docs/development/tdd-workflow.md`](docs/development/tdd-workflow.md) - Red-Green-Refactor cycle guide
-- **Test Coverage Strategy**: [`docs/development/test-coverage-strategy.md`](docs/development/test-coverage-strategy.md) - Coverage goals and measurement
-- **Integration Testing Guide**: [`docs/development/integration-testing-guide.md`](docs/development/integration-testing-guide.md) - Unity実接続テストの作成方法
 - **Developer Guide**: [`CLAUDE.md`](CLAUDE.md) - Workflow, guidelines, and Spec Kit integration
+- **TDD**: Red-Green-Refactor cycle enforced; tests written before implementation
+- **Test Coverage**: Unit tests (80%+), Integration tests (100% critical paths)
 
 See also: Spec Kit workflow (`/specify`, `/plan`, `/tasks`) for structured feature development.
 
@@ -274,7 +271,9 @@ The project bundles a self-contained C# Language Server (LSP). The MCP server au
 - Edits: rename/replace/insert/remove via LSP extensions
 - Safety: structured edits, preview/apply options, no blind line-based patches
 
-Operational details (auto-download/update, recovery): see `docs/lsp-operations.md`.
+**Auto-Download/Update**: LSP binary is auto-fetched per runtime (no .NET SDK required). Version is pinned to MCP server version.
+
+**Recovery**: If LSP exits unexpectedly, client auto-retries once. For corrupted downloads, delete `mcp-server/bin/csharp-lsp*` and retry.
 
 Tests
 
@@ -341,14 +340,18 @@ Example:
 }
 ```
 
-## Troubleshooting (Short)
+## Troubleshooting
 
 - Unity TCP not listening: reopen project; ensure port 6400 is free.
 - Node.js cannot connect: Unity running? firewall? logs in Unity/Node terminals.
 - C# types missing: refresh assets and wait until compilation completes.
-- Technical notes are summarized in this README.
 
-Note: Detailed design documents are referenced from `docs/`. This README focuses on usage and repository structure.
+## Release Process
+
+- Versions for MCP server, C# LSP, and Unity sample are synchronized.
+- Run `scripts/publish.sh` to update versions and create release tags.
+- GitHub Actions publish both MCP server (npm) and LSP binaries (per RID).
+- MCP clients auto-download matching LSP on first use (no manual install needed).
 
 ## Repository Structure (Workspace Root)
 

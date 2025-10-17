@@ -6,10 +6,20 @@
 
 Unity Editor MCP は、LLMクライアントからUnity Editorを自動化します。シンプルなインターフェースで、安全かつ再現性の高いエディタ操作を実現します。
 
-### 関連ドキュメント
+### 機能仕様書
 
-- 動画保存機能 計画: `docs/video-capture-plan.md`
-- 予定: C# LSP（自己完結配布）RFC: `docs/RFCs/0001-csharp-lsp.md` （運用: `docs/lsp-operations.md` 参照）
+- **全機能**: [`specs/`](specs/) - SDD形式で15機能を文書化（Unity Test Execution含む）
+
+### 開発プロセス
+
+このプロジェクトは **Spec-Driven Development (SDD)** および **Test-Driven Development (TDD)** 手法に従っています：
+
+- **開発憲章**: [`memory/constitution.md`](memory/constitution.md) - コア開発原則と要件
+- **開発者ガイド**: [`CLAUDE.md`](CLAUDE.md) - ワークフロー、ガイドライン、Spec Kit統合
+- **TDD**: Red-Green-Refactorサイクル強制; 実装前にテスト作成
+- **テストカバレッジ**: ユニットテスト (80%以上), 統合テスト (クリティカルパス100%)
+
+Spec Kitワークフロー (`/specify`, `/plan`, `/tasks`) も参照してください。
 
 ### C#編集の方針（重要）
 
@@ -311,13 +321,18 @@ Codex の MCP サーバー設定は次のファイルに作成してください
 }
 ```
 
-## トラブルシューティング（簡易）
+## トラブルシューティング
 
 - UnityのTCPが待受しない: プロジェクトを開き直し／ポート6400の占有を解除。
 - Node.jsが接続できない: Unity稼働確認、FW設定、Unity/Nodeのログ確認。
 - C#の型が見つからない: アセットをリフレッシュし、コンパイル完了まで待機。
 
-注意: 詳細な設計は `docs/` を参照してください。本READMEは利用方法とリポジトリ構成の要点に絞っています。
+## リリースプロセス
+
+- MCPサーバー、C# LSP、Unityサンプルのバージョンは同期されています。
+- `scripts/publish.sh` でバージョン更新とリリースタグを作成。
+- GitHub Actionsが MCPサーバー（npm）とLSPバイナリ（RID毎）を公開。
+- MCPクライアントは初回使用時に対応するLSPを自動ダウンロード（手動インストール不要）。
 
 ## リポジトリ構成（ワークスペースルート）
 
