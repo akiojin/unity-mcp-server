@@ -1,6 +1,6 @@
 {
   "unity": {
-    "host": "host.docker.internal",
+    "host": "localhost",
     "port": 6400,
     "verboseReceiveLogs": true,
     "logIncomingCommands": true
