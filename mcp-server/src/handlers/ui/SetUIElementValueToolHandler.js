@@ -13,7 +13,15 @@ export class SetUIElementValueToolHandler extends BaseToolHandler {
                         description: 'Full hierarchy path to the UI element'
                     },
                     value: {
-                        description: 'New value to set (type depends on element type)'
+                        anyOf: [
+                            { type: 'string' },
+                            { type: 'number' },
+                            { type: 'boolean' },
+                            { type: 'object' },
+                            { type: 'array' },
+                            { type: 'null' }
+                        ],
+                        description: 'New value to set. Supports string, number, boolean, object, array, or null depending on the UI element type.'
                     },
                     triggerEvents: {
                         type: 'boolean',
