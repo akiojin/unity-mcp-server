@@ -295,6 +295,11 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
+                if (!Application.isPlaying)
+                {
+                    return new { error = "Play Mode is required for input_system get_state", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
+                }
+
                 var state = new
                 {
                     simulationActive = isSimulationActive,
@@ -304,7 +309,7 @@ namespace UnityMCPServer.Handlers
                     gamepad = GetGamepadState(),
                     touchscreen = GetTouchscreenState()
                 };
-                
+
                 return state;
             }
             catch (Exception e)

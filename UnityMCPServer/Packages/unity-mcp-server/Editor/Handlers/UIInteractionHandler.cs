@@ -193,6 +193,11 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
+                if (!Application.isPlaying)
+                {
+                    return new { error = "Play Mode is required for set_ui_element_value", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
+                }
+
                 string elementPath = parameters["elementPath"]?.ToString();
                 var value = parameters["value"];
                 bool triggerEvents = parameters["triggerEvents"]?.ToObject<bool>() ?? true;
