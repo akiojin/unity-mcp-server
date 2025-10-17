@@ -45,6 +45,7 @@ namespace UnityMCPServer.Handlers
                 string testMode = parameters["testMode"]?.ToString() ?? "EditMode";
                 string filter = parameters["filter"]?.ToString();
                 string category = parameters["category"]?.ToString();
+                string namespaceFilter = parameters["namespace"]?.ToString();
                 bool includeDetails = parameters["includeDetails"]?.ToObject<bool>() ?? false;
                 string exportPath = parameters["exportPath"]?.ToString();
 
@@ -53,9 +54,11 @@ namespace UnityMCPServer.Handlers
                     return new { error = "Invalid testMode. Must be EditMode, PlayMode, or All" };
                 }
 
-                if (isTestRunning)
+                // Cancel previous execution if running (no manual execution expected)
+                if (isTestRunning && currentCollector != null && testRunnerApi != null)
                 {
-                    return new { error = "Test execution is already in progress" };
+                    testRunnerApi.UnregisterCallbacks(currentCollector);
+                    isTestRunning = false;
                 }
 
                 if (testRunnerApi == null)
@@ -78,6 +81,11 @@ namespace UnityMCPServer.Handlers
                     filterSettings.categoryNames = new[] { category };
                 }
 
+                if (!string.IsNullOrEmpty(namespaceFilter))
+                {
+                    filterSettings.assemblyNames = new[] { namespaceFilter };
+                }
+
                 currentCollector = new TestResultCollector();
                 var collector = currentCollector;
                 testRunnerApi.RegisterCallbacks(collector);
@@ -87,18 +95,10 @@ namespace UnityMCPServer.Handlers
 
                 testRunnerApi.Execute(new ExecutionSettings(filterSettings));
 
-                const int timeout = 300;
-                int elapsed = 0;
-                while (isTestRunning && elapsed < timeout)
+                // Wait for test execution to complete (no timeout - managed by MCP client)
+                while (isTestRunning)
                 {
                     System.Threading.Thread.Sleep(100);
-                    elapsed++;
-                }
-
-                if (elapsed >= timeout)
-                {
-                    isTestRunning = false;
-                    return new { error = "Test execution timed out after 5 minutes" };
                 }
 
                 var duration = (DateTime.Now - startTime).TotalSeconds;
@@ -207,11 +207,13 @@ namespace UnityMCPServer.Handlers
 
             public void TestStarted(ITestAdaptor test)
             {
-                // No-op
+                Debug.Log($"[TestExecutionHandler] Test started: {test.FullName}");
             }
 
             public void TestFinished(ITestResultAdaptor result)
             {
+                Debug.Log($"[TestExecutionHandler] Test finished: {result.Test.FullName} [{result.TestStatus}]");
+
                 var testResult = new TestResultData
                 {
                     name = result.Test.Name,

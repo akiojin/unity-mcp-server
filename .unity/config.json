@@ -2,9 +2,7 @@
   "unity": {
     "unityHost": "localhost",
     "mcpHost": "host.docker.internal",
-    "port": 6400,
-    "verboseReceiveLogs": true,
-    "logIncomingCommands": true
+    "port": 6400
   },
   "project": {
     "root": "./UnityMCPServer"
