@@ -19,6 +19,7 @@ This project follows **Spec-Driven Development (SDD)** and **Test-Driven Develop
 - **Development Constitution**: [`memory/constitution.md`](memory/constitution.md) - Core development principles and requirements
 - **TDD Workflow**: [`docs/development/tdd-workflow.md`](docs/development/tdd-workflow.md) - Red-Green-Refactor cycle guide
 - **Test Coverage Strategy**: [`docs/development/test-coverage-strategy.md`](docs/development/test-coverage-strategy.md) - Coverage goals and measurement
+- **Integration Testing Guide**: [`docs/development/integration-testing-guide.md`](docs/development/integration-testing-guide.md) - Unity実接続テストの作成方法
 - **Developer Guide**: [`CLAUDE.md`](CLAUDE.md) - Workflow, guidelines, and Spec Kit integration
 
 See also: Spec Kit workflow (`/specify`, `/plan`, `/tasks`) for structured feature development.
