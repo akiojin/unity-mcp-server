@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
-using UnityEditor.TestTools.TestRunner.Api;
-using UnityEngine;
 using Newtonsoft.Json.Linq;
+using UnityEditor;
+#if UNITY_INCLUDE_TESTS
+using UnityEditor.TestTools.TestRunner.Api;
+#endif
+using UnityEngine;
 
 namespace UnityMCPServer.Handlers
 {
@@ -14,9 +16,10 @@ namespace UnityMCPServer.Handlers
     /// </summary>
     public static class TestExecutionHandler
     {
+#if UNITY_INCLUDE_TESTS
         private static TestRunnerApi testRunnerApi;
         private static TestResultCollector currentCollector;
-        private static bool isTestRunning = false;
+        private static bool isTestRunning;
 
         /// <summary>
         /// Test result structure
@@ -25,7 +28,7 @@ namespace UnityMCPServer.Handlers
         {
             public string name;
             public string fullName;
-            public string status; // Passed, Failed, Skipped, Inconclusive
+            public string status;
             public double duration;
             public string message;
             public string stackTrace;
@@ -33,69 +36,58 @@ namespace UnityMCPServer.Handlers
         }
 
         /// <summary>
-        /// Execute Unity tests based on specified filters and modes
-        /// FR-001, FR-002, FR-003, FR-004, FR-005
+        /// Execute Unity tests based on specified filters and modes.
         /// </summary>
         public static object RunTests(JObject parameters)
         {
             try
             {
-                // Parse parameters
                 string testMode = parameters["testMode"]?.ToString() ?? "EditMode";
                 string filter = parameters["filter"]?.ToString();
                 string category = parameters["category"]?.ToString();
-                string namespaceName = parameters["namespace"]?.ToString();
                 bool includeDetails = parameters["includeDetails"]?.ToObject<bool>() ?? false;
                 string exportPath = parameters["exportPath"]?.ToString();
 
-                // Validate testMode
                 if (testMode != "EditMode" && testMode != "PlayMode" && testMode != "All")
                 {
                     return new { error = "Invalid testMode. Must be EditMode, PlayMode, or All" };
                 }
 
-                // Check if test is already running
                 if (isTestRunning)
                 {
                     return new { error = "Test execution is already in progress" };
                 }
 
-                // Initialize Test Runner API
                 if (testRunnerApi == null)
                 {
                     testRunnerApi = ScriptableObject.CreateInstance<TestRunnerApi>();
                 }
 
-                // Build test filter
                 var filterSettings = new Filter
                 {
                     testMode = ParseTestMode(testMode)
                 };
 
-                // Apply class name filter
                 if (!string.IsNullOrEmpty(filter))
                 {
                     filterSettings.testNames = new[] { filter };
                 }
 
-                // Apply category filter (requires Test Framework 1.1+)
                 if (!string.IsNullOrEmpty(category))
                 {
                     filterSettings.categoryNames = new[] { category };
                 }
 
-                // Create result collector
                 currentCollector = new TestResultCollector();
-                testRunnerApi.RegisterCallbacks(currentCollector);
+                var collector = currentCollector;
+                testRunnerApi.RegisterCallbacks(collector);
 
-                // Start test execution
                 isTestRunning = true;
                 var startTime = DateTime.Now;
 
                 testRunnerApi.Execute(new ExecutionSettings(filterSettings));
 
-                // Wait for test completion (synchronous for MCP)
-                int timeout = 300; // 5 minutes max
+                const int timeout = 300;
                 int elapsed = 0;
                 while (isTestRunning && elapsed < timeout)
                 {
@@ -106,23 +98,21 @@ namespace UnityMCPServer.Handlers
                 if (elapsed >= timeout)
                 {
                     isTestRunning = false;
-                    testRunnerApi.UnregisterCallbacks(currentCollector);
                     return new { error = "Test execution timed out after 5 minutes" };
                 }
 
                 var duration = (DateTime.Now - startTime).TotalSeconds;
 
-                // Collect results
                 var summary = new
                 {
-                    success = currentCollector.FailedTests.Count == 0,
-                    totalTests = currentCollector.TotalTests,
-                    passedTests = currentCollector.PassedTests.Count,
-                    failedTests = currentCollector.FailedTests.Count,
-                    skippedTests = currentCollector.SkippedTests.Count,
-                    inconclusiveTests = currentCollector.InconclusiveTests.Count,
+                    success = collector.FailedTests.Count == 0,
+                    totalTests = collector.TotalTests,
+                    passedTests = collector.PassedTests.Count,
+                    failedTests = collector.FailedTests.Count,
+                    skippedTests = collector.SkippedTests.Count,
+                    inconclusiveTests = collector.InconclusiveTests.Count,
                     duration = Math.Round(duration, 2),
-                    failures = currentCollector.FailedTests.Select(t => new
+                    failures = collector.FailedTests.Select(t => new
                     {
                         testName = t.fullName,
                         message = t.message,
@@ -130,11 +120,11 @@ namespace UnityMCPServer.Handlers
                     }).ToList()
                 };
 
-                // Cleanup
-                testRunnerApi.UnregisterCallbacks(currentCollector);
-                currentCollector = null;
+                if (!string.IsNullOrEmpty(exportPath))
+                {
+                    Debug.LogWarning("[TestExecutionHandler] XML export not yet implemented");
+                }
 
-                // Return detailed results if requested
                 if (includeDetails)
                 {
                     return new
@@ -146,7 +136,7 @@ namespace UnityMCPServer.Handlers
                         skippedTests = summary.skippedTests,
                         inconclusiveTests = summary.inconclusiveTests,
                         duration = summary.duration,
-                        tests = currentCollector.AllResults.Select(t => new
+                        tests = collector.AllResults.Select(t => new
                         {
                             name = t.name,
                             fullName = t.fullName,
@@ -159,26 +149,26 @@ namespace UnityMCPServer.Handlers
                     };
                 }
 
-                // Export to XML if requested (FR-011, FR-012)
-                if (!string.IsNullOrEmpty(exportPath))
-                {
-                    // TODO: Implement NUnit XML export
-                    Debug.LogWarning("[TestExecutionHandler] XML export not yet implemented");
-                }
-
                 return summary;
             }
             catch (Exception e)
             {
-                Debug.LogError($"[TestExecutionHandler] Error running tests: {e.Message}\n{e.StackTrace}");
+                Debug.LogError($"[TestExecutionHandler] Error running tests: {e.Message}\\n{e.StackTrace}");
                 isTestRunning = false;
                 return new { error = $"Failed to run tests: {e.Message}" };
             }
+            finally
+            {
+                if (currentCollector != null && testRunnerApi != null)
+                {
+                    testRunnerApi.UnregisterCallbacks(currentCollector);
+                }
+
+                isTestRunning = false;
+                currentCollector = null;
+            }
         }
 
-        /// <summary>
-        /// Parse test mode string to TestMode enum
-        /// </summary>
         private static TestMode ParseTestMode(string testMode)
         {
             switch (testMode)
@@ -194,17 +184,14 @@ namespace UnityMCPServer.Handlers
             }
         }
 
-        /// <summary>
-        /// Test result collector that implements ICallbacks
-        /// </summary>
         private class TestResultCollector : ICallbacks
         {
-            public int TotalTests = 0;
-            public List<TestResultData> PassedTests = new List<TestResultData>();
-            public List<TestResultData> FailedTests = new List<TestResultData>();
-            public List<TestResultData> SkippedTests = new List<TestResultData>();
-            public List<TestResultData> InconclusiveTests = new List<TestResultData>();
-            public List<TestResultData> AllResults = new List<TestResultData>();
+            public int TotalTests { get; private set; }
+            public List<TestResultData> PassedTests { get; } = new List<TestResultData>();
+            public List<TestResultData> FailedTests { get; } = new List<TestResultData>();
+            public List<TestResultData> SkippedTests { get; } = new List<TestResultData>();
+            public List<TestResultData> InconclusiveTests { get; } = new List<TestResultData>();
+            public List<TestResultData> AllResults { get; } = new List<TestResultData>();
 
             public void RunStarted(ITestAdaptor testsToRun)
             {
@@ -220,7 +207,7 @@ namespace UnityMCPServer.Handlers
 
             public void TestStarted(ITestAdaptor test)
             {
-                // Optional: track test start
+                // No-op
             }
 
             public void TestFinished(ITestResultAdaptor result)
@@ -258,7 +245,9 @@ namespace UnityMCPServer.Handlers
             private int CountTests(ITestAdaptor test)
             {
                 if (!test.HasChildren)
+                {
                     return test.IsSuite ? 0 : 1;
+                }
 
                 int count = 0;
                 foreach (var child in test.Children)
@@ -268,5 +257,18 @@ namespace UnityMCPServer.Handlers
                 return count;
             }
         }
+#else
+        /// <summary>
+        /// Fallback when Unity Test Framework is unavailable.
+        /// </summary>
+        public static object RunTests(JObject parameters)
+        {
+            _ = parameters;
+            return new
+            {
+                error = "Unity Test Framework (com.unity.test-framework) が有効ではありません。テストを実行するにはパッケージを導入し UNITY_INCLUDE_TESTS を定義してください。"
+            };
+        }
+#endif
     }
 }
