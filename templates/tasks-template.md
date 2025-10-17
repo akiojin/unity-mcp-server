@@ -1,127 +1,127 @@
-# Tasks: [FEATURE NAME]
+# タスク: [機能名]
 
-**Input**: Design documents from `/specs/[feature-slug]/`
-**Prerequisites**: plan.md (required), research.md, data-model.md, contracts/
+**入力**: `/specs/SPEC-[UUID8桁]/`の設計ドキュメント
+**前提条件**: plan.md (必須), research.md, data-model.md, contracts/
 
-## Execution Flow (main)
+## 実行フロー (main)
 ```
-1. Load plan.md from feature directory
-   → If not found: ERROR "No implementation plan found"
-   → Extract: tech stack, libraries, structure
-2. Load optional design documents:
-   → data-model.md: Extract entities → model tasks
-   → contracts/: Each file → contract test task
-   → research.md: Extract decisions → setup tasks
-3. Generate tasks by category:
-   → Setup: project init, dependencies, linting
+1. 機能ディレクトリからplan.mdを読み込み
+   → 見つからない場合: ERROR "実装計画が見つかりません"
+   → 抽出: 技術スタック、ライブラリ、構造
+2. オプション設計ドキュメントを読み込み:
+   → data-model.md: エンティティを抽出 → modelタスク
+   → contracts/: 各ファイル → contract testタスク
+   → research.md: 決定を抽出 → setupタスク
+3. カテゴリ別にタスクを生成:
+   → Setup: プロジェクト初期化、依存関係、リンティング
    → Tests: contract tests, integration tests
-   → Core: models, services, CLI commands
-   → Integration: DB, middleware, logging
+   → Core: models, services, CLIコマンド
+   → Integration: DB、ミドルウェア、ロギング
    → Polish: unit tests, performance, docs
-4. Apply task rules:
-   → Different files = mark [P] for parallel
-   → Same file = sequential (no [P])
-   → Tests before implementation (TDD)
-5. Number tasks sequentially (T001, T002...)
-6. Generate dependency graph
-7. Create parallel execution examples
-8. Validate task completeness:
-   → All contracts have tests?
-   → All entities have models?
-   → All endpoints implemented?
-9. Return: SUCCESS (tasks ready for execution)
+4. タスクルールを適用:
+   → 異なるファイル = [P]をマーク (並列実行可能)
+   → 同じファイル = 順次実行 ([P]なし)
+   → テストが実装より先 (TDD)
+5. タスクを順次番号付け (T001, T002...)
+6. 依存関係グラフを生成
+7. 並列実行例を作成
+8. タスク完全性を検証:
+   → すべてのcontractsにテストがあるか?
+   → すべてのentitiesにmodelsがあるか?
+   → すべてのendpointsが実装されているか?
+9. 戻り値: SUCCESS (タスク実行準備完了)
 ```
 
-## Format: `[ID] [P?] Description`
-- **[P]**: Can run in parallel (different files, no dependencies)
-- Include exact file paths in descriptions
+## フォーマット: `[ID] [P?] 説明`
+- **[P]**: 並列実行可能 (異なるファイル、依存関係なし)
+- 説明には正確なファイルパスを含める
 
-## Path Conventions
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+## パス規約
+- **単一プロジェクト**: リポジトリルートの `src/`, `tests/`
+- **Webアプリ**: `backend/src/`, `frontend/src/`
+- **モバイル**: `api/src/`, `ios/src/` または `android/src/`
+- 以下のパスは単一プロジェクトを前提 - plan.mdの構造に基づいて調整
 
-## Phase 3.1: Setup
-- [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize [language] project with [framework] dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+## Phase 3.1: セットアップ
+- [ ] T001 実装計画に従ってプロジェクト構造を作成
+- [ ] T002 [フレームワーク]依存関係で[言語]プロジェクトを初期化
+- [ ] T003 [P] リンティングとフォーマットツールを構成
 
-## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
-**CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
-- [ ] T004 [P] Contract test POST /api/users in tests/contract/test_users_post.py
-- [ ] T005 [P] Contract test GET /api/users/{id} in tests/contract/test_users_get.py
-- [ ] T006 [P] Integration test user registration in tests/integration/test_registration.py
-- [ ] T007 [P] Integration test auth flow in tests/integration/test_auth.py
+## Phase 3.2: テストファースト (TDD) ⚠️ 3.3の前に完了必須
+**重要: これらのテストは記述され、実装前に失敗する必要がある**
+- [ ] T004 [P] tests/contract/test_users_post.py に POST /api/users の contract test
+- [ ] T005 [P] tests/contract/test_users_get.py に GET /api/users/{id} の contract test
+- [ ] T006 [P] tests/integration/test_registration.py にユーザー登録の integration test
+- [ ] T007 [P] tests/integration/test_auth.py に認証フローの integration test
 
-## Phase 3.3: Core Implementation (ONLY after tests are failing)
-- [ ] T008 [P] User model in src/models/user.py
-- [ ] T009 [P] UserService CRUD in src/services/user_service.py
-- [ ] T010 [P] CLI --create-user in src/cli/user_commands.py
-- [ ] T011 POST /api/users endpoint
-- [ ] T012 GET /api/users/{id} endpoint
-- [ ] T013 Input validation
-- [ ] T014 Error handling and logging
+## Phase 3.3: コア実装 (テストが失敗した後のみ)
+- [ ] T008 [P] src/models/user.py にユーザーモデル
+- [ ] T009 [P] src/services/user_service.py にUserService CRUD
+- [ ] T010 [P] src/cli/user_commands.py にCLI --create-user
+- [ ] T011 POST /api/users エンドポイント
+- [ ] T012 GET /api/users/{id} エンドポイント
+- [ ] T013 入力検証
+- [ ] T014 エラーハンドリングとロギング
 
-## Phase 3.4: Integration
-- [ ] T015 Connect UserService to DB
-- [ ] T016 Auth middleware
-- [ ] T017 Request/response logging
-- [ ] T018 CORS and security headers
+## Phase 3.4: 統合
+- [ ] T015 UserServiceをDBに接続
+- [ ] T016 認証ミドルウェア
+- [ ] T017 リクエスト/レスポンスログ
+- [ ] T018 CORSとセキュリティヘッダー
 
-## Phase 3.5: Polish
-- [ ] T019 [P] Unit tests for validation in tests/unit/test_validation.py
-- [ ] T020 Performance tests (<200ms)
-- [ ] T021 [P] Update docs/api.md
-- [ ] T022 Remove duplication
-- [ ] T023 Run manual-testing.md
+## Phase 3.5: 仕上げ
+- [ ] T019 [P] tests/unit/test_validation.py に検証の unit tests
+- [ ] T020 パフォーマンステスト (<200ms)
+- [ ] T021 [P] docs/api.md を更新
+- [ ] T022 重複を削除
+- [ ] T023 manual-testing.md を実行
 
-## Dependencies
-- Tests (T004-T007) before implementation (T008-T014)
-- T008 blocks T009, T015
-- T016 blocks T018
-- Implementation before polish (T019-T023)
+## 依存関係
+- Tests (T004-T007) が implementation (T008-T014) より先
+- T008 が T009, T015 をブロック
+- T016 が T018 をブロック
+- Implementation が polish (T019-T023) より先
 
-## Parallel Example
+## 並列実行例
 ```
-# Launch T004-T007 together:
-Task: "Contract test POST /api/users in tests/contract/test_users_post.py"
-Task: "Contract test GET /api/users/{id} in tests/contract/test_users_get.py"
-Task: "Integration test registration in tests/integration/test_registration.py"
-Task: "Integration test auth in tests/integration/test_auth.py"
+# T004-T007 を一緒に起動:
+Task: "tests/contract/test_users_post.py に POST /api/users の contract test"
+Task: "tests/contract/test_users_get.py に GET /api/users/{id} の contract test"
+Task: "tests/integration/test_registration.py に登録の integration test"
+Task: "tests/integration/test_auth.py に認証の integration test"
 ```
 
-## Notes
-- [P] tasks = different files, no dependencies
-- Verify tests fail before implementing
-- Commit after each task
-- Avoid: vague tasks, same file conflicts
+## 注意事項
+- [P] タスク = 異なるファイル、依存関係なし
+- 実装前にテストが失敗することを確認
+- 各タスク後にコミット
+- 回避: 曖昧なタスク、同じファイルの競合
 
-## Task Generation Rules
-*Applied during main() execution*
+## タスク生成ルール
+*main()実行中に適用*
 
-1. **From Contracts**:
-   - Each contract file → contract test task [P]
-   - Each endpoint → implementation task
-   
-2. **From Data Model**:
-   - Each entity → model creation task [P]
-   - Relationships → service layer tasks
-   
-3. **From User Stories**:
-   - Each story → integration test [P]
-   - Quickstart scenarios → validation tasks
+1. **Contractsから**:
+   - 各contractファイル → contract testタスク [P]
+   - 各endpoint → 実装タスク
 
-4. **Ordering**:
+2. **Data Modelから**:
+   - 各entity → model作成タスク [P]
+   - 関係 → サービス層タスク
+
+3. **User Storiesから**:
+   - 各story → integration test [P]
+   - クイックスタートシナリオ → 検証タスク
+
+4. **順序**:
    - Setup → Tests → Models → Services → Endpoints → Polish
-   - Dependencies block parallel execution
+   - 依存関係は並列実行をブロック
 
-## Validation Checklist
-*GATE: Checked by main() before returning*
+## 検証チェックリスト
+*ゲート: 戻る前にmain()でチェック*
 
-- [ ] All contracts have corresponding tests
-- [ ] All entities have model tasks
-- [ ] All tests come before implementation
-- [ ] Parallel tasks truly independent
-- [ ] Each task specifies exact file path
-- [ ] No task modifies same file as another [P] task
+- [ ] すべてのcontractsに対応するテストがある
+- [ ] すべてのentitiesにmodelタスクがある
+- [ ] すべてのテストが実装より先にある
+- [ ] 並列タスクは本当に独立している
+- [ ] 各タスクは正確なファイルパスを指定
+- [ ] 同じファイルを変更する[P]タスクがない

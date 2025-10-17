@@ -1,13 +1,13 @@
 
-Start a new feature by creating a specification (no branch creation).
+機能の仕様を作成し、機能ブランチを開始します。
 
-This is the first step in the Spec-Driven Development lifecycle.
+これはSpec駆動開発ライフサイクルの最初のステップです。
 
-Given the feature description provided as an argument, do this:
+引数として提供された機能説明に基づいて、以下を実行します:
 
-1. If available, run `scripts/create-new-feature.sh --json --no-branch "$ARGUMENTS"` from the repo root and parse its JSON output for SPEC_FILE only. Do not create or checkout any Git branch. If the script is unavailable, determine SPEC_FILE as an absolute path under your feature specs directory (e.g., `/specs/<feature-slug>/spec.md`) and ensure its parent directory exists.
-2. Load `templates/spec-template.md` to understand required sections.
-3. Write the specification to SPEC_FILE using the template structure, replacing placeholders with concrete details derived from the feature description (arguments) while preserving section order and headings.
-4. Report completion with the spec file path and readiness for the next phase (no branch info).
+1. リポジトリルートから `scripts/create-new-feature.sh --json "$ARGUMENTS"` を実行し、JSON出力から BRANCH_NAME と SPEC_FILE を解析します。すべてのファイルパスは絶対パスである必要があります。
+2. `templates/spec-template.md` を読み込んで、必要なセクションを理解します。
+3. SPEC_FILEにテンプレート構造を使用して仕様を記述し、プレースホルダーを機能説明(引数)から派生した具体的な詳細に置き換えます。セクションの順序と見出しは保持します。
+4. ブランチ名、specファイルパス、および次のフェーズの準備状況を報告して完了します。
 
-Note: Never create or switch branches from this command. Always work on the current branch.
+注意: スクリプトは仕様ファイルを書き込む前に、新しいブランチを作成してチェックアウトし、specファイルを初期化します。

@@ -11,6 +11,17 @@ Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on
 - Video Capture Feature Plan: `docs/video-capture-plan.md`
 - Planned: C# Language Server (self-contained) RFC: `docs/RFCs/0001-csharp-lsp.md`
 
+### Development Process
+
+This project follows **Spec-Driven Development (SDD)** and **Test-Driven Development (TDD)** methodologies:
+
+- **Development Constitution**: [`memory/constitution.md`](memory/constitution.md) - Core development principles and requirements
+- **TDD Workflow**: [`docs/development/tdd-workflow.md`](docs/development/tdd-workflow.md) - Red-Green-Refactor cycle guide
+- **Test Coverage Strategy**: [`docs/development/test-coverage-strategy.md`](docs/development/test-coverage-strategy.md) - Coverage goals and measurement
+- **Developer Guide**: [`CLAUDE.md`](CLAUDE.md) - Workflow, guidelines, and Spec Kit integration
+
+See also: Spec Kit workflow (`/specify`, `/plan`, `/tasks`) for structured feature development.
+
 ### C# Editing Policy (Important)
 
 - All C# symbol/search/structured edits are performed via a self-contained C# Language Server (LSP) bundled in this repo; no Unity communication is involved.

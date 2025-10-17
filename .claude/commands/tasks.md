@@ -1,59 +1,59 @@
 
-Break down the plan into executable tasks.
+計画を実行可能なタスクに分解します。
 
-This is the third step in the Spec-Driven Development lifecycle.
+これはSpec駆動開発ライフサイクルの3番目のステップです。
 
-Given the context provided as an argument, do this:
+引数として提供されたコンテキストに基づいて、以下を実行します:
 
-1. Run `scripts/check-task-prerequisites.sh --json` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. If you already know the spec file from /specify, pass `--spec <SPEC_FILE>` (or `--feature-dir <FEATURE_DIR>`) to avoid any branch-based assumptions. All paths must be absolute.
-2. Load and analyze available design documents:
-   - Always read plan.md for tech stack and libraries
-   - IF EXISTS: Read data-model.md for entities
-   - IF EXISTS: Read contracts/ for API endpoints  
-   - IF EXISTS: Read research.md for technical decisions
-   - IF EXISTS: Read quickstart.md for test scenarios
-   
-   Note: Not all projects have all documents. For example:
-   - CLI tools might not have contracts/
-   - Simple libraries might not need data-model.md
-   - Generate tasks based on what's available
+1. リポジトリルートから `scripts/check-task-prerequisites.sh --json` を実行し、FEATURE_DIRとAVAILABLE_DOCSリストを解析します。/specifyからspecファイルが既にわかっている場合は、ブランチベースの仮定を避けるために `--spec <SPEC_FILE>` (または `--feature-dir <FEATURE_DIR>`) を渡します。すべてのパスは絶対パスである必要があります。
+2. 利用可能な設計ドキュメントを読み込んで分析します:
+   - 常にplan.mdを読んで技術スタックとライブラリを確認
+   - 存在する場合: data-model.mdを読んでエンティティを確認
+   - 存在する場合: contracts/を読んでAPIエンドポイントを確認
+   - 存在する場合: research.mdを読んで技術的決定を確認
+   - 存在する場合: quickstart.mdを読んでテストシナリオを確認
 
-3. Generate tasks following the template:
-   - Use `/templates/tasks-template.md` as the base
-   - Replace example tasks with actual tasks based on:
-     * **Setup tasks**: Project init, dependencies, linting
-     * **Test tasks [P]**: One per contract, one per integration scenario
-     * **Core tasks**: One per entity, service, CLI command, endpoint
-     * **Integration tasks**: DB connections, middleware, logging
-     * **Polish tasks [P]**: Unit tests, performance, docs
+   注意: すべてのプロジェクトにすべてのドキュメントがあるわけではありません。例えば:
+   - CLIツールはcontracts/がない可能性があります
+   - シンプルなライブラリはdata-model.mdが不要な可能性があります
+   - 利用可能なものに基づいてタスクを生成します
 
-4. Task generation rules:
-   - Each contract file → contract test task marked [P]
-   - Each entity in data-model → model creation task marked [P]
-   - Each endpoint → implementation task (not parallel if shared files)
-   - Each user story → integration test marked [P]
-   - Different files = can be parallel [P]
-   - Same file = sequential (no [P])
+3. テンプレートに従ってタスクを生成します:
+   - `/templates/tasks-template.md` をベースとして使用
+   - 例のタスクを以下に基づいた実際のタスクに置き換えます:
+     * **Setupタスク**: プロジェクト初期化、依存関係、リンティング
+     * **Testタスク [P]**: contractごとに1つ、integrationシナリオごとに1つ
+     * **Coreタスク**: entity、サービス、CLIコマンド、endpointごとに1つ
+     * **Integrationタスク**: DB接続、ミドルウェア、ロギング
+     * **Polishタスク [P]**: unit tests、performance、docs
 
-5. Order tasks by dependencies:
-   - Setup before everything
-   - Tests before implementation (TDD)
-   - Models before services
-   - Services before endpoints
-   - Core before integration
-   - Everything before polish
+4. タスク生成ルール:
+   - 各contractファイル → [P]マーク付きのcontract testタスク
+   - data-modelの各entity → [P]マーク付きのmodel作成タスク
+   - 各endpoint → 実装タスク (共有ファイルの場合は並列不可)
+   - 各ユーザーストーリー → [P]マーク付きのintegration test
+   - 異なるファイル = 並列可能 [P]
+   - 同じファイル = 順次実行 ([P]なし)
 
-6. Include parallel execution examples:
-   - Group [P] tasks that can run together
-   - Show actual Task agent commands
+5. 依存関係でタスクを順序付け:
+   - すべての前にSetup
+   - 実装の前にTests (TDD)
+   - サービスの前にModels
+   - エンドポイントの前にServices
+   - 統合の前にCore
+   - すべての前にPolish
 
-7. Create FEATURE_DIR/tasks.md with:
-   - Correct feature name from implementation plan
-   - Numbered tasks (T001, T002, etc.)
-   - Clear file paths for each task
-   - Dependency notes
-   - Parallel execution guidance
+6. 並列実行例を含めます:
+   - 一緒に実行できる[P]タスクをグループ化
+   - 実際のTaskエージェントコマンドを表示
 
-Context for task generation: $ARGUMENTS
+7. 以下を含むFEATURE_DIR/tasks.mdを作成:
+   - 実装計画からの正しい機能名
+   - 番号付きタスク (T001, T002, etc.)
+   - 各タスクの明確なファイルパス
+   - 依存関係の注記
+   - 並列実行ガイダンス
 
-The tasks.md should be immediately executable - each task must be specific enough that an LLM can complete it without additional context.
+タスク生成のためのコンテキスト: $ARGUMENTS
+
+tasks.mdはすぐに実行可能である必要があります - 各タスクは追加のコンテキストなしでLLMが完了できる程度に具体的である必要があります。

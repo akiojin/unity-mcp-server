@@ -1,50 +1,163 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Unity MCP Server 開発憲章
 
-## Core Principles
+## 基本原則
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. ハンドラーベースアーキテクチャ
+- すべてのMCPツールはBaseToolHandlerのサブクラスとして実装
+- ハンドラーは自己完結型で独立してテスト可能
+- 明確な責任分離:
+  - **Handler**: 検証、パラメータ処理、オーケストレーション
+  - **Tool**: Unity通信の実行
+- 新しいツールは必ずhandler/tool両方を実装
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Unity通信プロトコル
+- すべてのUnity通信はTCP JSON-RPC経由で実行
+- コマンドは必ず`workspaceRoot`パラメータを含む
+- タイムアウトとリトライ処理は必須:
+  - デフォルトタイムアウト: 30秒
+  - 指数バックオフによる再接続
+  - 最大再接続遅延: 30秒
+- エラーレスポンスには実行可能なコンテキストを含む:
+  - エラーの原因
+  - 推奨される解決策
+  - 関連するファイルパス/行番号
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. テストファースト (妥協不可)
+**絶対遵守事項:**
+- TDD必須: テスト作成 → テスト失敗(RED) → 実装 → テスト成功(GREEN) → リファクタリング
+- Red-Green-Refactorサイクルを厳格に遵守
+- Git commitsはテストが実装より先に表示される必要がある
+- 順序: Unit → Integration → E2E
+- Integration testは実Unity接続を使用 (モック禁止)
+- **禁止事項**:
+  - テストなしでの実装
+  - REDフェーズのスキップ
+  - テスト後の実装コミット
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. C# LSP統合
+- すべてのC# symbol/search/editはバンドルLSP経由で実行
+- Unity通信は不要 (LSPは自己完結)
+- **禁止**: 行ベース編集 (構造化操作のみ許可)
+  - 許可: `script_edit_structured`, `script_refactor_rename`, `script_symbol_find`
+  - 禁止: パターン置換、行番号ベース編集
+- インデックスベースのシンボル解決を使用
+- LSPエラーは詳細なコンテキストと共に返す
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. シンプルさと開発者体験
+**開発者体験の原則:**
+- CLI操作は直感的でなければならない
+- エラーメッセージは解決策を明示
+- LLM最適化されたレスポンス:
+  - ページング機能提供
+  - 自動要約
+  - 最小ペイロード (maxBytes, pageSize使用)
+- ドキュメントはREADME/CLAUDE.mdに集約
+- 実装はシンプルさを最優先:
+  - 複雑な抽象化を避ける
+  - YAGNIの原則
+  - 必要性が証明されるまで機能追加しない
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### VI. LLM最適化
+**レスポンス設計:**
+- 大きな出力は常にページング可能
+- デフォルト制限は控えめに:
+  - Search: `pageSize≤20`, `maxBytes≤64KB`
+  - Hierarchy: `nameOnly=true`, `maxObjects 100-500`
+  - Script read: 30-40行、`maxBytes`設定
+- 要約モード提供:
+  - エラー≤30件、メッセージ≤200文字
+  - 大きなテキスト≤1000文字
+- プレビューは診断時のみ (トークン節約)
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### VII. 可観測性とロギング
+- 構造化ロギング必須
+- ログレベル: debug, info, warn, error
+- エラーコンテキストは十分に提供:
+  - スタックトレース (development mode)
+  - パラメータ概要
+  - ツール名
+- コンソール読み取り機能でUnityログ統合
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### VIII. バージョニング
+- MAJOR.MINOR.BUILD形式
+- BUILDは変更ごとにインクリメント
+- `npm version`コマンド必須使用:
+  - `npm version patch`: バグ修正
+  - `npm version minor`: 新機能
+  - `npm version major`: 破壊的変更
+- package.jsonの直接編集禁止
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## テスト要件
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+### カバレッジ目標
+- **Unit tests**: 80%以上のコードカバレッジ
+- **Integration tests**: すべてのクリティカルパス100%
+- **E2E tests**: 主要なユーザーワークフロー100%
+- **Performance tests**: レスポンスタイムベンチマーク
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### テストカテゴリ
+1. **Unit tests** (`tests/unit/`):
+   - Handler検証ロジック
+   - ユーティリティ関数
+   - データ変換
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+2. **Integration tests** (`tests/integration/`):
+   - Unity通信
+   - LSP統合
+   - ファイルI/O
+
+3. **E2E tests** (`tests/e2e/`):
+   - エンドツーエンドワークフロー
+   - 実Unity接続必須
+
+4. **Performance tests** (`tests/performance/`):
+   - 接続パフォーマンス
+   - 大規模データ処理
+
+## ドキュメント要件
+
+### 必須ドキュメント
+- `README.md`: プロジェクト概要、セットアップ、使用法 (英語)
+- `README.ja.md`: 日本語版README
+- `CLAUDE.md`: 開発ワークフロー、ガイドライン (日本語)
+- `specs/`: 機能仕様書 (Spec Kit準拠)
+  - `SPEC-[UUID8桁]/spec.md`: 機能仕様
+  - `SPEC-[UUID8桁]/plan.md`: 実装計画
+  - `SPEC-[UUID8桁]/tasks.md`: タスク分解
+
+### ドキュメント原則
+- **設計は`docs/`または`specs/`**: README.mdには書かない
+- **日本語優先**: 開発ドキュメントは日本語
+- **リンク活用**: README.mdは詳細へのリンクのみ
+- **Spec Kit準拠**: 新機能は必ず仕様書作成
+
+## CI/CD要件
+
+### 必須チェック
+- テストカバレッジ: 80%未満で警告
+- リンティング: エラー/警告ゼロ
+- commitlint: コミットメッセージ規約準拠
+- markdownlint: マークダウンファイル品質
+
+### コミットワークフロー
+1. タスク完了
+2. テスト実行・合格確認
+3. 日本語コミットメッセージ作成
+4. `git commit && git push`
+
+## ガバナンス
+
+### 憲章遵守
+- 本憲章はすべての開発プラクティスに優先
+- すべてのPR/レビューで憲章準拠を確認
+- 複雑さは正当化必須 (Complexity Tracking)
+- 違反は文書化し、代替案却下理由を記載
+
+### 改定プロセス
+- 改定には文書化、承認、移行計画が必要
+- バージョン番号でトラッキング
+- 変更履歴を保持
+
+**バージョン**: 1.0.0
+**制定日**: 2025-10-17
+**最終改定**: 2025-10-17
