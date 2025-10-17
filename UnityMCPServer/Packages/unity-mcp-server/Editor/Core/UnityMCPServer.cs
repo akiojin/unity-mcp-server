@@ -872,6 +872,11 @@ namespace UnityMCPServer.Core
                         var compilationStateResult = CompilationHandler.GetCompilationState(command.Parameters);
                         response = Response.SuccessResult(command.Id, compilationStateResult);
                         break;
+                    // Test Execution commands
+                    case "run_unity_tests":
+                        var runTestsResult = TestExecutionHandler.RunTests(command.Parameters);
+                        response = Response.SuccessResult(command.Id, runTestsResult);
+                        break;
                     // Tag management commands
                     case "manage_tags":
                         var tagManagementResult = TagManagementHandler.HandleCommand(command.Parameters["action"]?.ToString(), command.Parameters);
