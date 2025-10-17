@@ -42,7 +42,7 @@ describe('FindUIElementsToolHandler', () => {
             assert(definition.inputSchema.properties.namePattern);
             assert(definition.inputSchema.properties.includeInactive);
             assert(definition.inputSchema.properties.canvasFilter);
-            assert.deepStrictEqual(definition.inputSchema.required, []);
+            assert.equal(definition.inputSchema.required, undefined);
         });
     });
 

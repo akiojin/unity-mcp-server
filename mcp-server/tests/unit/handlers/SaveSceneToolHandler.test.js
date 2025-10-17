@@ -38,7 +38,7 @@ describe('SaveSceneToolHandler', () => {
     assert.ok(definition.inputSchema);
     assert.ok(definition.inputSchema.properties.scenePath);
     assert.ok(definition.inputSchema.properties.saveAs);
-    assert.deepEqual(definition.inputSchema.required, []);
+    assert.equal(definition.inputSchema.required, undefined);
   });
 
   it('should handle successful scene save', async () => {

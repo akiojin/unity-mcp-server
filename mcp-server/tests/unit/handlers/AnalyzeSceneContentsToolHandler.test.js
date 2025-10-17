@@ -31,7 +31,7 @@ describe('AnalyzeSceneContentsToolHandler', () => {
     it('should initialize with correct properties', () => {
       assert.ok(handler.name);
       assert.ok(handler.description);
-      assert.deepEqual(handler.inputSchema.required, []);
+      assert.equal(handler.inputSchema.required, undefined);
     });
   });
 

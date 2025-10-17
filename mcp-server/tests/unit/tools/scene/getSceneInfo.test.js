@@ -49,7 +49,7 @@ describe('GetSceneInfoTool', () => {
         assert.ok(schema.properties.scenePath);
         assert.ok(schema.properties.sceneName);
         assert.ok(schema.properties.includeGameObjects);
-        assert.deepEqual(schema.required, []);
+        assert.equal(schema.required, undefined);
     });
 
     it('should get info about current scene without parameters', async () => {

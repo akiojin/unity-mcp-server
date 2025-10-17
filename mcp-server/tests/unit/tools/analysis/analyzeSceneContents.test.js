@@ -71,7 +71,7 @@ describe('AnalyzeSceneContentsTool', () => {
         assert.ok(schema.properties.groupByType);
         assert.ok(schema.properties.includePrefabInfo);
         assert.ok(schema.properties.includeMemoryInfo);
-        assert.deepEqual(schema.required, []);
+        assert.equal(schema.required, undefined);
     });
 
     it('should analyze scene with default parameters', async () => {

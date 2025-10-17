@@ -27,7 +27,7 @@ describe('PlayToolHandler', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'play_game');
       assert.equal(handler.description, 'Start Unity play mode to test the game');
-      assert.deepEqual(handler.inputSchema.required, []);
+      assert.equal(handler.inputSchema.required, undefined);
     });
   });
 

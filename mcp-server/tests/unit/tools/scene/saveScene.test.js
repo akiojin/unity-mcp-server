@@ -38,7 +38,7 @@ describe('SaveSceneTool', () => {
         assert.equal(schema.type, 'object');
         assert.ok(schema.properties.scenePath);
         assert.ok(schema.properties.saveAs);
-        assert.deepEqual(schema.required, []);
+        assert.equal(schema.required, undefined);
     });
 
     it('should save current scene without parameters', async () => {

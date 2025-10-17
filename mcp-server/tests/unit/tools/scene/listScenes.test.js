@@ -61,7 +61,7 @@ describe('ListScenesTool', () => {
         assert.ok(schema.properties.includeLoadedOnly);
         assert.ok(schema.properties.includeBuildScenesOnly);
         assert.ok(schema.properties.includePath);
-        assert.deepEqual(schema.required, []);
+        assert.equal(schema.required, undefined);
     });
 
     it('should list all scenes without filters', async () => {

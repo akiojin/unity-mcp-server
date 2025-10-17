@@ -40,7 +40,7 @@ describe('LoadSceneTool', () => {
         assert.ok(schema.properties.scenePath);
         assert.ok(schema.properties.sceneName);
         assert.ok(schema.properties.loadMode);
-        assert.deepEqual(schema.required, []);
+        assert.equal(schema.required, undefined);
         
         // Check load modes
         const loadModes = schema.properties.loadMode.enum;

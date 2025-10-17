@@ -40,7 +40,7 @@ describe('ClearConsoleToolHandler', () => {
       assert.ok(schema.properties.clearOnBuild);
       assert.ok(schema.properties.preserveWarnings);
       assert.ok(schema.properties.preserveErrors);
-      assert.deepEqual(schema.required, []); // No required parameters
+      assert.equal(schema.required, undefined); // No required parameters
     });
 
     it('should define boolean properties with defaults', () => {

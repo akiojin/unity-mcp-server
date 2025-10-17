@@ -40,7 +40,7 @@ describe('LoadSceneToolHandler', () => {
     assert.ok(definition.inputSchema.properties.scenePath);
     assert.ok(definition.inputSchema.properties.sceneName);
     assert.ok(definition.inputSchema.properties.loadMode);
-    assert.deepEqual(definition.inputSchema.required, []);
+    assert.equal(definition.inputSchema.required, undefined);
   });
 
   it('should handle successful scene load by path', async () => {

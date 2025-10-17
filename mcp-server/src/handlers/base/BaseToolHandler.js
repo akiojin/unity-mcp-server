@@ -4,11 +4,81 @@
  */
 import { logger } from '../../core/config.js';
 
+function cloneSchema(schema) {
+  if (!schema || typeof schema !== 'object') {
+    return schema;
+  }
+
+  if (typeof structuredClone === 'function') {
+    return structuredClone(schema);
+  }
+
+  try {
+    return JSON.parse(JSON.stringify(schema));
+  } catch {
+    return schema;
+  }
+}
+
+function sanitizeSchema(schema) {
+  if (!schema) {
+    return schema;
+  }
+
+  if (Array.isArray(schema)) {
+    schema.forEach(item => sanitizeSchema(item));
+    return schema;
+  }
+
+  if (typeof schema !== 'object') {
+    return schema;
+  }
+
+  if (Array.isArray(schema.required) && schema.required.length === 0) {
+    delete schema.required;
+  }
+
+  if (schema.properties && typeof schema.properties === 'object') {
+    Object.values(schema.properties).forEach(value => sanitizeSchema(value));
+  }
+
+  if (schema.items) {
+    sanitizeSchema(schema.items);
+  }
+
+  if (Array.isArray(schema.anyOf)) {
+    schema.anyOf.forEach(branch => sanitizeSchema(branch));
+  }
+
+  if (Array.isArray(schema.oneOf)) {
+    schema.oneOf.forEach(branch => sanitizeSchema(branch));
+  }
+
+  if (Array.isArray(schema.allOf)) {
+    schema.allOf.forEach(branch => sanitizeSchema(branch));
+  }
+
+  if (schema.then) {
+    sanitizeSchema(schema.then);
+  }
+
+  if (schema.else) {
+    sanitizeSchema(schema.else);
+  }
+
+  if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+    sanitizeSchema(schema.additionalProperties);
+  }
+
+  return schema;
+}
+
 export class BaseToolHandler {
   constructor(name, description, inputSchema = {}) {
     this.name = name;
     this.description = description;
-    this.inputSchema = inputSchema;
+    const clonedSchema = cloneSchema(inputSchema) || {};
+    this.inputSchema = sanitizeSchema(clonedSchema);
   }
 
   /**

@@ -78,7 +78,7 @@ describe('ReadConsoleToolHandler', () => {
       assert.ok(schema.properties.untilTimestamp);
       assert.ok(schema.properties.sortOrder);
       assert.ok(schema.properties.groupBy);
-      assert.deepEqual(schema.required, []);
+      assert.equal(schema.required, undefined);
     });
 
     it('should define proper enum values including ErrorsAndExceptions', () => {

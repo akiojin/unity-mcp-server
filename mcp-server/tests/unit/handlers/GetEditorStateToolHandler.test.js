@@ -29,7 +29,7 @@ describe('GetEditorStateToolHandler', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'get_editor_state');
       assert.equal(handler.description, 'Get current Unity editor state including play mode status');
-      assert.deepEqual(handler.inputSchema.required, []);
+      assert.equal(handler.inputSchema.required, undefined);
     });
   });
 

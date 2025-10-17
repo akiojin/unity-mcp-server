@@ -32,7 +32,7 @@ describe('PingToolHandler', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'ping');
       assert.equal(handler.description, 'Test connection to Unity Editor');
-      assert.deepEqual(handler.inputSchema.required, []);
+      assert.equal(handler.inputSchema.required, undefined);
       assert.equal(handler.unityConnection, mockUnityConnection);
     });
 
