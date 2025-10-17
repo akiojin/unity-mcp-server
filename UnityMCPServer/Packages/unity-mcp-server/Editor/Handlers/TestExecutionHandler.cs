@@ -54,6 +54,16 @@ namespace UnityMCPServer.Handlers
                     return new { error = "Invalid testMode. Must be EditMode, PlayMode, or All" };
                 }
 
+                // Save current scene to avoid "Save Scene" dialog after tests
+                var activeScene = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene();
+                if (activeScene.isDirty)
+                {
+                    if (!UnityEditor.SceneManagement.EditorSceneManager.SaveScene(activeScene))
+                    {
+                        Debug.LogWarning("[TestExecutionHandler] Failed to save scene before test execution. Scene save dialog may appear.");
+                    }
+                }
+
                 // Cancel previous execution if running (no manual execution expected)
                 if (isTestRunning && currentCollector != null && testRunnerApi != null)
                 {
