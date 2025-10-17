@@ -10,9 +10,9 @@
 - LLM最適化: 設定名と説明を明瞭化し、READMEの表も更新して参照性を高める。
 
 ## 技術方針
-- `.unity/config.json` に Unity 待ち受け用 `unity.bindHost` と MCP クライアント用 `unity.clientHost` を明示する。
-- Node 側の設定読み込みで後方互換を維持しつつ新項目を優先利用する。
-- Unity 側は `unity.clientHost` があればログ等で利用し、なければ従来の `unity.host` を使う。
+- `.unity/config.json` に Unity 待ち受け用 `unityHost` と MCP 接続先用 `mcpHost` を明示する。
+- Node 側の設定読み込みで後方互換を維持しつつ新項目を優先利用する（旧 `host` / `clientHost` / `bindHost` を吸収）。
+- Unity 側は `mcpHost` を最優先で利用し、未指定時に `unityHost` → 旧項目の順にフォールバックする。
 
 ## オープンな質問
 - 既存利用者への移行ガイドを README にどの程度記載するか → 要約とサンプル設定を追記する。
@@ -26,6 +26,6 @@
 - README（英/日）に設定例と移行案内を記載する。
 
 ## Phase 2: タスク計画
-1. テスト追加（RED）: `unity.clientHost` を前提にした構成読み込みテストを追加し失敗を確認。
+1. テスト追加（RED）: `mcpHost` / `unityHost` の読込と旧キーからのフォールバックを検証するユニットテストを作成。
 2. 実装（GREEN）: 設定モジュール・Unity 接続クラス・`.unity/config.json` サンプルを更新。
 3. リファクタ: README の設定表やコメントを整備し、識別しやすくする。

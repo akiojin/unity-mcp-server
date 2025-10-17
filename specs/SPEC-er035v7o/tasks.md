@@ -7,10 +7,10 @@
 - [ ] `.unity/config.json` の現状を確認し、更新方針を明確化
 
 ## Test
-- [ ] `unity.clientHost` のフォールバック挙動を検証するユニットテストを追加 (RED)
+- [ ] `mcpHost` / `unityHost` の読み込みと旧キーからのフォールバック挙動を検証するユニットテストを追加 (RED)
 
 ## Core
-- [ ] 設定モジュールで `unity.clientHost` / `unity.bindHost` を扱えるよう実装 (GREEN)
+- [ ] 設定モジュールを `unity.mcpHost` / `unity.unityHost` ベースに更新 (GREEN)
 - [ ] Unity 接続処理で新プロパティを使用するよう更新 (GREEN)
 
 ## Integration
