@@ -105,6 +105,7 @@ export { GetCompilationStateToolHandler } from './compilation/GetCompilationStat
 
 // Test handlers
 export { RunUnityTestsToolHandler } from './test/RunUnityTestsToolHandler.js';
+export { GetTestStatusToolHandler } from './test/GetTestStatusToolHandler.js';
 
 // Editor control handlers
 export { TagManagementToolHandler } from './editor/TagManagementToolHandler.js';
@@ -208,6 +209,7 @@ import { ListComponentsToolHandler } from './component/ListComponentsToolHandler
 import { GetComponentTypesToolHandler } from './component/GetComponentTypesToolHandler.js';
 import { GetCompilationStateToolHandler } from './compilation/GetCompilationStateToolHandler.js';
 import { RunUnityTestsToolHandler } from './test/RunUnityTestsToolHandler.js';
+import { GetTestStatusToolHandler } from './test/GetTestStatusToolHandler.js';
 import { TagManagementToolHandler } from './editor/TagManagementToolHandler.js';
 import { LayerManagementToolHandler } from './editor/LayerManagementToolHandler.js';
 import { SelectionToolHandler } from './editor/SelectionToolHandler.js';
@@ -348,6 +350,7 @@ const HANDLER_CLASSES = [
 
   // Test handlers
   RunUnityTestsToolHandler,
+  GetTestStatusToolHandler,
 
   // Editor control handlers
   TagManagementToolHandler,

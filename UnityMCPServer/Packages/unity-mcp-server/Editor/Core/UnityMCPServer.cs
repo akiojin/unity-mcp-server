@@ -883,6 +883,10 @@ namespace UnityMCPServer.Core
                         var runTestsResult = TestExecutionHandler.RunTests(command.Parameters);
                         response = Response.SuccessResult(command.Id, runTestsResult);
                         break;
+                    case "get_test_status":
+                        var testStatusResult = TestExecutionHandler.GetTestStatus(command.Parameters);
+                        response = Response.SuccessResult(command.Id, testStatusResult);
+                        break;
                     // Tag management commands
                     case "manage_tags":
                         var tagManagementResult = TagManagementHandler.HandleCommand(command.Parameters["action"]?.ToString(), command.Parameters);

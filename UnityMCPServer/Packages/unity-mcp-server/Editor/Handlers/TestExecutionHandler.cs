@@ -91,65 +91,15 @@ namespace UnityMCPServer.Handlers
                 testRunnerApi.RegisterCallbacks(collector);
 
                 isTestRunning = true;
-                var startTime = DateTime.Now;
 
                 testRunnerApi.Execute(new ExecutionSettings(filterSettings));
 
-                // Wait for test execution to complete (no timeout - managed by MCP client)
-                while (isTestRunning)
+                // Return immediately - test runs asynchronously
+                return new
                 {
-                    System.Threading.Thread.Sleep(100);
-                }
-
-                var duration = (DateTime.Now - startTime).TotalSeconds;
-
-                var summary = new
-                {
-                    success = collector.FailedTests.Count == 0,
-                    totalTests = collector.TotalTests,
-                    passedTests = collector.PassedTests.Count,
-                    failedTests = collector.FailedTests.Count,
-                    skippedTests = collector.SkippedTests.Count,
-                    inconclusiveTests = collector.InconclusiveTests.Count,
-                    duration = Math.Round(duration, 2),
-                    failures = collector.FailedTests.Select(t => new
-                    {
-                        testName = t.fullName,
-                        message = t.message,
-                        stackTrace = t.stackTrace
-                    }).ToList()
+                    status = "running",
+                    message = "Test execution started. Use get_test_status to check progress."
                 };
-
-                if (!string.IsNullOrEmpty(exportPath))
-                {
-                    Debug.LogWarning("[TestExecutionHandler] XML export not yet implemented");
-                }
-
-                if (includeDetails)
-                {
-                    return new
-                    {
-                        success = summary.success,
-                        totalTests = summary.totalTests,
-                        passedTests = summary.passedTests,
-                        failedTests = summary.failedTests,
-                        skippedTests = summary.skippedTests,
-                        inconclusiveTests = summary.inconclusiveTests,
-                        duration = summary.duration,
-                        tests = collector.AllResults.Select(t => new
-                        {
-                            name = t.name,
-                            fullName = t.fullName,
-                            status = t.status,
-                            duration = t.duration,
-                            message = t.message,
-                            output = t.output
-                        }).ToList(),
-                        failures = summary.failures
-                    };
-                }
-
-                return summary;
             }
             catch (Exception e)
             {
@@ -157,15 +107,66 @@ namespace UnityMCPServer.Handlers
                 isTestRunning = false;
                 return new { error = $"Failed to run tests: {e.Message}" };
             }
-            finally
+        }
+
+        /// <summary>
+        /// Get current test execution status and results
+        /// </summary>
+        public static object GetTestStatus(JObject parameters)
+        {
+            try
             {
-                if (currentCollector != null && testRunnerApi != null)
+                if (isTestRunning)
                 {
-                    testRunnerApi.UnregisterCallbacks(currentCollector);
+                    return new
+                    {
+                        status = "running",
+                        message = "Test execution in progress"
+                    };
                 }
 
-                isTestRunning = false;
-                currentCollector = null;
+                if (currentCollector == null)
+                {
+                    return new
+                    {
+                        status = "idle",
+                        message = "No test execution in progress or completed"
+                    };
+                }
+
+                // Test execution completed - return results
+                var collector = currentCollector;
+
+                return new
+                {
+                    status = "completed",
+                    success = collector.FailedTests.Count == 0,
+                    totalTests = collector.TotalTests,
+                    passedTests = collector.PassedTests.Count,
+                    failedTests = collector.FailedTests.Count,
+                    skippedTests = collector.SkippedTests.Count,
+                    inconclusiveTests = collector.InconclusiveTests.Count,
+                    failures = collector.FailedTests.Select(t => new
+                    {
+                        testName = t.fullName,
+                        message = t.message,
+                        stackTrace = t.stackTrace
+                    }).ToList(),
+                    tests = collector.AllResults.Select(t => new
+                    {
+                        name = t.name,
+                        fullName = t.fullName,
+                        status = t.status,
+                        duration = t.duration,
+                        message = t.message,
+                        output = t.output
+                    }).ToList()
+                };
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[TestExecutionHandler] Error getting test status: {e.Message}");
+                return new { status = "error", error = $"Failed to get test status: {e.Message}" };
             }
         }
 

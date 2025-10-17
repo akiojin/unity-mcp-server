@@ -65,6 +65,15 @@ export class RunUnityTestsToolHandler extends BaseToolHandler {
       throw new Error(response.error);
     }
 
+    // Handle new non-blocking response format (status: "running")
+    if (response.status === 'running') {
+      return {
+        status: 'running',
+        message: response.message || 'Test execution started. Use get_test_status to check progress.'
+      };
+    }
+
+    // Legacy format support (for backwards compatibility)
     // Format and return result
     const result = {
       success: response.success,
