@@ -1,6 +1,7 @@
 {
   "unity": {
-    "host": "localhost",
+    "host": "10.255.255.254",
+    "bindHost": "0.0.0.0",
     "port": 6400,
     "verboseReceiveLogs": true,
     "logIncomingCommands": true
