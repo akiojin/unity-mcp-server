@@ -879,7 +879,7 @@ namespace UnityMCPServer.Core
                         response = Response.SuccessResult(command.Id, compilationStateResult);
                         break;
                     // Test Execution commands
-                    case "run_unity_tests":
+                    case "run_tests":
                         var runTestsResult = TestExecutionHandler.RunTests(command.Parameters);
                         response = Response.SuccessResult(command.Id, runTestsResult);
                         break;

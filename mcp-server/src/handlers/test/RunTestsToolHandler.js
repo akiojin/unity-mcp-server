@@ -4,10 +4,10 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  * Handler for running Unity NUnit tests via Test Runner API
  * Implements SPEC-e7c9b50c: Unity Test Execution Feature
  */
-export class RunUnityTestsToolHandler extends BaseToolHandler {
+export class RunTestsToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'run_unity_tests',
+      'run_tests',
       'Run Unity NUnit tests in the current project',
       {
         type: 'object',
@@ -58,7 +58,7 @@ export class RunUnityTestsToolHandler extends BaseToolHandler {
     }
 
     // Send command to Unity
-    const response = await this.unityConnection.sendCommand('run_unity_tests', params);
+    const response = await this.unityConnection.sendCommand('run_tests', params);
 
     // Handle Unity response
     if (response.error) {
