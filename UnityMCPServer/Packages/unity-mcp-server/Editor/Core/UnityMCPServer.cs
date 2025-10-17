@@ -58,7 +58,7 @@ namespace UnityMCPServer.Core
         
         public const int DEFAULT_PORT = 6400;
         private static int currentPort = DEFAULT_PORT;
-        // Client connects to unity.host (used by Node side). Server bind is independent (unity.bindHost).
+        // Client connects via unity.mcpHost (legacy keys still supported). Server bind is independent (unity.unityHost/bindHost).
         private static string currentHost = "localhost"; // for logging only
         private static IPAddress bindAddress = IPAddress.Any; // default: 0.0.0.0
         
@@ -117,20 +117,26 @@ namespace UnityMCPServer.Core
                             var jsonText = File.ReadAllText(path);
                             var json = JObject.Parse(jsonText);
 
-                            // Expect structure: { "unity": { "port": 6400, "host": "localhost", "bindHost": "0.0.0.0" } }
+                            // Expect structure: { "unity": { "port": 6400, "unityHost": "localhost", "mcpHost": "host.docker.internal" } }
                             var portToken = json.SelectToken("unity.port");
                             if (portToken != null && int.TryParse(portToken.ToString(), out int port) && port > 0 && port < 65536)
                             {
                                 currentPort = port;
                             }
-                            // unity.host is client connection target; do not use for server bind.
-                            var hostToken = json.SelectToken("unity.host");
-                            if (hostToken != null)
+                            // mcpHost は Node 側が接続に使用するホスト。旧 clientHost/host をフォールバックで利用。
+                            var clientTargetToken = json.SelectToken("unity.mcpHost")
+                                ?? json.SelectToken("unity.clientHost")
+                                ?? json.SelectToken("unity.host");
+                            if (clientTargetToken != null)
                             {
-                                var host = hostToken.ToString();
+                                var host = clientTargetToken.ToString();
                                 if (!string.IsNullOrWhiteSpace(host)) currentHost = host.Trim();
                             }
-                            var bindToken = json.SelectToken("unity.bindHost");
+
+                            // unityHost（旧 bindHost/host）は Unity が待ち受けるインターフェース。
+                            var bindToken = json.SelectToken("unity.unityHost")
+                                ?? json.SelectToken("unity.bindHost")
+                                ?? json.SelectToken("unity.host");
                             if (bindToken != null)
                             {
                                 var bh = bindToken.ToString();
@@ -152,7 +158,7 @@ namespace UnityMCPServer.Core
                             {
                                 minEditorStateIntervalMs = minMs;
                             }
-                            Debug.Log($"[Unity Editor MCP] Config loaded from {path}: bind={bindAddress}, clientHost={currentHost}, port={currentPort}");
+                            Debug.Log($"[Unity Editor MCP] Config loaded from {path}: bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
                             return;
                         }
                     }
@@ -163,11 +169,11 @@ namespace UnityMCPServer.Core
                 }
 
                 // No config found; keep default
-                Debug.Log($"[Unity Editor MCP] No external config found. Using default bind={bindAddress}, clientHost={currentHost}, port={currentPort}");
+                Debug.Log($"[Unity Editor MCP] No external config found. Using default bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[Unity Editor MCP] Config load error: {ex.Message}. Using default bind={bindAddress}, clientHost={currentHost}, port={currentPort}");
+                Debug.LogWarning($"[Unity Editor MCP] Config load error: {ex.Message}. Using default bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
             }
         }
 
@@ -244,7 +250,7 @@ namespace UnityMCPServer.Core
                 tcpListener.Start();
                 
                 Status = McpStatus.Disconnected;
-                Debug.Log($"[Unity Editor MCP] TCP listener binding on {bindAddress}:{currentPort} (clientHost={currentHost})");
+                Debug.Log($"[Unity Editor MCP] TCP listener binding on {bindAddress}:{currentPort} (mcpHost={currentHost})");
                 
                 // Start accepting connections asynchronously
                 listenerTask = Task.Run(() => AcceptConnectionsAsync(cancellationTokenSource.Token));

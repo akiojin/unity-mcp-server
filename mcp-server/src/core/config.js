@@ -19,10 +19,26 @@ function merge(a, b) {
 /**
  * Base configuration for Unity Editor MCP Server
  */
+const envUnityHost =
+  process.env.UNITY_UNITY_HOST ||
+  process.env.UNITY_BIND_HOST ||
+  process.env.UNITY_HOST ||
+  null;
+
+const envMcpHost =
+  process.env.UNITY_MCP_HOST ||
+  process.env.UNITY_CLIENT_HOST ||
+  process.env.UNITY_HOST ||
+  null;
+
+const envBindHost = process.env.UNITY_BIND_HOST || null;
+
 const baseConfig = {
   // Unity connection settings
   unity: {
-    host: process.env.UNITY_HOST || 'localhost',
+    unityHost: envUnityHost,
+    mcpHost: envMcpHost,
+    bindHost: envBindHost,
     port: parseInt(process.env.UNITY_PORT || '', 10) || 6400,
     reconnectDelay: 1000,
     maxReconnectDelay: 30000,
@@ -117,6 +133,34 @@ function loadExternalConfig() {
 
 const external = loadExternalConfig();
 export const config = merge(baseConfig, external);
+
+const normalizeUnityConfig = () => {
+  const unityConfig = config.unity || (config.unity = {});
+
+  // Legacy aliases coming from config files or env vars
+  const legacyHost = unityConfig.host;
+  const legacyClientHost = unityConfig.clientHost;
+  const legacyBindHost = unityConfig.bindHost;
+
+  if (!unityConfig.unityHost) {
+    unityConfig.unityHost = legacyBindHost || legacyHost || envUnityHost || 'localhost';
+  }
+
+  if (!unityConfig.mcpHost) {
+    unityConfig.mcpHost = legacyClientHost || envMcpHost || legacyHost || unityConfig.unityHost;
+  }
+
+  // Keep bindHost for backwards compatibility with legacy code paths
+  if (!unityConfig.bindHost) {
+    unityConfig.bindHost = legacyBindHost || envBindHost || unityConfig.unityHost;
+  }
+
+  // Maintain legacy properties so older handlers keep working
+  unityConfig.host = unityConfig.unityHost;
+  unityConfig.clientHost = unityConfig.mcpHost;
+};
+
+normalizeUnityConfig();
 
 // Workspace root detection: directory that contains .unity/config.json used
 const initialCwd = process.cwd();

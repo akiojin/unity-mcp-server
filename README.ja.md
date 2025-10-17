@@ -207,7 +207,10 @@ sequenceDiagram
 | --- | --- | --- | --- | --- |
 | `project.root` | string | 自動検出（Unity接続 or 近傍の `Assets/` を含むディレクトリ） | Unityプロジェクトのルート。相対パスはプロセスのCWD基準。 | — |
 | `project.codeIndexRoot` | string | `<project.root>/Library/UnityMCP/CodeIndex` | Code Index の保存先ルート。 | — |
-| `unity.host` | string | `process.env.UNITY_HOST` または `localhost` | Unity Editor のTCPサーバーホスト。 | — |
+| `unity.unityHost` | string | `process.env.UNITY_UNITY_HOST` ／ `process.env.UNITY_BIND_HOST` ／ `process.env.UNITY_HOST` ／ `localhost` | Unity Editor が MCP コマンドを待ち受けるホスト/インターフェース。 | — |
+| `unity.mcpHost` | string | `process.env.UNITY_MCP_HOST` ／ `process.env.UNITY_CLIENT_HOST` ／ `unity.unityHost` | MCP サーバー（Node側）が Unity へ接続するときのホスト/IP。Docker 内では `host.docker.internal` などを指定。 | — |
+| `unity.bindHost` | string | `process.env.UNITY_BIND_HOST` ／ `unity.unityHost` | 従来の待ち受けインターフェース指定。後方互換のために維持。 | — |
+| `unity.host` | string | 旧仕様 | 旧キー。内部的には `unity.unityHost` と同義として扱われる。 | — |
 | `unity.port` | number | `process.env.UNITY_PORT` または `6400` | Unity Editor のTCPサーバーポート。 | — |
 | `unity.reconnectDelay` | number (ms) | `1000` | 再接続の初期待機時間。 | — |
 | `unity.maxReconnectDelay` | number (ms) | `30000` | 再接続バックオフの最大待機時間。 | — |
@@ -220,6 +223,8 @@ sequenceDiagram
 | `logging.prefix` | string | `[Unity Editor MCP]` | ログのプレフィックス。 | — |
 | `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` または `compact` | 検索の既定詳細度。`compact` は `snippets` のエイリアス。 | `compact` / `metadata` / `snippets` / `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` または `naive` | 検索エンジンの実装。 | `naive`（将来的に `treesitter` 予定） |
+
+ヒント: Unity をホストOSで起動し、MCPサーバーを Docker コンテナ内で動かす場合は `unity.unityHost` を `localhost`（Unityはローカルで待受け）に保ちつつ、`unity.mcpHost` を `host.docker.internal` に設定するとコンテナから Unity へ接続しやすくなります。
 
 ### GUID DB（台帳）
 

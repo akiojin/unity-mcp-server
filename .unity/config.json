@@ -1,7 +1,7 @@
 {
   "unity": {
-    "host": "127.0.0.1",
-    "bindHost": "0.0.0.0",
+    "unityHost": "localhost",
+    "mcpHost": "host.docker.internal",
     "port": 6400,
     "verboseReceiveLogs": true,
     "logIncomingCommands": true

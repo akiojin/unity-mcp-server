@@ -207,7 +207,10 @@ Tip: Prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.json` to make discovery e
 | --- | --- | --- | --- | --- |
 | `project.root` | string | auto-detect (Unity connection or nearest directory with `Assets/`) | Unity project root directory. Relative paths resolve from process CWD. | — |
 | `project.codeIndexRoot` | string | `<project.root>/Library/UnityMCP/CodeIndex` | Code Index storage root. | — |
-| `unity.host` | string | `process.env.UNITY_HOST` or `localhost` | Hostname/IP of Unity Editor TCP server. | — |
+| `unity.unityHost` | string | `process.env.UNITY_UNITY_HOST` &#124; `process.env.UNITY_BIND_HOST` &#124; `process.env.UNITY_HOST` &#124; `localhost` | Host/interface where the Unity Editor listens for MCP commands. | — |
+| `unity.mcpHost` | string | `process.env.UNITY_MCP_HOST` &#124; `process.env.UNITY_CLIENT_HOST` &#124; `unity.unityHost` | Hostname/IP the Node MCP server uses when connecting to Unity. e.g. `host.docker.internal` inside Docker. | — |
+| `unity.bindHost` | string | `process.env.UNITY_BIND_HOST` &#124; `unity.unityHost` | Legacy alias for the Unity listener interface. Kept for backwards compatibility. | — |
+| `unity.host` | string | legacy | Legacy alias retained for compatibility; resolves the same as `unity.unityHost`. | — |
 | `unity.port` | number | `process.env.UNITY_PORT` or `6400` | Port of Unity Editor TCP server. | — |
 | `unity.reconnectDelay` | number (ms) | `1000` | Initial delay before reconnect attempts. | — |
 | `unity.maxReconnectDelay` | number (ms) | `30000` | Maximum backoff delay between reconnect attempts. | — |
@@ -220,6 +223,8 @@ Tip: Prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.json` to make discovery e
 | `logging.prefix` | string | `[Unity Editor MCP]` | Log prefix used in stderr. | — |
 | `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` or `compact` | Default return detail for search; `compact` maps to `snippets`. | `compact` | `metadata` | `snippets` | `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` or `naive` | Search engine implementation. | `naive` (treesitter planned) |
+
+Tip: when Unity runs on your host machine and the MCP server runs inside Docker, keep `unity.unityHost` as `localhost` (Unity listens locally) and set `unity.mcpHost` to `host.docker.internal` so the container can reach the editor.
 
 ### GUID DB
 

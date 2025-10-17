@@ -40,7 +40,8 @@ export class UnityConnection extends EventEmitter {
         return;
       }
 
-      logger.info(`Connecting to Unity at ${config.unity.host}:${config.unity.port}...`);
+      const targetHost = config.unity.mcpHost || config.unity.unityHost;
+      logger.info(`Connecting to Unity at ${targetHost}:${config.unity.port}...`);
       
       this.socket = new net.Socket();
       let connectionTimeout = null;
@@ -118,7 +119,7 @@ export class UnityConnection extends EventEmitter {
       });
 
       // Attempt connection
-      this.socket.connect(config.unity.port, config.unity.host);
+      this.socket.connect(config.unity.port, targetHost);
       
       // Set timeout for initial connection
       connectionTimeout = setTimeout(() => {
