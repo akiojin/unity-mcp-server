@@ -1,11 +1,16 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { config, logger } from '../../../src/core/config.js';
 
 describe('Config', () => {
   describe('config object', () => {
     it('should have correct default Unity settings', () => {
-      assert.ok(config.unity.host); // Should have a host value (localhost or host.docker.internal)
+      assert.ok(config.unity.unityHost);
+      assert.ok(config.unity.mcpHost);
+      assert.equal(config.unity.bindHost, config.unity.unityHost);
       assert.equal(config.unity.port, 6400);
       assert.equal(config.unity.reconnectDelay, 1000);
       assert.equal(config.unity.maxReconnectDelay, 30000);
@@ -22,6 +27,215 @@ describe('Config', () => {
     it('should have correct logging settings', () => {
       assert.equal(config.logging.level, 'info');
       assert.equal(config.logging.prefix, '[Unity Editor MCP]');
+    });
+
+    it('should load mcpHost and unityHost from external config', async () => {
+      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-config-'));
+      const configPath = path.join(tmpDir, 'config.json');
+      await fs.writeFile(configPath, JSON.stringify({
+        unity: {
+          unityHost: '127.0.0.1',
+          mcpHost: 'host.docker.internal',
+          bindHost: '0.0.0.0',
+          port: 6410
+        }
+      }), 'utf8');
+
+      const prevConfigPath = process.env.UNITY_MCP_CONFIG;
+      const prevHost = process.env.UNITY_HOST;
+      const prevClientHost = process.env.UNITY_CLIENT_HOST;
+      const prevBindHost = process.env.UNITY_BIND_HOST;
+      const prevUnityHost = process.env.UNITY_UNITY_HOST;
+      const prevMcpHost = process.env.UNITY_MCP_HOST;
+
+      process.env.UNITY_MCP_CONFIG = configPath;
+      delete process.env.UNITY_HOST;
+      delete process.env.UNITY_CLIENT_HOST;
+      delete process.env.UNITY_BIND_HOST;
+      delete process.env.UNITY_UNITY_HOST;
+      delete process.env.UNITY_MCP_HOST;
+
+      try {
+        const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
+        moduleUrl.searchParams.set('ts', Date.now().toString());
+        const { config: customConfig } = await import(moduleUrl.href);
+
+        assert.equal(customConfig.__configPath, configPath);
+        assert.equal(customConfig.unity.unityHost, '127.0.0.1');
+        assert.equal(customConfig.unity.mcpHost, 'host.docker.internal');
+        assert.equal(customConfig.unity.bindHost, '0.0.0.0');
+        assert.equal(customConfig.unity.port, 6410);
+      } finally {
+        if (prevConfigPath === undefined) {
+          delete process.env.UNITY_MCP_CONFIG;
+        } else {
+          process.env.UNITY_MCP_CONFIG = prevConfigPath;
+        }
+
+        if (prevHost === undefined) {
+          delete process.env.UNITY_HOST;
+        } else {
+          process.env.UNITY_HOST = prevHost;
+        }
+
+        if (prevClientHost === undefined) {
+          delete process.env.UNITY_CLIENT_HOST;
+        } else {
+          process.env.UNITY_CLIENT_HOST = prevClientHost;
+        }
+
+        if (prevBindHost === undefined) {
+          delete process.env.UNITY_BIND_HOST;
+        } else {
+          process.env.UNITY_BIND_HOST = prevBindHost;
+        }
+
+        if (prevUnityHost === undefined) {
+          delete process.env.UNITY_UNITY_HOST;
+        } else {
+          process.env.UNITY_UNITY_HOST = prevUnityHost;
+        }
+
+        if (prevMcpHost === undefined) {
+          delete process.env.UNITY_MCP_HOST;
+        } else {
+          process.env.UNITY_MCP_HOST = prevMcpHost;
+        }
+
+        await fs.rm(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    it('should fall back to unityHost when only legacy host is provided', async () => {
+      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-config-'));
+      const configPath = path.join(tmpDir, 'config.json');
+      await fs.writeFile(configPath, JSON.stringify({ unity: { host: 'example.local' } }), 'utf8');
+
+      const prevConfigPath = process.env.UNITY_MCP_CONFIG;
+      const prevHost = process.env.UNITY_HOST;
+      const prevClientHost = process.env.UNITY_CLIENT_HOST;
+      const prevUnityHost = process.env.UNITY_UNITY_HOST;
+      const prevMcpHost = process.env.UNITY_MCP_HOST;
+
+      process.env.UNITY_MCP_CONFIG = configPath;
+      delete process.env.UNITY_HOST;
+      delete process.env.UNITY_CLIENT_HOST;
+      delete process.env.UNITY_UNITY_HOST;
+      delete process.env.UNITY_MCP_HOST;
+
+      try {
+        const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
+        moduleUrl.searchParams.set('ts', Date.now().toString());
+        const { config: fallbackConfig } = await import(moduleUrl.href);
+
+        assert.equal(fallbackConfig.unity.unityHost, 'example.local');
+        assert.equal(fallbackConfig.unity.mcpHost, 'example.local');
+        assert.equal(fallbackConfig.unity.bindHost, 'example.local');
+      } finally {
+        if (prevConfigPath === undefined) {
+          delete process.env.UNITY_MCP_CONFIG;
+        } else {
+          process.env.UNITY_MCP_CONFIG = prevConfigPath;
+        }
+
+        if (prevHost === undefined) {
+          delete process.env.UNITY_HOST;
+        } else {
+          process.env.UNITY_HOST = prevHost;
+        }
+
+        if (prevClientHost === undefined) {
+          delete process.env.UNITY_CLIENT_HOST;
+        } else {
+          process.env.UNITY_CLIENT_HOST = prevClientHost;
+        }
+
+        if (prevUnityHost === undefined) {
+          delete process.env.UNITY_UNITY_HOST;
+        } else {
+          process.env.UNITY_UNITY_HOST = prevUnityHost;
+        }
+
+        if (prevMcpHost === undefined) {
+          delete process.env.UNITY_MCP_HOST;
+        } else {
+          process.env.UNITY_MCP_HOST = prevMcpHost;
+        }
+
+        await fs.rm(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    it('should map legacy clientHost/bindHost to new fields', async () => {
+      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-config-'));
+      const configPath = path.join(tmpDir, 'config.json');
+      await fs.writeFile(configPath, JSON.stringify({
+        unity: {
+          clientHost: 'legacy-client',
+          bindHost: 'legacy-bind'
+        }
+      }), 'utf8');
+
+      const prevConfigPath = process.env.UNITY_MCP_CONFIG;
+      const prevHost = process.env.UNITY_HOST;
+      const prevClientHost = process.env.UNITY_CLIENT_HOST;
+      const prevUnityHost = process.env.UNITY_UNITY_HOST;
+      const prevMcpHost = process.env.UNITY_MCP_HOST;
+      const prevBindHost = process.env.UNITY_BIND_HOST;
+      process.env.UNITY_MCP_CONFIG = configPath;
+      delete process.env.UNITY_HOST;
+      delete process.env.UNITY_CLIENT_HOST;
+      delete process.env.UNITY_UNITY_HOST;
+      delete process.env.UNITY_MCP_HOST;
+      delete process.env.UNITY_BIND_HOST;
+
+      try {
+        const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
+        moduleUrl.searchParams.set('ts', Date.now().toString());
+        const { config: legacyConfig } = await import(moduleUrl.href);
+
+        assert.equal(legacyConfig.unity.mcpHost, 'legacy-client');
+        assert.equal(legacyConfig.unity.unityHost, 'legacy-bind');
+        assert.equal(legacyConfig.unity.bindHost, 'legacy-bind');
+      } finally {
+        if (prevConfigPath === undefined) {
+          delete process.env.UNITY_MCP_CONFIG;
+        } else {
+          process.env.UNITY_MCP_CONFIG = prevConfigPath;
+        }
+
+        if (prevHost === undefined) {
+          delete process.env.UNITY_HOST;
+        } else {
+          process.env.UNITY_HOST = prevHost;
+        }
+
+        if (prevClientHost === undefined) {
+          delete process.env.UNITY_CLIENT_HOST;
+        } else {
+          process.env.UNITY_CLIENT_HOST = prevClientHost;
+        }
+
+        if (prevUnityHost === undefined) {
+          delete process.env.UNITY_UNITY_HOST;
+        } else {
+          process.env.UNITY_UNITY_HOST = prevUnityHost;
+        }
+
+        if (prevMcpHost === undefined) {
+          delete process.env.UNITY_MCP_HOST;
+        } else {
+          process.env.UNITY_MCP_HOST = prevMcpHost;
+        }
+
+        if (prevBindHost === undefined) {
+          delete process.env.UNITY_BIND_HOST;
+        } else {
+          process.env.UNITY_BIND_HOST = prevBindHost;
+        }
+
+        await fs.rm(tmpDir, { recursive: true, force: true });
+      }
     });
   });
 
