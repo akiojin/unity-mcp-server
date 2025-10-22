@@ -59,9 +59,20 @@ namespace UnityMCPServer.GuidDb
                 // Run scan deferred to keep UI responsive
                 EditorApplication.delayCall += () =>
                 {
-                    GuidDbManager.FullScan();
-                    EditorPrefs.SetString(LastFullScanKey, now.ToString("o"));
-                    Debug.Log("[GuidDB] Initial/Periodic full scan executed.");
+                    var scheduled = GuidDbManager.FullScan(() =>
+                    {
+                        EditorPrefs.SetString(LastFullScanKey, DateTime.UtcNow.ToString("o"));
+                        Debug.Log("[GuidDB] Initial/Periodic full scan executed.");
+                    });
+
+                    if (scheduled)
+                    {
+                        Debug.Log("[GuidDB] Initial/Periodic full scan scheduled.");
+                    }
+                    else
+                    {
+                        Debug.Log("[GuidDB] Full scan already running; completion hook registered.");
+                    }
                 };
             }
             catch (Exception ex)

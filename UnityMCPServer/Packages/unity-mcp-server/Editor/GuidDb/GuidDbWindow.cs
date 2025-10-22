@@ -19,6 +19,8 @@ namespace UnityMCPServer.GuidDb
         private List<LedgerRecord> _filtered = new List<LedgerRecord>();
         private readonly string[] _typeOptions = new[] { "All", "Script", "Prefab", "Scene", "Material", "Texture", "Animation", "AnimatorController", "Folder", "Other" };
         private readonly string[] _aliveOptions = new[] { "All", "Alive", "Deleted" };
+        private bool _isScanRunning;
+        private float _scanProgress = -1f;
 
         // For repair action per GUID
         private readonly Dictionary<string, UnityEngine.Object> _replacement = new Dictionary<string, UnityEngine.Object>();
@@ -34,6 +36,12 @@ namespace UnityMCPServer.GuidDb
 
         private void OnEnable()
         {
+            if (GuidDbFullScanScheduler.IsRunning)
+            {
+                _isScanRunning = true;
+                _scanProgress = 0f;
+                GuidDbManager.FullScan(OnFullScanCompleted, OnFullScanProgress);
+            }
             Reload();
         }
 
@@ -99,7 +107,10 @@ namespace UnityMCPServer.GuidDb
         {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
-                GUILayout.Label($"Ledger: {_all.Count} items", EditorStyles.miniLabel, GUILayout.Width(160));
+                var status = _isScanRunning
+                    ? $"Ledger: {_all.Count} items (Scanning {Mathf.RoundToInt(Mathf.Clamp01(_scanProgress < 0f ? 0f : _scanProgress) * 100f)}%)"
+                    : $"Ledger: {_all.Count} items";
+                GUILayout.Label(status, EditorStyles.miniLabel, GUILayout.Width(220));
                 GUILayout.FlexibleSpace();
                 _aliveFilterIndex = EditorGUILayout.Popup(_aliveFilterIndex, _aliveOptions, GUILayout.Width(90));
                 _typeFilterIndex = EditorGUILayout.Popup(_typeFilterIndex, _typeOptions, GUILayout.Width(170));
@@ -107,7 +118,9 @@ namespace UnityMCPServer.GuidDb
                 if (newQuery != _query) { _query = newQuery; ApplyFilter(); }
                 if (GUILayout.Button("Clear", EditorStyles.toolbarButton, GUILayout.Width(60))) { _query = string.Empty; ApplyFilter(); }
                 if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(70))) { Reload(); }
-                if (GUILayout.Button("Full Scan", EditorStyles.toolbarButton, GUILayout.Width(90))) { GuidDbManager.FullScan(); Reload(); }
+                GUI.enabled = !_isScanRunning;
+                if (GUILayout.Button("Full Scan", EditorStyles.toolbarButton, GUILayout.Width(90))) { StartFullScan(); }
+                GUI.enabled = true;
             }
 
             // Header: horizontal sync only (no scrollbar)
@@ -178,6 +191,39 @@ namespace UnityMCPServer.GuidDb
         private static Color GetLineColor()
         {
             return EditorGUIUtility.isProSkin ? new Color(1f, 1f, 1f, 0.08f) : new Color(0f, 0f, 0f, 0.12f);
+        }
+
+        private void StartFullScan()
+        {
+            RemoveNotification();
+
+            var started = GuidDbManager.FullScan(OnFullScanCompleted, OnFullScanProgress);
+            if (started)
+            {
+                _isScanRunning = true;
+                _scanProgress = 0f;
+            }
+            else
+            {
+                _isScanRunning = true;
+                ShowNotification(new GUIContent("Full scan is already running."));
+            }
+            Repaint();
+        }
+
+        private void OnFullScanProgress(float progress)
+        {
+            _scanProgress = progress;
+            Repaint();
+        }
+
+        private void OnFullScanCompleted()
+        {
+            _isScanRunning = false;
+            _scanProgress = -1f;
+            Reload();
+            Repaint();
+            RemoveNotification();
         }
 
         private void OnWhoUses(string oldGuid)

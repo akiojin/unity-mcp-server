@@ -69,12 +69,13 @@ namespace UnityMCPServer.GuidDb
             }
         }
 
-        private static void EnrichScriptInfo(string assetPath, LedgerRecord rec)
+        private static void EnrichScriptInfo(string assetPath, LedgerRecord rec, Func<string, MonoScript> loader = null)
         {
             if (rec.type != "Script") return;
             try
             {
-                var ms = AssetDatabase.LoadAssetAtPath<MonoScript>(assetPath);
+                loader ??= path => AssetDatabase.LoadAssetAtPath<MonoScript>(path);
+                var ms = loader(assetPath);
                 var cls = ms != null ? ms.GetClass() : null;
                 if (cls != null)
                 {
@@ -88,33 +89,12 @@ namespace UnityMCPServer.GuidDb
 
         public static void UpsertImported(string assetPath)
         {
-            if (string.IsNullOrEmpty(assetPath)) return;
-            if (!assetPath.StartsWith("Assets/")) return;
-            var guid = AssetDatabase.AssetPathToGUID(assetPath);
-            if (string.IsNullOrEmpty(guid)) return;
-
             var dict = LoadLedger();
             var now = JsonLines.IsoNowUtc();
-            dict.TryGetValue(guid, out var rec);
-            // 変更イベントのスナップショット記録は廃止
-
-            if (rec == null)
+            if (UpsertImported(dict, assetPath, now))
             {
-                rec = new LedgerRecord
-                {
-                    guid = guid,
-                    first_seen_at = now
-                };
+                SaveLedger(dict);
             }
-
-            rec.path_current = assetPath;
-            rec.type = DetectTypeFromPath(assetPath);
-            rec.last_seen_at = now;
-            rec.alive = true;
-            EnrichScriptInfo(assetPath, rec);
-
-            dict[guid] = rec;
-            SaveLedger(dict);
         }
 
         public static void HandleMoved(string fromPath, string toPath)
@@ -150,25 +130,66 @@ namespace UnityMCPServer.GuidDb
         }
 
         [MenuItem("Window/Unity Editor MCP/Guid DB/Full Scan (Assets)")]
-        public static void FullScan()
+        public static void FullScanMenu()
         {
-            try
+            var scheduled = FullScan(() =>
             {
-                var all = AssetDatabase.GetAllAssetPaths();
-                foreach (var p in all)
-                {
-                    if (!p.StartsWith("Assets/")) continue;
-                    if (AssetDatabase.IsValidFolder(p)) continue;
-                    UpsertImported(p);
-                }
-                Debug.Log("[GuidDB] Full scan completed.");
-            }
-            catch (Exception ex)
+                Debug.Log("[GuidDB] Full scan completed (menu).");
+            });
+
+            if (!scheduled)
             {
-                Debug.LogError($"[GuidDB] Full scan error: {ex}");
+                Debug.Log("[GuidDB] Full scan already running.");
             }
         }
 
+        public static bool FullScan(Action onCompleted = null, Action<float> onProgress = null)
+        {
+            return GuidDbFullScanScheduler.ScheduleFullScan(new GuidDbFullScanOptions
+            {
+                OnCompleted = onCompleted,
+                OnProgress = onProgress
+            });
+        }
+
         // 日次スナップショット関連メニューは削除
+
+        internal static bool UpsertImported(Dictionary<string, LedgerRecord> dict, string assetPath, string now, Func<string, string> assetPathToGuid = null, Func<string, bool> isValidFolder = null, Func<string, MonoScript> scriptLoader = null)
+        {
+            if (dict == null) throw new ArgumentNullException(nameof(dict));
+            if (string.IsNullOrEmpty(assetPath)) return false;
+            if (!assetPath.StartsWith("Assets/", StringComparison.Ordinal)) return false;
+
+            assetPathToGuid ??= AssetDatabase.AssetPathToGUID;
+            isValidFolder ??= AssetDatabase.IsValidFolder;
+
+            if (isValidFolder(assetPath)) return false;
+
+            var guid = assetPathToGuid(assetPath);
+            if (string.IsNullOrEmpty(guid)) return false;
+
+            dict.TryGetValue(guid, out var rec);
+            if (rec == null)
+            {
+                rec = new LedgerRecord
+                {
+                    guid = guid,
+                    first_seen_at = now
+                };
+            }
+
+            rec.path_current = assetPath;
+            rec.type = DetectTypeFromPath(assetPath);
+            rec.last_seen_at = now;
+            rec.alive = true;
+
+            if (rec.type == "Script")
+            {
+                EnrichScriptInfo(assetPath, rec, scriptLoader);
+            }
+
+            dict[guid] = rec;
+            return true;
+        }
     }
 }
