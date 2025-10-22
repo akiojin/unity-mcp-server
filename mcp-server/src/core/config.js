@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { findUpSync } from 'find-up';
 
 /**
  * Shallow merge utility (simple objects only)
@@ -97,20 +98,10 @@ const baseConfig = {
 function loadExternalConfig() {
   const explicitPath = process.env.UNITY_MCP_CONFIG;
 
-  // Find nearest <workspace>/.unity/config.json by walking up from process.cwd()
-  const findProjectConfigUp = () => {
-    let dir = process.cwd();
-    let prev = '';
-    for (let i = 0; i < 3 && dir && dir !== prev; i++) {
-      const p = path.resolve(dir, '.unity', 'config.json');
-      if (fs.existsSync(p)) return p;
-      prev = dir;
-      dir = path.dirname(dir);
-    }
-    return null;
-  };
-
-  const projectPath = findProjectConfigUp();
+  const projectPath = findUpSync((directory) => {
+    const candidate = path.resolve(directory, '.unity', 'config.json');
+    return fs.existsSync(candidate) ? candidate : undefined;
+  }, { cwd: process.cwd() });
   const homeDir = process.env.HOME || process.env.USERPROFILE || '';
   const userPath = homeDir ? path.resolve(homeDir, '.unity', 'config.json') : null;
 

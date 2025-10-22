@@ -940,7 +940,8 @@ namespace UnityMCPServer.Core
                             var projectRoot = Application.dataPath.Substring(0, Application.dataPath.Length - "/Assets".Length).Replace('\\', '/');
                             var assetsPath = Path.Combine(projectRoot, "Assets").Replace('\\', '/');
                             var packagesPath = Path.Combine(projectRoot, "Packages").Replace('\\', '/');
-                            var codeIndexRoot = Path.Combine(projectRoot, "Library/UnityMCP/CodeIndex").Replace('\\', '/');
+                            var workspaceRoot = ResolveWorkspaceRoot(projectRoot);
+                            var codeIndexRoot = Path.Combine(workspaceRoot, ".unity", "cache", "code-index").Replace('\\', '/');
                             var info = new {
                                 projectRoot,
                                 assetsPath,
@@ -1036,6 +1037,30 @@ namespace UnityMCPServer.Core
             StopTcpListener();
             EditorApplication.update -= ProcessCommandQueue;
             EditorApplication.quitting -= Shutdown;
+        }
+
+        private static string ResolveWorkspaceRoot(string projectRoot)
+        {
+            try
+            {
+                string dir = projectRoot;
+                for (int i = 0; i < 3 && !string.IsNullOrEmpty(dir); i++)
+                {
+                    var cfgPath = Path.Combine(dir, ".unity", "config.json");
+                    if (File.Exists(cfgPath))
+                    {
+                        return dir.Replace('\\', '/');
+                    }
+                    var parent = Directory.GetParent(dir);
+                    if (parent == null)
+                    {
+                        break;
+                    }
+                    dir = parent.FullName;
+                }
+            }
+            catch { }
+            return projectRoot.Replace('\\', '/');
         }
         
         /// <summary>

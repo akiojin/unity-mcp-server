@@ -17,7 +17,7 @@ namespace UnityMCPServer.Core.Settings
         public string storePath = DefaultStorePath;
 
         public const string SettingsPath = "ProjectSettings/UnityMCPSettings.json";
-        public const string DefaultStorePath = "Library/UnityMCP/CodeIndex";
+        public const string DefaultStorePath = ".unity/cache/code-index";
 
         public static UnityMCPSettings Load()
         {

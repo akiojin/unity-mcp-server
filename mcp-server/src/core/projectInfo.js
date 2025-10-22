@@ -1,6 +1,13 @@
 import fs from 'fs';
 import path from 'path';
-import { logger, config } from './config.js';
+import { logger, config, WORKSPACE_ROOT } from './config.js';
+
+const normalize = (p) => p.replace(/\\/g, '/');
+
+const resolveDefaultCodeIndexRoot = (projectRoot) => {
+  const base = WORKSPACE_ROOT || projectRoot || process.cwd();
+  return normalize(path.join(base, '.unity', 'cache', 'code-index'));
+};
 
 // Lazy project info resolver. Prefers Unity via get_editor_info, otherwise infers by walking up for Assets/Packages.
 export class ProjectInfoProvider {
@@ -15,13 +22,12 @@ export class ProjectInfoProvider {
     // Config-driven project root (no env fallback)
     const cfgRoot = config?.project?.root;
     if (cfgRoot) {
-      const projectRoot = cfgRoot.replace(/\\/g, '/');
-      const codeIndexRoot = (config?.project?.codeIndexRoot
-        || path.join(projectRoot, 'Library/UnityMCP/CodeIndex')).replace(/\\/g, '/');
+      const projectRoot = normalize(cfgRoot);
+      const codeIndexRoot = normalize(config?.project?.codeIndexRoot || resolveDefaultCodeIndexRoot(projectRoot));
       this.cached = {
         projectRoot,
-        assetsPath: path.join(projectRoot, 'Assets').replace(/\\/g, '/'),
-        packagesPath: path.join(projectRoot, 'Packages').replace(/\\/g, '/'),
+        assetsPath: normalize(path.join(projectRoot, 'Assets')),
+        packagesPath: normalize(path.join(projectRoot, 'Packages')),
         codeIndexRoot,
       };
       return this.cached;
@@ -36,8 +42,8 @@ export class ProjectInfoProvider {
           this.cached = {
             projectRoot: info.projectRoot,
             assetsPath: info.assetsPath,
-            packagesPath: info.packagesPath || path.join(info.projectRoot, 'Packages').replace(/\\/g, '/'),
-            codeIndexRoot: info.codeIndexRoot || path.join(info.projectRoot, 'Library/UnityMCP/CodeIndex').replace(/\\/g, '/'),
+            packagesPath: normalize(info.packagesPath || path.join(info.projectRoot, 'Packages')),
+            codeIndexRoot: normalize(info.codeIndexRoot || resolveDefaultCodeIndexRoot(info.projectRoot)),
           };
           return this.cached;
         }
@@ -59,13 +65,13 @@ export class ProjectInfoProvider {
     const dockerDefaultPath = '/unity-mcp-server/UnityMCPServer';
     const dockerAssets = path.join(dockerDefaultPath, 'Assets');
     if (fs.existsSync(dockerAssets)) {
-      const projectRoot = dockerDefaultPath.replace(/\\/g, '/');
+      const projectRoot = normalize(dockerDefaultPath);
       logger.info(`Found Unity project at Docker default path: ${projectRoot}`);
       return {
         projectRoot,
-        assetsPath: dockerAssets.replace(/\\/g, '/'),
-        packagesPath: path.join(dockerDefaultPath, 'Packages').replace(/\\/g, '/'),
-        codeIndexRoot: path.join(dockerDefaultPath, 'Library/UnityMCP/CodeIndex').replace(/\\/g, '/'),
+        assetsPath: normalize(dockerAssets),
+        packagesPath: normalize(path.join(dockerDefaultPath, 'Packages')),
+        codeIndexRoot: resolveDefaultCodeIndexRoot(projectRoot),
       };
     }
 
@@ -74,12 +80,12 @@ export class ProjectInfoProvider {
     for (let i = 0; i < 5; i++) {
       const assets = path.join(dir, 'Assets');
       if (fs.existsSync(assets)) {
-        const projectRoot = dir.replace(/\\/g, '/');
+        const projectRoot = normalize(dir);
         return {
           projectRoot,
-          assetsPath: assets.replace(/\\/g, '/'),
-          packagesPath: path.join(dir, 'Packages').replace(/\\/g, '/'),
-          codeIndexRoot: path.join(dir, 'Library/UnityMCP/CodeIndex').replace(/\\/g, '/'),
+          assetsPath: normalize(assets),
+          packagesPath: normalize(path.join(dir, 'Packages')),
+          codeIndexRoot: resolveDefaultCodeIndexRoot(projectRoot),
         };
       }
       dir = path.dirname(dir);
@@ -95,12 +101,12 @@ export class ProjectInfoProvider {
           const candidate = path.join(root, e.name);
           const assets = path.join(candidate, 'Assets');
           if (fs.existsSync(assets)) {
-            const projectRoot = candidate.replace(/\\/g, '/');
+            const projectRoot = normalize(candidate);
             return {
               projectRoot,
-              assetsPath: assets.replace(/\\/g, '/'),
-              packagesPath: path.join(candidate, 'Packages').replace(/\\/g, '/'),
-              codeIndexRoot: path.join(candidate, 'Library/UnityMCP/CodeIndex').replace(/\\/g, '/'),
+              assetsPath: normalize(assets),
+              packagesPath: normalize(path.join(candidate, 'Packages')),
+              codeIndexRoot: resolveDefaultCodeIndexRoot(projectRoot),
             };
           }
         }

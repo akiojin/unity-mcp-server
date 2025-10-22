@@ -33,7 +33,7 @@ describe('ProjectInfoProvider', () => {
         projectRoot: '/test/project',
         assetsPath: '/test/project/Assets',
         packagesPath: '/test/project/Packages',
-        codeIndexRoot: '/test/project/Library/UnityMCP/CodeIndex'
+        codeIndexRoot: '/test/workspace/.unity/cache/code-index'
       };
       provider.cached = mockInfo;
       const result = await provider.get();

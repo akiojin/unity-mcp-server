@@ -42,10 +42,11 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.6.1",
-    "better-sqlite3": "^9.4.3"
+    "better-sqlite3": "^9.4.3",
+    "find-up": "^6.3.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18 <21"
   },
   "repository": {
     "type": "git",

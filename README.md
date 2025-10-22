@@ -136,7 +136,8 @@ sequenceDiagram
 ## Setup
 
 - Unity 2020.3 LTS or newer
-- Node.js 18+ and npm
+- Node.js 18.x or 20.x LTS (the server refuses to start on newer majors) and npm
+  - Prefer Node.js 20.x for the best compatibility (prebuilt `better-sqlite3` binaries are available); Node.js 18.x works, but anything ≥21 is rejected at launch.
 - Claude Desktop or another MCP-compatible client
 
 Installation
@@ -155,6 +156,37 @@ Installation
       }
     }
     ```
+
+### MCP Server Environment Setup
+
+You must install the MCP server's npm dependencies **on the same OS where the server runs** so that native modules such as `better-sqlite3` are built for the correct platform.
+
+- **General rule**: if your `.mcp.json` uses `"command": "node"` (e.g. `node bin/unity-mcp-server serve`), run `npm install` (or `npm ci`) inside the directory where the package lives _on that machine/container_ before launching the MCP client.
+- **`npx` launch**: the README example above (`npx @akiojin/unity-mcp-server@latest`) downloads dependencies at runtime and works on the supported Node.js versions (18.x / 20.x). Node.js 21+ is not supported; the server exits early with a version error.
+- **Avoid sharing `node_modules` across operating systems** (Windows ↔ Linux/macOS). Native binaries compiled for one platform cannot be reused on another.
+
+Environment-specific notes:
+
+- **Windows (PowerShell / Command Prompt)**
+  - Install Node.js 20.x LTS (or 18.x if you prefer). Newer major versions are unsupported.
+  - In your workspace: change into the installed package directory (for repo clones: `cd C:\path\to\unity-mcp-server\mcp-server`) then run `npm install`.
+  - Point `.mcp.json` to `node` or keep using `npx` once dependencies exist.
+
+- **Windows Subsystem for Linux (WSL)**
+  - Keep the repository on the Linux filesystem (e.g. `/home/<user>/unity-mcp-server`).
+  - Use Node.js 20.x (or 18.x) inside WSL.
+  - Run `npm ci` inside the installed package directory (for repo clones: `/home/<user>/unity-mcp-server/mcp-server`).
+
+- **Docker / Linux containers**
+  - Base your image on Node.js 20.x (or 18.x). Images with newer Node versions are unsupported and will fail fast.
+  - During the image build run `npm ci --workspace=mcp-server` (or `npm ci` inside the package directory) so the container has platform-matched dependencies.
+  - Do not bind-mount a host `node_modules` directory into the container.
+
+- **macOS**
+  - Install Node.js 20.x (e.g. `brew install node@20` and add it to `PATH`). Node 18.x also works; newer majors are unsupported.
+  - Run `npm ci` wherever the package is installed (for repo clones: `cd ~/unity-mcp-server/mcp-server && npm ci`).
+
+After installation you can verify the server with `node mcp-server/bin/unity-mcp-server --version`. If `better-sqlite3` fails to load, reinstall the dependencies _inside the target environment_ or rebuild with `npm rebuild better-sqlite3 --build-from-source` once the toolchain is present.
 
 Usage Flow
 - Open Unity project (TCP listener starts on port 6400)
@@ -175,7 +207,7 @@ Notes:
 
 Common keys:
 - `project.root`: Unity project root directory (contains `Assets/`).
-- `project.codeIndexRoot`: Code Index output directory (default: `<project.root>/Library/UnityMCP/CodeIndex`).
+- `project.codeIndexRoot`: Code Index output directory (default: `<workspaceRoot>/.unity/cache/code-index`).
 
 Examples:
 
@@ -183,7 +215,7 @@ Examples:
 {
   "project": {
     "root": "/absolute/path/to/UnityProject",
-    "codeIndexRoot": "/absolute/path/to/UnityProject/Library/UnityMCP/CodeIndex"
+    "codeIndexRoot": "/absolute/path/to/workspace/.unity/cache/code-index"
   }
 }
 ```
@@ -194,7 +226,7 @@ Team-friendly (relative) example — recommended when the repo layout is stable:
 {
   "project": {
     "root": ".",
-    "codeIndexRoot": "./Library/UnityMCP/CodeIndex"
+    "codeIndexRoot": "./.unity/cache/code-index"
   }
 }
 ```
@@ -206,7 +238,7 @@ Tip: Prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.json` to make discovery e
 | Key | Type | Default | Description | Allowed values |
 | --- | --- | --- | --- | --- |
 | `project.root` | string | auto-detect (Unity connection or nearest directory with `Assets/`) | Unity project root directory. Relative paths resolve from process CWD. | — |
-| `project.codeIndexRoot` | string | `<project.root>/Library/UnityMCP/CodeIndex` | Code Index storage root. | — |
+| `project.codeIndexRoot` | string | `<workspaceRoot>/.unity/cache/code-index` | Code Index storage root. | — |
 | `unity.unityHost` | string | `process.env.UNITY_UNITY_HOST` &#124; `process.env.UNITY_BIND_HOST` &#124; `process.env.UNITY_HOST` &#124; `localhost` | Host/interface where the Unity Editor listens for MCP commands. | — |
 | `unity.mcpHost` | string | `process.env.UNITY_MCP_HOST` &#124; `process.env.UNITY_CLIENT_HOST` &#124; `unity.unityHost` | Hostname/IP the Node MCP server uses when connecting to Unity. e.g. `host.docker.internal` inside Docker. | — |
 | `unity.bindHost` | string | `process.env.UNITY_BIND_HOST` &#124; `unity.unityHost` | Legacy alias for the Unity listener interface. Kept for backwards compatibility. | — |
@@ -223,6 +255,11 @@ Tip: Prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.json` to make discovery e
 | `logging.prefix` | string | `[Unity Editor MCP]` | Log prefix used in stderr. | — |
 | `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` or `compact` | Default return detail for search; `compact` maps to `snippets`. | `compact` | `metadata` | `snippets` | `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` or `naive` | Search engine implementation. | `naive` (treesitter planned) |
+
+### Workspace Directory (`.unity/`)
+- `config.json` is the only file intended for version control; keep it alongside your repo to define the workspace root.
+- Everything else under `.unity/` (e.g., `cache/`, `guid-db/`, `tools/`) is generated at runtime and should remain untracked.
+- The Code Index database now lives at `.unity/cache/code-index/` next to other transient assets.
 
 Tip: when Unity runs on your host machine and the MCP server runs inside Docker, keep `unity.unityHost` as `localhost` (Unity listens locally) and set `unity.mcpHost` to `host.docker.internal` so the container can reach the editor.
 
@@ -271,7 +308,7 @@ sequenceDiagram
 
 The project bundles a self-contained C# Language Server (LSP). The MCP server auto-downloads and manages its lifecycle. `script_*` tools talk to the LSP under the hood:
 
-- Index: scans all `.cs` with `documentSymbol` and persists to SQLite (Library/UnityMCP/CodeIndex)
+- Index: scans all `.cs` with `documentSymbol` and persists to SQLite (`.unity/cache/code-index`)
 - Find symbols/references: `workspace/symbol` + LSP extensions
 - Edits: rename/replace/insert/remove via LSP extensions
 - Safety: structured edits, preview/apply options, no blind line-based patches

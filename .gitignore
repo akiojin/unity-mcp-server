@@ -91,10 +91,11 @@ dist/
 build/
 CLAUDE.local.md
 
-unity-mcp-reference-project/
-roslyn-cli/bin/
+.unity/cache/
+.unity/capture/
+.unity/guid-db/
 .unity/tools/
-.tools/
+
 *.local.json
 
 csharp-lsp/bin/

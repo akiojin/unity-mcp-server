@@ -225,7 +225,7 @@
 ## 技術制約
 
 - 自己完結型Roslyn LSPを使用（Unity通信不要）
-- インデックスはLibrary/UnityMCP/CodeIndexに保存
+- インデックスは`.unity/cache/code-index`に保存
 - 構造化操作のみサポート（行ベース編集禁止）
 - Unityコンパイル/ドメインリロードの影響を受けない
 

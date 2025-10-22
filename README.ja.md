@@ -136,7 +136,8 @@ sequenceDiagram
 - `scripts/`: ローカル開発向けヘルパースクリプト
 
 ## セットアップ
-- 対応バージョン: Unity 2020.3 LTS以降 / Node.js 18+ / npm
+- 対応バージョン: Unity 2020.3 LTS以降 / Node.js 18.x または 20.x LTS（それ以外のメジャーバージョンでは起動を拒否） / npm
+  - 推奨は Node.js 20.x（`better-sqlite3` の prebuilt バイナリが利用可能）。Node 18.x も動作しますが、21 以上は起動時に拒否されます。
 - MCPクライアント: Claude Desktop など
 
 インストール
@@ -155,6 +156,37 @@ sequenceDiagram
       }
     }
     ```
+
+### MCPサーバーの環境セットアップ
+
+ネイティブ拡張（`better-sqlite3` など）は **MCPサーバーを動かすOS上で依存関係をインストールしたとき** にのみ正しく構築されます。以下を必ず実施してください。
+
+- **基本ルール**: `.mcp.json` で `"command": "node"`（例: `node bin/unity-mcp-server serve`）を使う場合は、MCPサーバーを動かすマシン／コンテナ内で本パッケージが展開されているディレクトリで `npm install`（または `npm ci`）を実行してから MCP クライアントを起動します。
+- **`npx` 実行**: README の例（`npx @akiojin/unity-mcp-server@latest`）は起動時に依存をダウンロードします。サポート対象の Node.js（18.x / 20.x）では追加作業なしで利用できます。Node.js 21 以上はサポート外であり、サーバー起動時に拒否されます。
+- **`node_modules` の共有禁止**: Windows と Linux/macOS など異なるOS間で `node_modules` を共有するとネイティブバイナリが一致せず動作しません。
+
+環境別の注意点:
+
+- **Windows (PowerShell / コマンドプロンプト)**
+  - Node.js 20.x LTS（または 18.x）を利用してください。新しいメジャーバージョンはサポート外です。
+  - パッケージが配置されているディレクトリ（リポジトリを clone した場合: `C:\path\to\unity-mcp-server\mcp-server`）で `npm install` を実行します。
+  - `.mcp.json` で `node` を指す場合でも、依存を入れた後であれば `npx` に切り替えても構いません。
+
+- **Windows Subsystem for Linux (WSL)**
+  - リポジトリは Linux ファイルシステム上（例: `/home/<user>/unity-mcp-server`）に配置してください。
+  - Node.js 20.x（または 18.x）を WSL 内に導入します。
+  - パッケージが展開されているディレクトリ（リポジトリ clone 時: `/home/<user>/unity-mcp-server/mcp-server`）で `npm ci` を実行します。
+
+- **Docker / Linux コンテナ**
+  - Node.js 20.x（または 18.x）ベースのイメージを使用してください。新しいメジャーバージョンは起動時に拒否されます。
+  - イメージ構築時に `npm ci --workspace=mcp-server`（またはパッケージ展開ディレクトリで `npm ci`）を実行し、コンテナ内にプラットフォーム適合済みの依存を用意します。
+  - ホスト側の `node_modules` を bind mount しないでください。
+
+- **macOS**
+  - `brew install node@20` などで Node.js 20.x を導入し、`PATH` に追加します（18.x も利用可）。これより新しいメジャーバージョンはサポートしません。
+  - パッケージが配置されているディレクトリ（リポジトリ clone 時: `~/unity-mcp-server/mcp-server`）で `npm ci` を実行します。
+
+セットアップ後、`node mcp-server/bin/unity-mcp-server --version` で起動確認ができます。`better-sqlite3` の読み込みエラーが出る場合は、対象環境内で依存を再インストールするか、ツールチェーンが揃った状態で `npm rebuild better-sqlite3 --build-from-source` を実行してください。
 
 1) Unity の Package Manager から本パッケージを導入（下記Git URL）
 2) Unity プロジェクトを開く（パッケージがポート6400で待受）
@@ -175,7 +207,7 @@ sequenceDiagram
 
 代表的なキー:
 - `project.root`: Unityプロジェクトのルート（`Assets/` を含むディレクトリ）
-- `project.codeIndexRoot`: Code Index の出力先（既定: `<project.root>/Library/UnityMCP/CodeIndex`）
+- `project.codeIndexRoot`: Code Index の出力先（既定: `<workspaceRoot>/.unity/cache/code-index`）
 
 例（絶対パス推奨）:
 
@@ -183,7 +215,7 @@ sequenceDiagram
 {
   "project": {
     "root": "/absolute/path/to/UnityProject",
-    "codeIndexRoot": "/absolute/path/to/UnityProject/Library/UnityMCP/CodeIndex"
+    "codeIndexRoot": "/absolute/path/to/workspace/.unity/cache/code-index"
   }
 }
 ```
@@ -194,7 +226,7 @@ sequenceDiagram
 {
   "project": {
     "root": ".",
-    "codeIndexRoot": "./Library/UnityMCP/CodeIndex"
+    "codeIndexRoot": "./.unity/cache/code-index"
   }
 }
 ```
@@ -206,7 +238,7 @@ sequenceDiagram
 | キー | 型 | 既定値 | 説明 | 許容値 |
 | --- | --- | --- | --- | --- |
 | `project.root` | string | 自動検出（Unity接続 or 近傍の `Assets/` を含むディレクトリ） | Unityプロジェクトのルート。相対パスはプロセスのCWD基準。 | — |
-| `project.codeIndexRoot` | string | `<project.root>/Library/UnityMCP/CodeIndex` | Code Index の保存先ルート。 | — |
+| `project.codeIndexRoot` | string | `<workspaceRoot>/.unity/cache/code-index` | Code Index の保存先ルート。 | — |
 | `unity.unityHost` | string | `process.env.UNITY_UNITY_HOST` ／ `process.env.UNITY_BIND_HOST` ／ `process.env.UNITY_HOST` ／ `localhost` | Unity Editor が MCP コマンドを待ち受けるホスト/インターフェース。 | — |
 | `unity.mcpHost` | string | `process.env.UNITY_MCP_HOST` ／ `process.env.UNITY_CLIENT_HOST` ／ `unity.unityHost` | MCP サーバー（Node側）が Unity へ接続するときのホスト/IP。Docker 内では `host.docker.internal` などを指定。 | — |
 | `unity.bindHost` | string | `process.env.UNITY_BIND_HOST` ／ `unity.unityHost` | 従来の待ち受けインターフェース指定。後方互換のために維持。 | — |
@@ -223,6 +255,11 @@ sequenceDiagram
 | `logging.prefix` | string | `[Unity Editor MCP]` | ログのプレフィックス。 | — |
 | `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` または `compact` | 検索の既定詳細度。`compact` は `snippets` のエイリアス。 | `compact` / `metadata` / `snippets` / `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` または `naive` | 検索エンジンの実装。 | `naive`（将来的に `treesitter` 予定） |
+
+### ワークスペースディレクトリ（`.unity/`）
+- バージョン管理すべきファイルは `config.json` のみです。リポジトリと同階層に配置し、ワークスペースルートを定義します。
+- `.unity/` 配下のその他（例: `cache/`, `guid-db/`, `tools/`）は実行時に生成されるキャッシュであり、コミットしないでください。
+- Code Index のデータベースは `.unity/cache/code-index/` に保存されます。
 
 ヒント: Unity をホストOSで起動し、MCPサーバーを Docker コンテナ内で動かす場合は `unity.unityHost` を `localhost`（Unityはローカルで待受け）に保ちつつ、`unity.mcpHost` を `host.docker.internal` に設定するとコンテナから Unity へ接続しやすくなります。
 
@@ -269,7 +306,7 @@ sequenceDiagram
 
 ### コードインデックスと解析の仕組み（How it works）
 
-- LSP の `documentSymbol` を用いて `.cs` を走査し、SQLite に永続化（Library/UnityMCP/CodeIndex）
+- LSP の `documentSymbol` を用いて `.cs` を走査し、SQLite に永続化（`.unity/cache/code-index`）
 - `script_*` ツールは LSP 標準＋拡張を通じて、シンボル/参照取得や構造編集を実行
 - Unity はエディタ操作のみに集中し、C# の解析は Node（MCP）側で行います
 
