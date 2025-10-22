@@ -22,7 +22,8 @@ export class ProjectInfoProvider {
     // Config-driven project root (no env fallback)
     const cfgRoot = config?.project?.root;
     if (cfgRoot) {
-      const projectRoot = normalize(cfgRoot);
+      // Resolve relative paths against WORKSPACE_ROOT
+      const projectRoot = normalize(path.isAbsolute(cfgRoot) ? cfgRoot : path.resolve(WORKSPACE_ROOT, cfgRoot));
       const codeIndexRoot = normalize(config?.project?.codeIndexRoot || resolveDefaultCodeIndexRoot(projectRoot));
       this.cached = {
         projectRoot,
