@@ -35,19 +35,19 @@
 
 新機能の開発は、以下の3ステップで進めます：
 
-1. **`/specify`**: 機能仕様書を作成 (`specs/SPEC-[UUID8桁]/spec.md`)
+1. **`/speckit.specify`**: 機能仕様書を作成 (`specs/SPEC-[UUID8桁]/spec.md`)
    - ビジネス要件とユーザーストーリーを定義
    - 「何を」「なぜ」に焦点を当てる（「どのように」は含めない）
-   - 機能ブランチの作成と仕様ファイルの初期化
+   - SPECディレクトリの初期化（Gitブランチは作成しない）
 
-2. **`/plan`**: 実装計画を作成 (`specs/SPEC-[UUID8桁]/plan.md`)
+2. **`/speckit.plan`**: 実装計画を作成 (`specs/SPEC-[UUID8桁]/plan.md`)
    - 技術スタック、アーキテクチャ、データモデルを設計
    - 憲章チェック（TDD/LLM最適化/シンプルさの原則）
    - Phase 0: 技術リサーチ (`research.md`)
    - Phase 1: 設計とコントラクト (`data-model.md`, `contracts/`, `quickstart.md`)
    - Phase 2: タスク計画 (`tasks.md`)
 
-3. **`/tasks`**: 実行可能なタスクに分解 (`specs/SPEC-[UUID8桁]/tasks.md`)
+3. **`/speckit.tasks`**: 実行可能なタスクに分解 (`specs/SPEC-[UUID8桁]/tasks.md`)
    - Setup/Test/Core/Integration/Polishに分類
    - 並列実行可能なタスクに`[P]`マーク付与
    - 依存関係を明確化
@@ -92,19 +92,20 @@
 
 ### SDD (Spec-Driven Development) 規約
 
-**すべての機能開発・要件追加は `/specify` から開始**
+**すべての機能開発・要件追加は `/speckit.specify` から開始**
 
 **新規機能開発フロー**:
 
-1. `/specify` - ビジネス要件を定義（技術詳細なし）
-2. `/plan` - 技術設計を作成（憲章チェック必須）
-3. `/tasks` - 実行可能タスクに分解
+1. `/speckit.specify` - ビジネス要件を定義（技術詳細なし）
+2. `/speckit.plan` - 技術設計を作成（憲章チェック必須）
+3. `/speckit.tasks` - 実行可能タスクに分解
+   - 実装実行は `/speckit.implement` で補助的に利用可能
 4. タスク実行（TDDサイクル厳守）
 
 **既存機能のSpec化フロー**:
 
-1. `/specify` - 実装済み機能のビジネス要件を文書化
-2. `/plan` - （必要に応じて）技術設計を追記
+1. `/speckit.specify` - 実装済み機能のビジネス要件を文書化
+2. `/speckit.plan` - （必要に応じて）技術設計を追記
 3. 既存実装とSpecの整合性確認
 
 **Spec作成原則**:

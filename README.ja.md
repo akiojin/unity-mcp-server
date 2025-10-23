@@ -19,7 +19,15 @@ Unity Editor MCP は、LLMクライアントからUnity Editorを自動化しま
 - **TDD**: Red-Green-Refactorサイクル強制; 実装前にテスト作成
 - **テストカバレッジ**: ユニットテスト (80%以上), 統合テスト (クリティカルパス100%)
 
-Spec Kitワークフロー (`/specify`, `/plan`, `/tasks`) も参照してください。
+Spec Kitワークフロー (`/speckit.specify`, `/speckit.plan`, `/speckit.tasks`) も参照してください。
+
+### Spec Kit（SDD）運用
+
+- `.specify/` 配下に Spec Kit v0.0.78 のスクリプト・テンプレート・メモリが展開されています。
+- `uvx --from git+https://github.com/github/spec-kit.git specify check` でCLIとテンプレートを最新化できます。
+- フィーチャーIDは必ず `SPEC-xxxxxxxx`（小文字 hex）とし、Gitブランチは作成しません。アクティブなIDは `.specify/.current-feature` に記録されます。
+- テンプレートは日本語化済みです。更新は `/.specify/templates/*.md` を修正してください。
+- 互換性のため既存の `scripts/` は `.specify/scripts/bash/` を呼び出すラッパーに置き換えています。
 
 ### C#編集の方針（重要）
 

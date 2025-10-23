@@ -19,7 +19,15 @@ This project follows **Spec-Driven Development (SDD)** and **Test-Driven Develop
 - **TDD**: Red-Green-Refactor cycle enforced; tests written before implementation
 - **Test Coverage**: Unit tests (80%+), Integration tests (100% critical paths)
 
-See also: Spec Kit workflow (`/specify`, `/plan`, `/tasks`) for structured feature development.
+See also: Spec Kit workflow (`/speckit.specify`, `/speckit.plan`, `/speckit.tasks`) for structured feature development.
+
+### Spec Kit (SDD) Conventions
+
+- Spec Kit CLI v0.0.78 is installed under `.specify/` (scripts, templates, memory).
+- Use `uvx --from git+https://github.com/github/spec-kit.git specify check` to verify the CLI and templates are up to date.
+- Feature IDs always follow `SPEC-xxxxxxxx` (lowercase hex). The helper script skips git branch creation and stores the active feature in `.specify/.current-feature`.
+- Templates are localized to Japanese; edit `/.specify/templates/*.md` when updating specs/plan/tasks/agent guides.
+- Legacy wrappers remain in `scripts/` and delegate to the new `.specify/scripts/bash/` implementations for backward compatibility.
 
 ### C# Editing Policy (Important)
 
