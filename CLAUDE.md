@@ -38,7 +38,8 @@
 1. **`/speckit.specify`**: 機能仕様書を作成 (`specs/SPEC-[UUID8桁]/spec.md`)
    - ビジネス要件とユーザーストーリーを定義
    - 「何を」「なぜ」に焦点を当てる（「どのように」は含めない）
-   - SPECディレクトリの初期化（Gitブランチは作成しない）
+   - SPECディレクトリ、featureブランチ、Worktreeを自動作成
+   - 作業は`.worktrees/SPEC-xxx/`内で実施
 
 2. **`/speckit.plan`**: 実装計画を作成 (`specs/SPEC-[UUID8桁]/plan.md`)
    - 技術スタック、アーキテクチャ、データモデルを設計
@@ -63,6 +64,88 @@
   - 意味のある名前（gameobj, core, ui...）
   - 大文字の使用（UUID部分は小文字のみ）
 - **生成方法**: `uuidgen | tr '[:upper:]' '[:lower:]' | cut -c1-8` またはオンラインUUID生成ツール
+
+#### Worktree＆ブランチ運用（必須）
+
+**すべてのSPEC開発はWorktreeで並行作業**
+
+本プロジェクトは**Git Worktree**を使用した並行開発フローを採用しています。各SPECは独立したWorktreeで作業し、完了後にmainブランチへローカルマージします（**PR不要**）。
+
+**ブランチ命名規則**:
+
+- **形式**: `feature/SPEC-[UUID8桁]`
+- **例**: `feature/SPEC-a1b2c3d4`, `feature/SPEC-3f8e9d2a`
+- 各SPECに対して1つのfeatureブランチを作成
+- mainブランチから派生
+
+**Worktree配置**:
+
+- **場所**: `.worktrees/SPEC-[UUID8桁]/`
+- **例**: `.worktrees/SPEC-a1b2c3d4/`
+- Git管理外（`.gitignore`登録済み）
+- 各Worktreeは完全な作業ツリーを持つ
+
+**新規SPEC作成フロー**:
+
+1. `/speckit.specify` コマンド実行
+   - SPECディレクトリ作成（`specs/SPEC-xxx/`）
+   - featureブランチ作成（`feature/SPEC-xxx`）
+   - Worktree作成（`.worktrees/SPEC-xxx/`）
+   - 初期ファイル生成（`spec.md`）
+
+2. Worktreeに移動して作業開始:
+   ```bash
+   cd .worktrees/SPEC-a1b2c3d4/
+   ```
+
+3. 独立して開発作業を実行:
+   - TDDサイクル厳守
+   - 各変更をコミット
+   - 他のSPECと完全に独立
+
+**作業完了フロー**:
+
+1. Worktree内で最終コミット完了を確認
+2. finish-featureスクリプト実行:
+   ```bash
+   .specify/scripts/bash/finish-feature.sh
+   ```
+
+3. 自動実行される処理:
+   - mainブランチに切り替え
+   - `--no-ff`でマージ（履歴保持）
+   - Worktree削除
+   - featureブランチ削除
+   - リモートにpush
+
+**既存SPEC移行**:
+
+既存の16個のSPECは既にWorktree移行済み。各SPECは以下で確認:
+
+```bash
+# 全Worktree一覧
+git worktree list
+
+# 全featureブランチ一覧
+git branch | grep "feature/SPEC-"
+
+# 特定SPECで作業開始
+cd .worktrees/SPEC-0d5d84f9/
+```
+
+**重要な注意事項**:
+
+- **mainブランチで直接SPEC作業禁止**: 必ずWorktreeを使用
+- **PR作成不要**: ローカルマージで完結
+- **並行開発推奨**: 複数のSPECを同時に異なるWorktreeで作業可能
+- **Worktree間の独立性**: 各Worktreeは完全に独立（相互干渉なし）
+- **コミット**: Worktree内でのコミットはfeatureブランチに記録される
+
+**スクリプト**:
+
+- `.specify/scripts/bash/create-new-feature.sh`: 新規SPEC＆Worktree作成
+- `.specify/scripts/bash/finish-feature.sh`: 完了したSPECをmainにマージ
+- `.specify/scripts/bash/migrate-specs-to-worktrees.sh`: 既存SPEC一括移行
 
 ### TDD遵守（妥協不可）
 
@@ -97,16 +180,25 @@
 **新規機能開発フロー**:
 
 1. `/speckit.specify` - ビジネス要件を定義（技術詳細なし）
+   - 自動的にfeatureブランチ＆Worktree作成
+   - `.worktrees/SPEC-xxx/`に移動して作業開始
 2. `/speckit.plan` - 技術設計を作成（憲章チェック必須）
+   - Worktree内で実行
 3. `/speckit.tasks` - 実行可能タスクに分解
    - 実装実行は `/speckit.implement` で補助的に利用可能
+   - Worktree内で実行
 4. タスク実行（TDDサイクル厳守）
+   - Worktree内で独立して作業
+   - 各変更をfeatureブランチにコミット
+5. 完了後、`finish-feature.sh`でmainにマージ＆Worktree削除
 
 **既存機能のSpec化フロー**:
 
-1. `/speckit.specify` - 実装済み機能のビジネス要件を文書化
-2. `/speckit.plan` - （必要に応じて）技術設計を追記
-3. 既存実装とSpecの整合性確認
+1. 対応するWorktreeに移動: `cd .worktrees/SPEC-xxx/`
+2. `/speckit.specify` - 実装済み機能のビジネス要件を文書化
+3. `/speckit.plan` - （必要に応じて）技術設計を追記
+4. 既存実装とSpecの整合性確認
+5. 完了後、`finish-feature.sh`でmainにマージ
 
 **Spec作成原則**:
 
