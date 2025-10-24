@@ -152,7 +152,7 @@ namespace UnityMCPServer.Helpers
         /// <param name="code">Optional error code</param>
         /// <param name="details">Optional additional error details</param>
         /// <returns>JSON string of the response</returns>
-        public static string Error(string id, string message, string code = null, object details = null)
+        public static string ErrorWithId(string id, string message, string code = null, object details = null)
         {
             var response = new JObject
             {

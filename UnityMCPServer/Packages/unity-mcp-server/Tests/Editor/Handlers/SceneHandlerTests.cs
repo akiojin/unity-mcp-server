@@ -48,18 +48,21 @@ namespace UnityMCPServer.Tests
         [Test]
         public void CreateScene_ShouldWorkWithMinimalParameters()
         {
+            const string sceneName = "TestScene_Auto";
+            var expectedPath = $"Assets/Scenes/{sceneName}.unity";
+
             var parameters = new JObject
             {
-                ["sceneName"] = "TestScene"
+                ["sceneName"] = sceneName
             };
 
             var result = ToJObject(SceneHandler.CreateScene(parameters));
 
             Assert.IsNotNull(result);
             Assert.IsNull(result.Value<string>("error"));
-            Assert.AreEqual("TestScene", result.Value<string>("sceneName"));
+            Assert.AreEqual(sceneName, result.Value<string>("sceneName"));
             var path = result.Value<string>("path");
-            Assert.AreEqual("Assets/Scenes/TestScene.unity", path);
+            Assert.AreEqual(expectedPath, path);
             Assert.IsTrue(result.Value<bool?>("isLoaded") ?? false);
 
             // Verify scene was created

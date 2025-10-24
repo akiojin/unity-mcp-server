@@ -12,7 +12,6 @@ using Newtonsoft.Json.Linq;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.InputSystem.Processors;
 #pragma warning restore CS0234
 
 namespace UnityMCPServer.Handlers
@@ -29,12 +28,10 @@ namespace UnityMCPServer.Handlers
         // Virtual keyboard management
         private static Keyboard virtualKeyboard;
         private static HashSet<Key> pressedKeys = new HashSet<Key>();
-        private static readonly Dictionary<StickControl, Vector2> stickTargets = new Dictionary<StickControl, Vector2>();
 
         static InputSystemHandler()
         {
             InputSystem.onDeviceChange += OnDeviceChange;
-            InputSystem.onBeforeUpdate += OnBeforeInputUpdate;
         }
 
         /// <summary>
@@ -378,27 +375,6 @@ namespace UnityMCPServer.Handlers
                 {
                     pressedKeys.Clear();
                 }
-
-                foreach (var entry in stickTargets.Where(kvp => kvp.Key.device == device).Select(kvp => kvp.Key).ToList())
-                {
-                    stickTargets.Remove(entry);
-                }
-            }
-        }
-
-        private static void OnBeforeInputUpdate(InputUpdateType updateType)
-        {
-            foreach (var kvp in stickTargets)
-            {
-                var control = kvp.Key;
-                if (control == null || !control.device.added)
-                {
-                    continue;
-                }
-
-                var desiredValue = kvp.Value;
-                var rawValue = CalculateRawStickValue(desiredValue, control);
-                InputState.Change(control, rawValue);
             }
         }
 
@@ -736,35 +712,6 @@ namespace UnityMCPServer.Handlers
             }
         }
 
-        private static Vector2 CalculateRawStickValue(Vector2 desiredValue, StickControl stickControl)
-        {
-            var desiredMagnitude = Mathf.Clamp01(desiredValue.magnitude);
-            if (desiredMagnitude <= Mathf.Epsilon)
-            {
-                return Vector2.zero;
-            }
-
-            float deadzoneMin = 0.125f;
-            float deadzoneMax = 0.925f;
-
-            foreach (var processor in stickControl.processors)
-            {
-                if (processor is StickDeadzoneProcessor stickDeadzone)
-                {
-                    deadzoneMin = stickDeadzone.min;
-                    deadzoneMax = stickDeadzone.max;
-                    break;
-                }
-            }
-
-            var rawMagnitude = desiredMagnitude * (deadzoneMax - deadzoneMin) + deadzoneMin;
-            rawMagnitude = Mathf.Clamp(rawMagnitude, 0f, 1f);
-            var normalized = desiredValue.normalized;
-            var result = normalized * rawMagnitude;
-            Debug.Log($"[InputSystemHandler] deadzone min={deadzoneMin} max={deadzoneMax} desired={desiredValue} raw={result}");
-            return result;
-        }
-
         private static object SimulateGamepadButton(Gamepad gamepad, JObject parameters)
         {
             string buttonName = parameters["button"]?.ToString();
@@ -806,12 +753,21 @@ namespace UnityMCPServer.Handlers
             float x = parameters["x"]?.ToObject<float>() ?? 0;
             float y = parameters["y"]?.ToObject<float>() ?? 0;
             
-            Vector2 desiredValue = new Vector2(Mathf.Clamp(x, -1f, 1f), Mathf.Clamp(y, -1f, 1f));
-            var stickControl = stick == "left" ? gamepad.leftStick : gamepad.rightStick;
-            var rawValue = CalculateRawStickValue(desiredValue, stickControl);
+            Vector2 desired = new Vector2(Mathf.Clamp(x, -1f, 1f), Mathf.Clamp(y, -1f, 1f));
+            Vector2 afterStick = ApplyAxisDeadzoneInverse(desired);
+            Vector2 raw = ApplyStickDeadzoneInverse(afterStick);
 
-            stickTargets[stickControl] = desiredValue;
-            InputState.Change(stickControl, rawValue);
+            var state = new GamepadState();
+            if (stick == "left")
+            {
+                state.leftStick = raw;
+            }
+            else
+            {
+                state.rightStick = raw;
+            }
+
+            InputSystem.QueueStateEvent(gamepad, state);
 
             return new
             {
@@ -821,6 +777,46 @@ namespace UnityMCPServer.Handlers
                 value = new { x, y },
                 message = $"Gamepad {stick} stick set to ({x}, {y})"
             };
+        }
+
+        private static Vector2 ApplyAxisDeadzoneInverse(Vector2 desired)
+        {
+            const float axisMin = 0.125f;
+
+            if (desired == Vector2.zero)
+            {
+                return Vector2.zero;
+            }
+
+            float InverseComponent(float v)
+            {
+                var sign = Mathf.Sign(v);
+                var magnitude = Mathf.Abs(v);
+                if (magnitude <= 0f)
+                {
+                    return 0f;
+                }
+                var raw = magnitude * (1f - axisMin) + axisMin;
+                return sign * Mathf.Clamp(raw, 0f, 1f);
+            }
+
+            return new Vector2(InverseComponent(desired.x), InverseComponent(desired.y));
+        }
+
+        private static Vector2 ApplyStickDeadzoneInverse(Vector2 desired)
+        {
+            const float stickMin = 0.125f;
+            const float stickMax = 0.925f;
+
+            var magnitude = desired.magnitude;
+            if (magnitude <= Mathf.Epsilon)
+            {
+                return Vector2.zero;
+            }
+
+            var rawMagnitude = magnitude * (stickMax - stickMin) + stickMin;
+            rawMagnitude = Mathf.Clamp(rawMagnitude, 0f, 1f);
+            return desired.normalized * rawMagnitude;
         }
 
         private static object SimulateGamepadTrigger(Gamepad gamepad, JObject parameters)

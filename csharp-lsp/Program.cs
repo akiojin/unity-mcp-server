@@ -158,6 +158,20 @@ sealed class LspServer
                         var resp = await RemoveSymbolAsync(relative, namePath, apply, failOnRefs, removeEmpty);
                         await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
                     }
+                    else if (method == "mcp/buildCodeIndex")
+                    {
+                        string? outputPath = null;
+                        if (root.TryGetProperty("params", out var param) && param.ValueKind == JsonValueKind.Object)
+                        {
+                            if (param.TryGetProperty("outputPath", out var op) && op.ValueKind == JsonValueKind.String)
+                            {
+                                outputPath = op.GetString();
+                            }
+                        }
+
+                        var resp = await BuildCodeIndexAsync(outputPath);
+                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
+                    }
                     else
                     {
                         // respond with empty for unknown methods to keep client unblocked
@@ -922,6 +936,193 @@ sealed class LspServer
         };
     }
 
+    private async Task<object> BuildCodeIndexAsync(string? outputPath)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(_rootDir) || !Directory.Exists(_rootDir))
+            {
+                return new { success = false, error = "root_directory_not_initialized" };
+            }
+
+            var entries = new List<CodeIndexEntry>();
+            foreach (var file in EnumerateUnityCsFiles(_rootDir))
+            {
+                try
+                {
+                    var text = await File.ReadAllTextAsync(file);
+                    var tree = CSharpSyntaxTree.ParseText(text);
+                    var root = await tree.GetRootAsync();
+                    var scope = new Stack<string>();
+                    var relative = ToRel(file, _rootDir);
+                    CollectSymbols(root, scope, entries, relative);
+                }
+                catch (Exception ex)
+                {
+                    entries.Add(new CodeIndexEntry
+                    {
+                        Name = Path.GetFileName(file),
+                        Kind = "file_error",
+                        NamePath = Path.GetFileName(file),
+                        File = ToRel(file, _rootDir),
+                        Line = 0,
+                        Column = 0,
+                        Summary = ex.Message
+                    });
+                }
+            }
+
+            var target = ResolveIndexOutputPath(outputPath);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+
+            var payload = new CodeIndexDocument
+            {
+                GeneratedAt = DateTime.UtcNow.ToString("o"),
+                Root = _rootDir.Replace('\\', '/'),
+                Entries = entries.OrderBy(e => e.NamePath, StringComparer.OrdinalIgnoreCase).ToArray()
+            };
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true
+            };
+
+            await File.WriteAllTextAsync(target, JsonSerializer.Serialize(payload, options), Encoding.UTF8);
+
+            return new
+            {
+                success = true,
+                count = entries.Count,
+                outputPath = target.Replace('\\', '/')
+            };
+        }
+        catch (Exception ex)
+        {
+            return new { success = false, error = ex.Message };
+        }
+    }
+
+    private void CollectSymbols(SyntaxNode node, Stack<string> scope, List<CodeIndexEntry> output, string relativePath)
+    {
+        switch (node)
+        {
+            case FileScopedNamespaceDeclarationSyntax fileNs:
+                scope.Push(fileNs.Name.ToString());
+                foreach (var member in fileNs.Members)
+                {
+                    CollectSymbols(member, scope, output, relativePath);
+                }
+                scope.Pop();
+                break;
+            case NamespaceDeclarationSyntax ns:
+                scope.Push(ns.Name.ToString());
+                foreach (var member in ns.Members)
+                {
+                    CollectSymbols(member, scope, output, relativePath);
+                }
+                scope.Pop();
+                break;
+            case ClassDeclarationSyntax cls:
+                AddEntry(cls.Identifier.ValueText, "class", cls, scope, output, relativePath);
+                scope.Push(cls.Identifier.ValueText);
+                foreach (var member in cls.Members)
+                {
+                    CollectSymbols(member, scope, output, relativePath);
+                }
+                scope.Pop();
+                break;
+            case StructDeclarationSyntax st:
+                AddEntry(st.Identifier.ValueText, "struct", st, scope, output, relativePath);
+                scope.Push(st.Identifier.ValueText);
+                foreach (var member in st.Members)
+                {
+                    CollectSymbols(member, scope, output, relativePath);
+                }
+                scope.Pop();
+                break;
+            case InterfaceDeclarationSyntax iface:
+                AddEntry(iface.Identifier.ValueText, "interface", iface, scope, output, relativePath);
+                scope.Push(iface.Identifier.ValueText);
+                foreach (var member in iface.Members)
+                {
+                    CollectSymbols(member, scope, output, relativePath);
+                }
+                scope.Pop();
+                break;
+            case EnumDeclarationSyntax en:
+                AddEntry(en.Identifier.ValueText, "enum", en, scope, output, relativePath);
+                foreach (var member in en.Members)
+                {
+                    AddEntry(member.Identifier.ValueText, "enumMember", member, scope, output, relativePath);
+                }
+                break;
+            case MethodDeclarationSyntax method:
+                AddEntry(method.Identifier.ValueText, "method", method, scope, output, relativePath);
+                break;
+            case ConstructorDeclarationSyntax ctor:
+                AddEntry(ctor.Identifier.ValueText, "constructor", ctor, scope, output, relativePath);
+                break;
+            case PropertyDeclarationSyntax prop:
+                AddEntry(prop.Identifier.ValueText, "property", prop, scope, output, relativePath);
+                break;
+            case EventDeclarationSyntax ev:
+                AddEntry(ev.Identifier.ValueText, "event", ev, scope, output, relativePath);
+                break;
+            case EventFieldDeclarationSyntax ef:
+                foreach (var variable in ef.Declaration.Variables)
+                {
+                    AddEntry(variable.Identifier.ValueText, "event", variable, scope, output, relativePath);
+                }
+                break;
+            case FieldDeclarationSyntax field:
+                foreach (var variable in field.Declaration.Variables)
+                {
+                    AddEntry(variable.Identifier.ValueText, "field", variable, scope, output, relativePath);
+                }
+                break;
+            case DelegateDeclarationSyntax del:
+                AddEntry(del.Identifier.ValueText, "delegate", del, scope, output, relativePath);
+                break;
+        }
+
+    }
+
+    private void AddEntry(string name, string kind, SyntaxNode node, Stack<string> scope, List<CodeIndexEntry> output, string relativePath)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        var span = node.GetLocation().GetLineSpan();
+        var line = span.StartLinePosition.Line + 1;
+        var column = span.StartLinePosition.Character + 1;
+        var namePath = string.Join('.', scope.Reverse().Append(name));
+
+        output.Add(new CodeIndexEntry
+        {
+            Name = name,
+            Kind = kind,
+            NamePath = namePath,
+            File = relativePath.Replace('\\', '/'),
+            Line = line,
+            Column = column
+        });
+    }
+
+    private string ResolveIndexOutputPath(string? outputPath)
+    {
+        if (string.IsNullOrWhiteSpace(outputPath))
+        {
+            return Path.Combine(_rootDir, ".mcp", "code-index.json");
+        }
+
+        if (Path.IsPathRooted(outputPath))
+        {
+            return outputPath;
+        }
+
+        return Path.Combine(_rootDir, outputPath);
+    }
+
     private async Task<string?> ReadMessageAsync()
     {
         // Read headers
@@ -959,5 +1160,23 @@ sealed class LspServer
         await Console.Out.WriteAsync(header);
         await Console.Out.WriteAsync(json);
         await Console.Out.FlushAsync();
+    }
+
+    private sealed class CodeIndexDocument
+    {
+        public string GeneratedAt { get; set; } = string.Empty;
+        public string Root { get; set; } = string.Empty;
+        public CodeIndexEntry[] Entries { get; set; } = Array.Empty<CodeIndexEntry>();
+    }
+
+    private sealed class CodeIndexEntry
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Kind { get; set; } = string.Empty;
+        public string NamePath { get; set; } = string.Empty;
+        public string File { get; set; } = string.Empty;
+        public int Line { get; set; }
+        public int Column { get; set; }
+        public string? Summary { get; set; }
     }
 }
