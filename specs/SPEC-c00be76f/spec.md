@@ -125,10 +125,10 @@
 ### 実装ファイル
 - `/mnt/e/unity-mcp-server/mcp-server/src/handlers/screenshot/CaptureScreenshotToolHandler.js`
 - `/mnt/e/unity-mcp-server/mcp-server/src/handlers/screenshot/AnalyzeScreenshotToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/video/CaptureVideoStartToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/video/CaptureVideoStopToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/video/CaptureVideoStatusToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/video/CaptureVideoForToolHandler.js`
+- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/video/VideoCaptureStartToolHandler.js`
+- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/video/VideoCaptureStopToolHandler.js`
+- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/video/VideoCaptureStatusToolHandler.js`
+- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/video/VideoCaptureForToolHandler.js`
 - `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/ScreenshotHandler.cs`
 - `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/VideoCaptureHandler.cs`
 

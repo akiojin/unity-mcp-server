@@ -6,22 +6,22 @@
 export { BaseToolHandler } from './base/BaseToolHandler.js';
 
 // System handlers
-export { PingToolHandler } from './system/PingToolHandler.js';
-export { RefreshAssetsToolHandler } from './system/RefreshAssetsToolHandler.js';
-export { GetCommandStatsToolHandler } from './system/GetCommandStatsToolHandler.js';
+export { SystemPingToolHandler } from './system/SystemPingToolHandler.js';
+export { SystemRefreshAssetsToolHandler } from './system/SystemRefreshAssetsToolHandler.js';
+export { SystemGetCommandStatsToolHandler } from './system/SystemGetCommandStatsToolHandler.js';
 
 // GameObject handlers
-export { CreateGameObjectToolHandler } from './gameobject/CreateGameObjectToolHandler.js';
-export { FindGameObjectToolHandler } from './gameobject/FindGameObjectToolHandler.js';
-export { ModifyGameObjectToolHandler } from './gameobject/ModifyGameObjectToolHandler.js';
-export { DeleteGameObjectToolHandler } from './gameobject/DeleteGameObjectToolHandler.js';
-export { GetHierarchyToolHandler } from './gameobject/GetHierarchyToolHandler.js';
+export { GameObjectCreateToolHandler } from './gameobject/GameObjectCreateToolHandler.js';
+export { GameObjectFindToolHandler } from './gameobject/GameObjectFindToolHandler.js';
+export { GameObjectModifyToolHandler } from './gameobject/GameObjectModifyToolHandler.js';
+export { GameObjectDeleteToolHandler } from './gameobject/GameObjectDeleteToolHandler.js';
+export { GameObjectGetHierarchyToolHandler } from './gameobject/GameObjectGetHierarchyToolHandler.js';
 
 // Scene handlers
-export { CreateSceneToolHandler } from './scene/CreateSceneToolHandler.js';
-export { LoadSceneToolHandler } from './scene/LoadSceneToolHandler.js';
-export { SaveSceneToolHandler } from './scene/SaveSceneToolHandler.js';
-export { ListScenesToolHandler } from './scene/ListScenesToolHandler.js';
+export { SceneCreateToolHandler } from './scene/SceneCreateToolHandler.js';
+export { SceneLoadToolHandler } from './scene/SceneLoadToolHandler.js';
+export { SceneSaveToolHandler } from './scene/SceneSaveToolHandler.js';
+export { SceneListToolHandler } from './scene/SceneListToolHandler.js';
 export { GetSceneInfoToolHandler } from './scene/GetSceneInfoToolHandler.js';
 
 // Analysis handlers
@@ -34,89 +34,89 @@ export { GetAnimatorStateToolHandler, GetAnimatorRuntimeInfoToolHandler } from '
 export { GetInputActionsStateToolHandler, AnalyzeInputActionsAssetToolHandler } from './analysis/GetInputActionsStateToolHandler.js';
 
 // PlayMode handlers
-export { PlayToolHandler } from './playmode/PlayToolHandler.js';
-export { PauseToolHandler } from './playmode/PauseToolHandler.js';
-export { StopToolHandler } from './playmode/StopToolHandler.js';
-export { GetEditorStateToolHandler } from './playmode/GetEditorStateToolHandler.js';
-export { WaitForEditorStateToolHandler } from './playmode/WaitForEditorStateToolHandler.js';
+export { PlaymodePlayToolHandler } from './playmode/PlaymodePlayToolHandler.js';
+export { PlaymodePauseToolHandler } from './playmode/PlaymodePauseToolHandler.js';
+export { PlaymodeStopToolHandler } from './playmode/PlaymodeStopToolHandler.js';
+export { PlaymodeGetStateToolHandler } from './playmode/PlaymodeGetStateToolHandler.js';
+export { PlaymodeWaitForStateToolHandler } from './playmode/PlaymodeWaitForStateToolHandler.js';
 
 // UI handlers
-export { FindUIElementsToolHandler } from './ui/FindUIElementsToolHandler.js';
-export { ClickUIElementToolHandler } from './ui/ClickUIElementToolHandler.js';
-export { GetUIElementStateToolHandler } from './ui/GetUIElementStateToolHandler.js';
-export { SetUIElementValueToolHandler } from './ui/SetUIElementValueToolHandler.js';
-export { SimulateUIInputToolHandler } from './ui/SimulateUIInputToolHandler.js';
+export { UIFindElementsToolHandler } from './ui/UIFindElementsToolHandler.js';
+export { UIClickElementToolHandler } from './ui/UIClickElementToolHandler.js';
+export { UIGetElementStateToolHandler } from './ui/UIGetElementStateToolHandler.js';
+export { UISetElementValueToolHandler } from './ui/UISetElementValueToolHandler.js';
+export { UISimulateInputToolHandler } from './ui/UISimulateInputToolHandler.js';
 
 // Input System handlers
-export { InputSystemHandler } from './input/InputSystemHandler.js';
-export { KeyboardSimulationHandler } from './input/KeyboardSimulationHandler.js';
-export { MouseSimulationHandler } from './input/MouseSimulationHandler.js';
-export { GamepadSimulationHandler } from './input/GamepadSimulationHandler.js';
-export { TouchSimulationHandler } from './input/TouchSimulationHandler.js';
-export { CreateActionMapToolHandler } from './input/CreateActionMapToolHandler.js';
-export { RemoveActionMapToolHandler } from './input/RemoveActionMapToolHandler.js';
-export { AddInputActionToolHandler } from './input/AddInputActionToolHandler.js';
-export { RemoveInputActionToolHandler } from './input/RemoveInputActionToolHandler.js';
-export { AddInputBindingToolHandler } from './input/AddInputBindingToolHandler.js';
-export { RemoveInputBindingToolHandler } from './input/RemoveInputBindingToolHandler.js';
-export { RemoveAllBindingsToolHandler } from './input/RemoveAllBindingsToolHandler.js';
-export { CreateCompositeBindingToolHandler } from './input/CreateCompositeBindingToolHandler.js';
-export { ManageControlSchemesToolHandler } from './input/ManageControlSchemesToolHandler.js';
+export { InputSystemControlToolHandler } from './input/InputSystemControlToolHandler.js';
+export { InputKeyboardSimulateToolHandler } from './input/InputKeyboardSimulateToolHandler.js';
+export { InputMouseSimulateToolHandler } from './input/InputMouseSimulateToolHandler.js';
+export { InputGamepadSimulateToolHandler } from './input/InputGamepadSimulateToolHandler.js';
+export { InputTouchSimulateToolHandler } from './input/InputTouchSimulateToolHandler.js';
+export { InputActionMapCreateToolHandler } from './input/InputActionMapCreateToolHandler.js';
+export { InputActionMapRemoveToolHandler } from './input/InputActionMapRemoveToolHandler.js';
+export { InputActionAddToolHandler } from './input/InputActionAddToolHandler.js';
+export { InputActionRemoveToolHandler } from './input/InputActionRemoveToolHandler.js';
+export { InputBindingAddToolHandler } from './input/InputBindingAddToolHandler.js';
+export { InputBindingRemoveToolHandler } from './input/InputBindingRemoveToolHandler.js';
+export { InputBindingRemoveAllToolHandler } from './input/InputBindingRemoveAllToolHandler.js';
+export { InputBindingCompositeCreateToolHandler } from './input/InputBindingCompositeCreateToolHandler.js';
+export { InputControlSchemesManageToolHandler } from './input/InputControlSchemesManageToolHandler.js';
 
 // Asset handlers
-export { CreatePrefabToolHandler } from './asset/CreatePrefabToolHandler.js';
-export { ModifyPrefabToolHandler } from './asset/ModifyPrefabToolHandler.js';
-export { InstantiatePrefabToolHandler } from './asset/InstantiatePrefabToolHandler.js';
-export { CreateMaterialToolHandler } from './asset/CreateMaterialToolHandler.js';
-export { ModifyMaterialToolHandler } from './asset/ModifyMaterialToolHandler.js';
-export { OpenPrefabToolHandler } from './asset/OpenPrefabToolHandler.js';
-export { ExitPrefabModeToolHandler } from './asset/ExitPrefabModeToolHandler.js';
-export { SavePrefabToolHandler } from './asset/SavePrefabToolHandler.js';
-export { AssetImportSettingsToolHandler } from './asset/AssetImportSettingsToolHandler.js';
-export { AssetDatabaseToolHandler } from './asset/AssetDatabaseToolHandler.js';
-export { AssetDependencyToolHandler } from './asset/AssetDependencyToolHandler.js';
+export { AssetPrefabCreateToolHandler } from './asset/AssetPrefabCreateToolHandler.js';
+export { AssetPrefabModifyToolHandler } from './asset/AssetPrefabModifyToolHandler.js';
+export { AssetPrefabInstantiateToolHandler } from './asset/AssetPrefabInstantiateToolHandler.js';
+export { AssetMaterialCreateToolHandler } from './asset/AssetMaterialCreateToolHandler.js';
+export { AssetMaterialModifyToolHandler } from './asset/AssetMaterialModifyToolHandler.js';
+export { AssetPrefabOpenToolHandler } from './asset/AssetPrefabOpenToolHandler.js';
+export { AssetPrefabExitModeToolHandler } from './asset/AssetPrefabExitModeToolHandler.js';
+export { AssetPrefabSaveToolHandler } from './asset/AssetPrefabSaveToolHandler.js';
+export { AssetImportSettingsManageToolHandler } from './asset/AssetImportSettingsManageToolHandler.js';
+export { AssetDatabaseManageToolHandler } from './asset/AssetDatabaseManageToolHandler.js';
+export { AssetDependencyAnalyzeToolHandler } from './asset/AssetDependencyAnalyzeToolHandler.js';
 
 // Menu handlers
-export { ExecuteMenuItemToolHandler } from './menu/ExecuteMenuItemToolHandler.js';
+export { MenuItemExecuteToolHandler } from './menu/MenuItemExecuteToolHandler.js';
 
 // Console handlers
-export { ClearConsoleToolHandler } from './console/ClearConsoleToolHandler.js';
-export { ReadConsoleToolHandler } from './console/ReadConsoleToolHandler.js';
+export { ConsoleClearToolHandler } from './console/ConsoleClearToolHandler.js';
+export { ConsoleReadToolHandler } from './console/ConsoleReadToolHandler.js';
 
 // Screenshot handlers
-export { CaptureScreenshotToolHandler } from './screenshot/CaptureScreenshotToolHandler.js';
-export { AnalyzeScreenshotToolHandler } from './screenshot/AnalyzeScreenshotToolHandler.js';
+export { ScreenshotCaptureToolHandler } from './screenshot/ScreenshotCaptureToolHandler.js';
+export { ScreenshotAnalyzeToolHandler } from './screenshot/ScreenshotAnalyzeToolHandler.js';
 
 // Video handlers
-export { CaptureVideoStartToolHandler } from './video/CaptureVideoStartToolHandler.js';
-export { CaptureVideoStopToolHandler } from './video/CaptureVideoStopToolHandler.js';
-export { CaptureVideoStatusToolHandler } from './video/CaptureVideoStatusToolHandler.js';
-export { CaptureVideoForToolHandler } from './video/CaptureVideoForToolHandler.js';
+export { VideoCaptureStartToolHandler } from './video/VideoCaptureStartToolHandler.js';
+export { VideoCaptureStopToolHandler } from './video/VideoCaptureStopToolHandler.js';
+export { VideoCaptureStatusToolHandler } from './video/VideoCaptureStatusToolHandler.js';
+export { VideoCaptureForToolHandler } from './video/VideoCaptureForToolHandler.js';
 
 // Component handlers
-export { AddComponentToolHandler } from './component/AddComponentToolHandler.js';
-export { RemoveComponentToolHandler } from './component/RemoveComponentToolHandler.js';
-export { ModifyComponentToolHandler } from './component/ModifyComponentToolHandler.js';
-export { ListComponentsToolHandler } from './component/ListComponentsToolHandler.js';
-export { GetComponentTypesToolHandler } from './component/GetComponentTypesToolHandler.js';
+export { ComponentAddToolHandler } from './component/ComponentAddToolHandler.js';
+export { ComponentRemoveToolHandler } from './component/ComponentRemoveToolHandler.js';
+export { ComponentModifyToolHandler } from './component/ComponentModifyToolHandler.js';
+export { ComponentListToolHandler } from './component/ComponentListToolHandler.js';
+export { ComponentGetTypesToolHandler } from './component/ComponentGetTypesToolHandler.js';
 
 // Compilation handlers
-export { GetCompilationStateToolHandler } from './compilation/GetCompilationStateToolHandler.js';
+export { CompilationGetStateToolHandler } from './compilation/CompilationGetStateToolHandler.js';
 
 // Test handlers
-export { RunTestsToolHandler } from './test/RunTestsToolHandler.js';
-export { GetTestStatusToolHandler } from './test/GetTestStatusToolHandler.js';
+export { TestRunToolHandler } from './test/TestRunToolHandler.js';
+export { TestGetStatusToolHandler } from './test/TestGetStatusToolHandler.js';
 
 // Editor control handlers
-export { TagManagementToolHandler } from './editor/TagManagementToolHandler.js';
-export { LayerManagementToolHandler } from './editor/LayerManagementToolHandler.js';
-export { SelectionToolHandler } from './editor/SelectionToolHandler.js';
-export { WindowManagementToolHandler } from './editor/WindowManagementToolHandler.js';
-export { ToolManagementToolHandler } from './editor/ToolManagementToolHandler.js';
+export { EditorTagsManageToolHandler } from './editor/EditorTagsManageToolHandler.js';
+export { EditorLayersManageToolHandler } from './editor/EditorLayersManageToolHandler.js';
+export { EditorSelectionManageToolHandler } from './editor/EditorSelectionManageToolHandler.js';
+export { EditorWindowsManageToolHandler } from './editor/EditorWindowsManageToolHandler.js';
+export { EditorToolsManageToolHandler } from './editor/EditorToolsManageToolHandler.js';
 
 // Settings handlers
-export { GetProjectSettingsToolHandler } from './settings/GetProjectSettingsToolHandler.js';
-export { UpdateProjectSettingsToolHandler } from './settings/UpdateProjectSettingsToolHandler.js';
+export { SettingsGetToolHandler } from './settings/SettingsGetToolHandler.js';
+export { SettingsUpdateToolHandler } from './settings/SettingsUpdateToolHandler.js';
 
 // Package management handlers
 export { default as PackageManagerToolHandler } from './package/PackageManagerToolHandler.js';
@@ -133,7 +133,7 @@ export { ScriptSymbolFindToolHandler } from './script/ScriptSymbolFindToolHandle
 export { ScriptSymbolsGetToolHandler } from './script/ScriptSymbolsGetToolHandler.js';
 export { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHandler.js';
 export { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
-export { ScriptCreateClassFileToolHandler } from './script/ScriptCreateClassFileToolHandler.js';
+export { ScriptCreateClassToolHandler } from './script/ScriptCreateClassToolHandler.js';
 export { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
 export { CodeIndexUpdateToolHandler } from './script/CodeIndexUpdateToolHandler.js';
 export { CodeIndexBuildToolHandler } from './script/CodeIndexBuildToolHandler.js';
@@ -141,18 +141,18 @@ export { CodeIndexBuildToolHandler } from './script/CodeIndexBuildToolHandler.js
 // Script tool registry
 
 // Import all handler classes at once
-import { PingToolHandler } from './system/PingToolHandler.js';
-import { RefreshAssetsToolHandler } from './system/RefreshAssetsToolHandler.js';
-import { GetCommandStatsToolHandler } from './system/GetCommandStatsToolHandler.js';
-import { CreateGameObjectToolHandler } from './gameobject/CreateGameObjectToolHandler.js';
-import { FindGameObjectToolHandler } from './gameobject/FindGameObjectToolHandler.js';
-import { ModifyGameObjectToolHandler } from './gameobject/ModifyGameObjectToolHandler.js';
-import { DeleteGameObjectToolHandler } from './gameobject/DeleteGameObjectToolHandler.js';
-import { GetHierarchyToolHandler } from './gameobject/GetHierarchyToolHandler.js';
-import { CreateSceneToolHandler } from './scene/CreateSceneToolHandler.js';
-import { LoadSceneToolHandler } from './scene/LoadSceneToolHandler.js';
-import { SaveSceneToolHandler } from './scene/SaveSceneToolHandler.js';
-import { ListScenesToolHandler } from './scene/ListScenesToolHandler.js';
+import { SystemPingToolHandler } from './system/SystemPingToolHandler.js';
+import { SystemRefreshAssetsToolHandler } from './system/SystemRefreshAssetsToolHandler.js';
+import { SystemGetCommandStatsToolHandler } from './system/SystemGetCommandStatsToolHandler.js';
+import { GameObjectCreateToolHandler } from './gameobject/GameObjectCreateToolHandler.js';
+import { GameObjectFindToolHandler } from './gameobject/GameObjectFindToolHandler.js';
+import { GameObjectModifyToolHandler } from './gameobject/GameObjectModifyToolHandler.js';
+import { GameObjectDeleteToolHandler } from './gameobject/GameObjectDeleteToolHandler.js';
+import { GameObjectGetHierarchyToolHandler } from './gameobject/GameObjectGetHierarchyToolHandler.js';
+import { SceneCreateToolHandler } from './scene/SceneCreateToolHandler.js';
+import { SceneLoadToolHandler } from './scene/SceneLoadToolHandler.js';
+import { SceneSaveToolHandler } from './scene/SceneSaveToolHandler.js';
+import { SceneListToolHandler } from './scene/SceneListToolHandler.js';
 import { GetSceneInfoToolHandler } from './scene/GetSceneInfoToolHandler.js';
 import { GetGameObjectDetailsToolHandler } from './analysis/GetGameObjectDetailsToolHandler.js';
 import { AnalyzeSceneContentsToolHandler } from './analysis/AnalyzeSceneContentsToolHandler.js';
@@ -161,65 +161,65 @@ import { FindByComponentToolHandler } from './analysis/FindByComponentToolHandle
 import { GetObjectReferencesToolHandler } from './analysis/GetObjectReferencesToolHandler.js';
 import { GetAnimatorStateToolHandler, GetAnimatorRuntimeInfoToolHandler } from './analysis/GetAnimatorStateToolHandler.js';
 import { GetInputActionsStateToolHandler, AnalyzeInputActionsAssetToolHandler } from './analysis/GetInputActionsStateToolHandler.js';
-import { PlayToolHandler } from './playmode/PlayToolHandler.js';
-import { PauseToolHandler } from './playmode/PauseToolHandler.js';
-import { StopToolHandler } from './playmode/StopToolHandler.js';
-import { GetEditorStateToolHandler } from './playmode/GetEditorStateToolHandler.js';
-import { WaitForEditorStateToolHandler } from './playmode/WaitForEditorStateToolHandler.js';
-import { FindUIElementsToolHandler } from './ui/FindUIElementsToolHandler.js';
-import { ClickUIElementToolHandler } from './ui/ClickUIElementToolHandler.js';
-import { GetUIElementStateToolHandler } from './ui/GetUIElementStateToolHandler.js';
-import { SetUIElementValueToolHandler } from './ui/SetUIElementValueToolHandler.js';
-import { SimulateUIInputToolHandler } from './ui/SimulateUIInputToolHandler.js';
-import { InputSystemHandler } from './input/InputSystemHandler.js';
-import { KeyboardSimulationHandler } from './input/KeyboardSimulationHandler.js';
-import { MouseSimulationHandler } from './input/MouseSimulationHandler.js';
-import { GamepadSimulationHandler } from './input/GamepadSimulationHandler.js';
-import { TouchSimulationHandler } from './input/TouchSimulationHandler.js';
-import { CreateActionMapToolHandler } from './input/CreateActionMapToolHandler.js';
-import { RemoveActionMapToolHandler } from './input/RemoveActionMapToolHandler.js';
-import { AddInputActionToolHandler } from './input/AddInputActionToolHandler.js';
-import { RemoveInputActionToolHandler } from './input/RemoveInputActionToolHandler.js';
-import { AddInputBindingToolHandler } from './input/AddInputBindingToolHandler.js';
-import { RemoveInputBindingToolHandler } from './input/RemoveInputBindingToolHandler.js';
-import { RemoveAllBindingsToolHandler } from './input/RemoveAllBindingsToolHandler.js';
-import { CreateCompositeBindingToolHandler } from './input/CreateCompositeBindingToolHandler.js';
-import { ManageControlSchemesToolHandler } from './input/ManageControlSchemesToolHandler.js';
-import { CreatePrefabToolHandler } from './asset/CreatePrefabToolHandler.js';
-import { ModifyPrefabToolHandler } from './asset/ModifyPrefabToolHandler.js';
-import { InstantiatePrefabToolHandler } from './asset/InstantiatePrefabToolHandler.js';
-import { CreateMaterialToolHandler } from './asset/CreateMaterialToolHandler.js';
-import { ModifyMaterialToolHandler } from './asset/ModifyMaterialToolHandler.js';
-import { OpenPrefabToolHandler } from './asset/OpenPrefabToolHandler.js';
-import { ExitPrefabModeToolHandler } from './asset/ExitPrefabModeToolHandler.js';
-import { SavePrefabToolHandler } from './asset/SavePrefabToolHandler.js';
-import { AssetImportSettingsToolHandler } from './asset/AssetImportSettingsToolHandler.js';
-import { AssetDatabaseToolHandler } from './asset/AssetDatabaseToolHandler.js';
-import { AssetDependencyToolHandler } from './asset/AssetDependencyToolHandler.js';
-import { ExecuteMenuItemToolHandler } from './menu/ExecuteMenuItemToolHandler.js';
-import { ClearConsoleToolHandler } from './console/ClearConsoleToolHandler.js';
-import { ReadConsoleToolHandler } from './console/ReadConsoleToolHandler.js';
-import { CaptureScreenshotToolHandler } from './screenshot/CaptureScreenshotToolHandler.js';
-import { AnalyzeScreenshotToolHandler } from './screenshot/AnalyzeScreenshotToolHandler.js';
-import { CaptureVideoStartToolHandler } from './video/CaptureVideoStartToolHandler.js';
-import { CaptureVideoStopToolHandler } from './video/CaptureVideoStopToolHandler.js';
-import { CaptureVideoStatusToolHandler } from './video/CaptureVideoStatusToolHandler.js';
-import { CaptureVideoForToolHandler } from './video/CaptureVideoForToolHandler.js';
-import { AddComponentToolHandler } from './component/AddComponentToolHandler.js';
-import { RemoveComponentToolHandler } from './component/RemoveComponentToolHandler.js';
-import { ModifyComponentToolHandler } from './component/ModifyComponentToolHandler.js';
-import { ListComponentsToolHandler } from './component/ListComponentsToolHandler.js';
-import { GetComponentTypesToolHandler } from './component/GetComponentTypesToolHandler.js';
-import { GetCompilationStateToolHandler } from './compilation/GetCompilationStateToolHandler.js';
-import { RunTestsToolHandler } from './test/RunTestsToolHandler.js';
-import { GetTestStatusToolHandler } from './test/GetTestStatusToolHandler.js';
-import { TagManagementToolHandler } from './editor/TagManagementToolHandler.js';
-import { LayerManagementToolHandler } from './editor/LayerManagementToolHandler.js';
-import { SelectionToolHandler } from './editor/SelectionToolHandler.js';
-import { WindowManagementToolHandler } from './editor/WindowManagementToolHandler.js';
-import { ToolManagementToolHandler } from './editor/ToolManagementToolHandler.js';
-import { GetProjectSettingsToolHandler } from './settings/GetProjectSettingsToolHandler.js';
-import { UpdateProjectSettingsToolHandler } from './settings/UpdateProjectSettingsToolHandler.js';
+import { PlaymodePlayToolHandler } from './playmode/PlaymodePlayToolHandler.js';
+import { PlaymodePauseToolHandler } from './playmode/PlaymodePauseToolHandler.js';
+import { PlaymodeStopToolHandler } from './playmode/PlaymodeStopToolHandler.js';
+import { PlaymodeGetStateToolHandler } from './playmode/PlaymodeGetStateToolHandler.js';
+import { PlaymodeWaitForStateToolHandler } from './playmode/PlaymodeWaitForStateToolHandler.js';
+import { UIFindElementsToolHandler } from './ui/UIFindElementsToolHandler.js';
+import { UIClickElementToolHandler } from './ui/UIClickElementToolHandler.js';
+import { UIGetElementStateToolHandler } from './ui/UIGetElementStateToolHandler.js';
+import { UISetElementValueToolHandler } from './ui/UISetElementValueToolHandler.js';
+import { UISimulateInputToolHandler } from './ui/UISimulateInputToolHandler.js';
+import { InputSystemControlToolHandler } from './input/InputSystemControlToolHandler.js';
+import { InputKeyboardSimulateToolHandler } from './input/InputKeyboardSimulateToolHandler.js';
+import { InputMouseSimulateToolHandler } from './input/InputMouseSimulateToolHandler.js';
+import { InputGamepadSimulateToolHandler } from './input/InputGamepadSimulateToolHandler.js';
+import { InputTouchSimulateToolHandler } from './input/InputTouchSimulateToolHandler.js';
+import { InputActionMapCreateToolHandler } from './input/InputActionMapCreateToolHandler.js';
+import { InputActionMapRemoveToolHandler } from './input/InputActionMapRemoveToolHandler.js';
+import { InputActionAddToolHandler } from './input/InputActionAddToolHandler.js';
+import { InputActionRemoveToolHandler } from './input/InputActionRemoveToolHandler.js';
+import { InputBindingAddToolHandler } from './input/InputBindingAddToolHandler.js';
+import { InputBindingRemoveToolHandler } from './input/InputBindingRemoveToolHandler.js';
+import { InputBindingRemoveAllToolHandler } from './input/InputBindingRemoveAllToolHandler.js';
+import { InputBindingCompositeCreateToolHandler } from './input/InputBindingCompositeCreateToolHandler.js';
+import { InputControlSchemesManageToolHandler } from './input/InputControlSchemesManageToolHandler.js';
+import { AssetPrefabCreateToolHandler } from './asset/AssetPrefabCreateToolHandler.js';
+import { AssetPrefabModifyToolHandler } from './asset/AssetPrefabModifyToolHandler.js';
+import { AssetPrefabInstantiateToolHandler } from './asset/AssetPrefabInstantiateToolHandler.js';
+import { AssetMaterialCreateToolHandler } from './asset/AssetMaterialCreateToolHandler.js';
+import { AssetMaterialModifyToolHandler } from './asset/AssetMaterialModifyToolHandler.js';
+import { AssetPrefabOpenToolHandler } from './asset/AssetPrefabOpenToolHandler.js';
+import { AssetPrefabExitModeToolHandler } from './asset/AssetPrefabExitModeToolHandler.js';
+import { AssetPrefabSaveToolHandler } from './asset/AssetPrefabSaveToolHandler.js';
+import { AssetImportSettingsManageToolHandler } from './asset/AssetImportSettingsManageToolHandler.js';
+import { AssetDatabaseManageToolHandler } from './asset/AssetDatabaseManageToolHandler.js';
+import { AssetDependencyAnalyzeToolHandler } from './asset/AssetDependencyAnalyzeToolHandler.js';
+import { MenuItemExecuteToolHandler } from './menu/MenuItemExecuteToolHandler.js';
+import { ConsoleClearToolHandler } from './console/ConsoleClearToolHandler.js';
+import { ConsoleReadToolHandler } from './console/ConsoleReadToolHandler.js';
+import { ScreenshotCaptureToolHandler } from './screenshot/ScreenshotCaptureToolHandler.js';
+import { ScreenshotAnalyzeToolHandler } from './screenshot/ScreenshotAnalyzeToolHandler.js';
+import { VideoCaptureStartToolHandler } from './video/VideoCaptureStartToolHandler.js';
+import { VideoCaptureStopToolHandler } from './video/VideoCaptureStopToolHandler.js';
+import { VideoCaptureStatusToolHandler } from './video/VideoCaptureStatusToolHandler.js';
+import { VideoCaptureForToolHandler } from './video/VideoCaptureForToolHandler.js';
+import { ComponentAddToolHandler } from './component/ComponentAddToolHandler.js';
+import { ComponentRemoveToolHandler } from './component/ComponentRemoveToolHandler.js';
+import { ComponentModifyToolHandler } from './component/ComponentModifyToolHandler.js';
+import { ComponentListToolHandler } from './component/ComponentListToolHandler.js';
+import { ComponentGetTypesToolHandler } from './component/ComponentGetTypesToolHandler.js';
+import { CompilationGetStateToolHandler } from './compilation/CompilationGetStateToolHandler.js';
+import { TestRunToolHandler } from './test/TestRunToolHandler.js';
+import { TestGetStatusToolHandler } from './test/TestGetStatusToolHandler.js';
+import { EditorTagsManageToolHandler } from './editor/EditorTagsManageToolHandler.js';
+import { EditorLayersManageToolHandler } from './editor/EditorLayersManageToolHandler.js';
+import { EditorSelectionManageToolHandler } from './editor/EditorSelectionManageToolHandler.js';
+import { EditorWindowsManageToolHandler } from './editor/EditorWindowsManageToolHandler.js';
+import { EditorToolsManageToolHandler } from './editor/EditorToolsManageToolHandler.js';
+import { SettingsGetToolHandler } from './settings/SettingsGetToolHandler.js';
+import { SettingsUpdateToolHandler } from './settings/SettingsUpdateToolHandler.js';
 import PackageManagerToolHandler from './package/PackageManagerToolHandler.js';
 import RegistryConfigToolHandler from './package/RegistryConfigToolHandler.js';
 import { ScriptPackagesListToolHandler } from './script/ScriptPackagesListToolHandler.js';
@@ -232,7 +232,7 @@ import { ScriptSymbolFindToolHandler } from './script/ScriptSymbolFindToolHandle
 import { ScriptRefsFindToolHandler } from './script/ScriptRefsFindToolHandler.js';
 import { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHandler.js';
 import { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
-import { ScriptCreateClassFileToolHandler } from './script/ScriptCreateClassFileToolHandler.js';
+import { ScriptCreateClassToolHandler } from './script/ScriptCreateClassToolHandler.js';
 import { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
 import { CodeIndexUpdateToolHandler } from './script/CodeIndexUpdateToolHandler.js';
 import { CodeIndexBuildToolHandler } from './script/CodeIndexBuildToolHandler.js';
@@ -241,22 +241,22 @@ import { CodeIndexBuildToolHandler } from './script/CodeIndexBuildToolHandler.js
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
   // System handlers
-  PingToolHandler,
-  RefreshAssetsToolHandler,
-  GetCommandStatsToolHandler,
+  SystemPingToolHandler,
+  SystemRefreshAssetsToolHandler,
+  SystemGetCommandStatsToolHandler,
   
   // GameObject handlers
-  CreateGameObjectToolHandler,
-  FindGameObjectToolHandler,
-  ModifyGameObjectToolHandler,
-  DeleteGameObjectToolHandler,
-  GetHierarchyToolHandler,
+  GameObjectCreateToolHandler,
+  GameObjectFindToolHandler,
+  GameObjectModifyToolHandler,
+  GameObjectDeleteToolHandler,
+  GameObjectGetHierarchyToolHandler,
   
   // Scene handlers
-  CreateSceneToolHandler,
-  LoadSceneToolHandler,
-  SaveSceneToolHandler,
-  ListScenesToolHandler,
+  SceneCreateToolHandler,
+  SceneLoadToolHandler,
+  SceneSaveToolHandler,
+  SceneListToolHandler,
   GetSceneInfoToolHandler,
   
   // Analysis handlers
@@ -271,63 +271,63 @@ const HANDLER_CLASSES = [
   AnalyzeInputActionsAssetToolHandler,
   
   // PlayMode handlers
-  PlayToolHandler,
-  PauseToolHandler,
-  StopToolHandler,
-  GetEditorStateToolHandler,
-  WaitForEditorStateToolHandler,
+  PlaymodePlayToolHandler,
+  PlaymodePauseToolHandler,
+  PlaymodeStopToolHandler,
+  PlaymodeGetStateToolHandler,
+  PlaymodeWaitForStateToolHandler,
   
   // UI handlers
-  FindUIElementsToolHandler,
-  ClickUIElementToolHandler,
-  GetUIElementStateToolHandler,
-  SetUIElementValueToolHandler,
-  SimulateUIInputToolHandler,
+  UIFindElementsToolHandler,
+  UIClickElementToolHandler,
+  UIGetElementStateToolHandler,
+  UISetElementValueToolHandler,
+  UISimulateInputToolHandler,
   
   // Input System handlers
-  InputSystemHandler,
-  KeyboardSimulationHandler,
-  MouseSimulationHandler,
-  GamepadSimulationHandler,
-  TouchSimulationHandler,
-  CreateActionMapToolHandler,
-  RemoveActionMapToolHandler,
-  AddInputActionToolHandler,
-  RemoveInputActionToolHandler,
-  AddInputBindingToolHandler,
-  RemoveInputBindingToolHandler,
-  RemoveAllBindingsToolHandler,
-  CreateCompositeBindingToolHandler,
-  ManageControlSchemesToolHandler,
+  InputSystemControlToolHandler,
+  InputKeyboardSimulateToolHandler,
+  InputMouseSimulateToolHandler,
+  InputGamepadSimulateToolHandler,
+  InputTouchSimulateToolHandler,
+  InputActionMapCreateToolHandler,
+  InputActionMapRemoveToolHandler,
+  InputActionAddToolHandler,
+  InputActionRemoveToolHandler,
+  InputBindingAddToolHandler,
+  InputBindingRemoveToolHandler,
+  InputBindingRemoveAllToolHandler,
+  InputBindingCompositeCreateToolHandler,
+  InputControlSchemesManageToolHandler,
   
   // Asset handlers
-  CreatePrefabToolHandler,
-  ModifyPrefabToolHandler,
-  InstantiatePrefabToolHandler,
-  CreateMaterialToolHandler,
-  ModifyMaterialToolHandler,
-  OpenPrefabToolHandler,
-  ExitPrefabModeToolHandler,
-  SavePrefabToolHandler,
-  AssetImportSettingsToolHandler,
-  AssetDatabaseToolHandler,
-  AssetDependencyToolHandler,
+  AssetPrefabCreateToolHandler,
+  AssetPrefabModifyToolHandler,
+  AssetPrefabInstantiateToolHandler,
+  AssetMaterialCreateToolHandler,
+  AssetMaterialModifyToolHandler,
+  AssetPrefabOpenToolHandler,
+  AssetPrefabExitModeToolHandler,
+  AssetPrefabSaveToolHandler,
+  AssetImportSettingsManageToolHandler,
+  AssetDatabaseManageToolHandler,
+  AssetDependencyAnalyzeToolHandler,
   
   // Menu handlers
-  ExecuteMenuItemToolHandler,
+  MenuItemExecuteToolHandler,
   
   // Console handlers
-  ClearConsoleToolHandler,
-  ReadConsoleToolHandler,
+  ConsoleClearToolHandler,
+  ConsoleReadToolHandler,
   
   // Screenshot handlers
-  CaptureScreenshotToolHandler,
-  AnalyzeScreenshotToolHandler,
+  ScreenshotCaptureToolHandler,
+  ScreenshotAnalyzeToolHandler,
   // Video handlers
-  CaptureVideoStartToolHandler,
-  CaptureVideoStopToolHandler,
-  CaptureVideoStatusToolHandler,
-  CaptureVideoForToolHandler,
+  VideoCaptureStartToolHandler,
+  VideoCaptureStopToolHandler,
+  VideoCaptureStatusToolHandler,
+  VideoCaptureForToolHandler,
   // Script handlers
   ScriptPackagesListToolHandler,
   ScriptReadToolHandler,
@@ -339,36 +339,36 @@ const HANDLER_CLASSES = [
   ScriptSymbolsGetToolHandler,
   ScriptIndexStatusToolHandler,
   ScriptRefactorRenameToolHandler,
-  ScriptCreateClassFileToolHandler,
+  ScriptCreateClassToolHandler,
   ScriptRemoveSymbolToolHandler,
   CodeIndexUpdateToolHandler,
   CodeIndexBuildToolHandler,
   
   
   // Component handlers
-  AddComponentToolHandler,
-  RemoveComponentToolHandler,
-  ModifyComponentToolHandler,
-  ListComponentsToolHandler,
-  GetComponentTypesToolHandler,
+  ComponentAddToolHandler,
+  ComponentRemoveToolHandler,
+  ComponentModifyToolHandler,
+  ComponentListToolHandler,
+  ComponentGetTypesToolHandler,
   
   // Compilation handlers
-  GetCompilationStateToolHandler,
+  CompilationGetStateToolHandler,
 
   // Test handlers
-  RunTestsToolHandler,
-  GetTestStatusToolHandler,
+  TestRunToolHandler,
+  TestGetStatusToolHandler,
 
   // Editor control handlers
-  TagManagementToolHandler,
-  LayerManagementToolHandler,
-  SelectionToolHandler,
-  WindowManagementToolHandler,
-  ToolManagementToolHandler,
+  EditorTagsManageToolHandler,
+  EditorLayersManageToolHandler,
+  EditorSelectionManageToolHandler,
+  EditorWindowsManageToolHandler,
+  EditorToolsManageToolHandler,
   
   // Settings handlers
-  GetProjectSettingsToolHandler,
-  UpdateProjectSettingsToolHandler,
+  SettingsGetToolHandler,
+  SettingsUpdateToolHandler,
   
   // Package management handlers
   PackageManagerToolHandler,

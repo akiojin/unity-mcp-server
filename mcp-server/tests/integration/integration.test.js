@@ -1,15 +1,15 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { PingToolHandler } from '../../src/handlers/system/PingToolHandler.js';
-import { CreateGameObjectToolHandler } from '../../src/handlers/gameobject/CreateGameObjectToolHandler.js';
-import { DeleteGameObjectToolHandler } from '../../src/handlers/gameobject/DeleteGameObjectToolHandler.js';
+import { SystemPingToolHandler } from '../../src/handlers/system/SystemPingToolHandler.js';
+import { GameObjectCreateToolHandler } from '../../src/handlers/gameobject/GameObjectCreateToolHandler.js';
+import { GameObjectDeleteToolHandler } from '../../src/handlers/gameobject/GameObjectDeleteToolHandler.js';
 import { UnityConnection } from '../../src/core/unityConnection.js';
 
 describe('Integration Tests', () => {
   describe('Real Unity MCP Integration', () => {
     it('should connect to Unity and ping successfully', async () => {
       const connection = new UnityConnection();
-      const handler = new PingToolHandler(connection);
+      const handler = new SystemPingToolHandler(connection);
       
       try {
         // This will connect to Unity if not already connected
@@ -27,8 +27,8 @@ describe('Integration Tests', () => {
 
     it('should create a GameObject in Unity', async () => {
       const connection = new UnityConnection();
-      const createHandler = new CreateGameObjectToolHandler(connection);
-      const deleteHandler = new DeleteGameObjectToolHandler(connection);
+      const createHandler = new GameObjectCreateToolHandler(connection);
+      const deleteHandler = new GameObjectDeleteToolHandler(connection);
       let createdObjectPath = null;
       
       try {
@@ -64,7 +64,7 @@ describe('Integration Tests', () => {
 
     it('should handle Unity errors gracefully', async () => {
       const connection = new UnityConnection();
-      const handler = new CreateGameObjectToolHandler(connection);
+      const handler = new GameObjectCreateToolHandler(connection);
       
       try {
         // Try to create with invalid parameters that should cause Unity error

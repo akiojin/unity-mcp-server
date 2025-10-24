@@ -1,9 +1,9 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { CreateMaterialToolHandler } from '../../../../src/handlers/asset/CreateMaterialToolHandler.js';
+import { AssetMaterialCreateToolHandler } from '../../../../src/handlers/asset/AssetMaterialCreateToolHandler.js';
 import { createMockUnityConnection } from '../../../utils/test-helpers.js';
 
-describe('CreateMaterialToolHandler - Extended Validation Tests', () => {
+describe('AssetMaterialCreateToolHandler - Extended Validation Tests', () => {
   let handler;
   let mockConnection;
 
@@ -17,7 +17,7 @@ describe('CreateMaterialToolHandler - Extended Validation Tests', () => {
         properties: {}
       }
     });
-    handler = new CreateMaterialToolHandler(mockConnection);
+    handler = new AssetMaterialCreateToolHandler(mockConnection);
   });
 
   describe('advanced validation scenarios', () => {

@@ -14,8 +14,8 @@
 import { describe, it, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { UnityConnection } from '../../../src/core/unityConnection.js';
-import { RunTestsToolHandler } from '../../../src/handlers/test/RunTestsToolHandler.js';
-import { GetTestStatusToolHandler } from '../../../src/handlers/test/GetTestStatusToolHandler.js';
+import { TestRunToolHandler } from '../../../src/handlers/test/TestRunToolHandler.js';
+import { TestGetStatusToolHandler } from '../../../src/handlers/test/TestGetStatusToolHandler.js';
 
 describe('SPEC-e7c9b50c: Unity Test Execution - Integration Tests', () => {
   let connection;
@@ -47,8 +47,8 @@ describe('SPEC-e7c9b50c: Unity Test Execution - Integration Tests', () => {
   });
 
   beforeEach(() => {
-    runTestsHandler = new RunTestsToolHandler(connection);
-    getStatusHandler = new GetTestStatusToolHandler(connection);
+    runTestsHandler = new TestRunToolHandler(connection);
+    getStatusHandler = new TestGetStatusToolHandler(connection);
   });
 
   describe('FR-001: Unity NUnitテストの実行', () => {

@@ -78,8 +78,8 @@ describe('Server', () => {
       });
       
       // Import and test the handler directly
-      const { PingToolHandler } = await import('../../../src/handlers/system/PingToolHandler.js');
-      const pingHandler = new PingToolHandler(unityConnection);
+      const { SystemPingToolHandler } = await import('../../../src/handlers/system/SystemPingToolHandler.js');
+      const pingHandler = new SystemPingToolHandler(unityConnection);
       
       const result = await pingHandler.handle({ message: 'test' });
       
@@ -88,8 +88,8 @@ describe('Server', () => {
     });
 
     it('should handle gameobject_create with validation', async () => {
-      const { CreateGameObjectToolHandler } = await import('../../../src/handlers/gameobject/CreateGameObjectToolHandler.js');
-      const handler = new CreateGameObjectToolHandler(unityConnection);
+      const { GameObjectCreateToolHandler } = await import('../../../src/handlers/gameobject/GameObjectCreateToolHandler.js');
+      const handler = new GameObjectCreateToolHandler(unityConnection);
       
       // Test validation error
       const errorResult = await handler.handle({
@@ -184,8 +184,8 @@ describe('Server', () => {
 
   describe('Unity connection handling', () => {
     it('should handle Unity connection errors gracefully', async () => {
-      const { PingToolHandler } = await import('../../../src/handlers/system/PingToolHandler.js');
-      const handler = new PingToolHandler(unityConnection);
+      const { SystemPingToolHandler } = await import('../../../src/handlers/system/SystemPingToolHandler.js');
+      const handler = new SystemPingToolHandler(unityConnection);
       
       unityConnection.sendCommand.mock.mockImplementation(async () => {
         throw new Error('Unity not responding');
@@ -202,8 +202,8 @@ describe('Server', () => {
       unityConnection.isConnected.mock.mockImplementation(() => false);
       unityConnection.connect = mock.fn(async () => {});
       
-      const { PingToolHandler } = await import('../../../src/handlers/system/PingToolHandler.js');
-      const handler = new PingToolHandler(unityConnection);
+      const { SystemPingToolHandler } = await import('../../../src/handlers/system/SystemPingToolHandler.js');
+      const handler = new SystemPingToolHandler(unityConnection);
       
       unityConnection.sendCommand.mock.mockImplementation(async () => ({
         message: 'pong'

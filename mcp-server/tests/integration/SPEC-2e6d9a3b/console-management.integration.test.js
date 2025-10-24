@@ -13,8 +13,8 @@
 import { describe, it, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { UnityConnection } from '../../../src/core/unityConnection.js';
-import { ReadConsoleToolHandler } from '../../../src/handlers/console/ReadConsoleToolHandler.js';
-import { ClearConsoleToolHandler } from '../../../src/handlers/console/ClearConsoleToolHandler.js';
+import { ConsoleReadToolHandler } from '../../../src/handlers/console/ConsoleReadToolHandler.js';
+import { ConsoleClearToolHandler } from '../../../src/handlers/console/ConsoleClearToolHandler.js';
 
 describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () => {
   let connection;
@@ -46,8 +46,8 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
   });
 
   beforeEach(() => {
-    readHandler = new ReadConsoleToolHandler(connection);
-    clearHandler = new ClearConsoleToolHandler(connection);
+    readHandler = new ConsoleReadToolHandler(connection);
+    clearHandler = new ConsoleClearToolHandler(connection);
   });
 
   describe('FR-001: コンソールログの読み取り', () => {

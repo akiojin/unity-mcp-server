@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { ExecuteMenuItemToolHandler } from '../../src/handlers/menu/ExecuteMenuItemToolHandler.js';
+import { MenuItemExecuteToolHandler } from '../../src/handlers/menu/MenuItemExecuteToolHandler.js';
 
 describe('Menu Security Patch Tests', () => {
   let handler;
@@ -16,7 +16,7 @@ describe('Menu Security Patch Tests', () => {
       }))
     };
     
-    handler = new ExecuteMenuItemToolHandler(mockUnityConnection);
+    handler = new MenuItemExecuteToolHandler(mockUnityConnection);
   });
 
   afterEach(() => {

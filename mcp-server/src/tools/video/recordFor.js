@@ -1,5 +1,5 @@
 import { UnityConnection } from '../../core/unityConnection.js';
-import { CaptureVideoForToolHandler } from '../../handlers/video/CaptureVideoForToolHandler.js';
+import { VideoCaptureForToolHandler } from '../../handlers/video/VideoCaptureForToolHandler.js';
 
 async function main() {
   const unity = new UnityConnection();
@@ -7,7 +7,7 @@ async function main() {
   try {
     const ts = new Date().toISOString().replace(/[:.]/g, '').slice(0, 15);
     const outputPath = `Assets/Screenshots/recordings/mcp_for_${ts}.mp4`;
-    const handler = new CaptureVideoForToolHandler(unity);
+    const handler = new VideoCaptureForToolHandler(unity);
     const result = await handler.execute({
         captureMode: 'game',
         width: 1280,

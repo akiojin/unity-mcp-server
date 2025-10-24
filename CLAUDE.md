@@ -466,7 +466,7 @@ cd .worktrees/SPEC-0d5d84f9/
   - ハンドラ登録: `src/handlers/index.js`
   - スクリーンショット: `src/handlers/screenshot/CaptureScreenshotToolHandler.js`
     - Unityコマンド `capture_screenshot` に `workspaceRoot` を常時付与。
-  - 動画: `src/handlers/video/`（`CaptureVideoStart/Stop/Status/For`）
+  - 動画: `src/handlers/video/`（`VideoCaptureStart/Stop/Status/For`）
     - `capture_video_start` / `capture_video_for` で `workspaceRoot` を常時付与。
     - `capture_video_for` は「N秒録画→自動停止」を一括実行。
 

@@ -270,10 +270,10 @@ Unity Editor内のGameObjectとSceneを作成・変更・削除・検索・階�
 - `mcp-server/src/handlers/gameobject/GetHierarchyToolHandler.js`
 
 **Scene操作**:
-- `mcp-server/src/handlers/scene/CreateSceneToolHandler.js`
-- `mcp-server/src/handlers/scene/LoadSceneToolHandler.js`
-- `mcp-server/src/handlers/scene/SaveSceneToolHandler.js`
-- `mcp-server/src/handlers/scene/ListScenesToolHandler.js`
+- `mcp-server/src/handlers/scene/SceneCreateToolHandler.js`
+- `mcp-server/src/handlers/scene/SceneLoadToolHandler.js`
+- `mcp-server/src/handlers/scene/SceneSaveToolHandler.js`
+- `mcp-server/src/handlers/scene/SceneListToolHandler.js`
 - `mcp-server/src/handlers/scene/GetSceneInfoToolHandler.js`
 
 ---
