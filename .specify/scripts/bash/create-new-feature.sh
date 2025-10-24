@@ -88,7 +88,38 @@ while :; do
     fi
 done
 
-FEATURE_DIR="$SPECS_DIR/$FEATURE_ID"
+# Create branch name with feature/ prefix
+BRANCH_NAME="feature/$FEATURE_ID"
+
+# Create Git branch and worktree if git is available
+if [ "$HAS_GIT" = true ]; then
+    # Create branch
+    git checkout -b "$BRANCH_NAME" 2>/dev/null || {
+        echo "Error: Failed to create branch $BRANCH_NAME" >&2
+        exit 1
+    }
+
+    # Create worktree directory
+    WORKTREE_DIR="$REPO_ROOT/.worktrees/$FEATURE_ID"
+    mkdir -p "$(dirname "$WORKTREE_DIR")"
+
+    # Add worktree
+    git worktree add "$WORKTREE_DIR" "$BRANCH_NAME" 2>/dev/null || {
+        echo "Error: Failed to create worktree at $WORKTREE_DIR" >&2
+        git checkout main
+        git branch -d "$BRANCH_NAME"
+        exit 1
+    }
+
+    FEATURE_DIR="$WORKTREE_DIR/specs/$FEATURE_ID"
+    echo "[specify] Created Git branch: $BRANCH_NAME"
+    echo "[specify] Created worktree: $WORKTREE_DIR"
+else
+    # Fallback for non-git repos
+    FEATURE_DIR="$SPECS_DIR/$FEATURE_ID"
+    echo "[specify] Warning: Git repository not detected; using local directory without worktree"
+fi
+
 mkdir -p "$FEATURE_DIR"
 
 # Initialize spec file from template
@@ -104,22 +135,28 @@ fi
 mkdir -p "$FEATURE_DIR/checklists"
 
 # Set the SPECIFY_FEATURE environment variable for the current session
-export SPECIFY_FEATURE="$FEATURE_ID"
+export SPECIFY_FEATURE="$BRANCH_NAME"
 mkdir -p "$REPO_ROOT/.specify"
 echo "$SPECIFY_FEATURE" > "$REPO_ROOT/.specify/.current-feature"
 
 echo "[specify] Created feature directory: $FEATURE_ID"
-if [ "$HAS_GIT" = true ]; then
-    echo "[specify] Gitブランチは作成しません（既定動作）"
-fi
-
 echo "[specify] Description: $FEATURE_DESCRIPTION"
 
 if $JSON_MODE; then
-    printf '{"FEATURE_ID":"%s","SPEC_FILE":"%s","FEATURE_DIR":"%s"}\n' "$FEATURE_ID" "$SPEC_FILE" "$FEATURE_DIR"
+    if [ "$HAS_GIT" = true ]; then
+        printf '{"FEATURE_ID":"%s","BRANCH_NAME":"%s","SPEC_FILE":"%s","FEATURE_DIR":"%s","WORKTREE_DIR":"%s"}\n' \
+            "$FEATURE_ID" "$BRANCH_NAME" "$SPEC_FILE" "$FEATURE_DIR" "$WORKTREE_DIR"
+    else
+        printf '{"FEATURE_ID":"%s","SPEC_FILE":"%s","FEATURE_DIR":"%s"}\n' \
+            "$FEATURE_ID" "$SPEC_FILE" "$FEATURE_DIR"
+    fi
 else
     echo "FEATURE_ID: $FEATURE_ID"
+    if [ "$HAS_GIT" = true ]; then
+        echo "BRANCH_NAME: $BRANCH_NAME"
+        echo "WORKTREE_DIR: $WORKTREE_DIR"
+    fi
     echo "SPEC_FILE: $SPEC_FILE"
     echo "FEATURE_DIR: $FEATURE_DIR"
-    echo "SPECIFY_FEATURE environment variable set to: $FEATURE_ID"
+    echo "SPECIFY_FEATURE environment variable set to: $BRANCH_NAME"
 fi

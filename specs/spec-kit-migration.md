@@ -13,7 +13,30 @@
 **理由**:
 - 人間が付ける名前による曖昧性を排除
 - 自動生成により命名の一貫性を保証
-- Gitブランチ管理を不要にする（ブランチレス運用）
+- ブランチ名に組み込んで一意性を確保
+
+### 2. ブランチ＆Worktree運用
+
+**公式**: ブランチ名 = 機能ID（例: `001-user-auth`）
+**拡張**: ブランチ名 = `feature/SPEC-[UUID8桁]`、Worktree配置 = `.worktrees/SPEC-xxx/`
+
+**理由**:
+- 複数機能の並行開発をWorktreeで効率化
+- Git Flowに近い運用（feature/プレフィックス）
+- ローカルマージによる軽量なワークフロー（PR不要）
+
+**完了時の運用**:
+```bash
+# 機能完了時
+.specify/scripts/bash/finish-feature.sh
+
+# 内部動作:
+# 1. mainブランチに切り替え
+# 2. feature/SPEC-xxx を --no-ff でマージ
+# 3. Worktreeを削除
+# 4. feature ブランチを削除
+# 5. main を push
+```
 
 **実装**: `.specify/scripts/bash/create-new-feature.sh`の`generate_spec_id()`関数
 
@@ -37,16 +60,14 @@ generate_spec_id() {
 **公式**: 英語
 **拡張**: 日本語（日本語チームでの運用効率向上）
 
+### 3. 日本語化
+
+**公式**: 英語
+**拡張**: 日本語（日本語チームでの運用効率向上）
+
 **対象ファイル**:
 - `.claude/commands/*.md` (specify, plan, tasks)
 - `.specify/templates/spec-template.md`
-
-### 3. Gitブランチ運用
-
-**公式**: 機能ブランチ自動作成
-**拡張**: ブランチ作成なし（デフォルト動作）
-
-**変更**: `create-new-feature.sh`で`HAS_GIT=true`でもブランチ作成をスキップ
 
 ## 公式v0.0.79の追加機能
 

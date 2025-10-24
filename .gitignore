@@ -95,6 +95,7 @@ CLAUDE.local.md
 .unity/capture/
 .unity/guid-db/
 .unity/tools/
+.worktrees/
 
 *.local.json
 

@@ -31,32 +31,9 @@ get_current_branch() {
     local current_feature_file="$repo_root/.specify/.current-feature"
 
     if [[ -f "$current_feature_file" ]]; then
-        local feature_id=$(cat "$current_feature_file")
-        if [[ -n "$feature_id" ]]; then
-            echo "$feature_id"
-            return
-        fi
-    fi
-
-    # Fallback: find the latest SPEC-* directory
-    local specs_dir="$repo_root/specs"
-    if [[ -d "$specs_dir" ]]; then
-        local latest_feature=""
-        local latest_time=0
-
-        for dir in "$specs_dir"/SPEC-*; do
-            if [[ -d "$dir" ]]; then
-                local dirname=$(basename "$dir")
-                local mod_time=$(stat -c %Y "$dir" 2>/dev/null || stat -f %m "$dir" 2>/dev/null || echo "0")
-                if [[ "$mod_time" -gt "$latest_time" ]]; then
-                    latest_time=$mod_time
-                    latest_feature=$dirname
-                fi
-            fi
-        done
-
-        if [[ -n "$latest_feature" ]]; then
-            echo "$latest_feature"
+        local branch_name=$(cat "$current_feature_file")
+        if [[ -n "$branch_name" ]]; then
+            echo "$branch_name"
             return
         fi
     fi
@@ -79,33 +56,56 @@ check_feature_branch() {
         return 0
     fi
 
-    # Check for SPEC-UUID8桁 format (branchless workflow)
-    if [[ "$branch" =~ ^SPEC-[a-z0-9]{8}$ ]]; then
+    # Check for feature/SPEC-UUID8桁 format (branch & worktree workflow)
+    if [[ "$branch" =~ ^feature/SPEC-[a-z0-9]{8}$ ]]; then
         return 0
     fi
 
-    # Fallback: allow any branch for now (branchless workflow)
-    echo "[specify] Warning: Branch '$branch' does not match SPEC-[UUID8桁] format, but continuing" >&2
+    # Allow main branch
+    if [[ "$branch" == "main" ]] || [[ "$branch" == "master" ]]; then
+        return 0
+    fi
+
+    # Warn but allow other branches
+    echo "[specify] Warning: Branch '$branch' does not match feature/SPEC-[UUID8桁] format, but continuing" >&2
     return 0
 }
 
 get_feature_dir() { echo "$1/specs/$2"; }
 
-# Find feature directory by SPEC-UUID8桁 exact match
-# For branchless workflow using SPEC-[UUID8桁] format
+# Find feature directory for branch & worktree workflow
+# Extracts SPEC-ID from branch name and finds corresponding worktree
 find_feature_dir_by_prefix() {
     local repo_root="$1"
-    local feature_id="$2"
-    local specs_dir="$repo_root/specs"
+    local branch_name="$2"
 
-    # For SPEC-UUID8桁 format, use exact match
-    if [[ "$feature_id" =~ ^SPEC-[a-z0-9]{8}$ ]]; then
-        echo "$specs_dir/$feature_id"
+    # Extract SPEC-ID from feature/SPEC-xxx branch name
+    if [[ "$branch_name" =~ ^feature/(SPEC-[a-z0-9]{8})$ ]]; then
+        local spec_id="${BASH_REMATCH[1]}"
+        local worktree_dir="$repo_root/.worktrees/$spec_id"
+
+        # Check if worktree exists
+        if [[ -d "$worktree_dir" ]]; then
+            echo "$worktree_dir/specs/$spec_id"
+            return
+        fi
+
+        # Fallback to main repo if worktree doesn't exist
+        echo "$repo_root/specs/$spec_id"
         return
     fi
 
-    # Fallback: exact match for any other format
-    echo "$specs_dir/$feature_id"
+    # For main branch or other branches, use main repo specs directory
+    local specs_dir="$repo_root/specs"
+
+    # If branch_name looks like a SPEC-ID directly
+    if [[ "$branch_name" =~ ^SPEC-[a-z0-9]{8}$ ]]; then
+        echo "$specs_dir/$branch_name"
+        return
+    fi
+
+    # Fallback: use branch name as-is
+    echo "$specs_dir/$branch_name"
 }
 
 get_feature_paths() {
