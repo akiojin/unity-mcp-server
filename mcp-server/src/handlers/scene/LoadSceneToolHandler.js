@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class LoadSceneToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'load_scene',
+      'scene_load',
       'Load a scene by path or name (Single/Additive).',
       {
         type: 'object',

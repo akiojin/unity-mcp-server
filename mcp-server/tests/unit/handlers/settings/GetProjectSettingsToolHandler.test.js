@@ -14,13 +14,13 @@ describe('GetProjectSettingsToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'get_project_settings');
+      assert.equal(handler.name, 'settings_get');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should get project settings', () => {
-      assert.equal(handler.name, 'get_project_settings');
+      assert.equal(handler.name, 'settings_get');
     });
   });
 });

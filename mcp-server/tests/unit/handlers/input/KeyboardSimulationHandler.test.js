@@ -18,7 +18,7 @@ describe('KeyboardSimulationHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'simulate_keyboard');
+      assert.equal(handler.name, 'input_keyboard_simulate');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('keyboard'));
     });

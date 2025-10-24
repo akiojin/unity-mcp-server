@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class CaptureVideoStopToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'capture_video_stop',
+      'video_capture_stop',
       'Stop current video recording and finalize the file.',
       {
         type: 'object',

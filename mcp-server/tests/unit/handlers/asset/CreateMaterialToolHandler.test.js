@@ -36,7 +36,7 @@ describe('CreateMaterialToolHandler', () => {
         });
 
         it('should have correct tool name', () => {
-            assert.equal(handler.name, 'create_material');
+            assert.equal(handler.name, 'asset_material_create');
         });
 
         it('should have correct description', () => {
@@ -48,7 +48,7 @@ describe('CreateMaterialToolHandler', () => {
         it('should return correct tool definition', () => {
             const definition = handler.getDefinition();
             
-            assert.equal(definition.name, 'create_material');
+            assert.equal(definition.name, 'asset_material_create');
             assert.ok(definition.description.includes('Create a new material'));
             assert.equal(definition.inputSchema.type, 'object');
             assert.ok(definition.inputSchema.properties.materialPath);

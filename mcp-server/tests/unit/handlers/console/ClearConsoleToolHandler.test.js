@@ -26,7 +26,7 @@ describe('ClearConsoleToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'clear_console');
+      assert.equal(handler.name, 'console_clear');
       assert.equal(handler.description, 'Clear Unity Editor console logs');
       assert.ok(handler.inputSchema);
       assert.equal(typeof handler.execute, 'function');

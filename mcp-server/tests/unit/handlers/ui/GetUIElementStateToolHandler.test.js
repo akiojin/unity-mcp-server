@@ -22,7 +22,7 @@ describe('GetUIElementStateToolHandler', () => {
         });
 
         it('should have correct tool name', () => {
-            assert.strictEqual(handler.name, 'get_ui_element_state');
+            assert.strictEqual(handler.name, 'ui_get_element_state');
         });
 
         it('should have correct description', () => {
@@ -34,7 +34,7 @@ describe('GetUIElementStateToolHandler', () => {
         it('should return correct tool definition', () => {
             const definition = handler.getDefinition();
             
-            assert.strictEqual(definition.name, 'get_ui_element_state');
+            assert.strictEqual(definition.name, 'ui_get_element_state');
             assert.strictEqual(definition.inputSchema.type, 'object');
             assert(definition.inputSchema.properties.elementPath);
             assert(definition.inputSchema.properties.includeChildren);

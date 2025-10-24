@@ -9,7 +9,7 @@ import {
 export function registerPingTool(server, unityConnection) {
   // Tool definition
   const pingTool = {
-    name: 'ping',
+    name: 'system_ping',
     description: 'Test connection to Unity Editor',
     inputSchema: {
       type: 'object',
@@ -34,7 +34,7 @@ export function registerPingTool(server, unityConnection) {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
     
-    if (name === 'ping') {
+    if (name === 'system_ping') {
       try {
         // Ensure connected
         if (!unityConnection.isConnected()) {
@@ -42,15 +42,15 @@ export function registerPingTool(server, unityConnection) {
         }
         
         // Send ping with optional message
-        const result = await unityConnection.sendCommand('ping', {
-          message: args?.message || 'ping'
+        const result = await unityConnection.sendCommand('system_ping', {
+          message: args?.message || 'system_ping'
         });
         
         return {
           content: [
             {
               type: 'text',
-              text: `Unity responded: ${result.message} (echo: ${result.echo || args?.message || 'ping'})`
+              text: `Unity responded: ${result.message} (echo: ${result.echo || args?.message || 'system_ping'})`
             }
           ]
         };

@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class PauseToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'pause_game',
+      'playmode_pause',
       'Toggle Pause/Resume in Play Mode.',
       {
         type: 'object',

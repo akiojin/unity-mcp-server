@@ -60,7 +60,7 @@ describe('AnalyzeSceneContentsTool', () => {
     });
 
     it('should have correct tool definition', () => {
-        assert.equal(analyzeSceneContentsToolDefinition.name, 'analyze_scene_contents');
+        assert.equal(analyzeSceneContentsToolDefinition.name, 'analysis_scene_contents_analyze');
         assert.equal(analyzeSceneContentsToolDefinition.description, 'Analyze and get statistics about the current scene');
     });
 
@@ -80,7 +80,7 @@ describe('AnalyzeSceneContentsTool', () => {
         const result = await analyzeSceneContentsHandler(mockUnityConnection, args);
 
         assert.equal(sendCommandSpy.mock.calls.length, 1);
-        assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'analyze_scene_contents');
+        assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'analysis_scene_contents_analyze');
         assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
         
         assert.equal(result.isError, false);

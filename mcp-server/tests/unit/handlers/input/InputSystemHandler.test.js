@@ -14,7 +14,7 @@ describe('InputSystemHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'input_system');
+      assert.equal(handler.name, 'input_system_control');
     });
 
     it('should have operation enum with all input types', () => {

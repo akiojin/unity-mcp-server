@@ -1,6 +1,6 @@
-// Tool definition for get_animator_state
+// Tool definition for analysis_animator_state_get
 export const getAnimatorStateToolDefinition = {
-    name: 'get_animator_state',
+    name: 'analysis_animator_state_get',
     description: 'Get Animator state: layers, transitions, and parameter values for a GameObject.',
     inputSchema: {
         type: 'object',
@@ -39,9 +39,9 @@ export const getAnimatorStateToolDefinition = {
     }
 };
 
-// Tool definition for get_animator_runtime_info
+// Tool definition for analysis_animator_runtime_info_get
 export const getAnimatorRuntimeInfoToolDefinition = {
-    name: 'get_animator_runtime_info',
+    name: 'analysis_animator_runtime_info_get',
     description: 'Get Animator runtime info (IK, root motion, performance) — Play mode only.',
     inputSchema: {
         type: 'object',
@@ -100,7 +100,7 @@ export async function getAnimatorStateHandler(unityConnection, args) {
         }
 
         // Send command to Unity
-        const result = await unityConnection.sendCommand('get_animator_state', args);
+        const result = await unityConnection.sendCommand('analysis_animator_state_get', args);
 
         // Check for errors
         if (!result || typeof result === 'string') {
@@ -222,7 +222,7 @@ export async function getAnimatorRuntimeInfoHandler(unityConnection, args) {
         }
 
         // Send command to Unity
-        const result = await unityConnection.sendCommand('get_animator_runtime_info', args);
+        const result = await unityConnection.sendCommand('analysis_animator_runtime_info_get', args);
 
         // Check for errors
         if (!result || typeof result === 'string') {

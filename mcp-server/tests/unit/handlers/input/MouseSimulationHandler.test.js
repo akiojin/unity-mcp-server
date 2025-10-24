@@ -16,7 +16,7 @@ describe('MouseSimulationHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'simulate_mouse');
+      assert.equal(handler.name, 'input_mouse_simulate');
       assert.ok(handler.description.includes('mouse'));
     });
 

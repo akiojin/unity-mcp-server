@@ -1,8 +1,8 @@
 /**
- * Tool definition for get_component_values
+ * Tool definition for analysis_component_values_get
  */
 export const getComponentValuesToolDefinition = {
-    name: 'get_component_values',
+    name: 'analysis_component_values_get',
     description: 'Get properties/values from a component on a GameObject (scene or prefab mode).',
     inputSchema: {
         type: 'object',
@@ -77,7 +77,7 @@ export async function getComponentValuesHandler(unityConnection, args) {
         }
 
         // Send command to Unity
-        const result = await unityConnection.sendCommand('get_component_values', args);
+        const result = await unityConnection.sendCommand('analysis_component_values_get', args);
 
         // The unityConnection.sendCommand already extracts the result field
         // from the response, so we access properties directly on result

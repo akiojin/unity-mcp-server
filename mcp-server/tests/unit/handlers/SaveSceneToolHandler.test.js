@@ -33,7 +33,7 @@ describe('SaveSceneToolHandler', () => {
 
   it('should have correct tool definition', () => {
     const definition = handler.getDefinition();
-    assert.equal(definition.name, 'save_scene');
+    assert.equal(definition.name, 'scene_save');
     assert.equal(definition.description, 'Save the current scene in Unity');
     assert.ok(definition.inputSchema);
     assert.ok(definition.inputSchema.properties.scenePath);

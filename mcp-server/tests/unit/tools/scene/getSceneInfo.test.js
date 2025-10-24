@@ -39,7 +39,7 @@ describe('GetSceneInfoTool', () => {
     });
 
     it('should have correct tool definition', () => {
-        assert.equal(getSceneInfoToolDefinition.name, 'get_scene_info');
+        assert.equal(getSceneInfoToolDefinition.name, 'scene_info_get');
         assert.equal(getSceneInfoToolDefinition.description, 'Get detailed information about a scene');
     });
 

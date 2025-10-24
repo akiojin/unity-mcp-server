@@ -7,7 +7,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class GetTestStatusToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'get_test_status',
+      'test_get_status',
       'Get current Unity test execution status and results',
       {
         type: 'object',

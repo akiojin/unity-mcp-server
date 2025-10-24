@@ -14,13 +14,13 @@ describe('PlayToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'play_game');
+      assert.equal(handler.name, 'playmode_play');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should enter play mode', () => {
-      assert.equal(handler.name, 'play_game');
+      assert.equal(handler.name, 'playmode_play');
     });
   });
 });

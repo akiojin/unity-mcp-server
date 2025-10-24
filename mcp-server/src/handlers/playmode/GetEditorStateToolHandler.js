@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class GetEditorStateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'get_editor_state',
+      'playmode_get_state',
       'Get editor state (play mode, platform, selected objects, etc.). Optionally wait for a target state.',
       {
         type: 'object',

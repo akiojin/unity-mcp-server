@@ -30,7 +30,7 @@ describe('LoadSceneTool', () => {
     });
 
     it('should have correct tool definition', () => {
-        assert.equal(loadSceneToolDefinition.name, 'load_scene');
+        assert.equal(loadSceneToolDefinition.name, 'scene_load');
         assert.equal(loadSceneToolDefinition.description, 'Load a scene in Unity');
     });
 

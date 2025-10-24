@@ -1,6 +1,6 @@
 // Tool definitions for Input Actions analysis
 export const getInputActionsStateToolDefinition = {
-    name: 'get_input_actions_state',
+    name: 'input_actions_state_get',
     description: 'Get Input Actions state: maps, actions, bindings, devices, JSON structure.',
     inputSchema: {
         type: 'object',
@@ -34,7 +34,7 @@ export const getInputActionsStateToolDefinition = {
 };
 
 export const analyzeInputActionsAssetToolDefinition = {
-    name: 'analyze_input_actions_asset',
+    name: 'input_actions_asset_analyze',
     description: 'Analyze an Input Actions asset in detail (statistics + device usage).',
     inputSchema: {
         type: 'object',
@@ -75,7 +75,7 @@ export async function getInputActionsStateHandler(unityConnection, args) {
         }
 
         // Send command to Unity
-        const result = await unityConnection.sendCommand('get_input_actions_state', args);
+        const result = await unityConnection.sendCommand('input_actions_state_get', args);
 
         // Check for errors
         if (!result || typeof result === 'string') {
@@ -216,7 +216,7 @@ export async function analyzeInputActionsAssetHandler(unityConnection, args) {
         }
 
         // Send command to Unity
-        const result = await unityConnection.sendCommand('analyze_input_actions_asset', args);
+        const result = await unityConnection.sendCommand('input_actions_asset_analyze', args);
 
         // Check for errors
         if (!result || typeof result === 'string') {

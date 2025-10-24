@@ -1,8 +1,8 @@
 /**
- * Tool definition for get_gameobject_details
+ * Tool definition for analysis_gameobject_details_get
  */
 export const getGameObjectDetailsToolDefinition = {
-    name: 'get_gameobject_details',
+    name: 'analysis_gameobject_details_get',
     description: 'Get details for a GameObject by name or path (children/components/materials).',
     inputSchema: {
         type: 'object',
@@ -106,7 +106,7 @@ export async function getGameObjectDetailsHandler(unityConnection, args) {
         if (args.maxDepth !== undefined) params.maxDepth = args.maxDepth;
 
         // Send command to Unity
-        const result = await unityConnection.sendCommand('get_gameobject_details', args);
+        const result = await unityConnection.sendCommand('analysis_gameobject_details_get', args);
 
         // The unityConnection.sendCommand already extracts the result field
         // from the response, so we access properties directly on result

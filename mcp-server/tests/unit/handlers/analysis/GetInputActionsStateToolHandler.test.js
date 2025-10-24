@@ -62,7 +62,7 @@ describe('GetInputActionsStateToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'get_input_actions_state');
+      assert.equal(handler.name, 'input_actions_state_get');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Input Actions'));
     });
@@ -109,7 +109,7 @@ describe('GetInputActionsStateToolHandler', () => {
       const result = await handler.execute({});
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'get_input_actions_state');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_actions_state_get');
 
       assert.ok(result);
       assert.ok(result.content);

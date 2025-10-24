@@ -54,7 +54,7 @@ describe('GetComponentValuesTool', () => {
     });
 
     it('should have correct tool definition', () => {
-        assert.equal(getComponentValuesToolDefinition.name, 'get_component_values');
+        assert.equal(getComponentValuesToolDefinition.name, 'analysis_component_values_get');
         assert.equal(getComponentValuesToolDefinition.description, 'Get all properties and values of a specific component');
     });
 
@@ -78,7 +78,7 @@ describe('GetComponentValuesTool', () => {
         const result = await getComponentValuesHandler(mockUnityConnection, args);
 
         assert.equal(sendCommandSpy.mock.calls.length, 1);
-        assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'get_component_values');
+        assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'analysis_component_values_get');
         assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
         
         assert.equal(result.isError, false);

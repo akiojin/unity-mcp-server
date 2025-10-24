@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class MouseSimulationHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'simulate_mouse',
+            'input_mouse_simulate',
             'Simulate mouse input (move/click/drag/scroll) with absolute/relative coords.',
             {
                 type: 'object',

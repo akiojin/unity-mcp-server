@@ -180,7 +180,7 @@ describe('AssetDependencyToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'analyze_asset_dependencies');
+      assert.equal(handler.name, 'asset_dependency_analyze');
       assert.equal(handler.description, 'Analyze Unity asset dependencies (get dependencies, dependents, circular deps, unused assets, size impact)');
       assert.ok(handler.inputSchema);
       assert.equal(handler.inputSchema.type, 'object');

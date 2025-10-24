@@ -29,7 +29,7 @@ describe('CreateSceneTool', () => {
     });
 
     it('should have correct tool definition', () => {
-        assert.equal(createSceneToolDefinition.name, 'create_scene');
+        assert.equal(createSceneToolDefinition.name, 'scene_create');
         assert.equal(createSceneToolDefinition.description, 'Create a new scene in Unity');
     });
 

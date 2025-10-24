@@ -21,7 +21,7 @@ describe('WaitForEditorStateToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'wait_for_editor_state');
+      assert.equal(handler.name, 'playmode_wait_for_state');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('wait'));
     });

@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class ModifyComponentToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'modify_component',
+      'component_modify',
       'Modify properties of a component on a GameObject in Unity (works in both scene and prefab mode)',
       {
         type: 'object',

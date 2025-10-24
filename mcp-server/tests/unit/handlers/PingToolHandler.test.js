@@ -30,7 +30,7 @@ describe('PingToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'ping');
+      assert.equal(handler.name, 'system_ping');
       assert.equal(handler.description, 'Test connection to Unity Editor');
       assert.equal(handler.inputSchema.required, undefined);
       assert.equal(handler.unityConnection, mockUnityConnection);
@@ -48,8 +48,8 @@ describe('PingToolHandler', () => {
       
       assert.equal(connectMock.mock.calls.length, 0); // Should not connect
       assert.equal(sendCommandMock.mock.calls.length, 1);
-      assert.deepEqual(sendCommandMock.mock.calls[0].arguments[0], 'ping');
-      assert.deepEqual(sendCommandMock.mock.calls[0].arguments[1], { message: 'ping' });
+      assert.deepEqual(sendCommandMock.mock.calls[0].arguments[0], 'system_ping');
+      assert.deepEqual(sendCommandMock.mock.calls[0].arguments[1], { message: 'system_ping' });
     });
 
     it('should connect if not connected', async () => {
@@ -100,7 +100,7 @@ describe('PingToolHandler', () => {
       
       const resultTime = new Date(result.timestamp);
       assert.ok(resultTime >= beforeTime && resultTime <= afterTime);
-      assert.equal(result.echo, 'ping'); // Default echo
+      assert.equal(result.echo, 'system_ping'); // Default echo
     });
 
     it('should handle Unity connection errors', async () => {
@@ -156,7 +156,7 @@ describe('PingToolHandler', () => {
       assert.equal(result.status, 'error');
       assert.equal(result.error, 'Unity error');
       assert.equal(result.code, 'UNITY_ERROR');
-      assert.equal(result.details.tool, 'ping');
+      assert.equal(result.details.tool, 'system_ping');
     });
   });
 });

@@ -95,12 +95,12 @@ describe('ScriptIndexStatusToolHandler', () => {
       const mockResult = {
         success: false,
         error: 'index_not_built',
-        message: 'Code index is not built. Please run UnityMCP.build_code_index first.'
+        message: 'Code index is not built. Please run UnityMCP.code_index_build first.'
       };
 
       assert.equal(mockResult.success, false);
       assert.equal(mockResult.error, 'index_not_built');
-      assert.ok(mockResult.message.includes('build_code_index'));
+      assert.ok(mockResult.message.includes('code_index_build'));
     });
 
     it('should include file breakdown by location', async () => {

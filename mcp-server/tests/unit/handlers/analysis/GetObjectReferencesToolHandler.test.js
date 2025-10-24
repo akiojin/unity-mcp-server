@@ -14,7 +14,7 @@ describe('GetObjectReferencesToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'get_object_references');
+      assert.equal(handler.name, 'analysis_object_references_get');
     });
 
     it('should have description', () => {
@@ -39,7 +39,7 @@ describe('GetObjectReferencesToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should find references to and from GameObject', () => {
-      assert.equal(handler.name, 'get_object_references');
+      assert.equal(handler.name, 'analysis_object_references_get');
     });
   });
 });

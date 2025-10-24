@@ -19,7 +19,7 @@ describe('ManageControlSchemesToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'manage_control_schemes');
+      assert.equal(handler.name, 'input_control_schemes_manage');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Control Scheme'));
     });
@@ -91,7 +91,7 @@ describe('ManageControlSchemesToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'manage_control_schemes');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_control_schemes_manage');
 
       assert.ok(result);
       assert.ok(result.content);

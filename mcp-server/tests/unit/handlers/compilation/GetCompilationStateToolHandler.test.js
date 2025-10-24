@@ -41,7 +41,7 @@ describe('GetCompilationStateToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'get_compilation_state');
+      assert.equal(handler.name, 'compilation_get_state');
       assert.equal(handler.description, 'Get current Unity compilation state, errors, and warnings with enhanced detection');
       assert.equal(handler.inputSchema.required, undefined);
     });

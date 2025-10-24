@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class GetComponentTypesToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'get_component_types',
+      'component_get_types',
       'Get available component types in Unity',
       {
         type: 'object',

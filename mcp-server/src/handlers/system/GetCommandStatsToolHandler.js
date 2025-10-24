@@ -3,7 +3,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class GetCommandStatsToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'get_command_stats',
+      'system_get_command_stats',
       'Retrieve aggregated counts and recent Unity command types to audit traffic.',
       {
         type: 'object',

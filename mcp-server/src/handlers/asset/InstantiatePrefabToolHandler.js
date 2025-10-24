@@ -3,7 +3,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class InstantiatePrefabToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'instantiate_prefab',
+            'asset_prefab_instantiate',
             'Instantiate a prefab in the scene with optional transform, parent, and name override.',
             {
                 type: 'object',

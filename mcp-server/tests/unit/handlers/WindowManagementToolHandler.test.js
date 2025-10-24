@@ -41,7 +41,7 @@ describe('WindowManagementToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'manage_windows');
+      assert.equal(handler.name, 'editor_windows_manage');
       assert.equal(handler.description, 'Manage Unity Editor windows (list, focus, get state)');
       assert.ok(handler.inputSchema);
       assert.equal(handler.inputSchema.type, 'object');

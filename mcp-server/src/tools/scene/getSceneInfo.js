@@ -1,8 +1,8 @@
 /**
- * Tool definition for get_scene_info
+ * Tool definition for scene_info_get
  */
 export const getSceneInfoToolDefinition = {
-    name: 'get_scene_info',
+    name: 'scene_info_get',
     description: 'Get detailed information about a scene',
     inputSchema: {
         type: 'object',
@@ -56,7 +56,7 @@ export async function getSceneInfoHandler(unityConnection, args) {
         }
 
         // Send command to Unity
-        const result = await unityConnection.sendCommand('get_scene_info', args);
+        const result = await unityConnection.sendCommand('scene_info_get', args);
 
         // Handle Unity response
         if (result.status === 'error') {

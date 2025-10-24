@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class ExitPrefabModeToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'exit_prefab_mode',
+      'asset_prefab_exit_mode',
       'Exit prefab mode and return to the main scene',
       {
         type: 'object',

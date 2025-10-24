@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class TouchSimulationHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'simulate_touch',
+            'input_touch_simulate',
             'Simulate touch input (tap/swipe/pinch/multi) with coordinates and timing.',
             {
                 type: 'object',

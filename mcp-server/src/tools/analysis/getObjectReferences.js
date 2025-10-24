@@ -1,8 +1,8 @@
 /**
- * Tool definition for get_object_references
+ * Tool definition for analysis_object_references_get
  */
 export const getObjectReferencesToolDefinition = {
-    name: 'get_object_references',
+    name: 'analysis_object_references_get',
     description: 'Find references to and from a GameObject (hierarchy/assets/prefabs).',
     inputSchema: {
         type: 'object',
@@ -47,7 +47,7 @@ export async function getObjectReferencesHandler(unityConnection, args) {
         }
 
         // Send command to Unity
-        const result = await unityConnection.sendCommand('get_object_references', args);
+        const result = await unityConnection.sendCommand('analysis_object_references_get', args);
 
         // Handle Unity response
         if (result.status === 'error') {

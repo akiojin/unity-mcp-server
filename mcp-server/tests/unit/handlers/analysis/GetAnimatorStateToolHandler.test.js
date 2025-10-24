@@ -38,7 +38,7 @@ describe('GetAnimatorStateToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'get_animator_state');
+      assert.equal(handler.name, 'analysis_animator_state_get');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Animator'));
     });
@@ -85,7 +85,7 @@ describe('GetAnimatorStateToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'get_animator_state');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'analysis_animator_state_get');
 
       assert.ok(result);
       assert.ok(result.content);

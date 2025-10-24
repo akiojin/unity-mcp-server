@@ -54,10 +54,10 @@
 - [x] S00-00 ラン初期化 — pass (0 ms) restored:true
 
 ## Scene
-- [ ] U10-01 create_scene … restored:true
+- [ ] U10-01 scene_create … restored:true
 
 ## GameObject
-- [ ] U20-01 create_gameobject … restored:true
+- [ ] U20-01 gameobject_create … restored:true
 
 ## 詳細（必要なケースのみ）
 <details>

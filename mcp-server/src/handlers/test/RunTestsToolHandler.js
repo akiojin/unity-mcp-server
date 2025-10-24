@@ -7,7 +7,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class RunTestsToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'run_tests',
+      'test_run',
       'Run Unity NUnit tests in the current project',
       {
         type: 'object',

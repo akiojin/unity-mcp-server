@@ -1,9 +1,9 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { BuildCodeIndexToolHandler } from '../../../../src/handlers/script/BuildCodeIndexToolHandler.js';
+import { CodeIndexBuildToolHandler } from '../../../../src/handlers/script/CodeIndexBuildToolHandler.js';
 import { createMockUnityConnection } from '../../../utils/test-helpers.js';
 
-describe('BuildCodeIndexToolHandler', () => {
+describe('CodeIndexBuildToolHandler', () => {
   let handler;
   let mockConnection;
 
@@ -13,12 +13,12 @@ describe('BuildCodeIndexToolHandler', () => {
         success: true
       }
     });
-    handler = new BuildCodeIndexToolHandler(mockConnection);
+    handler = new CodeIndexBuildToolHandler(mockConnection);
   });
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'build_code_index');
+      assert.equal(handler.name, 'code_index_build');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('index'));
     });
@@ -79,13 +79,13 @@ describe('BuildCodeIndexToolHandler', () => {
     it('should return error when build fails', async () => {
       const mockResult = {
         success: false,
-        error: 'build_index_failed',
+        error: 'code_index_build_failed',
         message: 'LSP not available',
         hint: 'C# LSP not ready. Ensure manifest/auto-download and workspace paths are valid.'
       };
 
       assert.equal(mockResult.success, false);
-      assert.equal(mockResult.error, 'build_index_failed');
+      assert.equal(mockResult.error, 'code_index_build_failed');
       assert.ok(mockResult.message);
       assert.ok(mockResult.hint);
     });
@@ -174,7 +174,7 @@ describe('BuildCodeIndexToolHandler', () => {
 
   describe('SPEC-e757a01f compliance', () => {
     it('FR-001: should build persistent symbol index', async () => {
-      assert.equal(handler.name, 'build_code_index');
+      assert.equal(handler.name, 'code_index_build');
       assert.ok(handler.description.includes('index'));
     });
 

@@ -23,7 +23,7 @@ describe('CaptureVideoForToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'capture_video_for');
+      assert.equal(handler.name, 'video_capture_for');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('duration'));
     });

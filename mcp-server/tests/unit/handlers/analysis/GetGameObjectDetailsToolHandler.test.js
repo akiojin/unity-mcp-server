@@ -14,7 +14,7 @@ describe('GetGameObjectDetailsToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'get_gameobject_details');
+      assert.equal(handler.name, 'analysis_gameobject_details_get');
     });
 
     it('should have description', () => {
@@ -39,7 +39,7 @@ describe('GetGameObjectDetailsToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should get GameObject details', () => {
-      assert.equal(handler.name, 'get_gameobject_details');
+      assert.equal(handler.name, 'analysis_gameobject_details_get');
     });
   });
 });

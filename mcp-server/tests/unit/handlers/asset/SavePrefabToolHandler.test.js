@@ -41,7 +41,7 @@ describe('SavePrefabToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'save_prefab');
+      assert.equal(handler.name, 'asset_prefab_save');
       assert.equal(handler.description, 'Save current prefab changes in prefab mode or save a GameObject as prefab override');
       assert.equal(handler.inputSchema.required, undefined);
     });

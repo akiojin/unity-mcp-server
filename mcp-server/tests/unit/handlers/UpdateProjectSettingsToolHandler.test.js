@@ -207,7 +207,7 @@ describe('UpdateProjectSettingsToolHandler', () => {
 
   describe('schema', () => {
     it('should have correct schema definition', () => {
-      assert.equal(handler.name, 'update_project_settings');
+      assert.equal(handler.name, 'settings_update');
       assert.ok(handler.description);
       assert.equal(handler.inputSchema.type, 'object');
       assert.ok(handler.inputSchema.properties.confirmChanges);

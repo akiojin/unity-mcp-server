@@ -19,7 +19,7 @@ describe('CreateActionMapToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'create_action_map');
+      assert.equal(handler.name, 'input_action_map_create');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Action Map'));
     });
@@ -77,7 +77,7 @@ describe('CreateActionMapToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'create_action_map');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_action_map_create');
 
       assert.ok(result);
       assert.ok(result.content);

@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class StopToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'stop_game',
+      'playmode_stop',
       'Exit Play Mode and return to Edit Mode.',
       {
         type: 'object',
@@ -40,7 +40,7 @@ export class StopToolHandler extends BaseToolHandler {
       const startOk = Date.now();
       for (;;) {
         try {
-          const state = await this.unityConnection.sendCommand('get_editor_state', {});
+          const state = await this.unityConnection.sendCommand('playmode_get_state', {});
           if (state && !state.isPlaying) {
             return { status: 'success', message: 'Exited play mode', state };
           }

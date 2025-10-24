@@ -34,7 +34,7 @@ describe('LoadSceneToolHandler', () => {
 
   it('should have correct tool definition', () => {
     const definition = handler.getDefinition();
-    assert.equal(definition.name, 'load_scene');
+    assert.equal(definition.name, 'scene_load');
     assert.equal(definition.description, 'Load a scene in Unity');
     assert.ok(definition.inputSchema);
     assert.ok(definition.inputSchema.properties.scenePath);
@@ -172,7 +172,7 @@ describe('LoadSceneToolHandler', () => {
     
     assert.equal(response.status, 'error');
     assert.ok(response.details);
-    assert.equal(response.details.tool, 'load_scene');
+    assert.equal(response.details.tool, 'scene_load');
     assert.ok(response.details.params.includes('scenePath'));
     assert.ok(response.details.params.includes('loadMode: "Single"'));
   });

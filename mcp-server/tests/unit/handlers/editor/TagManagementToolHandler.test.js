@@ -14,7 +14,7 @@ describe('TagManagementToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'manage_tags');
+      assert.equal(handler.name, 'editor_tags_manage');
     });
 
     it('should have description', () => {
@@ -24,7 +24,7 @@ describe('TagManagementToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should manage project tags', () => {
-      assert.equal(handler.name, 'manage_tags');
+      assert.equal(handler.name, 'editor_tags_manage');
     });
   });
 });

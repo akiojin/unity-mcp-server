@@ -19,7 +19,7 @@ describe('AddInputBindingToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'add_input_binding');
+      assert.equal(handler.name, 'input_binding_add');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Binding'));
     });
@@ -86,7 +86,7 @@ describe('AddInputBindingToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'add_input_binding');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_binding_add');
 
       assert.ok(result);
       assert.ok(result.content);

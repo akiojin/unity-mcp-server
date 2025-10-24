@@ -14,7 +14,7 @@ describe('AssetDependencyToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'analyze_asset_dependencies');
+      assert.equal(handler.name, 'asset_dependency_analyze');
     });
 
     it('should have description', () => {
@@ -24,7 +24,7 @@ describe('AssetDependencyToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should analyze asset dependencies', () => {
-      assert.equal(handler.name, 'analyze_asset_dependencies');
+      assert.equal(handler.name, 'asset_dependency_analyze');
     });
   });
 });

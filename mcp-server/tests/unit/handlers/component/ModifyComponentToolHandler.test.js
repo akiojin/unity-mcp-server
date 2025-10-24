@@ -41,7 +41,7 @@ describe('ModifyComponentToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'modify_component');
+      assert.equal(handler.name, 'component_modify');
       assert.equal(handler.description, 'Modify properties of a component on a GameObject in Unity');
       assert.deepEqual(handler.inputSchema.required, ['gameObjectPath', 'componentType', 'properties']);
     });

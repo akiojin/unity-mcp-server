@@ -1,8 +1,8 @@
 /**
- * Tool definition for find_by_component
+ * Tool definition for analysis_component_find
  */
 export const findByComponentToolDefinition = {
-    name: 'find_by_component',
+    name: 'analysis_component_find',
     description: 'Find GameObjects that have a specific component type (scene/prefabs/all).',
     inputSchema: {
         type: 'object',
@@ -48,7 +48,7 @@ export async function findByComponentHandler(unityConnection, args) {
         }
 
         // Send command to Unity
-        const result = await unityConnection.sendCommand('find_by_component', args);
+        const result = await unityConnection.sendCommand('analysis_component_find', args);
 
         // Handle Unity response
         if (result.status === 'error') {

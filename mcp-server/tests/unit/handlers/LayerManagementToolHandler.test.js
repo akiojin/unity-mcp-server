@@ -41,7 +41,7 @@ describe('LayerManagementToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'manage_layers');
+      assert.equal(handler.name, 'editor_layers_manage');
       assert.equal(handler.description, 'Manage Unity project layers (add, remove, list, convert)');
       assert.ok(handler.inputSchema);
       assert.equal(handler.inputSchema.type, 'object');

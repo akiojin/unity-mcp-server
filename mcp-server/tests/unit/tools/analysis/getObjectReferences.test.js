@@ -68,7 +68,7 @@ describe('GetObjectReferencesTool', () => {
     });
 
     it('should have correct tool definition', () => {
-        assert.equal(getObjectReferencesToolDefinition.name, 'get_object_references');
+        assert.equal(getObjectReferencesToolDefinition.name, 'analysis_object_references_get');
         assert.equal(getObjectReferencesToolDefinition.description, 'Find all references to and from a GameObject');
     });
 
@@ -90,7 +90,7 @@ describe('GetObjectReferencesTool', () => {
         const result = await getObjectReferencesHandler(mockUnityConnection, args);
 
         assert.equal(sendCommandSpy.mock.calls.length, 1);
-        assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'get_object_references');
+        assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'analysis_object_references_get');
         assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
         
         assert.equal(result.isError, false);

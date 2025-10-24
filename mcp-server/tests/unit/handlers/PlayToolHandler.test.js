@@ -25,7 +25,7 @@ describe('PlayToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'play_game');
+      assert.equal(handler.name, 'playmode_play');
       assert.equal(handler.description, 'Start Unity play mode to test the game');
       assert.equal(handler.inputSchema.required, undefined);
     });

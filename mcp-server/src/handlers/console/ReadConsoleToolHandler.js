@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class ReadConsoleToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'read_console',
+      'console_read',
       'Read Console logs with filters (type/text/time), formatting, sort, and grouping.',
       {
         type: 'object',

@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class GetProjectSettingsToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'get_project_settings',
+      'settings_get',
       'Get project settings by category via include flags (player/graphics/quality/physics/etc.).',
       {
         type: 'object',

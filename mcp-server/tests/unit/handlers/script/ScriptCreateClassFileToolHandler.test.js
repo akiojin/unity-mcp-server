@@ -14,7 +14,7 @@ describe('ScriptCreateClassFileToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'script_create_class_file');
+      assert.equal(handler.name, 'script_create_class');
     });
 
     it('should have path and className as required parameters', () => {

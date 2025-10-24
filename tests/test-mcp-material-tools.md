@@ -8,7 +8,7 @@
 - 各ケースの details には `targetPaths: [<相対パス>...]` を付記（単一でも配列）。
 
 観測不能時の二次検証（エビデンス・エスカレーション）
-- 差分検証: `UnityMCP__modify_material` 適用の前後でプロパティ値を比較（事前は `UnityMCP__create_material`/既存読取）。
+- 差分検証: `UnityMCP__asset_material_modify` 適用の前後でプロパティ値を比較（事前は `UnityMCP__asset_material_create`/既存読取）。
 - 構造検証: マテリアルの shader/keywords 変化を確認。
 - 参照検証: マテリアル参照箇所の増減は `get_object_references` で補助。
 - なお判定不能時のみ `skip（OBSERVATION_GAP）`。
@@ -20,16 +20,16 @@
 前提: `Assets/LLMTEST_Materials/LLMTEST_Mat.mat`
 
 チェックリスト（Markdown）
-- [ ] U40-01: create_material（Unlit/Color, 赤）
-- [ ] U40-02: modify_material（青へ変更）
+- [ ] U40-01: asset_material_create（Unlit/Color, 赤）
+- [ ] U40-02: asset_material_modify（青へ変更）
 - [ ] U40-E01: Assets 外パスで fail
 - [ ] U40-E02: 不正シェーダで fail
 - [ ] U40-E03: 未存在プロパティ/型不一致で fail
 
 ## 正常系
 
-- U40-01: `create_material`（`shader=Unlit/Color`, 色=赤）→ 成功
-- U40-02: `modify_material`（色=青）→ 成功
+- U40-01: `asset_material_create`（`shader=Unlit/Color`, 色=赤）→ 成功
+- U40-02: `asset_material_modify`（色=青）→ 成功
 
 ## 異常系
 

@@ -18,10 +18,10 @@
 
 チェックリスト（Markdown）
 - [ ] U60-01: get_input_actions_state（存在確認）
-- [ ] U60-02: create_action_map（LLMTEST_Map）
+- [ ] U60-02: input_action_map_create（LLMTEST_Map）
 - [ ] U60-03: add_input_action（Jump, Button）
 - [ ] U60-04: add_input_binding（<Keyboard>/space）
-- [ ] U60-05: create_composite_binding（2D Vector: WASD）
+- [ ] U60-05: input_binding_composite_create（2D Vector: WASD）
 - [ ] U60-06: manage_control_schemes（Keyboard&Mouse）
 - [ ] U60-07: analyze_input_actions_asset（統計）
 - [ ] U60-08: remove 系で片付け
@@ -32,10 +32,10 @@
 ## 正常系（アセットが存在する場合）
 
 - U60-01: `get_input_actions_state` → 状態取得
-- U60-02: `create_action_map`（`LLMTEST_Map`）→ 作成
+- U60-02: `input_action_map_create`（`LLMTEST_Map`）→ 作成
 - U60-03: `add_input_action`（`Jump`, Button）→ 追加
 - U60-04: `add_input_binding`（`<Keyboard>/space`）→ 追加
-- U60-05: `create_composite_binding`（2D Vector: WASD）→ 追加
+- U60-05: `input_binding_composite_create`（2D Vector: WASD）→ 追加
 - U60-06: `manage_control_schemes`（`Keyboard&Mouse`）→ 追加/確認
 - U60-07: `analyze_input_actions_asset` → 統計
 - U60-08: 片付け（remove 系）→ 正常削除

@@ -2,7 +2,7 @@
 
 // Action Map Management
 export const createActionMapToolDefinition = {
-    name: 'create_action_map',
+    name: 'input_action_map_create',
     description: 'Create a new Action Map in an Input Actions asset',
     inputSchema: {
         type: 'object',
@@ -32,7 +32,7 @@ export const createActionMapToolDefinition = {
 };
 
 export const removeActionMapToolDefinition = {
-    name: 'remove_action_map',
+    name: 'input_action_map_remove',
     description: 'Remove an Action Map from an Input Actions asset',
     inputSchema: {
         type: 'object',
@@ -52,7 +52,7 @@ export const removeActionMapToolDefinition = {
 
 // Action Management
 export const addInputActionToolDefinition = {
-    name: 'add_input_action',
+    name: 'input_action_add',
     description: 'Add a new Action to an Action Map',
     inputSchema: {
         type: 'object',
@@ -81,7 +81,7 @@ export const addInputActionToolDefinition = {
 };
 
 export const removeInputActionToolDefinition = {
-    name: 'remove_input_action',
+    name: 'input_action_remove',
     description: 'Remove an Action from an Action Map',
     inputSchema: {
         type: 'object',
@@ -105,7 +105,7 @@ export const removeInputActionToolDefinition = {
 
 // Binding Management
 export const addInputBindingToolDefinition = {
-    name: 'add_input_binding',
+    name: 'input_binding_add',
     description: 'Add a new Binding to an Action',
     inputSchema: {
         type: 'object',
@@ -144,7 +144,7 @@ export const addInputBindingToolDefinition = {
 };
 
 export const removeInputBindingToolDefinition = {
-    name: 'remove_input_binding',
+    name: 'input_binding_remove',
     description: 'Remove a Binding from an Action',
     inputSchema: {
         type: 'object',
@@ -175,7 +175,7 @@ export const removeInputBindingToolDefinition = {
 };
 
 export const removeAllBindingsToolDefinition = {
-    name: 'remove_all_bindings',
+    name: 'input_binding_remove_all',
     description: 'Remove all Bindings from an Action',
     inputSchema: {
         type: 'object',
@@ -198,7 +198,7 @@ export const removeAllBindingsToolDefinition = {
 };
 
 export const createCompositeBindingToolDefinition = {
-    name: 'create_composite_binding',
+    name: 'input_binding_composite_create',
     description: 'Create a composite binding (e.g., 2D Vector for WASD movement)',
     inputSchema: {
         type: 'object',
@@ -248,7 +248,7 @@ export const createCompositeBindingToolDefinition = {
 
 // Control Scheme Management
 export const manageControlSchemesToolDefinition = {
-    name: 'manage_control_schemes',
+    name: 'input_control_schemes_manage',
     description: 'Manage Control Schemes in an Input Actions asset',
     inputSchema: {
         type: 'object',
@@ -338,7 +338,7 @@ export async function createActionMapHandler(unityConnection, args) {
             };
         }
 
-        const result = await unityConnection.sendCommand('create_action_map', args);
+        const result = await unityConnection.sendCommand('input_action_map_create', args);
         return formatUnityResponse(result, `Created Action Map: ${args.mapName}`);
     } catch (error) {
         return {
@@ -363,7 +363,7 @@ export async function removeActionMapHandler(unityConnection, args) {
             };
         }
 
-        const result = await unityConnection.sendCommand('remove_action_map', args);
+        const result = await unityConnection.sendCommand('input_action_map_remove', args);
         return formatUnityResponse(result, `Removed Action Map: ${args.mapName}`);
     } catch (error) {
         return {
@@ -389,7 +389,7 @@ export async function addInputActionHandler(unityConnection, args) {
             };
         }
 
-        const result = await unityConnection.sendCommand('add_input_action', args);
+        const result = await unityConnection.sendCommand('input_action_add', args);
         return formatUnityResponse(result, `Added Action: ${args.actionName}`);
     } catch (error) {
         return {
@@ -414,7 +414,7 @@ export async function removeInputActionHandler(unityConnection, args) {
             };
         }
 
-        const result = await unityConnection.sendCommand('remove_input_action', args);
+        const result = await unityConnection.sendCommand('input_action_remove', args);
         return formatUnityResponse(result, `Removed Action: ${args.actionName}`);
     } catch (error) {
         return {
@@ -440,7 +440,7 @@ export async function addInputBindingHandler(unityConnection, args) {
             };
         }
 
-        const result = await unityConnection.sendCommand('add_input_binding', args);
+        const result = await unityConnection.sendCommand('input_binding_add', args);
         return formatUnityResponse(result, `Added Binding: ${args.path}`);
     } catch (error) {
         return {
@@ -465,7 +465,7 @@ export async function removeInputBindingHandler(unityConnection, args) {
             };
         }
 
-        const result = await unityConnection.sendCommand('remove_input_binding', args);
+        const result = await unityConnection.sendCommand('input_binding_remove', args);
         return formatUnityResponse(result, 'Removed Binding');
     } catch (error) {
         return {
@@ -490,7 +490,7 @@ export async function removeAllBindingsHandler(unityConnection, args) {
             };
         }
 
-        const result = await unityConnection.sendCommand('remove_all_bindings', args);
+        const result = await unityConnection.sendCommand('input_binding_remove_all', args);
         return formatUnityResponse(result, `Removed all bindings from ${args.actionName}`);
     } catch (error) {
         return {
@@ -515,7 +515,7 @@ export async function createCompositeBindingHandler(unityConnection, args) {
             };
         }
 
-        const result = await unityConnection.sendCommand('create_composite_binding', args);
+        const result = await unityConnection.sendCommand('input_binding_composite_create', args);
         return formatUnityResponse(result, `Created composite binding: ${args.name || args.compositeType}`);
     } catch (error) {
         return {
@@ -541,7 +541,7 @@ export async function manageControlSchemesHandler(unityConnection, args) {
             };
         }
 
-        const result = await unityConnection.sendCommand('manage_control_schemes', args);
+        const result = await unityConnection.sendCommand('input_control_schemes_manage', args);
         const operationText = args.operation === 'add' ? 'Added' : args.operation === 'remove' ? 'Removed' : 'Modified';
         return formatUnityResponse(result, `${operationText} control scheme: ${args.schemeName}`);
     } catch (error) {

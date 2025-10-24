@@ -14,13 +14,13 @@ describe('StopToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'stop_game');
+      assert.equal(handler.name, 'playmode_stop');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should exit play mode', () => {
-      assert.equal(handler.name, 'stop_game');
+      assert.equal(handler.name, 'playmode_stop');
     });
   });
 });

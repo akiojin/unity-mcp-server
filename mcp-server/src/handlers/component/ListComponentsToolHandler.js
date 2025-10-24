@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class ListComponentsToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'list_components',
+      'component_list',
       'List all components on a GameObject in Unity (works in both scene and prefab mode)',
       {
         type: 'object',

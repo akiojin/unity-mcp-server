@@ -14,7 +14,7 @@ describe('GamepadSimulationHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'simulate_gamepad');
+      assert.equal(handler.name, 'input_gamepad_simulate');
     });
 
     it('should have action enum with button, stick, trigger, dpad', () => {

@@ -1,8 +1,8 @@
 /**
- * Tool definition for create_scene
+ * Tool definition for scene_create
  */
 export const createSceneToolDefinition = {
-    name: 'create_scene',
+    name: 'scene_create',
     description: 'Create a new scene in Unity',
     inputSchema: {
         type: 'object',
@@ -73,7 +73,7 @@ export async function createSceneHandler(unityConnection, args) {
         }
 
         // Send command to Unity
-        const result = await unityConnection.sendCommand('create_scene', args);
+        const result = await unityConnection.sendCommand('scene_create', args);
 
         // Handle Unity response
         if (result.status === 'error') {

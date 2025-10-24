@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class GetCompilationStateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'get_compilation_state',
+      'compilation_get_state',
       'Get current Unity compilation state, errors, and warnings with enhanced detection',
       {
         type: 'object',

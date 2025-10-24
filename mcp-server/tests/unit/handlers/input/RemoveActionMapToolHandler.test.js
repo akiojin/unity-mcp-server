@@ -19,7 +19,7 @@ describe('RemoveActionMapToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'remove_action_map');
+      assert.equal(handler.name, 'input_action_map_remove');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Action Map'));
     });
@@ -56,7 +56,7 @@ describe('RemoveActionMapToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'remove_action_map');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_action_map_remove');
 
       assert.ok(result);
       assert.ok(result.content);

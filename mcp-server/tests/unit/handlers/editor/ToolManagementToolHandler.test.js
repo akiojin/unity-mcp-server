@@ -14,7 +14,7 @@ describe('ToolManagementToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'manage_tools');
+      assert.equal(handler.name, 'editor_tools_manage');
     });
 
     it('should have description', () => {
@@ -24,7 +24,7 @@ describe('ToolManagementToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should manage editor tools and plugins', () => {
-      assert.equal(handler.name, 'manage_tools');
+      assert.equal(handler.name, 'editor_tools_manage');
     });
   });
 });

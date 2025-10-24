@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class UpdateProjectSettingsToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'update_project_settings',
+      'settings_update',
       'Update project settings by category with a confirmation safety flag.',
       {
         type: 'object',

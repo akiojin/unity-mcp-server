@@ -3,7 +3,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class WaitForEditorStateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'wait_for_editor_state',
+      'playmode_wait_for_state',
       'Wait until the Unity editor reaches the requested state (e.g., isPlaying).',
       {
         type: 'object',
@@ -29,7 +29,7 @@ export class WaitForEditorStateToolHandler extends BaseToolHandler {
         try { await this.unityConnection.connect(); } catch {}
       }
       try {
-        const state = await this.unityConnection.sendCommand('get_editor_state', {});
+        const state = await this.unityConnection.sendCommand('playmode_get_state', {});
         if (!!state?.isPlaying === want) {
           return { status: 'success', state, waitedMs: Date.now() - start };
         }

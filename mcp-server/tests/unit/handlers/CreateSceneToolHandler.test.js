@@ -33,7 +33,7 @@ describe('CreateSceneToolHandler', () => {
 
   it('should have correct tool definition', () => {
     const definition = handler.getDefinition();
-    assert.equal(definition.name, 'create_scene');
+    assert.equal(definition.name, 'scene_create');
     assert.equal(definition.description, 'Create a new scene in Unity');
     assert.ok(definition.inputSchema);
     assert.ok(definition.inputSchema.properties.sceneName);
@@ -162,7 +162,7 @@ describe('CreateSceneToolHandler', () => {
     
     assert.equal(response.status, 'error');
     assert.ok(response.details);
-    assert.equal(response.details.tool, 'create_scene');
+    assert.equal(response.details.tool, 'scene_create');
     assert.ok(response.details.params.includes('sceneName: "TestScene"'));
     assert.ok(response.details.params.includes('path: "Assets/CustomScenes/"'));
     assert.ok(response.details.params.includes('loadScene: true'));

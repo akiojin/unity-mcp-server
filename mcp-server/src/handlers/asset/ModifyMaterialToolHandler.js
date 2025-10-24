@@ -3,7 +3,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class ModifyMaterialToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'modify_material',
+            'asset_material_modify',
             'Modify a material by updating property values and/or changing the shader.',
             {
                 type: 'object',

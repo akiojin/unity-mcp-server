@@ -6,11 +6,11 @@ import { ProjectInfoProvider } from '../../core/projectInfo.js';
 import { LspRpcClient } from '../../lsp/LspRpcClient.js';
 import { logger } from '../../core/config.js';
 
-export class BuildCodeIndexToolHandler extends BaseToolHandler {
+export class CodeIndexBuildToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'build_code_index',
-      'Build a persistent SQLite symbol index by scanning document symbols via the C# LSP. Stores DB under .unity/cache/code-index/code-index.db.',
+      'code_index_build',
+      'Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Stores DB under .unity/cache/code-index/code-index.db.',
       {
         type: 'object',
         properties: {},
@@ -120,7 +120,7 @@ export class BuildCodeIndexToolHandler extends BaseToolHandler {
     } catch (e) {
       return {
         success: false,
-        error: 'build_index_failed',
+        error: 'code_index_build_failed',
         message: e.message,
         hint: 'C# LSP not ready. Ensure manifest/auto-download and workspace paths are valid.'
       };

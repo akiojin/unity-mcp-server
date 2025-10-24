@@ -14,7 +14,7 @@ describe('AssetDatabaseToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'manage_asset_database');
+      assert.equal(handler.name, 'asset_database_manage');
     });
 
     it('should have description', () => {
@@ -24,7 +24,7 @@ describe('AssetDatabaseToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should manage Asset Database operations', () => {
-      assert.equal(handler.name, 'manage_asset_database');
+      assert.equal(handler.name, 'asset_database_manage');
     });
   });
 });

@@ -14,13 +14,13 @@ describe('CreateGameObjectToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'create_gameobject');
+      assert.equal(handler.name, 'gameobject_create');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should create GameObject in Unity scene', () => {
-      assert.equal(handler.name, 'create_gameobject');
+      assert.equal(handler.name, 'gameobject_create');
     });
   });
 });

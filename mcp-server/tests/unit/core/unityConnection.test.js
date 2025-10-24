@@ -168,7 +168,7 @@ describe('UnityConnection', () => {
     });
 
     it('should send command with incrementing ID', async () => {
-      const sendPromise = connection.sendCommand('ping', { echo: 'test' });
+      const sendPromise = connection.sendCommand('system_ping', { echo: 'test' });
       
       // Verify command was sent
       assert.equal(mockSocket.write.mock.calls.length, 1);
@@ -176,7 +176,7 @@ describe('UnityConnection', () => {
       const command = JSON.parse(sentData);
       
       assert.equal(command.id, '1');
-      assert.equal(command.type, 'ping');
+      assert.equal(command.type, 'system_ping');
       assert.deepEqual(command.params, { echo: 'test' });
       
       // Simulate response
@@ -232,7 +232,7 @@ describe('UnityConnection', () => {
     });
   });
 
-  describe('ping', () => {
+  describe('system_ping', () => {
     beforeEach(async () => {
       // Set up connected state
       const connectPromise = connection.connect();
@@ -246,7 +246,7 @@ describe('UnityConnection', () => {
       const pingPromise = connection.ping();
       
       assert.equal(mockSocket.write.mock.calls.length, 1);
-      assert.equal(mockSocket.write.mock.calls[0].arguments[0], 'ping');
+      assert.equal(mockSocket.write.mock.calls[0].arguments[0], 'system_ping');
       
       // Simulate pong response
       const response = {

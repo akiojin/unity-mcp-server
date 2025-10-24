@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class SaveSceneToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'save_scene',
+      'scene_save',
       'Save current scene or save as a specified path.',
       {
         type: 'object',

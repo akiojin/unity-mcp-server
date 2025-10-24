@@ -22,7 +22,7 @@ describe('ModifyPrefabToolHandler', () => {
         });
 
         it('should have correct tool name', () => {
-            assert.strictEqual(handler.name, 'modify_prefab');
+            assert.strictEqual(handler.name, 'asset_prefab_modify');
         });
 
         it('should have correct description', () => {
@@ -34,7 +34,7 @@ describe('ModifyPrefabToolHandler', () => {
         it('should return correct tool definition', () => {
             const definition = handler.getDefinition();
             
-            assert.strictEqual(definition.name, 'modify_prefab');
+            assert.strictEqual(definition.name, 'asset_prefab_modify');
             assert.strictEqual(definition.inputSchema.type, 'object');
             assert(definition.inputSchema.properties.prefabPath);
             assert(definition.inputSchema.properties.modifications);

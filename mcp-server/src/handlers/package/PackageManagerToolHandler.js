@@ -8,7 +8,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export default class PackageManagerToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'package_manager',
+      'package_manage',
       'Manage Unity packages - search, install, remove, and list packages',
       {
         type: 'object',

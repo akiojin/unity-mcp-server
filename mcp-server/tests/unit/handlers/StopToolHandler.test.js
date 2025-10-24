@@ -25,7 +25,7 @@ describe('StopToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'stop_game');
+      assert.equal(handler.name, 'playmode_stop');
       assert.equal(handler.description, 'Stop Unity play mode and return to edit mode');
       assert.equal(handler.inputSchema.required, undefined);
     });

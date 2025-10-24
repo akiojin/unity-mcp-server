@@ -14,7 +14,7 @@ describe('WindowManagementToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'manage_windows');
+      assert.equal(handler.name, 'editor_windows_manage');
     });
 
     it('should have description', () => {
@@ -24,7 +24,7 @@ describe('WindowManagementToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should manage editor windows', () => {
-      assert.equal(handler.name, 'manage_windows');
+      assert.equal(handler.name, 'editor_windows_manage');
     });
   });
 });

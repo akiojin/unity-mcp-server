@@ -109,7 +109,7 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 1. レポート/ポインタ初期化（必須）: `tests/.reports/.current-run` へランファイルのパスを書き出す。
 2. UnityMCP ツール到達性: `UnityMCP__script_symbols_get` など最小呼び出しが応答することを確認（0件でも可）。
 3. パス制約: 以降の `path`/`relative` は必ず `Assets/` または `Packages/` 起点で指定する。
-4. インデックス状況: `script_index_status` でカバレッジを確認し、低ければ（任意）`UnityMCP__build_code_index` を実行して再確認する。
+4. インデックス状況: `script_index_status` でカバレッジを確認し、低ければ（任意）`UnityMCP__code_index_build` を実行して再確認する。
 5. 到達性確認: 最小ファイルに対して `script_symbols_get` が成功することを確認（0件でも可）。
 
 ブロック方針:

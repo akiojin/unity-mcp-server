@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class KeyboardSimulationHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'simulate_keyboard',
+            'input_keyboard_simulate',
             'Simulate keyboard input (press/release/type/combo) with typing speed.',
             {
                 type: 'object',

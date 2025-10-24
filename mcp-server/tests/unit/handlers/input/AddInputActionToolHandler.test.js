@@ -19,7 +19,7 @@ describe('AddInputActionToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'add_input_action');
+      assert.equal(handler.name, 'input_action_add');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Action'));
     });
@@ -76,7 +76,7 @@ describe('AddInputActionToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'add_input_action');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_action_add');
 
       assert.ok(result);
       assert.ok(result.content);

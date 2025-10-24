@@ -14,7 +14,7 @@ describe('SelectionToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'manage_selection');
+      assert.equal(handler.name, 'editor_selection_manage');
     });
 
     it('should have description', () => {
@@ -24,7 +24,7 @@ describe('SelectionToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should manage editor selection', () => {
-      assert.equal(handler.name, 'manage_selection');
+      assert.equal(handler.name, 'editor_selection_manage');
     });
   });
 });

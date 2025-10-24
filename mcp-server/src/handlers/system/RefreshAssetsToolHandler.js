@@ -1,13 +1,13 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 /**
- * Handler for the refresh_assets tool
+ * Handler for the system_refresh_assets tool
  * Triggers Unity to refresh assets and potentially recompile
  */
 export class RefreshAssetsToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'refresh_assets',
+      'system_refresh_assets',
       'Refresh assets and check compilation status.',
       {
         type: 'object',

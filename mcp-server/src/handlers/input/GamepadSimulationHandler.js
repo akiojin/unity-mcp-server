@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class GamepadSimulationHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'simulate_gamepad',
+            'input_gamepad_simulate',
             'Simulate gamepad input (buttons/sticks/triggers/dpad) with value ranges.',
             {
                 type: 'object',

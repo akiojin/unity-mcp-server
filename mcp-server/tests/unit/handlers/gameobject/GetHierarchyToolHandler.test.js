@@ -14,13 +14,13 @@ describe('GetHierarchyToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'get_hierarchy');
+      assert.equal(handler.name, 'gameobject_get_hierarchy');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should get scene hierarchy', () => {
-      assert.equal(handler.name, 'get_hierarchy');
+      assert.equal(handler.name, 'gameobject_get_hierarchy');
     });
   });
 });

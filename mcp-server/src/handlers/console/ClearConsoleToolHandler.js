@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class ClearConsoleToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'clear_console',
+      'console_clear',
       'Clear Console logs (optionally set auto-clear and preserve levels).',
       {
         type: 'object',

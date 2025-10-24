@@ -1,13 +1,13 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 /**
- * Handler for the find_gameobject tool
+ * Handler for the gameobject_find tool
  * Finds GameObjects in Unity scene by various criteria
  */
 export class FindGameObjectToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'find_gameobject',
+      'gameobject_find',
       'Find GameObjects by name, tag, or layer with optional exact matching.',
       {
         type: 'object',

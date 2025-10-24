@@ -51,7 +51,7 @@ describe('ListScenesTool', () => {
     });
 
     it('should have correct tool definition', () => {
-        assert.equal(listScenesToolDefinition.name, 'list_scenes');
+        assert.equal(listScenesToolDefinition.name, 'scene_list');
         assert.equal(listScenesToolDefinition.description, 'List all scenes in the Unity project');
     });
 

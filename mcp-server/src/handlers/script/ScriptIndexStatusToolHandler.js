@@ -17,12 +17,12 @@ export class ScriptIndexStatusToolHandler extends BaseToolHandler {
     }
 
   async execute(params) {
-        // まず永続インデックスの有無を確認。未構築なら明示エラーで build_code_index を促す。
+        // まず永続インデックスの有無を確認。未構築なら明示エラーで code_index_build を促す。
         const { CodeIndex } = await import('../../core/codeIndex.js');
         const idx = new CodeIndex(this.unityConnection);
         const ready = await idx.isReady();
         if (!ready) {
-            return { success: false, error: 'index_not_built', message: 'Code index is not built. Please run UnityMCP.build_code_index first.' };
+            return { success: false, error: 'index_not_built', message: 'Code index is not built. Please run UnityMCP.code_index_build first.' };
         }
 
         // 構築済みなら .cs 総数をローカル走査で取得（軽量）

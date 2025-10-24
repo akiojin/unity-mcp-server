@@ -38,7 +38,7 @@ describe('End-to-End Tests', () => {
             };
 
             switch (command.type) {
-              case 'ping':
+              case 'system_ping':
                 response.data = {
                   message: 'pong',
                   echo: command.params?.message || null,
@@ -47,7 +47,7 @@ describe('End-to-End Tests', () => {
                 };
                 break;
               
-              case 'create_gameobject':
+              case 'gameobject_create':
                 response.data = {
                   gameObjectId: `GameObject_${Date.now()}`,
                   name: command.params?.name || 'GameObject',
@@ -55,7 +55,7 @@ describe('End-to-End Tests', () => {
                 };
                 break;
               
-              case 'get_scene_info':
+              case 'scene_info_get':
                 response.data = {
                   sceneName: 'TestScene',
                   gameObjectCount: 42,
@@ -177,7 +177,7 @@ describe('End-to-End Tests', () => {
       console.log('[Test] Calling ping tool...');
       
       // Call the ping tool through MCP
-      const result = await mcpClient.callTool('ping', {
+      const result = await mcpClient.callTool('system_ping', {
         message: 'Hello from E2E test'
       });
 
@@ -199,7 +199,7 @@ describe('End-to-End Tests', () => {
       assert(Array.isArray(tools.tools), 'Should return array of tools');
       assert(tools.tools.length > 0, 'Should have at least one tool');
       
-      const pingTool = tools.tools.find(t => t.name === 'ping');
+      const pingTool = tools.tools.find(t => t.name === 'system_ping');
       assert(pingTool, 'Should have ping tool');
       assert.equal(pingTool.description, 'Ping Unity to test connection');
       assert(pingTool.inputSchema, 'Should have input schema');
@@ -211,7 +211,7 @@ describe('End-to-End Tests', () => {
       // Send 5 concurrent ping requests
       for (let i = 0; i < 5; i++) {
         requests.push(
-          mcpClient.callTool('ping', {
+          mcpClient.callTool('system_ping', {
             message: `Concurrent request ${i}`
           })
         );
@@ -228,7 +228,7 @@ describe('End-to-End Tests', () => {
 
     it('should maintain connection after errors', async () => {
       // First, verify connection works
-      const validResult = await mcpClient.callTool('ping', { message: 'test' });
+      const validResult = await mcpClient.callTool('system_ping', { message: 'test' });
       assert(validResult.content[0].text.includes('pong'));
       
       // Try to call non-existent tool (should error)
@@ -238,7 +238,7 @@ describe('End-to-End Tests', () => {
       );
       
       // Verify connection still works after error
-      const afterErrorResult = await mcpClient.callTool('ping', { message: 'still working' });
+      const afterErrorResult = await mcpClient.callTool('system_ping', { message: 'still working' });
       assert(afterErrorResult.content[0].text.includes('pong'));
       assert(afterErrorResult.content[0].text.includes('still working'));
     });
@@ -250,7 +250,7 @@ describe('End-to-End Tests', () => {
       const requestCount = 20;
       
       for (let i = 0; i < requestCount; i++) {
-        const result = await mcpClient.callTool('ping', {
+        const result = await mcpClient.callTool('system_ping', {
           message: `Sequential ${i}`
         });
         assert(result.content[0].text.includes('pong'));
@@ -268,7 +268,7 @@ describe('End-to-End Tests', () => {
       
       for (let i = 0; i < 10; i++) {
         const start = Date.now();
-        await mcpClient.callTool('ping', { message: `latency-${i}` });
+        await mcpClient.callTool('system_ping', { message: `latency-${i}` });
         const latency = Date.now() - start;
         latencies.push(latency);
       }
@@ -349,7 +349,7 @@ describe('Simplified E2E Tests', () => {
     const toolHandler = server.requestHandlers.get('tools/call');
     const result = await toolHandler({
       params: {
-        name: 'ping',
+        name: 'system_ping',
         arguments: { message: 'simplified test' }
       }
     });

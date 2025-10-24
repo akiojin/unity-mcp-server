@@ -63,7 +63,7 @@ describe('GetGameObjectDetailsTool', () => {
     });
 
     it('should have correct tool definition', () => {
-        assert.equal(getGameObjectDetailsToolDefinition.name, 'get_gameobject_details');
+        assert.equal(getGameObjectDetailsToolDefinition.name, 'analysis_gameobject_details_get');
         assert.equal(getGameObjectDetailsToolDefinition.description, 'Get detailed information about a specific GameObject');
     });
 
@@ -88,7 +88,7 @@ describe('GetGameObjectDetailsTool', () => {
         const result = await getGameObjectDetailsHandler(mockUnityConnection, args);
 
         assert.equal(sendCommandSpy.mock.calls.length, 1);
-        assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'get_gameobject_details');
+        assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'analysis_gameobject_details_get');
         assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
         
         assert.equal(result.isError, false);

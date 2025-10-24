@@ -41,7 +41,7 @@ describe('ExitPrefabModeToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'exit_prefab_mode');
+      assert.equal(handler.name, 'asset_prefab_exit_mode');
       assert.equal(handler.description, 'Exit prefab mode and return to the main scene');
       assert.equal(handler.inputSchema.required, undefined);
     });

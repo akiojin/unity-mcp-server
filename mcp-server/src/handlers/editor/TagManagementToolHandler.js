@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class TagManagementToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'manage_tags',
+      'editor_tags_manage',
       'Manage project tags: add/remove/list with validation for reserved names.',
       {
         type: 'object',

@@ -132,7 +132,7 @@ export class TestDataFactory {
     };
   }
 
-  static createBatchCommands(count = 5, type = 'ping') {
+  static createBatchCommands(count = 5, type = 'system_ping') {
     return Array.from({ length: count }, (_, i) => 
       TestDataFactory.createCommand(type, { index: i })
     );

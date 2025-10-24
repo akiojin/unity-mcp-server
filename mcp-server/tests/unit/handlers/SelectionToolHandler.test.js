@@ -41,7 +41,7 @@ describe('SelectionToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'manage_selection');
+      assert.equal(handler.name, 'editor_selection_manage');
       assert.equal(handler.description, 'Manage Unity Editor selection (get, set, clear)');
       assert.ok(handler.inputSchema);
       assert.equal(handler.inputSchema.type, 'object');

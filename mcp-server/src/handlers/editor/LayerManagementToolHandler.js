@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class LayerManagementToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'manage_layers',
+      'editor_layers_manage',
       'Manage project layers: add/remove/list and convert (by name/index).',
       {
         type: 'object',

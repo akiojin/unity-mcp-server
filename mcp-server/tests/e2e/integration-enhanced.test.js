@@ -30,7 +30,7 @@ describe('Enhanced Integration Tests', () => {
             };
 
             switch (command.type) {
-              case 'ping':
+              case 'system_ping':
                 response.data = {
                   message: 'pong',
                   echo: command.params?.message || null,
@@ -182,7 +182,7 @@ describe('Enhanced Integration Tests', () => {
     });
 
     it('should process ping command with parameters', async () => {
-      const result = await connection.sendCommand('ping', { message: 'Hello Unity' });
+      const result = await connection.sendCommand('system_ping', { message: 'Hello Unity' });
       
       assert.equal(result.message, 'pong');
       assert.equal(result.echo, 'Hello Unity');
@@ -206,9 +206,9 @@ describe('Enhanced Integration Tests', () => {
 
     it('should handle concurrent commands', async () => {
       const commands = [
-        connection.sendCommand('ping', { message: 'cmd1' }),
+        connection.sendCommand('system_ping', { message: 'cmd1' }),
         connection.sendCommand('get_status', {}),
-        connection.sendCommand('ping', { message: 'cmd3' })
+        connection.sendCommand('system_ping', { message: 'cmd3' })
       ];
       
       const results = await Promise.all(commands);
@@ -263,7 +263,7 @@ describe('Enhanced Integration Tests', () => {
     it('should handle fragmented messages', async () => {
       // Send a command that will be fragmented
       const longMessage = 'x'.repeat(1000);
-      const result = await connection.sendCommand('ping', { message: longMessage });
+      const result = await connection.sendCommand('system_ping', { message: longMessage });
       
       assert.equal(result.echo, longMessage);
     });
@@ -271,8 +271,8 @@ describe('Enhanced Integration Tests', () => {
     it('should handle multiple messages in single packet', async () => {
       // This simulates Unity sending multiple responses at once
       const responses = await Promise.all([
-        connection.sendCommand('ping', { message: 'msg1' }),
-        connection.sendCommand('ping', { message: 'msg2' })
+        connection.sendCommand('system_ping', { message: 'msg1' }),
+        connection.sendCommand('system_ping', { message: 'msg2' })
       ]);
       
       assert.equal(responses[0].echo, 'msg1');
@@ -289,7 +289,7 @@ describe('Enhanced Integration Tests', () => {
         });
       });
       
-      connection.socket.write(JSON.stringify({ id: 'test', type: 'ping' }) + '\n');
+      connection.socket.write(JSON.stringify({ id: 'test', type: 'system_ping' }) + '\n');
       await testPromise;
       
       // Connection should still be alive
@@ -310,9 +310,9 @@ describe('Enhanced Integration Tests', () => {
       
       // Register ping tool
       server.setRequestHandler('tools/call', async (request) => {
-        if (request.params.name === 'ping') {
+        if (request.params.name === 'system_ping') {
           const message = request.params.arguments?.message || 'test';
-          const result = await connection.sendCommand('ping', { message });
+          const result = await connection.sendCommand('system_ping', { message });
           
           return {
             content: [{
@@ -327,7 +327,7 @@ describe('Enhanced Integration Tests', () => {
       // Simulate MCP tool call
       const toolResult = await server.requestHandler.handle('tools/call', {
         params: {
-          name: 'ping',
+          name: 'system_ping',
           arguments: { message: 'MCP test' }
         }
       });
@@ -394,7 +394,7 @@ describe('Stress Tests', () => {
     
     // Send 100 commands as fast as possible
     for (let i = 0; i < 100; i++) {
-      promises.push(connection.sendCommand('ping', { index: i }));
+      promises.push(connection.sendCommand('system_ping', { index: i }));
     }
     
     const results = await Promise.all(promises);

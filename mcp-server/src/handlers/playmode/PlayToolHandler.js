@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class PlayToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'play_game',
+      'playmode_play',
       'Enter Play Mode.',
       {
         type: 'object',
@@ -41,7 +41,7 @@ export class PlayToolHandler extends BaseToolHandler {
       const startOk = Date.now();
       for (;;) {
         try {
-          const state = await this.unityConnection.sendCommand('get_editor_state', {});
+          const state = await this.unityConnection.sendCommand('playmode_get_state', {});
           if (state && state.isPlaying) {
             return { status: 'success', message: 'Entered play mode', state };
           }

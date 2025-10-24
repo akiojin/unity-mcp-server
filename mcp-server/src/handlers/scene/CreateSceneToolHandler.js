@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class CreateSceneToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'create_scene',
+      'scene_create',
       'Create a new scene (optionally load it and add to build settings).',
       {
         type: 'object',

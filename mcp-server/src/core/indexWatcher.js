@@ -28,8 +28,8 @@ export class IndexWatcher {
     if (this.running) return;
     this.running = true;
     try {
-      const { BuildCodeIndexToolHandler } = await import('../handlers/script/BuildCodeIndexToolHandler.js');
-      const handler = new BuildCodeIndexToolHandler(this.unityConnection);
+      const { CodeIndexBuildToolHandler } = await import('../handlers/script/CodeIndexBuildToolHandler.js');
+      const handler = new CodeIndexBuildToolHandler(this.unityConnection);
       const params = {
         concurrency: config.indexing.concurrency || 8,
         retry: config.indexing.retry || 2,
@@ -49,4 +49,3 @@ export class IndexWatcher {
     }
   }
 }
-

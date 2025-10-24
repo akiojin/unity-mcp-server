@@ -41,7 +41,7 @@ describe('ListComponentsToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'list_components');
+      assert.equal(handler.name, 'component_list');
       assert.equal(handler.description, 'List all components on a GameObject in Unity');
       assert.deepEqual(handler.inputSchema.required, ['gameObjectPath']);
     });

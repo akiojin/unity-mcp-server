@@ -29,7 +29,7 @@ describe('SaveSceneTool', () => {
     });
 
     it('should have correct tool definition', () => {
-        assert.equal(saveSceneToolDefinition.name, 'save_scene');
+        assert.equal(saveSceneToolDefinition.name, 'scene_save');
         assert.equal(saveSceneToolDefinition.description, 'Save the current scene in Unity');
     });
 

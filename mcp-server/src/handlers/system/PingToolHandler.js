@@ -1,13 +1,13 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 /**
- * Handler for the ping tool
+ * Handler for the system_ping tool
  * Tests connection to Unity Editor
  */
 export class PingToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'ping',
+      'system_ping',
       'Test connection to Unity Editor',
       {
         type: 'object',

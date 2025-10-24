@@ -8,7 +8,7 @@ import path from 'path';
 export class AnalyzeScreenshotToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'analyze_screenshot',
+      'screenshot_analyze',
       'Analyze a screenshot: dimensions/colors, UI elements, and scene content (basic/ui/content/full). For LLMs, prefer basic/ui; use full only when necessary. Provide either imagePath (preferred) or base64 (not both).',
       {
         type: 'object',

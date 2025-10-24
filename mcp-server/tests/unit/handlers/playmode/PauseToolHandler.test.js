@@ -14,13 +14,13 @@ describe('PauseToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'pause_game');
+      assert.equal(handler.name, 'playmode_pause');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should pause game', () => {
-      assert.equal(handler.name, 'pause_game');
+      assert.equal(handler.name, 'playmode_pause');
     });
   });
 });

@@ -14,7 +14,7 @@ describe('LayerManagementToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'manage_layers');
+      assert.equal(handler.name, 'editor_layers_manage');
     });
 
     it('should have description', () => {
@@ -24,7 +24,7 @@ describe('LayerManagementToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should manage project layers', () => {
-      assert.equal(handler.name, 'manage_layers');
+      assert.equal(handler.name, 'editor_layers_manage');
     });
   });
 });

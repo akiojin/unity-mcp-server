@@ -14,13 +14,13 @@ describe('LoadSceneToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'load_scene');
+      assert.equal(handler.name, 'scene_load');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should load scene by path or name', () => {
-      assert.equal(handler.name, 'load_scene');
+      assert.equal(handler.name, 'scene_load');
     });
   });
 });

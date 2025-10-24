@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class AssetDatabaseToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'manage_asset_database',
+      'asset_database_manage',
       'Manage Unity Asset Database operations (find, info, create folders, move, copy, delete, refresh). NOTE: The "refresh" action may take 5-120+ seconds for large projects as Unity needs to scan all assets, reimport changed files, and compile scripts. Please wait for the operation to complete.',
       {
         type: 'object',

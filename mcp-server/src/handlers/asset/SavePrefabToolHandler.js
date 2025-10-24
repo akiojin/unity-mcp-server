@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class SavePrefabToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'save_prefab',
+      'asset_prefab_save',
       'Save current prefab changes in prefab mode or save a GameObject as prefab override',
       {
         type: 'object',

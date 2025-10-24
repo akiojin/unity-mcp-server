@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class SelectionToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'manage_selection',
+      'editor_selection_manage',
       'Manage editor selection: get/set/clear and optionally include details.',
       {
         type: 'object',

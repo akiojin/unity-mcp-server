@@ -26,7 +26,7 @@ describe('ExecuteMenuItemToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'execute_menu_item');
+      assert.equal(handler.name, 'menu_item_execute');
       assert.equal(handler.description, 'Execute Unity Editor menu items');
       assert.ok(handler.inputSchema);
       assert.equal(typeof handler.execute, 'function');

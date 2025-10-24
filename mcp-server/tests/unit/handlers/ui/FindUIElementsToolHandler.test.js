@@ -22,7 +22,7 @@ describe('FindUIElementsToolHandler', () => {
         });
 
         it('should have correct tool name', () => {
-            assert.strictEqual(handler.name, 'find_ui_elements');
+            assert.strictEqual(handler.name, 'ui_find_elements');
         });
 
         it('should have correct description', () => {
@@ -34,7 +34,7 @@ describe('FindUIElementsToolHandler', () => {
         it('should return correct tool definition', () => {
             const definition = handler.getDefinition();
             
-            assert.strictEqual(definition.name, 'find_ui_elements');
+            assert.strictEqual(definition.name, 'ui_find_elements');
             assert.strictEqual(definition.description, 'Find UI elements in Unity scene by type, tag, or name');
             assert.strictEqual(definition.inputSchema.type, 'object');
             assert(definition.inputSchema.properties.elementType);

@@ -3,7 +3,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class SetUIElementValueToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
         super(
-            'set_ui_element_value',
+            'ui_set_element_value',
             'Set values for UI input elements',
             {
                 type: 'object',

@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class AssetDependencyToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'analyze_asset_dependencies',
+      'asset_dependency_analyze',
       'Analyze Unity asset dependencies (get dependencies, dependents, circular deps, unused assets, size impact)',
       {
         type: 'object',

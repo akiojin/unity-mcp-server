@@ -19,7 +19,7 @@ describe('CreateCompositeBindingToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'create_composite_binding');
+      assert.equal(handler.name, 'input_binding_composite_create');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('composite binding'));
     });
@@ -113,7 +113,7 @@ describe('CreateCompositeBindingToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'create_composite_binding');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_binding_composite_create');
 
       assert.ok(result);
       assert.ok(result.content);

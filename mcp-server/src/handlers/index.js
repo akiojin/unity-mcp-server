@@ -135,6 +135,8 @@ export { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHand
 export { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
 export { ScriptCreateClassFileToolHandler } from './script/ScriptCreateClassFileToolHandler.js';
 export { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
+export { CodeIndexUpdateToolHandler } from './script/CodeIndexUpdateToolHandler.js';
+export { CodeIndexBuildToolHandler } from './script/CodeIndexBuildToolHandler.js';
 // Deprecated Unity-communication handlers removed: ScriptEditPatchToolHandler, ScriptReplacePatternToolHandler
 // Script tool registry
 
@@ -232,7 +234,8 @@ import { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHand
 import { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
 import { ScriptCreateClassFileToolHandler } from './script/ScriptCreateClassFileToolHandler.js';
 import { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
-import { BuildCodeIndexToolHandler } from './script/BuildCodeIndexToolHandler.js';
+import { CodeIndexUpdateToolHandler } from './script/CodeIndexUpdateToolHandler.js';
+import { CodeIndexBuildToolHandler } from './script/CodeIndexBuildToolHandler.js';
 // Roslyn (external CLI) tool handlers removed（内部ユーティリティのみ存続）
 
 // Handler registry - single source of truth
@@ -338,7 +341,8 @@ const HANDLER_CLASSES = [
   ScriptRefactorRenameToolHandler,
   ScriptCreateClassFileToolHandler,
   ScriptRemoveSymbolToolHandler,
-  BuildCodeIndexToolHandler,
+  CodeIndexUpdateToolHandler,
+  CodeIndexBuildToolHandler,
   
   
   // Component handlers

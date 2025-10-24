@@ -1,8 +1,8 @@
 /**
- * Tool definition for analyze_scene_contents
+ * Tool definition for analysis_scene_contents_analyze
  */
 export const analyzeSceneContentsToolDefinition = {
-    name: 'analyze_scene_contents',
+    name: 'analysis_scene_contents_analyze',
     description: 'Analyze current scene: object counts, types, prefabs, and memory stats.',
     inputSchema: {
         type: 'object',
@@ -47,7 +47,7 @@ export async function analyzeSceneContentsHandler(unityConnection, args) {
         }
 
         // Send command to Unity with provided parameters
-        const result = await unityConnection.sendCommand('analyze_scene_contents', args);
+        const result = await unityConnection.sendCommand('analysis_scene_contents_analyze', args);
 
         // The unityConnection.sendCommand already extracts the result field
         // from the response, so we access properties directly on result

@@ -41,7 +41,7 @@ describe('OpenPrefabToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'open_prefab');
+      assert.equal(handler.name, 'asset_prefab_open');
       assert.equal(handler.description, 'Open a prefab asset in prefab mode for editing');
       assert.deepEqual(handler.inputSchema.required, ['prefabPath']);
     });

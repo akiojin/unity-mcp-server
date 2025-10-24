@@ -49,7 +49,7 @@ describe('FindByComponentTool', () => {
     });
 
     it('should have correct tool definition', () => {
-        assert.equal(findByComponentToolDefinition.name, 'find_by_component');
+        assert.equal(findByComponentToolDefinition.name, 'analysis_component_find');
         assert.equal(findByComponentToolDefinition.description, 'Find all GameObjects that have a specific component type');
     });
 
@@ -71,7 +71,7 @@ describe('FindByComponentTool', () => {
         const result = await findByComponentHandler(mockUnityConnection, args);
 
         assert.equal(sendCommandSpy.mock.calls.length, 1);
-        assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'find_by_component');
+        assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'analysis_component_find');
         assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
         
         assert.equal(result.isError, false);

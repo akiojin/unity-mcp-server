@@ -30,7 +30,7 @@ describe('Ping Tool', () => {
       connect: mock.fn(async () => {}),
       sendCommand: mock.fn(async (type, params) => ({
         message: 'pong',
-        echo: params?.message || 'ping',
+        echo: params?.message || 'system_ping',
         timestamp: '2025-06-21T10:00:00.000Z'
       }))
     };
@@ -64,7 +64,7 @@ describe('Ping Tool', () => {
       
       assert.deepEqual(result, {
         tools: [{
-          name: 'ping',
+          name: 'system_ping',
           description: 'Test connection to Unity Editor',
           inputSchema: {
             type: 'object',
@@ -89,7 +89,7 @@ describe('Ping Tool', () => {
     it('should handle ping with no message', async () => {
       const request = {
         params: {
-          name: 'ping',
+          name: 'system_ping',
           arguments: {}
         }
       };
@@ -97,9 +97,9 @@ describe('Ping Tool', () => {
       const result = await toolsCallHandler(request);
       
       assert.equal(mockUnityConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockUnityConnection.sendCommand.mock.calls[0].arguments[0], 'ping');
+      assert.equal(mockUnityConnection.sendCommand.mock.calls[0].arguments[0], 'system_ping');
       assert.deepEqual(mockUnityConnection.sendCommand.mock.calls[0].arguments[1], {
-        message: 'ping'
+        message: 'system_ping'
       });
       
       assert.deepEqual(result, {
@@ -115,7 +115,7 @@ describe('Ping Tool', () => {
     it('should handle ping with custom message', async () => {
       const request = {
         params: {
-          name: 'ping',
+          name: 'system_ping',
           arguments: {
             message: 'Hello Unity!'
           }
@@ -144,7 +144,7 @@ describe('Ping Tool', () => {
       
       const request = {
         params: {
-          name: 'ping',
+          name: 'system_ping',
           arguments: {}
         }
       };
@@ -162,7 +162,7 @@ describe('Ping Tool', () => {
       
       const request = {
         params: {
-          name: 'ping',
+          name: 'system_ping',
           arguments: {}
         }
       };

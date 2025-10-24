@@ -19,7 +19,7 @@ describe('RemoveInputBindingToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'remove_input_binding');
+      assert.equal(handler.name, 'input_binding_remove');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Binding'));
     });
@@ -86,7 +86,7 @@ describe('RemoveInputBindingToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'remove_input_binding');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_binding_remove');
 
       assert.ok(result);
       assert.ok(result.content);
