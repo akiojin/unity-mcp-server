@@ -74,11 +74,20 @@ Phase 0 リサーチにて以下が確認済み：
 **E2E Tests** (後回し)
 実プロジェクトでの手動検証は Phase 4 完了後に実施予定
 
-#### Phase 4: ドキュメント
+#### Phase 4: ドキュメント ✅
 
-- [ ] DOC-001: CLAUDE.md更新（script_edit_snippet使用ガイドライン）
-- [ ] DOC-002: 使用例追加
-- [ ] DOC-003: トラブルシューティング追加
+- [x] DOC-001: CLAUDE.md更新（script_edit_snippet使用ガイドライン）
+  - 用途と必須条件の明記
+  - script_edit_structured との使い分け
+- [x] DOC-002: 使用例追加
+  - delete/replace/insert 操作の具体例
+  - before/after 位置指定の例
+- [x] DOC-003: トラブルシューティング追加
+  - よくあるエラー4種（anchor_not_unique, anchor_not_found, 80文字超, 構文エラー）
+  - Q&A形式のトラブルシューティング
+  - ベストプラクティス（アンカー指定、バッチ編集、検証）
+
+**更新箇所**: `CLAUDE.md` 137-308行目（新規セクション「C#スクリプト編集ツールの使い分け」）
 
 ## 参考
 

@@ -133,9 +133,179 @@
 - 目的: サンプル・検証・デモ・手動動作確認用のシーン/プレハブ/補助スクリプトを配置。
 - 禁止: unity-mcp-server 実装本体（ランタイム/エディタ拡張の主要コード）を置かない。UPM配布の対象にも含めない。
 - 編集: 必要最小限に留める。C#編集は外部CLIで行い、Assets側は参照/設定のみで成立させる。
-  - 1〜2行の局所変更（nullガード削除・条件式の微修正・return直前のログ挿入など）は必ず `script_edit_snippet` を使用し、アンカー文字列を厳密に指定する。差分が80文字を超える場合や曖昧アンカーはエラーで打ち切る。
-  - メソッド本体の差し替えやクラスレベル追記など大きな編集は従来通り `script_edit_structured` を利用する。insert系はクラス/名前空間のみを対象とし、`replace_body` はブレースを含む自己完結ボディにする。
-  - どちらのツールも `preview=true` は高リスク時のみ。適用前後で同梱LSP（Roslynベース）の診断を確認し、エラーが返却された場合は適用せず再検討する。
+
+### C#スクリプト編集ツールの使い分け
+
+#### `script_edit_snippet`: 軽量スニペット編集（1〜2行、80文字以内）
+
+**用途**:
+- nullガード削除
+- 条件式の微修正（`if (x > 10)` → `if (x > 20)`）
+- return直前のログ挿入
+- 短い文の追加・削除
+
+**必須条件**:
+- アンカー文字列を厳密に指定（前後の空白・改行を含む正確な一致）
+- 差分が80文字以内
+- アンカーが一意（複数マッチはエラー）
+- 1回のリクエストで最大10箇所まで
+
+**使用例**:
+
+```javascript
+// ガード削除
+{
+  "path": "Assets/Scripts/Player.cs",
+  "instructions": [
+    {
+      "operation": "delete",
+      "anchor": {
+        "type": "text",
+        "target": "        if (health == null) return;\n"
+      }
+    }
+  ]
+}
+
+// 条件式変更
+{
+  "path": "Assets/Scripts/Enemy.cs",
+  "instructions": [
+    {
+      "operation": "replace",
+      "anchor": {
+        "type": "text",
+        "target": "if (distance < 5.0f)"
+      },
+      "newText": "if (distance < 10.0f)"
+    }
+  ]
+}
+
+// ログ挿入（after）
+{
+  "path": "Assets/Scripts/GameManager.cs",
+  "instructions": [
+    {
+      "operation": "insert",
+      "anchor": {
+        "type": "text",
+        "target": "        Initialize();\n"
+      },
+      "newText": "        Debug.Log(\"Initialized\");\n"
+    }
+  ]
+}
+
+// ログ挿入（before）
+{
+  "path": "Assets/Scripts/GameManager.cs",
+  "instructions": [
+    {
+      "operation": "insert",
+      "anchor": {
+        "type": "text",
+        "target": "        Process();\n",
+        "position": "before"
+      },
+      "newText": "        Validate();\n"
+    }
+  ]
+}
+```
+
+#### `script_edit_structured`: 構造化編集（メソッド本体、クラスメンバー追加）
+
+**用途**:
+- メソッド本体の差し替え
+- クラスレベルのメンバー追加
+- 名前空間への要素追加
+
+**制約**:
+- insert系はクラス/名前空間のみを対象
+- `replace_body` はブレースを含む自己完結ボディ
+- namePath（`Outer/Nested/Member`）で対象を特定
+
+**使用例**:
+
+```javascript
+// メソッド本体置換
+{
+  "path": "Assets/Scripts/Foo.cs",
+  "namePath": "Foo/Execute",
+  "operation": "replace_body",
+  "newText": "{\n    DoSomething();\n    DoAnother();\n}"
+}
+
+// クラスメンバー追加
+{
+  "path": "Assets/Scripts/Bar.cs",
+  "namePath": "Bar",
+  "operation": "insert_after",
+  "newText": "private int _count;\n"
+}
+```
+
+#### プレビューモード（`preview=true`）
+
+**推奨使用タイミング**:
+- 初回適用時
+- 複雑な編集（5箇所以上のバッチ編集）
+- 不確実なアンカー
+
+**動作**:
+- ファイル書き込みなし
+- LSP構文検証実行
+- 編集後プレビューテキスト返却
+
+#### エラーハンドリング
+
+**よくあるエラー**:
+
+1. **`anchor_not_unique`**: 複数箇所にマッチ
+   - **解決策**: アンカー文字列をより具体的に（前後コンテキストを含める）
+
+2. **`anchor_not_found`**: アンカーが見つからない
+   - **解決策**: ファイル内容を確認し、空白・改行を正確にコピー
+
+3. **`diff exceeds 80 characters`**: 差分が80文字超
+   - **解決策**: `script_edit_structured` に切り替え
+
+4. **構文エラー**: LSP診断で括弧不整合検出
+   - **解決策**: 編集はロールバックされる。アンカーまたは newText を修正
+
+#### トラブルシューティング
+
+**Q: アンカーが見つからない**
+- A: `script_read` でファイル内容を確認し、空白・改行を含む正確な文字列をコピー
+
+**Q: 複数箇所にマッチしてしまう**
+- A: アンカーに前後数行のコンテキストを含めて一意にする
+
+**Q: 80文字制限に引っかかる**
+- A: `script_edit_structured` で replace_body を使用
+
+**Q: 編集が反映されない**
+- A: `preview=false` で apply モードになっているか確認
+
+**Q: 構文エラーが出る**
+- A: `preview=true` で事前確認。LSP診断結果を確認してから修正
+
+#### ベストプラクティス
+
+1. **アンカー文字列の指定**:
+   - インデント（空白・タブ）を正確に含める
+   - 改行文字（`\n`）を明示的に含める
+   - 一意性を確保するため前後コンテキストを含める
+
+2. **バッチ編集**:
+   - 順序を意識（上から下へ適用されるため、後の編集が先の編集に影響する）
+   - 最大10箇所まで、それ以上は複数リクエストに分割
+
+3. **検証**:
+   - 初回は `preview=true` で確認
+   - LSP診断エラーがあれば適用しない
+   - 適用後は Unity Editor でコンパイルエラーを確認
 
 ## バージョン管理
 
