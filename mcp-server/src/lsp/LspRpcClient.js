@@ -99,6 +99,20 @@ export class LspRpcClient {
     return await this.#requestWithRetry(method, params, 1);
   }
 
+  async validateText(relative, newText) {
+    const resp = await this.request('mcp/validateTextEdits', { relative, newText });
+    if (!resp) return [];
+    const payload = resp.result ?? resp;
+    const diagnostics = Array.isArray(payload?.diagnostics) ? payload.diagnostics : [];
+    return diagnostics.map((d) => ({
+      severity: d?.severity,
+      message: d?.message,
+      id: d?.id,
+      line: d?.line,
+      column: d?.column,
+    }));
+  }
+
   async #requestWithRetry(method, params, attempt) {
     await this.ensure();
     const id = this.seq++;

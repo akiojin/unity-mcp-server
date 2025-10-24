@@ -127,6 +127,7 @@ export { ScriptPackagesListToolHandler } from './script/ScriptPackagesListToolHa
 export { ScriptReadToolHandler } from './script/ScriptReadToolHandler.js';
 export { ScriptSearchToolHandler } from './script/ScriptSearchToolHandler.js';
 export { ScriptEditStructuredToolHandler } from './script/ScriptEditStructuredToolHandler.js';
+export { ScriptEditSnippetToolHandler } from './script/ScriptEditSnippetToolHandler.js';
 export { ScriptRefsFindToolHandler } from './script/ScriptRefsFindToolHandler.js';
 export { ScriptSymbolFindToolHandler } from './script/ScriptSymbolFindToolHandler.js';
 export { ScriptSymbolsGetToolHandler } from './script/ScriptSymbolsGetToolHandler.js';
@@ -223,6 +224,7 @@ import { ScriptPackagesListToolHandler } from './script/ScriptPackagesListToolHa
 import { ScriptReadToolHandler } from './script/ScriptReadToolHandler.js';
 import { ScriptSearchToolHandler } from './script/ScriptSearchToolHandler.js';
 import { ScriptEditStructuredToolHandler } from './script/ScriptEditStructuredToolHandler.js';
+import { ScriptEditSnippetToolHandler } from './script/ScriptEditSnippetToolHandler.js';
 import { ScriptSymbolsGetToolHandler } from './script/ScriptSymbolsGetToolHandler.js';
 import { ScriptSymbolFindToolHandler } from './script/ScriptSymbolFindToolHandler.js';
 import { ScriptRefsFindToolHandler } from './script/ScriptRefsFindToolHandler.js';
@@ -328,6 +330,7 @@ const HANDLER_CLASSES = [
   ScriptReadToolHandler,
   ScriptSearchToolHandler,
   ScriptEditStructuredToolHandler,
+  ScriptEditSnippetToolHandler,
   ScriptRefsFindToolHandler,
   ScriptSymbolFindToolHandler,
   ScriptSymbolsGetToolHandler,

@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
+using System.Collections.Generic;
 
 // Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol / workspace/symbol / mcp/referencesByName / mcp/renameByNamePath / mcp/replaceSymbolBody / mcp/insertBeforeSymbol / mcp/insertAfterSymbol / mcp/removeSymbol
 // This is a lightweight PoC that parses each file independently using Roslyn SyntaxTree.
@@ -137,6 +138,14 @@ sealed class LspServer
                         bool after = method.EndsWith("AfterSymbol", StringComparison.Ordinal);
                         var resp = await InsertAroundSymbolAsync(relative, namePath, text, after, apply);
                         await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
+                    }
+                    else if (method == "mcp/validateTextEdits")
+                    {
+                        var p = root.GetProperty("params");
+                        var relative = p.GetProperty("relative").GetString() ?? "";
+                        var newText = p.GetProperty("newText").GetString() ?? "";
+                        var result = await ValidateTextEditsAsync(relative, newText);
+                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result });
                     }
                     else if (method == "mcp/removeSymbol")
                     {
@@ -543,6 +552,53 @@ sealed class LspServer
         // Minimal diff: return new text truncated
         if (newText.Length > 1000) return newText.Substring(0, 1000) + "…";
         return newText;
+    }
+
+    private async Task<object> ValidateTextEditsAsync(string relative, string newText)
+    {
+        try
+        {
+            var text = newText ?? string.Empty;
+            if (string.IsNullOrEmpty(text))
+            {
+                var full = Path.Combine(_rootDir, relative.Replace('/', Path.DirectorySeparatorChar));
+                text = File.Exists(full) ? await File.ReadAllTextAsync(full) : string.Empty;
+            }
+            var tree = CSharpSyntaxTree.ParseText(text);
+            var diagnostics = tree.GetDiagnostics();
+            var list = new List<object>();
+            foreach (var diag in diagnostics)
+            {
+                var span = diag.Location.GetLineSpan();
+                list.Add(new
+                {
+                    severity = diag.Severity.ToString().ToLowerInvariant(),
+                    id = diag.Id,
+                    message = diag.GetMessage(),
+                    line = span.StartLinePosition.Line + 1,
+                    column = span.StartLinePosition.Character + 1
+                });
+            }
+            return new { diagnostics = list };
+        }
+        catch (Exception ex)
+        {
+            return new
+            {
+                diagnostics = new[]
+                {
+                    new
+                    {
+                        severity = "error",
+                        id = "validateTextEdits",
+                        message = ex.Message,
+                        line = 0,
+                        column = 0
+                    }
+                ],
+                error = ex.Message
+            };
+        }
     }
 
     private async Task<object> ReplaceSymbolBodyAsync(string relative, string namePath, string bodyText, bool apply)

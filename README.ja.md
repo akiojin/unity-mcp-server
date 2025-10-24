@@ -50,6 +50,8 @@ LSP は MCP サーバが自動ダウンロード・自動更新（固定版）�
   - エラーが無ければ `"preview": false` で適用
 - 追記（クラス直後など）:
   - `script_edit_structured { "operation": "insert_after", "path": "...", "symbolName": "ClassName", "kind": "class", "newText": "\nprivate void X(){}\n", "preview": false }`
+- 1〜2行のスニペット調整（ガード削除・条件変更など）:
+  - `script_edit_snippet { "path": "Assets/Scripts/Foo.cs", "preview": true, "instructions": [{ "operation": "delete", "anchor": { "type": "text", "target": "        if (value == null) return;\n" } }] }`
 
 必要時のみ、Unity側で手動 `AssetDatabase.Refresh` を行ってください。
 
@@ -78,10 +80,10 @@ LSP は MCP サーバが自動ダウンロード・自動更新（固定版）�
    - パスは `Assets/` または `Packages/` 起点のプロジェクト相対パスのみ使用。
    - 検索結果の container から `Outer/Nested/Member` のような `namePath` を組み立てる。
 2) 最小限のコード確認: `script_read` で対象の前後30–40行。
-3) 安全な編集: `script_edit_structured`（insert_before/insert_after/replace_body）。
-   - insert_* はクラス/名前空間が対象（メソッド直下は不可）。
-   - `replace_body` はブレースを含む自己完結ボディ。
-   - リスクが高い時のみ `preview=true`、それ以外は適用でトークン節約。
+3) 安全な編集:
+   - `script_edit_snippet` は 80 文字以内の局所変更に使用（null ガード削除・条件式差し替え・return 直前のログ挿入など）。アンカー文字列を厳密に指定し、同梱LSP（Roslynベース）の診断で構文エラーを検知した場合は自動ロールバック。
+   - `script_edit_structured` はクラス/名前空間レベルの挿入やメソッド本体置換に利用。insert 系はクラス/名前空間を対象とし、`replace_body` は波括弧を含む自己完結ボディにする。
+   - `preview=true` は高リスク時のみ。可能なら直接適用してトークン消費を抑える。
 4) 任意: `script_refactor_rename` や `script_remove_symbol` をプリフライト付きで実施。
 5) 検証: コンパイル状態を確認し、必要に応じて対象周辺を `script_read` で再確認。
 

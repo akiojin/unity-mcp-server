@@ -346,6 +346,52 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 ---
 
+## S82) 軽量スニペット編集（script_edit_snippet）
+
+正常系:
+- S82-01: `preview=true` で `if (foo == null) return;` と `if (bar == null) return;` の2箇所削除 → `results[].status=applied`、`preview` に diff を含む
+- S82-02: `operation=replace` で比較演算子のみを `==`→`!=` に変更（差分≤80文字）→ 適用成功
+- S82-03: `operation=insert` と `anchor.position=before` で `return` 直前にログを挿入 → 重複ログ検知で二重挿入しない
+
+異常系:
+- S82-E01: `instructions` が11件（上限10超過）→ `fail（validation: instruction limit exceeded）`
+- S82-E02: `anchor.target` 差分が80文字超 → `fail（validation: diff>80 chars）`
+- S82-E03: アンカーが複数箇所一致 → `fail（anchor_not_unique）`
+- S82-E04: LSP診断に `Expected }` 等の構文エラー → 全編集ロールバック `fail（syntax_error）`
+
+実行手順（例: nullガード削除）:
+1. `script_read` で対象メソッドを取得し、削除対象のスニペットを正確にコピー
+2. `script_edit_snippet` を以下のように呼び出す
+   ```json
+   {
+     "path": "Assets/Scripts/GigaTestFile.cs",
+     "preview": true,
+     "instructions": [
+       {
+         "operation": "delete",
+         "anchor": {
+           "type": "text",
+           "target": "        if (first == null) return;\\n"
+         }
+       },
+       {
+         "operation": "delete",
+         "anchor": {
+           "type": "text",
+           "target": "        if (second == null) return;\\n"
+         }
+       }
+     ]
+   }
+   ```
+3. `preview` で差分を確認し安全なら `preview=false` で適用
+
+備考:
+- 適用前に LSP (`mcp/validateTextEdits`) で括弧整合を検証。診断が返された場合はファイルが書き換わらないことを確認する。
+- `anchor.target` は改行を含めて正確に指定する。曖昧なターゲットは `anchor_not_unique` で拒否される。
+
+---
+
 ## S90) 後片付け（任意）
 
 正常系:

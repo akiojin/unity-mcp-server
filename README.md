@@ -48,6 +48,8 @@ Common usage (MCP tools)
   - then set `"preview": false` to apply if errors are empty
 - Insert after class:
   - `script_edit_structured { "operation": "insert_after", "path": "...", "symbolName": "ClassName", "kind": "class", "newText": "\nprivate void X(){}\n", "preview": false }`
+- Snippet tweaks (guard removal / condition swap):
+  - `script_edit_snippet { "path": "Assets/Scripts/Foo.cs", "preview": true, "instructions": [{ "operation": "delete", "anchor": { "type": "text", "target": "        if (value == null) return;\n" } }] }`
 
 Run `AssetDatabase.Refresh` in Unity manually only when needed.
 
@@ -76,10 +78,10 @@ Suggested caps
    - Use project-relative paths under `Assets/` or `Packages/` only.
    - Use results’ container to build `namePath` like `Outer/Nested/Member`.
 2) Inspect minimal code: `script_read` with 30–40 lines around the symbol.
-3) Edit safely: `script_edit_structured` (insert_before/insert_after/replace_body).
-   - Insert targets class/namespace (never method).
-   - `replace_body` must include braces and be self-contained.
-   - Use `preview=true` only when risk is high; otherwise apply to avoid extra tokens.
+3) Edit safely:
+   - Use `script_edit_snippet` for ≤80-character changes anchored to exact text (null guard removal, condition tweaks, small insertions). The tool validates via the bundled LSP (Roslyn-backed) diagnostics and rolls back on errors.
+   - Use `script_edit_structured` for class/namespace-level insertions and method body replacements. Insert targets must be class/namespace symbols; `replace_body` must include braces and be self-contained.
+   - Use `preview=true` only when risk is high; otherwise apply directly to reduce payload.
 4) Optional refactor/remove: `script_refactor_rename`, `script_remove_symbol` with preflight.
 5) Verify: compile state and, if needed, targeted `script_read` again.
 
