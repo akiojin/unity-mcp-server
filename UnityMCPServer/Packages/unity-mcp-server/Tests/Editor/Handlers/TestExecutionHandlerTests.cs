@@ -29,6 +29,25 @@ namespace UnityMCPServer.Tests
         }
 
         [Test]
+        public void RunTests_ShouldFailWhenScenesHaveUnsavedChanges()
+        {
+            try
+            {
+                TestExecutionHandler.DirtySceneDetector = () => true;
+
+                var result = TestExecutionHandler.RunTests(new JObject()) as dynamic;
+
+                Assert.IsNotNull(result);
+                Assert.IsNotNull(result.error);
+                StringAssert.Contains("unsaved", (string)result.error);
+            }
+            finally
+            {
+                TestExecutionHandler.ResetForTesting();
+            }
+        }
+
+        [Test]
         public void RunTests_ShouldFailIfAlreadyRunning()
         {
             // Note: This test would be difficult to implement reliably

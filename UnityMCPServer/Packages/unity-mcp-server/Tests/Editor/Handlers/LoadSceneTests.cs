@@ -7,6 +7,7 @@ using UnityMCPServer.Handlers;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace UnityMCPServer.Tests
 {
@@ -58,6 +59,11 @@ namespace UnityMCPServer.Tests
             }
         }
 
+        private static JObject ToJObject(object result)
+        {
+            return result as JObject ?? JObject.FromObject(result);
+        }
+
         [Test]
         public void LoadScene_ShouldLoadByPath()
         {
@@ -66,14 +72,14 @@ namespace UnityMCPServer.Tests
                 ["scenePath"] = testScenePath
             };
 
-            var result = SceneHandler.LoadScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.LoadScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNull(result.error);
-            Assert.AreEqual("LoadTestScene", result.sceneName);
-            Assert.AreEqual(testScenePath, result.scenePath);
-            Assert.AreEqual("Single", result.loadMode);
-            Assert.IsTrue(result.isLoaded);
+            Assert.IsNull(result.Value<string>("error"));
+            Assert.AreEqual("LoadTestScene", result.Value<string>("sceneName"));
+            Assert.AreEqual(testScenePath, result.Value<string>("scenePath"));
+            Assert.AreEqual("Single", result.Value<string>("loadMode"));
+            Assert.IsTrue(result.Value<bool?>("isLoaded") ?? false);
             
             // Verify scene is actually loaded
             Assert.AreEqual("LoadTestScene", SceneManager.GetActiveScene().name);
@@ -88,12 +94,12 @@ namespace UnityMCPServer.Tests
                 ["sceneName"] = "LoadTestScene"
             };
 
-            var result = SceneHandler.LoadScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.LoadScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNull(result.error);
-            Assert.AreEqual("LoadTestScene", result.sceneName);
-            Assert.IsTrue(result.isLoaded);
+            Assert.IsNull(result.Value<string>("error"));
+            Assert.AreEqual("LoadTestScene", result.Value<string>("sceneName"));
+            Assert.IsTrue(result.Value<bool?>("isLoaded") ?? false);
         }
 
         [Test]
@@ -110,14 +116,14 @@ namespace UnityMCPServer.Tests
                 ["loadMode"] = "Additive"
             };
 
-            var result = SceneHandler.LoadScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.LoadScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNull(result.error);
-            Assert.AreEqual("AdditiveTestScene", result.sceneName);
-            Assert.AreEqual("Additive", result.loadMode);
-            Assert.IsTrue(result.isLoaded);
-            Assert.IsTrue(result.activeSceneCount > 1);
+            Assert.IsNull(result.Value<string>("error"));
+            Assert.AreEqual("AdditiveTestScene", result.Value<string>("sceneName"));
+            Assert.AreEqual("Additive", result.Value<string>("loadMode"));
+            Assert.IsTrue(result.Value<bool?>("isLoaded") ?? false);
+            Assert.Greater(result.Value<int?>("activeSceneCount") ?? 0, 1);
             
             // Verify multiple scenes are loaded
             Assert.AreEqual(2, SceneManager.sceneCount);
@@ -128,11 +134,10 @@ namespace UnityMCPServer.Tests
         {
             var parameters = new JObject();
 
-            var result = SceneHandler.LoadScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.LoadScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.error);
-            Assert.IsTrue(((string)result.error).Contains("Either scenePath or sceneName must be provided"));
+            StringAssert.Contains("Either scenePath or sceneName must be provided", result.Value<string>("error"));
         }
 
         [Test]
@@ -144,11 +149,10 @@ namespace UnityMCPServer.Tests
                 ["sceneName"] = "LoadTestScene"
             };
 
-            var result = SceneHandler.LoadScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.LoadScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.error);
-            Assert.IsTrue(((string)result.error).Contains("Provide either scenePath or sceneName, not both"));
+            StringAssert.Contains("Provide either scenePath or sceneName, not both", result.Value<string>("error"));
         }
 
         [Test]
@@ -160,11 +164,10 @@ namespace UnityMCPServer.Tests
                 ["loadMode"] = "InvalidMode"
             };
 
-            var result = SceneHandler.LoadScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.LoadScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.error);
-            Assert.IsTrue(((string)result.error).Contains("Invalid load mode"));
+            StringAssert.Contains("Invalid load mode", result.Value<string>("error"));
         }
 
         [Test]
@@ -175,11 +178,10 @@ namespace UnityMCPServer.Tests
                 ["scenePath"] = "Assets/NonExistent/Scene.unity"
             };
 
-            var result = SceneHandler.LoadScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.LoadScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.error);
-            Assert.IsTrue(((string)result.error).Contains("Scene file not found"));
+            StringAssert.Contains("Scene file not found", result.Value<string>("error"));
         }
 
         [Test]
@@ -195,11 +197,10 @@ namespace UnityMCPServer.Tests
                 ["sceneName"] = "NotInBuild"
             };
 
-            var result = SceneHandler.LoadScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.LoadScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.error);
-            Assert.IsTrue(((string)result.error).Contains("not in build settings"));
+            StringAssert.Contains("not in build settings", result.Value<string>("error"));
         }
 
         [Test]
@@ -214,16 +215,18 @@ namespace UnityMCPServer.Tests
             var newScene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
             EditorSceneManager.SaveScene(newScene, newScenePath);
 
+            EditorSceneManager.OpenScene(testScenePath); // ensure previous scene is active
+
             var parameters = new JObject
             {
                 ["scenePath"] = newScenePath
             };
 
-            var result = SceneHandler.LoadScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.LoadScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNull(result.error);
-            Assert.AreEqual(previousSceneName, result.previousScene);
+            Assert.IsNull(result.Value<string>("error"));
+            Assert.AreEqual(previousSceneName, result.Value<string>("previousScene"));
         }
     }
 }

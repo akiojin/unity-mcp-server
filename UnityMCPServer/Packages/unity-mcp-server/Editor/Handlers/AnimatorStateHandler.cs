@@ -57,17 +57,19 @@ namespace UnityMCPServer.Handlers
                     ["hasController"] = animator.runtimeAnimatorController != null
                 };
 
-                if (animator.runtimeAnimatorController == null)
+                bool hasController = animator.runtimeAnimatorController != null;
+                if (hasController)
                 {
-                    result["error"] = "No AnimatorController assigned";
-                    return result;
+                    // Get controller info
+                    result["controllerName"] = animator.runtimeAnimatorController.name;
+                }
+                else
+                {
+                    result["controllerName"] = null;
                 }
 
-                // Get controller info
-                result["controllerName"] = animator.runtimeAnimatorController.name;
-
                 // Get current state info (only available in play mode)
-                if (Application.isPlaying && includeStates)
+                if (hasController && Application.isPlaying && includeStates)
                 {
                     var states = new List<Dictionary<string, object>>();
                     var layerCount = animator.layerCount;
@@ -158,6 +160,10 @@ namespace UnityMCPServer.Handlers
                     }
 
                     result["layers"] = states;
+                }
+                else if (!hasController)
+                {
+                    result["layers"] = new List<Dictionary<string, object>>();
                 }
 
                 // Get parameters

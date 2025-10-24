@@ -29,6 +29,21 @@ namespace UnityMCPServer.Tests
             }
         }
         
+        private static Dictionary<string, object> ToDictionary(object result)
+        {
+            if (result == null)
+            {
+                return null;
+            }
+
+            if (result is Dictionary<string, object> dict)
+            {
+                return dict;
+            }
+
+            return JObject.FromObject(result).ToObject<Dictionary<string, object>>();
+        }
+
         [Test]
         public void GetAnimatorState_WithValidGameObject_ReturnsSuccess()
         {
@@ -42,12 +57,14 @@ namespace UnityMCPServer.Tests
             
             // Act
             var result = AnimatorStateHandler.GetAnimatorState(parameters);
-            
             // Assert
             Assert.IsNotNull(result);
-            Assert.IsInstanceOf<Dictionary<string, object>>(result);
-            var dict = (Dictionary<string, object>)result;
-            Assert.IsFalse(dict.ContainsKey("error"));
+            var dict = ToDictionary(result);
+            Assert.IsNotNull(dict);
+            if (dict.ContainsKey("error"))
+            {
+                Assert.Fail($"Unexpected error: {dict["error"]}");
+            }
             Assert.AreEqual(testGameObject.name, dict["gameObject"]);
             Assert.AreEqual(testAnimator.enabled, dict["enabled"]);
         }
@@ -66,7 +83,8 @@ namespace UnityMCPServer.Tests
             
             // Assert
             Assert.IsNotNull(result);
-            var dict = result as Dictionary<string, object> ?? (Dictionary<string, object>)result;
+            var dict = ToDictionary(result);
+            Assert.IsNotNull(dict);
             Assert.IsTrue(dict.ContainsKey("error"));
             Assert.IsTrue(dict["error"].ToString().Contains("GameObject not found"));
         }
@@ -82,7 +100,8 @@ namespace UnityMCPServer.Tests
             
             // Assert
             Assert.IsNotNull(result);
-            var dict = result as Dictionary<string, object> ?? (Dictionary<string, object>)result;
+            var dict = ToDictionary(result);
+            Assert.IsNotNull(dict);
             Assert.IsTrue(dict.ContainsKey("error"));
             Assert.IsTrue(dict["error"].ToString().Contains("gameObjectName is required"));
         }
@@ -101,7 +120,8 @@ namespace UnityMCPServer.Tests
             
             // Assert
             Assert.IsNotNull(result);
-            var dict = result as Dictionary<string, object> ?? (Dictionary<string, object>)result;
+            var dict = ToDictionary(result);
+            Assert.IsNotNull(dict);
             Assert.IsTrue(dict.ContainsKey("error"));
             Assert.IsTrue(dict["error"].ToString().Contains("only available in Play mode"));
         }
@@ -121,7 +141,8 @@ namespace UnityMCPServer.Tests
             
             // Assert
             Assert.IsNotNull(result);
-            var dict = result as Dictionary<string, object> ?? (Dictionary<string, object>)result;
+            var dict = ToDictionary(result);
+            Assert.IsNotNull(dict);
             Assert.IsTrue(dict.ContainsKey("error"));
             Assert.IsTrue(dict["error"].ToString().Contains("Animator component not found"));
         }

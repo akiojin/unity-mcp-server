@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem.Processors;
 #pragma warning restore CS0234
 
 namespace UnityMCPServer.Handlers
@@ -24,10 +25,17 @@ namespace UnityMCPServer.Handlers
         private static Dictionary<string, InputDevice> activeDevices = new Dictionary<string, InputDevice>();
         private static List<InputEventPtr> queuedEvents = new List<InputEventPtr>();
         private static bool isSimulationActive = false;
-        
+
         // Virtual keyboard management
         private static Keyboard virtualKeyboard;
         private static HashSet<Key> pressedKeys = new HashSet<Key>();
+        private static readonly Dictionary<StickControl, Vector2> stickTargets = new Dictionary<StickControl, Vector2>();
+
+        static InputSystemHandler()
+        {
+            InputSystem.onDeviceChange += OnDeviceChange;
+            InputSystem.onBeforeUpdate += OnBeforeInputUpdate;
+        }
 
         /// <summary>
         /// Simulates keyboard input
@@ -36,10 +44,6 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                if (!Application.isPlaying)
-                {
-                    return new { error = "Play Mode is required for simulate_keyboard_input", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
-                }
                 string action = parameters["action"]?.ToString(); // "press", "release", "type", "combo"
                 
                 if (string.IsNullOrEmpty(action))
@@ -82,10 +86,6 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                if (!Application.isPlaying)
-                {
-                    return new { error = "Play Mode is required for simulate_mouse_input", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
-                }
                 string action = parameters["action"]?.ToString(); // "move", "click", "drag", "scroll"
                 
                 if (string.IsNullOrEmpty(action))
@@ -128,10 +128,6 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                if (!Application.isPlaying)
-                {
-                    return new { error = "Play Mode is required for simulate_gamepad_input", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
-                }
                 string action = parameters["action"]?.ToString(); // "button", "stick", "trigger", "dpad"
                 
                 if (string.IsNullOrEmpty(action))
@@ -174,10 +170,6 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                if (!Application.isPlaying)
-                {
-                    return new { error = "Play Mode is required for simulate_touch_input", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
-                }
                 string action = parameters["action"]?.ToString(); // "tap", "swipe", "pinch", "multi"
                 
                 if (string.IsNullOrEmpty(action))
@@ -220,10 +212,6 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                if (!Application.isPlaying)
-                {
-                    return new { error = "Play Mode is required for create_input_sequence", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
-                }
                 var sequence = parameters["sequence"]?.ToObject<JArray>();
                 int delayBetween = parameters["delayBetween"]?.ToObject<int>() ?? 100;
                 
@@ -295,11 +283,6 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                if (!Application.isPlaying)
-                {
-                    return new { error = "Play Mode is required for input_system get_state", code = "PLAY_MODE_REQUIRED", state = new { isPlaying = Application.isPlaying, isCompiling = UnityEditor.EditorApplication.isCompiling } };
-                }
-
                 var state = new
                 {
                     simulationActive = isSimulationActive,
@@ -326,12 +309,21 @@ namespace UnityMCPServer.Handlers
         /// </summary>
         private static Keyboard GetVirtualKeyboard()
         {
-            // Always use virtual keyboard for safety (don't modify physical keyboard state)
+            // Prefer any existing keyboard device (e.g., provided by tests)
+            var existingKeyboard = InputSystem.devices
+                .OfType<Keyboard>()
+                .FirstOrDefault(k => k.added && !string.Equals(k.name, "VirtualKeyboard", StringComparison.OrdinalIgnoreCase));
+            if (existingKeyboard != null)
+            {
+                return existingKeyboard;
+            }
+
             if (virtualKeyboard == null || !virtualKeyboard.added)
             {
                 virtualKeyboard = InputSystem.AddDevice<Keyboard>("VirtualKeyboard");
                 Debug.Log("[InputSystemHandler] Created virtual keyboard device");
             }
+
             return virtualKeyboard;
         }
 
@@ -348,19 +340,66 @@ namespace UnityMCPServer.Handlers
 
         private static T GetOrCreateDevice<T>(string deviceName) where T : InputDevice
         {
-            if (activeDevices.ContainsKey(deviceName))
+            if (activeDevices.TryGetValue(deviceName, out var cachedDevice))
             {
-                return activeDevices[deviceName] as T;
+                if (cachedDevice is T typed && typed.added)
+                {
+                    return typed;
+                }
+
+                activeDevices.Remove(deviceName);
             }
-            
-            var device = InputSystem.GetDevice<T>();
+
+            var device = InputSystem.devices.OfType<T>().FirstOrDefault(d => d.added);
             if (device == null)
             {
                 device = InputSystem.AddDevice<T>();
             }
-            
+
             activeDevices[deviceName] = device;
             return device;
+        }
+
+        private static void OnDeviceChange(InputDevice device, InputDeviceChange change)
+        {
+            if (change == InputDeviceChange.Removed || change == InputDeviceChange.Disconnected)
+            {
+                foreach (var key in activeDevices.Where(kvp => kvp.Value == device).Select(kvp => kvp.Key).ToList())
+                {
+                    activeDevices.Remove(key);
+                }
+
+                if (virtualKeyboard == device)
+                {
+                    virtualKeyboard = null;
+                }
+
+                if (device is Keyboard)
+                {
+                    pressedKeys.Clear();
+                }
+
+                foreach (var entry in stickTargets.Where(kvp => kvp.Key.device == device).Select(kvp => kvp.Key).ToList())
+                {
+                    stickTargets.Remove(entry);
+                }
+            }
+        }
+
+        private static void OnBeforeInputUpdate(InputUpdateType updateType)
+        {
+            foreach (var kvp in stickTargets)
+            {
+                var control = kvp.Key;
+                if (control == null || !control.device.added)
+                {
+                    continue;
+                }
+
+                var desiredValue = kvp.Value;
+                var rawValue = CalculateRawStickValue(desiredValue, control);
+                InputState.Change(control, rawValue);
+            }
         }
 
         private static object SimulateKeyPress(Keyboard keyboard, JObject parameters)
@@ -385,7 +424,7 @@ namespace UnityMCPServer.Handlers
             // Add key to pressed keys set
             if (pressedKeys.Add(key))
             {
-                Debug.Log($"[InputSystemHandler] Simulating key press: {keyName} (Virtual Keyboard)");
+                Debug.Log($"[InputSystemHandler] Simulating key press: {keyName} ({keyboard.name})");
                 
                 // Create new keyboard state with all pressed keys
                 var keyboardState = CreateKeyboardState();
@@ -426,7 +465,7 @@ namespace UnityMCPServer.Handlers
             // Remove key from pressed keys set
             if (pressedKeys.Remove(key))
             {
-                Debug.Log($"[InputSystemHandler] Simulating key release: {keyName} (Virtual Keyboard)");
+                Debug.Log($"[InputSystemHandler] Simulating key release: {keyName} ({keyboard.name})");
                 
                 // Create new keyboard state with remaining pressed keys
                 var keyboardState = CreateKeyboardState();
@@ -453,7 +492,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = "text is required" };
             }
             
-            Debug.Log($"[InputSystemHandler] Simulating text input: \"{text}\" (Virtual Keyboard)");
+            Debug.Log($"[InputSystemHandler] Simulating text input: \"{text}\" ({keyboard.name})");
             
             // Use QueueTextEvent for text input (better for UI/TMP)
             foreach (char c in text)
@@ -480,7 +519,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = "keys array is required" };
             }
             
-            Debug.Log($"[InputSystemHandler] Simulating key combo: {string.Join("+", keys)} (Virtual Keyboard)");
+            Debug.Log($"[InputSystemHandler] Simulating key combo: {string.Join("+", keys)} ({keyboard.name})");
             
             // Press all keys
             foreach (string keyName in keys)
@@ -569,36 +608,26 @@ namespace UnityMCPServer.Handlers
         {
             string button = parameters["button"]?.ToString() ?? "left";
             int clickCount = parameters["clickCount"]?.ToObject<int>() ?? 1;
-            
-            MouseButton mouseButton;
-            switch (button.ToLower())
+
+            var buttonControl = GetMouseButton(mouse, button);
+            if (buttonControl == null)
             {
-                case "left":
-                    mouseButton = MouseButton.Left;
-                    break;
-                case "right":
-                    mouseButton = MouseButton.Right;
-                    break;
-                case "middle":
-                    mouseButton = MouseButton.Middle;
-                    break;
-                default:
-                    return new { error = $"Invalid mouse button: {button}" };
+                return new { error = $"Invalid mouse button: {button}" };
             }
-            
+
             for (int i = 0; i < clickCount; i++)
             {
                 // Press
                 using (StateEvent.From(mouse, out var pressEvent))
                 {
-                    mouse.leftButton.WriteValueIntoEvent(1.0f, pressEvent);
+                    buttonControl.WriteValueIntoEvent(1.0f, pressEvent);
                     InputSystem.QueueEvent(pressEvent);
                 }
-                
+
                 // Release
                 using (StateEvent.From(mouse, out var releaseEvent))
                 {
-                    mouse.leftButton.WriteValueIntoEvent(0.0f, releaseEvent);
+                    buttonControl.WriteValueIntoEvent(0.0f, releaseEvent);
                     InputSystem.QueueEvent(releaseEvent);
                 }
             }
@@ -622,32 +651,38 @@ namespace UnityMCPServer.Handlers
             float endX = parameters["endX"]?.ToObject<float>() ?? 0;
             float endY = parameters["endY"]?.ToObject<float>() ?? 0;
             string button = parameters["button"]?.ToString() ?? "left";
-            
+
+            var buttonControl = GetMouseButton(mouse, button);
+            if (buttonControl == null)
+            {
+                return new { error = $"Invalid mouse button: {button}" };
+            }
+
             // Move to start position
             using (StateEvent.From(mouse, out var moveEvent))
             {
                 mouse.position.WriteValueIntoEvent(new Vector2(startX, startY), moveEvent);
                 InputSystem.QueueEvent(moveEvent);
             }
-            
+
             // Press button
             using (StateEvent.From(mouse, out var pressEvent))
             {
-                mouse.leftButton.WriteValueIntoEvent(1.0f, pressEvent);
+                buttonControl.WriteValueIntoEvent(1.0f, pressEvent);
                 InputSystem.QueueEvent(pressEvent);
             }
-            
+
             // Move to end position
             using (StateEvent.From(mouse, out var dragEvent))
             {
                 mouse.position.WriteValueIntoEvent(new Vector2(endX, endY), dragEvent);
                 InputSystem.QueueEvent(dragEvent);
             }
-            
+
             // Release button
             using (StateEvent.From(mouse, out var releaseEvent))
             {
-                mouse.leftButton.WriteValueIntoEvent(0.0f, releaseEvent);
+                buttonControl.WriteValueIntoEvent(0.0f, releaseEvent);
                 InputSystem.QueueEvent(releaseEvent);
             }
             
@@ -684,6 +719,50 @@ namespace UnityMCPServer.Handlers
                 delta = new { x = deltaX, y = deltaY },
                 message = $"Mouse scrolled by ({deltaX}, {deltaY})"
             };
+        }
+
+        private static ButtonControl GetMouseButton(Mouse mouse, string button)
+        {
+            switch (button.ToLower())
+            {
+                case "left":
+                    return mouse.leftButton;
+                case "right":
+                    return mouse.rightButton;
+                case "middle":
+                    return mouse.middleButton;
+                default:
+                    return null;
+            }
+        }
+
+        private static Vector2 CalculateRawStickValue(Vector2 desiredValue, StickControl stickControl)
+        {
+            var desiredMagnitude = Mathf.Clamp01(desiredValue.magnitude);
+            if (desiredMagnitude <= Mathf.Epsilon)
+            {
+                return Vector2.zero;
+            }
+
+            float deadzoneMin = 0.125f;
+            float deadzoneMax = 0.925f;
+
+            foreach (var processor in stickControl.processors)
+            {
+                if (processor is StickDeadzoneProcessor stickDeadzone)
+                {
+                    deadzoneMin = stickDeadzone.min;
+                    deadzoneMax = stickDeadzone.max;
+                    break;
+                }
+            }
+
+            var rawMagnitude = desiredMagnitude * (deadzoneMax - deadzoneMin) + deadzoneMin;
+            rawMagnitude = Mathf.Clamp(rawMagnitude, 0f, 1f);
+            var normalized = desiredValue.normalized;
+            var result = normalized * rawMagnitude;
+            Debug.Log($"[InputSystemHandler] deadzone min={deadzoneMin} max={deadzoneMax} desired={desiredValue} raw={result}");
+            return result;
         }
 
         private static object SimulateGamepadButton(Gamepad gamepad, JObject parameters)
@@ -727,23 +806,13 @@ namespace UnityMCPServer.Handlers
             float x = parameters["x"]?.ToObject<float>() ?? 0;
             float y = parameters["y"]?.ToObject<float>() ?? 0;
             
-            Vector2 value = new Vector2(Mathf.Clamp(x, -1f, 1f), Mathf.Clamp(y, -1f, 1f));
-            
-            using (StateEvent.From(gamepad, out var eventPtr))
-            {
-                if (stick == "left")
-                {
-                    gamepad.leftStick.WriteValueIntoEvent(value, eventPtr);
-                }
-                else
-                {
-                    gamepad.rightStick.WriteValueIntoEvent(value, eventPtr);
-                }
-                InputSystem.QueueEvent(eventPtr);
-            }
-            
-            InputSystem.Update();
-            
+            Vector2 desiredValue = new Vector2(Mathf.Clamp(x, -1f, 1f), Mathf.Clamp(y, -1f, 1f));
+            var stickControl = stick == "left" ? gamepad.leftStick : gamepad.rightStick;
+            var rawValue = CalculateRawStickValue(desiredValue, stickControl);
+
+            stickTargets[stickControl] = desiredValue;
+            InputState.Change(stickControl, rawValue);
+
             return new
             {
                 success = true,
@@ -1153,14 +1222,10 @@ namespace UnityMCPServer.Handlers
                 return null;
             }
             
-            var pressedKeys = new List<string>();
-            foreach (Key key in Enum.GetValues(typeof(Key)))
-            {
-                if (key != Key.None && keyboard[key].isPressed)
-                {
-                    pressedKeys.Add(key.ToString());
-                }
-            }
+            var pressedKeys = keyboard.allKeys
+                .Where(k => k != null && k.isPressed)
+                .Select(k => k.name)
+                .ToList();
             
             return new
             {

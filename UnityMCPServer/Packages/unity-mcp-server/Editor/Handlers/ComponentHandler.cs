@@ -69,9 +69,13 @@ namespace UnityMCPServer.Handlers
                 {
                     foreach (var prop in properties.Properties())
                     {
-                        if (SetComponentProperty(newComponent, prop.Name, prop.Value))
+                        if (TrySetComponentProperty(newComponent, prop.Name, prop.Value, out var errorMessage))
                         {
                             appliedProperties.Add(prop.Name);
+                        }
+                        else
+                        {
+                            return new { error = errorMessage ?? $"Property not found: {prop.Name}" };
                         }
                     }
                 }
@@ -241,22 +245,20 @@ namespace UnityMCPServer.Handlers
                 var modifiedProperties = new List<string>();
                 foreach (var prop in properties.Properties())
                 {
-                    if (SetComponentProperty(component, prop.Name, prop.Value))
+                    if (TrySetComponentProperty(component, prop.Name, prop.Value, out var errorMessage))
                     {
                         modifiedProperties.Add(prop.Name);
                     }
                     else
                     {
-                        // Try to provide helpful error for first failed property
-                        if (modifiedProperties.Count == 0)
-                        {
-                            return new { error = $"Property not found or invalid: {prop.Name}" };
-                        }
+                        return new { error = errorMessage ?? $"Property not found: {prop.Name}" };
                     }
                 }
 
-                // Mark as dirty for saving
-                EditorUtility.SetDirty(component);
+                if (modifiedProperties.Count > 0)
+                {
+                    EditorUtility.SetDirty(component);
+                }
 
                 return new
                 {
@@ -368,10 +370,11 @@ namespace UnityMCPServer.Handlers
             // Search all loaded assemblies
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                type = assembly.GetTypes().FirstOrDefault(t => 
-                    t.Name == typeName && 
-                    typeof(Component).IsAssignableFrom(t));
-                
+                type = assembly.GetTypes().FirstOrDefault(t =>
+                    typeof(Component).IsAssignableFrom(t) &&
+                    (string.Equals(t.FullName, typeName, StringComparison.Ordinal) ||
+                     string.Equals(t.Name, typeName, StringComparison.Ordinal)));
+
                 if (type != null)
                     return type;
             }
@@ -397,12 +400,14 @@ namespace UnityMCPServer.Handlers
         /// <summary>
         /// Sets a property value on a component
         /// </summary>
-        private static bool SetComponentProperty(Component component, string propertyName, JToken value)
+        private static bool TrySetComponentProperty(Component component, string propertyName, JToken value, out string error)
         {
+            error = null;
+
             try
             {
                 Type type = component.GetType();
-                
+
                 // Try field first
                 FieldInfo field = type.GetField(propertyName, BindingFlags.Public | BindingFlags.Instance);
                 if (field != null)
@@ -424,13 +429,15 @@ namespace UnityMCPServer.Handlers
                 // Handle nested properties (e.g., "constraints.freezePositionX")
                 if (propertyName.Contains("."))
                 {
-                    return SetNestedProperty(component, propertyName, value);
+                    return TrySetNestedProperty(component, propertyName, value, out error);
                 }
 
+                error = $"Property not found: {propertyName}";
                 return false;
             }
             catch (Exception ex)
             {
+                error = $"Invalid property value for '{propertyName}': {ex.Message}";
                 Debug.LogWarning($"Failed to set property {propertyName}: {ex.Message}");
                 return false;
             }
@@ -439,8 +446,9 @@ namespace UnityMCPServer.Handlers
         /// <summary>
         /// Sets a nested property value
         /// </summary>
-        private static bool SetNestedProperty(Component component, string propertyPath, JToken value)
+        private static bool TrySetNestedProperty(Component component, string propertyPath, JToken value, out string error)
         {
+            error = null;
             string[] parts = propertyPath.Split('.');
             object current = component;
             Type currentType = component.GetType();
@@ -464,6 +472,7 @@ namespace UnityMCPServer.Handlers
                     continue;
                 }
 
+                error = $"Property not found: {propertyPath}";
                 return false;
             }
 
@@ -472,19 +481,36 @@ namespace UnityMCPServer.Handlers
             var finalField = currentType.GetField(finalProp, BindingFlags.Public | BindingFlags.Instance);
             if (finalField != null)
             {
-                object convertedValue = ConvertValue(value, finalField.FieldType);
-                finalField.SetValue(current, convertedValue);
-                return true;
+                try
+                {
+                    object convertedValue = ConvertValue(value, finalField.FieldType);
+                    finalField.SetValue(current, convertedValue);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    error = $"Invalid property value for '{propertyPath}': {ex.Message}";
+                    return false;
+                }
             }
 
             var finalProperty = currentType.GetProperty(finalProp, BindingFlags.Public | BindingFlags.Instance);
             if (finalProperty != null && finalProperty.CanWrite)
             {
-                object convertedValue = ConvertValue(value, finalProperty.PropertyType);
-                finalProperty.SetValue(current, convertedValue);
-                return true;
+                try
+                {
+                    object convertedValue = ConvertValue(value, finalProperty.PropertyType);
+                    finalProperty.SetValue(current, convertedValue);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    error = $"Invalid property value for '{propertyPath}': {ex.Message}";
+                    return false;
+                }
             }
 
+            error = $"Property not found: {propertyPath}";
             return false;
         }
 

@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -77,18 +78,18 @@ namespace UnityMCPServer.Helpers
         /// <returns>JSON string of the response</returns>
         public static string Success(object data = null)
         {
-            var response = new Dictionary<string, object>
+            var response = new JObject
             {
                 ["status"] = "success",
                 ["version"] = GetPackageVersion()
             };
-            
+
             if (data != null)
             {
-                response["data"] = data;
+                response["data"] = JToken.FromObject(data);
             }
-            
-            return JsonConvert.SerializeObject(response);
+
+            return response.ToString(Formatting.None);
         }
         
         /// <summary>
@@ -99,19 +100,20 @@ namespace UnityMCPServer.Helpers
         /// <returns>JSON string of the response</returns>
         public static string Success(string id, object data = null)
         {
-            var response = new Dictionary<string, object>
+            var response = new JObject
             {
                 ["id"] = id,
+                ["status"] = "success",
                 ["success"] = true,
                 ["version"] = GetPackageVersion()
             };
-            
+
             if (data != null)
             {
-                response["data"] = data;
+                response["data"] = JToken.FromObject(data);
             }
-            
-            return JsonConvert.SerializeObject(response);
+
+            return response.ToString(Formatting.None);
         }
         
         /// <summary>
@@ -123,23 +125,23 @@ namespace UnityMCPServer.Helpers
         /// <returns>JSON string of the response</returns>
         public static string Error(string message, string code = null, object details = null)
         {
-            var response = new Dictionary<string, object>
+            var response = new JObject
             {
                 ["status"] = "error",
                 ["error"] = message
             };
-            
+
             if (!string.IsNullOrEmpty(code))
             {
                 response["code"] = code;
             }
-            
+
             if (details != null)
             {
-                response["details"] = details;
+                response["details"] = JToken.FromObject(details);
             }
-            
-            return JsonConvert.SerializeObject(response);
+
+            return response.ToString(Formatting.None);
         }
         
         /// <summary>
@@ -152,24 +154,25 @@ namespace UnityMCPServer.Helpers
         /// <returns>JSON string of the response</returns>
         public static string Error(string id, string message, string code = null, object details = null)
         {
-            var response = new Dictionary<string, object>
+            var response = new JObject
             {
                 ["id"] = id,
+                ["status"] = "error",
                 ["success"] = false,
                 ["error"] = message
             };
-            
+
             if (!string.IsNullOrEmpty(code))
             {
                 response["code"] = code;
             }
-            
+
             if (details != null)
             {
-                response["details"] = details;
+                response["details"] = JToken.FromObject(details);
             }
-            
-            return JsonConvert.SerializeObject(response);
+
+            return response.ToString(Formatting.None);
         }
         
         /// <summary>

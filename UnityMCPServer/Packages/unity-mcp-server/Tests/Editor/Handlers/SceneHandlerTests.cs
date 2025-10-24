@@ -40,6 +40,11 @@ namespace UnityMCPServer.Tests
             EditorBuildSettings.scenes = buildScenes.ToArray();
         }
 
+        private static JObject ToJObject(object result)
+        {
+            return result as JObject ?? JObject.FromObject(result);
+        }
+
         [Test]
         public void CreateScene_ShouldWorkWithMinimalParameters()
         {
@@ -48,19 +53,20 @@ namespace UnityMCPServer.Tests
                 ["sceneName"] = "TestScene"
             };
 
-            var result = SceneHandler.CreateScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.CreateScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNull(result.error);
-            Assert.AreEqual("TestScene", result.sceneName);
-            Assert.AreEqual("Assets/Scenes/TestScene.unity", result.path);
-            Assert.IsTrue(result.isLoaded);
-            
+            Assert.IsNull(result.Value<string>("error"));
+            Assert.AreEqual("TestScene", result.Value<string>("sceneName"));
+            var path = result.Value<string>("path");
+            Assert.AreEqual("Assets/Scenes/TestScene.unity", path);
+            Assert.IsTrue(result.Value<bool?>("isLoaded") ?? false);
+
             // Verify scene was created
-            Assert.IsTrue(File.Exists((string)result.path));
-            
+            Assert.IsTrue(File.Exists(path));
+
             // Clean up
-            AssetDatabase.DeleteAsset((string)result.path);
+            AssetDatabase.DeleteAsset(path);
         }
 
         [Test]
@@ -72,15 +78,16 @@ namespace UnityMCPServer.Tests
                 ["path"] = testSceneFolder + "/"
             };
 
-            var result = SceneHandler.CreateScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.CreateScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNull(result.error);
-            Assert.AreEqual("CustomScene", result.sceneName);
-            Assert.AreEqual(testSceneFolder + "/CustomScene.unity", result.path);
+            Assert.IsNull(result.Value<string>("error"));
+            Assert.AreEqual("CustomScene", result.Value<string>("sceneName"));
+            var path = result.Value<string>("path");
+            Assert.AreEqual(testSceneFolder + "/CustomScene.unity", path);
             
             // Verify scene was created
-            Assert.IsTrue(File.Exists((string)result.path));
+            Assert.IsTrue(File.Exists(path));
         }
 
         [Test]
@@ -95,11 +102,11 @@ namespace UnityMCPServer.Tests
                 ["loadScene"] = false
             };
 
-            var result = SceneHandler.CreateScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.CreateScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNull(result.error);
-            Assert.IsFalse(result.isLoaded);
+            Assert.IsNull(result.Value<string>("error"));
+            Assert.IsFalse(result.Value<bool?>("isLoaded") ?? false);
             
             // Verify current scene didn't change
             Assert.AreEqual(currentScenePath, SceneManager.GetActiveScene().path);
@@ -115,15 +122,15 @@ namespace UnityMCPServer.Tests
                 ["addToBuildSettings"] = true
             };
 
-            var result = SceneHandler.CreateScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.CreateScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNull(result.error);
-            Assert.IsTrue(result.sceneIndex >= 0);
+            Assert.IsNull(result.Value<string>("error"));
+            Assert.IsTrue(result.Value<int?>("sceneIndex") >= 0);
             
             // Verify scene is in build settings
             var buildScenes = EditorBuildSettings.scenes;
-            Assert.IsTrue(buildScenes.Any(s => s.path == (string)result.path));
+            Assert.IsTrue(buildScenes.Any(s => s.path == result.Value<string>("path")));
         }
 
         [Test]
@@ -134,11 +141,10 @@ namespace UnityMCPServer.Tests
                 ["sceneName"] = ""
             };
 
-            var result = SceneHandler.CreateScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.CreateScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.error);
-            Assert.IsTrue(((string)result.error).Contains("Scene name cannot be empty"));
+            StringAssert.Contains("Scene name cannot be empty", result.Value<string>("error"));
         }
 
         [Test]
@@ -149,11 +155,10 @@ namespace UnityMCPServer.Tests
                 ["sceneName"] = "Invalid/Scene/Name"
             };
 
-            var result = SceneHandler.CreateScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.CreateScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.error);
-            Assert.IsTrue(((string)result.error).Contains("invalid characters"));
+            StringAssert.Contains("invalid characters", result.Value<string>("error"));
         }
 
         [Test]
@@ -170,11 +175,10 @@ namespace UnityMCPServer.Tests
                 ["path"] = testSceneFolder + "/"
             };
 
-            var result = SceneHandler.CreateScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.CreateScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.error);
-            Assert.IsTrue(((string)result.error).Contains("already exists"));
+            StringAssert.Contains("already exists", result.Value<string>("error"));
         }
 
         [Test]
@@ -186,11 +190,10 @@ namespace UnityMCPServer.Tests
                 ["path"] = "../InvalidPath/"
             };
 
-            var result = SceneHandler.CreateScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.CreateScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.error);
-            Assert.IsTrue(((string)result.error).Contains("Invalid path"));
+            StringAssert.Contains("Invalid path", result.Value<string>("error"));
         }
 
         [Test]
@@ -198,11 +201,10 @@ namespace UnityMCPServer.Tests
         {
             var parameters = new JObject();
 
-            var result = SceneHandler.CreateScene(parameters) as dynamic;
+            var result = ToJObject(SceneHandler.CreateScene(parameters));
 
             Assert.IsNotNull(result);
-            Assert.IsNotNull(result.error);
-            Assert.IsTrue(((string)result.error).Contains("Scene name cannot be empty"));
+            StringAssert.Contains("Scene name", result.Value<string>("error"));
         }
     }
 }

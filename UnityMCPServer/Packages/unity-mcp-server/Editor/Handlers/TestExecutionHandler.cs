@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEditor.TestTools.TestRunner.Api;
 #endif
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace UnityMCPServer.Handlers
 {
@@ -20,6 +21,7 @@ namespace UnityMCPServer.Handlers
         private static TestRunnerApi testRunnerApi;
         private static TestResultCollector currentCollector;
         private static bool isTestRunning;
+        internal static Func<bool> DirtySceneDetector = DetectDirtyScenes;
 
         /// <summary>
         /// Test result structure
@@ -52,6 +54,11 @@ namespace UnityMCPServer.Handlers
                 if (testMode != "EditMode" && testMode != "PlayMode" && testMode != "All")
                 {
                     return new { error = "Invalid testMode. Must be EditMode, PlayMode, or All" };
+                }
+
+                if (DirtySceneDetector())
+                {
+                    return new { error = "There are unsaved scene changes. Please save or discard your changes before running tests." };
                 }
 
                 // Save current scene to avoid "Save Scene" dialog after tests
@@ -193,6 +200,25 @@ namespace UnityMCPServer.Handlers
                 default:
                     return TestMode.EditMode;
             }
+        }
+
+        private static bool DetectDirtyScenes()
+        {
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                if (scene.IsValid() && scene.isDirty)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        internal static void ResetForTesting()
+        {
+            DirtySceneDetector = DetectDirtyScenes;
         }
 
         private class TestResultCollector : ICallbacks
