@@ -161,4 +161,235 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     assert.equal(after, original, 'file content should remain unchanged on syntax error');
     assert.equal(validateText.mock.calls.length, 1);
   });
+
+  it('should reject anchor with multiple matches (non-unique)', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class Example
+{
+    public void Process()
+    {
+        if (x == null) return;
+        DoA();
+        if (x == null) return;
+        DoB();
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (x == null) return;\n'
+        }
+      }
+    ];
+
+    handler.lsp = { validateText: mock.fn(async () => []) };
+
+    await assert.rejects(
+      () => handler.execute({ path: relPath, instructions, preview: true }),
+      /anchor_not_unique.*2 locations/i
+    );
+  });
+
+  it('should support replace operation', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class Example
+{
+    public void Check()
+    {
+        if (value > 10)
+        {
+            DoThing();
+        }
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'replace',
+        anchor: {
+          type: 'text',
+          target: 'if (value > 10)'
+        },
+        newText: 'if (value > 20)'
+      }
+    ];
+
+    handler.lsp = { validateText: mock.fn(async () => []) };
+
+    const result = await handler.execute({ path: relPath, instructions, preview: true });
+
+    assert.equal(result.applied, false);
+    assert.equal(result.results.length, 1);
+    assert.equal(result.results[0].status, 'applied');
+    assert.ok(result.preview.includes('if (value > 20)'));
+    assert.ok(!result.preview.includes('if (value > 10)'));
+  });
+
+  it('should support insert operation with position=after (default)', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class Example
+{
+    public void Run()
+    {
+        Initialize();
+        Process();
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'insert',
+        anchor: {
+          type: 'text',
+          target: '        Initialize();\n'
+        },
+        newText: '        Log("Starting");\n'
+      }
+    ];
+
+    handler.lsp = { validateText: mock.fn(async () => []) };
+
+    const result = await handler.execute({ path: relPath, instructions, preview: true });
+
+    assert.equal(result.results[0].status, 'applied');
+    assert.ok(result.preview.includes('Initialize();\n        Log("Starting");\n        Process()'));
+  });
+
+  it('should support insert operation with position=before', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class Example
+{
+    public void Run()
+    {
+        Initialize();
+        Process();
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'insert',
+        anchor: {
+          type: 'text',
+          target: '        Process();\n',
+          position: 'before'
+        },
+        newText: '        Validate();\n'
+      }
+    ];
+
+    handler.lsp = { validateText: mock.fn(async () => []) };
+
+    const result = await handler.execute({ path: relPath, instructions, preview: true });
+
+    assert.equal(result.results[0].status, 'applied');
+    assert.ok(result.preview.includes('Initialize();\n        Validate();\n        Process()'));
+  });
+
+  it('should apply multiple instructions in sequence (batch editing)', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class Multi
+{
+    public void Execute()
+    {
+        if (a == null) return;
+        ProcessA();
+        if (b == null) return;
+        ProcessB();
+        if (c > 10)
+        {
+            ProcessC();
+        }
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (a == null) return;\n'
+        }
+      },
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (b == null) return;\n'
+        }
+      },
+      {
+        operation: 'replace',
+        anchor: {
+          type: 'text',
+          target: 'if (c > 10)'
+        },
+        newText: 'if (c > 20)'
+      }
+    ];
+
+    handler.lsp = { validateText: mock.fn(async () => []) };
+
+    const result = await handler.execute({ path: relPath, instructions, preview: true });
+
+    assert.equal(result.results.length, 3);
+    assert.deepEqual(result.results.map(r => r.status), ['applied', 'applied', 'applied']);
+    assert.ok(!result.preview.includes('if (a == null)'));
+    assert.ok(!result.preview.includes('if (b == null)'));
+    assert.ok(result.preview.includes('if (c > 20)'));
+  });
+
+  it('should write to file in apply mode', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class FileWrite
+{
+    public void Test()
+    {
+        if (debug == null) return;
+        Execute();
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (debug == null) return;\n'
+        }
+      }
+    ];
+
+    handler.lsp = { validateText: mock.fn(async () => []) };
+
+    const result = await handler.execute({ path: relPath, instructions, preview: false });
+
+    assert.equal(result.applied, true);
+    assert.equal(result.results[0].status, 'applied');
+
+    const afterContent = await fs.readFile(absPath, 'utf8');
+    assert.ok(!afterContent.includes('if (debug == null)'));
+    assert.ok(afterContent.includes('Execute();'));
+  });
 });
