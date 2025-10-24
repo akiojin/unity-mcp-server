@@ -22,7 +22,7 @@ End users do not need .NET. The MCP server auto-provisions a self-contained C# L
 
 - Build from source (requires .NET 9 SDK):
   - `dotnet publish csharp-lsp/Server.csproj -c Release -r <rid> --self-contained true -p:PublishSingleFile=true -o out/<rid>`
-  - Copy `out/<rid>/server(.exe)` to `./.unity/tools/csharp-lsp/<rid>/server(.exe)`
+- Copy `out/<rid>/server(.exe)` to `~/.unity/tools/csharp-lsp/<rid>/server(.exe)`
 
 ### Setup Instructions
 

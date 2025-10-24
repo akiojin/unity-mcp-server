@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { logger } from '../core/config.js';
 import { WORKSPACE_ROOT } from '../core/config.js';
 
@@ -21,29 +22,86 @@ export class CSharpLspUtils {
     }
   }
 
-  getLocalPath(rid) {
+  getExecutableName() {
+    return process.platform === 'win32' ? 'server.exe' : 'server';
+  }
+
+  getPrimaryToolRoot() {
+    const envRoot = process.env.UNITY_MCP_TOOLS_ROOT;
+    if (envRoot && envRoot.trim().length > 0) {
+      return path.resolve(envRoot.trim());
+    }
+    return path.join(os.homedir(), '.unity', 'tools');
+  }
+
+  getLegacyToolRoot() {
     const root = WORKSPACE_ROOT || process.cwd();
-    const exe = process.platform === 'win32' ? 'server.exe' : 'server';
-    return path.resolve(root, '.unity', 'tools', 'csharp-lsp', rid, exe);
+    return path.resolve(root, '.unity', 'tools');
+  }
+
+  resolveToolPaths(rid) {
+    const exe = this.getExecutableName();
+    const primary = path.resolve(this.getPrimaryToolRoot(), 'csharp-lsp', rid, exe);
+    const legacy = path.resolve(this.getLegacyToolRoot(), 'csharp-lsp', rid, exe);
+    return { primary, legacy };
+  }
+
+  resolveVersionPaths(rid) {
+    const { primary, legacy } = this.resolveToolPaths(rid);
+    return {
+      primary: path.resolve(path.dirname(primary), 'VERSION'),
+      legacy: path.resolve(path.dirname(legacy), 'VERSION')
+    };
+  }
+
+  migrateLegacyIfNeeded(rid) {
+    const { primary, legacy } = this.resolveToolPaths(rid);
+    if (!fs.existsSync(legacy)) return;
+    if (fs.existsSync(primary)) return;
+    try {
+      fs.mkdirSync(path.dirname(primary), { recursive: true });
+      fs.copyFileSync(legacy, primary);
+      const { primary: primaryVersion, legacy: legacyVersion } = this.resolveVersionPaths(rid);
+      if (fs.existsSync(legacyVersion) && !fs.existsSync(primaryVersion)) {
+        try {
+          fs.copyFileSync(legacyVersion, primaryVersion);
+        } catch {}
+      }
+      logger.info(`[csharp-lsp] migrated legacy binary to ${path.dirname(primary)}`);
+    } catch (e) {
+      logger.warn(`[csharp-lsp] legacy migration failed: ${e.message}`);
+    }
+  }
+
+  getLocalPath(rid) {
+    const { primary, legacy } = this.resolveToolPaths(rid);
+    this.migrateLegacyIfNeeded(rid);
+    if (fs.existsSync(primary)) return primary;
+    if (fs.existsSync(legacy)) return legacy;
+    return primary;
   }
 
   getVersionMarkerPath(rid) {
-    const bin = this.getLocalPath(rid);
-    return path.resolve(path.dirname(bin), 'VERSION');
+    const { primary, legacy } = this.resolveVersionPaths(rid);
+    if (fs.existsSync(primary)) return primary;
+    if (fs.existsSync(legacy)) return legacy;
+    return primary;
   }
 
   readLocalVersion(rid) {
     try {
-      const m = this.getVersionMarkerPath(rid);
-      if (fs.existsSync(m)) return fs.readFileSync(m, 'utf8').trim();
+      const { primary, legacy } = this.resolveVersionPaths(rid);
+      if (fs.existsSync(primary)) return fs.readFileSync(primary, 'utf8').trim();
+      if (fs.existsSync(legacy)) return fs.readFileSync(legacy, 'utf8').trim();
     } catch {}
     return null;
   }
 
   writeLocalVersion(rid, version) {
     try {
-      const m = this.getVersionMarkerPath(rid);
-      fs.writeFileSync(m, String(version || '').trim() + '\n', 'utf8');
+      const marker = this.getVersionMarkerPath(rid);
+      fs.mkdirSync(path.dirname(marker), { recursive: true });
+      fs.writeFileSync(marker, String(version || '').trim() + '\n', 'utf8');
     } catch {}
   }
 
@@ -67,7 +125,7 @@ export class CSharpLspUtils {
     const entry = manifest?.assets?.[rid];
     if (!entry?.url || !entry?.sha256) throw new Error(`manifest missing entry for ${rid}`);
 
-    const dest = this.getLocalPath(rid);
+    const { primary: dest } = this.resolveToolPaths(rid);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     const tmp = dest + '.download';
     await this.downloadTo(entry.url, tmp);

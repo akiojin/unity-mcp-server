@@ -1,12 +1,24 @@
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { CSharpLspUtils } from '../../../src/lsp/CSharpLspUtils.js';
 
 describe('CSharpLspUtils', () => {
   let utils;
+  const tmpDirs = [];
 
   beforeEach(() => {
     utils = new CSharpLspUtils();
+  });
+
+  afterEach(() => {
+    mock.reset();
+    while (tmpDirs.length > 0) {
+      const dir = tmpDirs.pop();
+      try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+    }
   });
 
   describe('constructor', () => {
@@ -111,6 +123,50 @@ describe('CSharpLspUtils', () => {
     it('should provide local path resolution', () => {
       const path = utils.getLocalPath('linux-x64');
       assert.ok(path);
+    });
+  });
+
+  describe('tool root resolution', () => {
+    const rid = 'linux-x64';
+
+    const makeTmp = (prefix) => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+      tmpDirs.push(dir);
+      return dir;
+    };
+
+    it('prefers global tool cache path', () => {
+      const fakeHome = makeTmp('lsp-home-');
+      const fakeLegacy = makeTmp('lsp-legacy-');
+
+      mock.method(utils, 'getPrimaryToolRoot', () => fakeHome);
+      mock.method(utils, 'getLegacyToolRoot', () => fakeLegacy);
+
+      const resolved = utils.getLocalPath(rid);
+      assert.ok(resolved.startsWith(path.join(fakeHome, 'csharp-lsp', rid)));
+      assert.ok(resolved.endsWith(utils.getExecutableName()));
+    });
+
+    it('migrates legacy binaries to global cache when missing', () => {
+      const fakeHome = makeTmp('lsp-home-');
+      const fakeLegacy = makeTmp('lsp-legacy-');
+      const legacyBinDir = path.join(fakeLegacy, 'csharp-lsp', rid);
+      fs.mkdirSync(legacyBinDir, { recursive: true });
+      const legacyBin = path.join(legacyBinDir, utils.getExecutableName());
+      const legacyVersion = path.join(legacyBinDir, 'VERSION');
+      fs.writeFileSync(legacyBin, 'legacy-binary');
+      fs.writeFileSync(legacyVersion, 'legacy-version');
+
+      mock.method(utils, 'getPrimaryToolRoot', () => fakeHome);
+      mock.method(utils, 'getLegacyToolRoot', () => fakeLegacy);
+
+      const resolved = utils.getLocalPath(rid);
+      assert.equal(resolved, path.join(fakeHome, 'csharp-lsp', rid, utils.getExecutableName()));
+      assert.ok(fs.existsSync(resolved));
+      assert.equal(fs.readFileSync(resolved, 'utf8'), 'legacy-binary');
+      const migratedVersion = path.join(fakeHome, 'csharp-lsp', rid, 'VERSION');
+      assert.ok(fs.existsSync(migratedVersion));
+      assert.equal(fs.readFileSync(migratedVersion, 'utf8').trim(), 'legacy-version');
     });
   });
 });
