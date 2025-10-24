@@ -28,7 +28,7 @@ if [ -z "$FEATURE_DESCRIPTION" ]; then
     exit 1
 fi
 
-# Generate SPEC ID (SPEC-xxxxxxxx)
+# Generate SPEC ID (SPEC-xxxxxxxx) using UUID8桁 format
 generate_spec_id() {
     for _ in 1 2 3 4 5; do
         if uuid=$(cat /proc/sys/kernel/random/uuid 2>/dev/null); then
@@ -38,10 +38,12 @@ generate_spec_id() {
             return
         fi
     done
+    # Fallback to timestamp if UUID generation fails
     local ts=$(date +%s%N)
     echo "SPEC-${ts: -8}"
 }
 
+# Function to find the repository root by searching for existing project markers
 find_repo_root() {
     local dir="$1"
     while [ "$dir" != "/" ]; do
@@ -54,6 +56,9 @@ find_repo_root() {
     return 1
 }
 
+# Resolve repository root. Prefer git information when available, but fall back
+# to searching for repository markers so the workflow still functions in repositories that
+# were initialised with --no-git.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if git rev-parse --show-toplevel >/dev/null 2>&1; then
@@ -73,6 +78,7 @@ cd "$REPO_ROOT"
 SPECS_DIR="$REPO_ROOT/specs"
 mkdir -p "$SPECS_DIR"
 
+# Generate unique SPEC ID
 FEATURE_ID=""
 while :; do
     candidate=$(generate_spec_id)
@@ -85,6 +91,7 @@ done
 FEATURE_DIR="$SPECS_DIR/$FEATURE_ID"
 mkdir -p "$FEATURE_DIR"
 
+# Initialize spec file from template
 TEMPLATE="$REPO_ROOT/.specify/templates/spec-template.md"
 SPEC_FILE="$FEATURE_DIR/spec.md"
 if [ -f "$TEMPLATE" ]; then
@@ -93,6 +100,10 @@ else
     touch "$SPEC_FILE"
 fi
 
+# Create checklists subdirectory for quality validation
+mkdir -p "$FEATURE_DIR/checklists"
+
+# Set the SPECIFY_FEATURE environment variable for the current session
 export SPECIFY_FEATURE="$FEATURE_ID"
 mkdir -p "$REPO_ROOT/.specify"
 echo "$SPECIFY_FEATURE" > "$REPO_ROOT/.specify/.current-feature"
@@ -105,9 +116,10 @@ fi
 echo "[specify] Description: $FEATURE_DESCRIPTION"
 
 if $JSON_MODE; then
-    printf '{"FEATURE_ID":"%s","SPEC_FILE":"%s"}\n' "$FEATURE_ID" "$SPEC_FILE"
+    printf '{"FEATURE_ID":"%s","SPEC_FILE":"%s","FEATURE_DIR":"%s"}\n' "$FEATURE_ID" "$SPEC_FILE" "$FEATURE_DIR"
 else
     echo "FEATURE_ID: $FEATURE_ID"
     echo "SPEC_FILE: $SPEC_FILE"
+    echo "FEATURE_DIR: $FEATURE_DIR"
     echo "SPECIFY_FEATURE environment variable set to: $FEATURE_ID"
 fi

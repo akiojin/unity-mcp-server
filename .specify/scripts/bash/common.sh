@@ -1,135 +1,140 @@
 #!/usr/bin/env bash
 # Common functions and variables for all scripts
 
+# Get repository root, with fallback for non-git repositories
 get_repo_root() {
     if git rev-parse --show-toplevel >/dev/null 2>&1; then
         git rev-parse --show-toplevel
     else
+        # Fall back to script location for non-git repos
         local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         (cd "$script_dir/../../.." && pwd)
     fi
 }
 
-# Determine current feature identifier (SPEC-xxxxxxxx)
-get_current_feature() {
+# Get current branch, with fallback for non-git repositories
+get_current_branch() {
+    # First check if SPECIFY_FEATURE environment variable is set
     if [[ -n "${SPECIFY_FEATURE:-}" ]]; then
         echo "$SPECIFY_FEATURE"
         return
     fi
 
-    local repo_root=$(get_repo_root)
-    local marker="$repo_root/.specify/.current-feature"
-    if [[ -f "$marker" ]]; then
-        local feature
-        feature=$(cat "$marker" | tr -d '\r\n')
-        if [[ -n "$feature" ]]; then
-            echo "$feature"
-            return
-        fi
-    fi
-
-    local specs_dir="$repo_root/specs"
-    if [[ -d "$specs_dir" ]]; then
-        local latest
-        latest=$(ls -td "$specs_dir"/SPEC-* 2>/dev/null | head -1)
-        if [[ -n "$latest" ]]; then
-            basename "$latest"
-            return
-        fi
-    fi
-
+    # Then check git if available
     if git rev-parse --abbrev-ref HEAD >/dev/null 2>&1; then
         git rev-parse --abbrev-ref HEAD
         return
     fi
 
-    echo ""
+    # For non-git repos, check .specify/.current-feature file
+    local repo_root=$(get_repo_root)
+    local current_feature_file="$repo_root/.specify/.current-feature"
+
+    if [[ -f "$current_feature_file" ]]; then
+        local feature_id=$(cat "$current_feature_file")
+        if [[ -n "$feature_id" ]]; then
+            echo "$feature_id"
+            return
+        fi
+    fi
+
+    # Fallback: find the latest SPEC-* directory
+    local specs_dir="$repo_root/specs"
+    if [[ -d "$specs_dir" ]]; then
+        local latest_feature=""
+        local latest_time=0
+
+        for dir in "$specs_dir"/SPEC-*; do
+            if [[ -d "$dir" ]]; then
+                local dirname=$(basename "$dir")
+                local mod_time=$(stat -c %Y "$dir" 2>/dev/null || stat -f %m "$dir" 2>/dev/null || echo "0")
+                if [[ "$mod_time" -gt "$latest_time" ]]; then
+                    latest_time=$mod_time
+                    latest_feature=$dirname
+                fi
+            fi
+        done
+
+        if [[ -n "$latest_feature" ]]; then
+            echo "$latest_feature"
+            return
+        fi
+    fi
+
+    echo "main"  # Final fallback
 }
 
-get_current_branch() {
-    get_current_feature
-}
-
+# Check if we have git available
 has_git() {
     git rev-parse --show-toplevel >/dev/null 2>&1
 }
 
 check_feature_branch() {
-    local feature_id="$1"
+    local branch="$1"
     local has_git_repo="$2"
 
-    if [[ -z "$feature_id" ]]; then
-        echo "[specify] Warning: SPECIFY_FEATURE が未設定です。最新のSPECディレクトリを参照できない場合があります" >&2
+    # For non-git repos, we can't enforce branch naming but still provide output
+    if [[ "$has_git_repo" != "true" ]]; then
+        echo "[specify] Warning: Git repository not detected; skipped branch validation" >&2
         return 0
     fi
 
-    if [[ "$has_git_repo" == "true" ]]; then
-        local git_branch
-        git_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-        if [[ "$git_branch" == "main" ]]; then
-            echo "[specify] Gitブランチは main のままです（ブランチ作成なしポリシー）" >&2
-        fi
+    # Check for SPEC-UUID8桁 format (branchless workflow)
+    if [[ "$branch" =~ ^SPEC-[a-z0-9]{8}$ ]]; then
+        return 0
     fi
 
-    if [[ ! "$feature_id" =~ ^SPEC-[a-z0-9]{8}$ ]]; then
-        echo "[specify] Warning: フィーチャーID '$feature_id' が SPEC-xxxxxxxx 形式ではありません" >&2
-    fi
+    # Fallback: allow any branch for now (branchless workflow)
+    echo "[specify] Warning: Branch '$branch' does not match SPEC-[UUID8桁] format, but continuing" >&2
     return 0
 }
 
-get_feature_dir() {
-    echo "$1/specs/$2"
-}
+get_feature_dir() { echo "$1/specs/$2"; }
 
+# Find feature directory by SPEC-UUID8桁 exact match
+# For branchless workflow using SPEC-[UUID8桁] format
 find_feature_dir_by_prefix() {
     local repo_root="$1"
     local feature_id="$2"
     local specs_dir="$repo_root/specs"
 
-    if [[ -d "$specs_dir/$feature_id" ]]; then
+    # For SPEC-UUID8桁 format, use exact match
+    if [[ "$feature_id" =~ ^SPEC-[a-z0-9]{8}$ ]]; then
         echo "$specs_dir/$feature_id"
-    else
-        echo "$specs_dir/$feature_id"
+        return
     fi
+
+    # Fallback: exact match for any other format
+    echo "$specs_dir/$feature_id"
 }
 
 get_feature_paths() {
     local repo_root=$(get_repo_root)
-    local current_feature=$(get_current_feature)
+    local current_branch=$(get_current_branch)
     local has_git_repo="false"
 
     if has_git; then
         has_git_repo="true"
     fi
 
-    local feature_dir=$(find_feature_dir_by_prefix "$repo_root" "$current_feature")
+    # Use prefix-based lookup to support multiple branches per spec
+    local feature_dir=$(find_feature_dir_by_prefix "$repo_root" "$current_branch")
 
-    cat <<'EOF'
-REPO_ROOT='__REPO_ROOT__'
-CURRENT_BRANCH='__CURRENT_BRANCH__'
-HAS_GIT='__HAS_GIT__'
-FEATURE_DIR='__FEATURE_DIR__'
-FEATURE_SPEC='__FEATURE_SPEC__'
-IMPL_PLAN='__IMPL_PLAN__'
-TASKS='__TASKS__'
-RESEARCH='__RESEARCH__'
-DATA_MODEL='__DATA_MODEL__'
-QUICKSTART='__QUICKSTART__'
-CONTRACTS_DIR='__CONTRACTS_DIR__'
+    cat <<EOF
+REPO_ROOT='$repo_root'
+CURRENT_BRANCH='$current_branch'
+HAS_GIT='$has_git_repo'
+FEATURE_DIR='$feature_dir'
+FEATURE_SPEC='$feature_dir/spec.md'
+IMPL_PLAN='$feature_dir/plan.md'
+TASKS='$feature_dir/tasks.md'
+RESEARCH='$feature_dir/research.md'
+DATA_MODEL='$feature_dir/data-model.md'
+QUICKSTART='$feature_dir/quickstart.md'
+CONTRACTS_DIR='$feature_dir/contracts'
 EOF
-    | sed \
-        -e "s#__REPO_ROOT__#$repo_root#g" \
-        -e "s#__CURRENT_BRANCH__#$current_feature#g" \
-        -e "s#__HAS_GIT__#$has_git_repo#g" \
-        -e "s#__FEATURE_DIR__#$feature_dir#g" \
-        -e "s#__FEATURE_SPEC__#$feature_dir/spec.md#g" \
-        -e "s#__IMPL_PLAN__#$feature_dir/plan.md#g" \
-        -e "s#__TASKS__#$feature_dir/tasks.md#g" \
-        -e "s#__RESEARCH__#$feature_dir/research.md#g" \
-        -e "s#__DATA_MODEL__#$feature_dir/data-model.md#g" \
-        -e "s#__QUICKSTART__#$feature_dir/quickstart.md#g" \
-        -e "s#__CONTRACTS_DIR__#$feature_dir/contracts#g"
 }
 
 check_file() { [[ -f "$1" ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
 check_dir() { [[ -d "$1" && -n $(ls -A "$1" 2>/dev/null) ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
+
