@@ -227,6 +227,61 @@ fi
 - 検証: 実施直後
 - コミット: 検証完了後
 
+## 移行実施記録（2025-10-24）
+
+### 既存SPEC移行
+
+**日時**: 2025-10-24 04:31 UTC
+
+**対象**: 16個の既存SPEC
+
+**実施内容**:
+
+1. `.specify/scripts/bash/migrate-specs-to-worktrees.sh` スクリプト作成
+2. 各SPECに対して以下を実行:
+   - `feature/SPEC-[UUID8桁]` ブランチ作成（mainから）
+   - `.worktrees/SPEC-[UUID8桁]/` にworktree作成
+   - SPEC内容は自動的にworktreeに反映（mainから継承）
+
+**結果**:
+
+- 16個のfeatureブランチ作成完了
+- 16個のworktree作成完了
+- 各worktreeはmainブランチのコミット2095cceから開始
+- すべてのSPECファイルがworktreeに存在することを確認
+
+**移行済みSPEC**:
+
+- SPEC-0d5d84f9
+- SPEC-2e6d9a3b
+- SPEC-3c9871b3
+- SPEC-3d9b5f4e
+- SPEC-56860fa4
+- SPEC-5873e340
+- SPEC-5c438276
+- SPEC-7a2c8e6d
+- SPEC-83cb078a
+- SPEC-9d2bc43b
+- SPEC-9f4b1a7c
+- SPEC-c00be76f
+- SPEC-e757a01f
+- SPEC-e7c9b50c
+- SPEC-e8f7a2c1
+- SPEC-er035v7o
+
+**確認コマンド**:
+
+```bash
+# ブランチ一覧
+git branch | grep "feature/SPEC-"
+
+# Worktree一覧
+git worktree list
+
+# 特定SPECのWorktree確認
+ls -la .worktrees/SPEC-0d5d84f9/specs/SPEC-0d5d84f9/
+```
+
 ---
 
 **Note**: このドキュメントは実装後にアーカイブし、今後の参考資料とする。
