@@ -2,7 +2,7 @@
 
 **機能ID**: `SPEC-7a2c8e6d`
 **作成日**: 2025-10-17
-**ステータス**: 確定
+**ステータス**: 完了
 **入力**: Unityプロジェクト設定の取得と更新（Player、Graphics、Quality、Physics、Audio、Time、Build、Editor等）
 
 ## 実行フロー (main)
