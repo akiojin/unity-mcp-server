@@ -568,7 +568,7 @@ sealed class LspServer
         return newText;
     }
 
-    private async Task<object> ValidateTextEditsAsync(string relative, string newText)
+private async Task<object> ValidateTextEditsAsync(string relative, string newText)
     {
         try
         {
@@ -597,19 +597,18 @@ sealed class LspServer
         }
         catch (Exception ex)
         {
+            var errorList = new List<object>();
+            errorList.Add(new
+            {
+                severity = "error",
+                id = "validateTextEdits",
+                message = ex.Message,
+                line = 0,
+                column = 0
+            });
             return new
             {
-                diagnostics = new[]
-                {
-                    new
-                    {
-                        severity = "error",
-                        id = "validateTextEdits",
-                        message = ex.Message,
-                        line = 0,
-                        column = 0
-                    }
-                ],
+                diagnostics = errorList,
                 error = ex.Message
             };
         }
