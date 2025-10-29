@@ -107,6 +107,12 @@ export { CompilationGetStateToolHandler } from './compilation/CompilationGetStat
 export { TestRunToolHandler } from './test/TestRunToolHandler.js';
 export { TestGetStatusToolHandler } from './test/TestGetStatusToolHandler.js';
 
+// Terminal handlers
+export { TerminalOpenToolHandler } from './terminal/TerminalOpenToolHandler.js';
+export { TerminalExecuteToolHandler } from './terminal/TerminalExecuteToolHandler.js';
+export { TerminalReadToolHandler } from './terminal/TerminalReadToolHandler.js';
+export { TerminalCloseToolHandler } from './terminal/TerminalCloseToolHandler.js';
+
 // Editor control handlers
 export { EditorTagsManageToolHandler } from './editor/EditorTagsManageToolHandler.js';
 export { EditorLayersManageToolHandler } from './editor/EditorLayersManageToolHandler.js';
@@ -358,6 +364,12 @@ const HANDLER_CLASSES = [
   // Test handlers
   TestRunToolHandler,
   TestGetStatusToolHandler,
+
+  // Terminal handlers
+  TerminalOpenToolHandler,
+  TerminalExecuteToolHandler,
+  TerminalReadToolHandler,
+  TerminalCloseToolHandler,
 
   // Editor control handlers
   EditorTagsManageToolHandler,
