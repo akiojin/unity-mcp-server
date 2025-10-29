@@ -22,7 +22,7 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
     this.index = new CodeIndex(unityConnection);
     this.projectInfo = new ProjectInfoProvider(unityConnection);
     this.lsp = null; // lazy init with projectRoot
-    this.jobManager = new JobManager();
+    this.jobManager = JobManager.getInstance();
     this.currentJobId = null; // Track current running job
   }
 

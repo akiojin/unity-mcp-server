@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
+import { JobManager } from '../../core/jobManager.js';
 
 export class ScriptIndexStatusToolHandler extends BaseToolHandler {
     constructor(unityConnection) {
@@ -56,6 +57,38 @@ export class ScriptIndexStatusToolHandler extends BaseToolHandler {
         for (const r of roots) walk(r);
         const stats = await idx.getStats();
         const coverage = total > 0 ? Math.min(1, stats.total / total) : 0;
-        return { success: true, totalFiles: total, indexedFiles: stats.total, coverage, breakdown, index: { ready: true, rows: stats.total, lastIndexedAt: stats.lastIndexedAt } };
+
+        // Get build job information if available
+        const jobManager = JobManager.getInstance();
+        const indexInfo = { ready: true, rows: stats.total, lastIndexedAt: stats.lastIndexedAt };
+
+        // Find most recent build job (check all jobs for ones starting with 'build-')
+        const allJobs = jobManager.getAllJobs();
+        const buildJobs = allJobs
+            .filter(job => job.id.startsWith('build-'))
+            .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+
+        if (buildJobs.length > 0) {
+            const latestJob = buildJobs[0];
+            // Only include if job is running or recently completed/failed (within the lifecycle)
+            // Jobs are auto-cleaned after 5 minutes, so any job in the map is relevant
+            indexInfo.buildJob = {
+                id: latestJob.id,
+                status: latestJob.status,
+                progress: { ...latestJob.progress },
+                startedAt: latestJob.startedAt
+            };
+
+            // Add status-specific fields
+            if (latestJob.status === 'completed') {
+                indexInfo.buildJob.completedAt = latestJob.completedAt;
+                indexInfo.buildJob.result = latestJob.result;
+            } else if (latestJob.status === 'failed') {
+                indexInfo.buildJob.failedAt = latestJob.failedAt;
+                indexInfo.buildJob.error = latestJob.error;
+            }
+        }
+
+        return { success: true, totalFiles: total, indexedFiles: stats.total, coverage, breakdown, index: indexInfo };
   }
 }

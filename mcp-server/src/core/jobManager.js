@@ -43,6 +43,17 @@ export class JobManager {
   }
 
   /**
+   * Get the singleton instance
+   * @returns {JobManager}
+   */
+  static getInstance() {
+    if (!JobManager._instance) {
+      JobManager._instance = new JobManager();
+    }
+    return JobManager._instance;
+  }
+
+  /**
    * Create a new job and execute it in background
    *
    * @param {string} jobId - Unique job identifier
