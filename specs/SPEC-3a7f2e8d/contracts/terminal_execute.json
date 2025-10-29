@@ -1,0 +1,49 @@
+{
+  "tool": "terminal_execute",
+  "description": "Execute command in terminal session",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "sessionId": {
+        "type": "string",
+        "description": "Session identifier returned by terminal_open"
+      },
+      "command": {
+        "type": "string",
+        "description": "Command to execute in the terminal"
+      }
+    },
+    "required": ["sessionId", "command"]
+  },
+  "responseSchema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "description": "true if command was sent successfully to the terminal"
+      },
+      "message": {
+        "type": "string",
+        "description": "Status message or error details"
+      }
+    },
+    "required": ["success"]
+  },
+  "errorCases": [
+    {
+      "condition": "Session not found",
+      "errorCode": "SESSION_NOT_FOUND",
+      "message": "Terminal session '{sessionId}' not found"
+    },
+    {
+      "condition": "Session already closed",
+      "errorCode": "SESSION_CLOSED",
+      "message": "Terminal session '{sessionId}' is already closed"
+    },
+    {
+      "condition": "Process not running",
+      "errorCode": "PROCESS_NOT_RUNNING",
+      "message": "Shell process for session '{sessionId}' is not running"
+    }
+  ]
+}

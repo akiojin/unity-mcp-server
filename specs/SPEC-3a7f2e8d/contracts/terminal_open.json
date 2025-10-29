@@ -1,0 +1,63 @@
+{
+  "tool": "terminal_open",
+  "description": "Open terminal window in Unity Editor",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "workingDirectory": {
+        "type": "string",
+        "enum": ["workspace", "project"],
+        "description": "Initial directory: 'workspace' for workspace root, 'project' for Unity project root"
+      },
+      "shell": {
+        "type": "string",
+        "enum": ["auto", "wsl", "bash", "zsh", "pwsh", "powershell", "cmd"],
+        "description": "Shell type to use. 'auto' will detect based on OS (Windows: WSL2→pwsh→powershell, macOS: zsh→bash, Linux: bash)"
+      },
+      "title": {
+        "type": "string",
+        "description": "Custom window title (optional). If not provided, defaults to 'Terminal (workspace)' or 'Terminal (project)'"
+      }
+    },
+    "required": ["workingDirectory"]
+  },
+  "responseSchema": {
+    "type": "object",
+    "properties": {
+      "sessionId": {
+        "type": "string",
+        "description": "Unique session identifier (GUID format)"
+      },
+      "shellType": {
+        "type": "string",
+        "description": "Detected or selected shell type (wsl/bash/zsh/pwsh/powershell/cmd)"
+      },
+      "shellPath": {
+        "type": "string",
+        "description": "Absolute path to the shell executable"
+      },
+      "workingDirectory": {
+        "type": "string",
+        "description": "Resolved absolute path of the working directory"
+      }
+    },
+    "required": ["sessionId", "shellType", "shellPath", "workingDirectory"]
+  },
+  "errorCases": [
+    {
+      "condition": "No shell found on system",
+      "errorCode": "SHELL_NOT_FOUND",
+      "message": "No compatible shell found on this system"
+    },
+    {
+      "condition": "Working directory does not exist",
+      "errorCode": "DIRECTORY_NOT_FOUND",
+      "message": "Working directory '{path}' does not exist"
+    },
+    {
+      "condition": "Unity Editor not connected",
+      "errorCode": "UNITY_NOT_CONNECTED",
+      "message": "Unity Editor MCP server is not connected"
+    }
+  ]
+}

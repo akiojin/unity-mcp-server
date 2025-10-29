@@ -1,0 +1,40 @@
+{
+  "tool": "terminal_close",
+  "description": "Close terminal session and terminate shell process",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "sessionId": {
+        "type": "string",
+        "description": "Session identifier to close"
+      }
+    },
+    "required": ["sessionId"]
+  },
+  "responseSchema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "description": "true if session was closed successfully"
+      },
+      "message": {
+        "type": "string",
+        "description": "Status message"
+      }
+    },
+    "required": ["success"]
+  },
+  "errorCases": [
+    {
+      "condition": "Session not found",
+      "errorCode": "SESSION_NOT_FOUND",
+      "message": "Terminal session '{sessionId}' not found (may already be closed)"
+    },
+    {
+      "condition": "Process termination failed",
+      "errorCode": "PROCESS_KILL_FAILED",
+      "message": "Failed to terminate shell process for session '{sessionId}'"
+    }
+  ]
+}
