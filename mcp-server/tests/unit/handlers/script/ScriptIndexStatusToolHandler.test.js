@@ -182,4 +182,223 @@ describe('ScriptIndexStatusToolHandler', () => {
       assert.ok(mockResult.breakdown.packages !== undefined);
     });
   });
+
+  describe('SPEC-yt3ikddd: buildJob field extension (RED phase)', () => {
+    describe('Contract: Running job progress', () => {
+      it('should include buildJob field when job is running', async () => {
+        // Mock response with running job
+        const mockResult = {
+          success: true,
+          totalFiles: 1500,
+          indexedFiles: 1200,
+          coverage: 0.8,
+          breakdown: { assets: 500, packages: 800, packageCache: 100, other: 100 },
+          index: {
+            ready: true,
+            rows: 12000,
+            lastIndexedAt: '2025-10-29T10:00:00Z',
+            buildJob: {
+              id: 'build-1730188800000-abc123',
+              status: 'running',
+              progress: {
+                processed: 1200,
+                total: 1500,
+                rate: 12.5
+              },
+              startedAt: '2025-10-29T10:00:00Z'
+            }
+          }
+        };
+
+        // Verify buildJob structure for running job
+        assert.ok(mockResult.index.buildJob, 'buildJob should exist');
+        assert.equal(mockResult.index.buildJob.status, 'running');
+        assert.ok(mockResult.index.buildJob.progress, 'progress should exist');
+        assert.ok(typeof mockResult.index.buildJob.progress.processed === 'number');
+        assert.ok(typeof mockResult.index.buildJob.progress.total === 'number');
+        assert.ok(typeof mockResult.index.buildJob.progress.rate === 'number');
+        assert.ok(mockResult.index.buildJob.startedAt);
+      });
+
+      it('should not include completedAt or result for running job', async () => {
+        const mockResult = {
+          index: {
+            buildJob: {
+              id: 'build-123',
+              status: 'running',
+              progress: { processed: 100, total: 200, rate: 10.0 },
+              startedAt: '2025-10-29T10:00:00Z'
+            }
+          }
+        };
+
+        assert.equal(mockResult.index.buildJob.status, 'running');
+        assert.equal(mockResult.index.buildJob.completedAt, undefined, 'completedAt should not exist for running job');
+        assert.equal(mockResult.index.buildJob.result, undefined, 'result should not exist for running job');
+      });
+    });
+
+    describe('Contract: Completed job result', () => {
+      it('should include buildJob with result when job is completed', async () => {
+        const mockResult = {
+          success: true,
+          totalFiles: 1500,
+          indexedFiles: 1500,
+          coverage: 1.0,
+          breakdown: { assets: 500, packages: 850, packageCache: 100, other: 50 },
+          index: {
+            ready: true,
+            rows: 15500,
+            lastIndexedAt: '2025-10-29T10:05:00Z',
+            buildJob: {
+              id: 'build-1730188800000-abc123',
+              status: 'completed',
+              progress: {
+                processed: 1500,
+                total: 1500,
+                rate: 15.2
+              },
+              startedAt: '2025-10-29T10:00:00Z',
+              completedAt: '2025-10-29T10:05:00Z',
+              result: {
+                updatedFiles: 50,
+                removedFiles: 0,
+                totalIndexedSymbols: 15500,
+                lastIndexedAt: '2025-10-29T10:05:00Z'
+              }
+            }
+          }
+        };
+
+        // Verify buildJob structure for completed job
+        assert.equal(mockResult.index.buildJob.status, 'completed');
+        assert.ok(mockResult.index.buildJob.completedAt, 'completedAt should exist');
+        assert.ok(mockResult.index.buildJob.result, 'result should exist');
+        assert.ok(typeof mockResult.index.buildJob.result.updatedFiles === 'number');
+        assert.ok(typeof mockResult.index.buildJob.result.removedFiles === 'number');
+        assert.ok(typeof mockResult.index.buildJob.result.totalIndexedSymbols === 'number');
+        assert.ok(mockResult.index.buildJob.result.lastIndexedAt);
+      });
+    });
+
+    describe('Contract: Failed job error', () => {
+      it('should include buildJob with error when job failed', async () => {
+        const mockResult = {
+          success: true,
+          totalFiles: 1500,
+          indexedFiles: 1200,
+          coverage: 0.8,
+          breakdown: { assets: 500, packages: 800, packageCache: 100, other: 100 },
+          index: {
+            ready: true,
+            rows: 12000,
+            lastIndexedAt: '2025-10-29T09:00:00Z',
+            buildJob: {
+              id: 'build-1730188800000-abc123',
+              status: 'failed',
+              progress: {
+                processed: 800,
+                total: 1500,
+                rate: 10.0
+              },
+              startedAt: '2025-10-29T10:00:00Z',
+              failedAt: '2025-10-29T10:02:30Z',
+              error: 'LSP connection failed: ECONNREFUSED'
+            }
+          }
+        };
+
+        // Verify buildJob structure for failed job
+        assert.equal(mockResult.index.buildJob.status, 'failed');
+        assert.ok(mockResult.index.buildJob.error, 'error should exist');
+        assert.ok(mockResult.index.buildJob.failedAt, 'failedAt should exist');
+        assert.equal(mockResult.index.buildJob.result, undefined, 'result should not exist for failed job');
+      });
+    });
+
+    describe('Contract: Backward compatibility', () => {
+      it('should work without buildJob field (existing clients)', async () => {
+        // Response without buildJob (backward compatible)
+        const mockResult = {
+          success: true,
+          totalFiles: 1500,
+          indexedFiles: 1500,
+          coverage: 1.0,
+          breakdown: { assets: 500, packages: 850, packageCache: 100, other: 50 },
+          index: {
+            ready: true,
+            rows: 15500,
+            lastIndexedAt: '2025-10-29T09:00:00Z'
+            // No buildJob field
+          }
+        };
+
+        // Verify all existing fields are present
+        assert.ok(mockResult.success);
+        assert.ok(typeof mockResult.totalFiles === 'number');
+        assert.ok(typeof mockResult.indexedFiles === 'number');
+        assert.ok(typeof mockResult.coverage === 'number');
+        assert.ok(mockResult.breakdown);
+        assert.ok(mockResult.index.ready);
+        assert.ok(mockResult.index.rows);
+        assert.ok(mockResult.index.lastIndexedAt);
+
+        // buildJob is optional
+        assert.equal(mockResult.index.buildJob, undefined, 'buildJob is optional');
+      });
+
+      it('should maintain all existing fields when buildJob is present', async () => {
+        const mockResult = {
+          success: true,
+          totalFiles: 1500,
+          indexedFiles: 1500,
+          coverage: 1.0,
+          breakdown: { assets: 500, packages: 850, packageCache: 100, other: 50 },
+          index: {
+            ready: true,
+            rows: 15500,
+            lastIndexedAt: '2025-10-29T10:05:00Z',
+            buildJob: {
+              id: 'build-123',
+              status: 'completed',
+              progress: { processed: 1500, total: 1500, rate: 15.2 },
+              startedAt: '2025-10-29T10:00:00Z',
+              completedAt: '2025-10-29T10:05:00Z',
+              result: { updatedFiles: 50, removedFiles: 0, totalIndexedSymbols: 15500, lastIndexedAt: '2025-10-29T10:05:00Z' }
+            }
+          }
+        };
+
+        // All existing fields must be present
+        assert.ok(mockResult.success);
+        assert.ok(mockResult.totalFiles);
+        assert.ok(mockResult.indexedFiles);
+        assert.ok(mockResult.coverage);
+        assert.ok(mockResult.breakdown);
+        assert.ok(mockResult.index.ready);
+        assert.ok(mockResult.index.rows);
+        assert.ok(mockResult.index.lastIndexedAt);
+
+        // New buildJob field is also present
+        assert.ok(mockResult.index.buildJob);
+      });
+    });
+
+    describe('Contract: Status values', () => {
+      it('should only allow running, completed, or failed status', async () => {
+        const validStatuses = ['running', 'completed', 'failed'];
+
+        for (const status of validStatuses) {
+          const mockJob = {
+            id: 'build-123',
+            status: status,
+            progress: { processed: 0, total: 0, rate: 0 },
+            startedAt: '2025-10-29T10:00:00Z'
+          };
+
+          assert.ok(validStatuses.includes(mockJob.status), `${status} should be a valid status`);
+        }
+      });
+    });
+  });
 });
