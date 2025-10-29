@@ -9,7 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 15
+
     defaults:
       run:
         working-directory: ./mcp-server
@@ -35,7 +36,6 @@ jobs:
     
     - name: Run tests with coverage
       run: npm run test:ci
-      timeout-minutes: 10
       env:
         NODE_ENV: test
         CI: true

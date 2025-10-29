@@ -15,7 +15,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'script_edit_snippet',
-      'Perform small, multi-instruction edits (delete/replace/insert) on C# snippets without rewriting entire methods. Use for removing guard clauses, tweaking conditions, or inserting short statements. Required params: path (Assets/ or Packages/ C# file) and instructions (≤10). Each instruction must include an anchor (type=text) and stay within 80 characters of change. Preview mode validates without writing files; apply mode validates via the bundled LSP (Roslyn-backed) diagnostics before saving.',
+      '[C# EDITING - PRECISION TOOL] For Unity C# scripts, use for tiny surgical edits (≤80 chars per change). Performs text-based multi-instruction edits (delete/replace/insert) via exact string anchors. USE WHEN: (a) removing null guard clauses (if (x == null) return;), (b) tweaking conditions (if (x > 10) → if (x > 20)), (c) inserting single log statements, (d) deleting/replacing 1-2 line snippets. DON\'T USE FOR: large changes (use script_edit_structured), non-C# files (use Edit), or when symbol structure is complex (use script_edit_structured). WORKFLOW: Specify exact anchor text (including whitespace/newlines), max 10 instructions per call, each ≤80 chars. Anchor must match exactly once in file. Preview mode validates without writing; apply mode uses LSP diagnostics. Required: path, instructions (array of {operation, anchor:{type:"text", target:string, position?:"before"|"after"}, newText?}).',
       {
         type: 'object',
         properties: {

@@ -68,7 +68,7 @@ describe('Server', () => {
     it('should execute ping tool successfully', async () => {
       // Mock the Unity response
       unityConnection.sendCommand.mock.mockImplementation(async (command) => {
-        if (command === 'system_ping') {
+        if (command === 'ping') {
           return {
             message: 'pong',
             timestamp: '2024-01-01T00:00:00.000Z'
@@ -76,13 +76,13 @@ describe('Server', () => {
         }
         return { status: 'success' };
       });
-      
+
       // Import and test the handler directly
       const { SystemPingToolHandler } = await import('../../../src/handlers/system/SystemPingToolHandler.js');
       const pingHandler = new SystemPingToolHandler(unityConnection);
-      
+
       const result = await pingHandler.handle({ message: 'test' });
-      
+
       assert.equal(result.status, 'success');
       assert.equal(result.result.message, 'pong');
     });
