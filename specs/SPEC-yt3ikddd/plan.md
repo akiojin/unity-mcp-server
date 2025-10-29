@@ -412,8 +412,8 @@ running → failed (エラー時)
 - [x] Phase 0: Research完了 (/speckit.plan コマンド) ✅ research.md作成済み
 - [x] Phase 1: Design完了 (/speckit.plan コマンド) ✅ data-model.md, contracts/, quickstart.md作成済み
 - [x] Phase 2: Task planning完了 (/speckit.plan コマンド - アプローチのみ記述) ✅ plan.md内に記述済み
-- [ ] Phase 3: Tasks生成済み (/speckit.tasks コマンド)
-- [ ] Phase 4: 実装完了
+- [x] Phase 3: Tasks生成済み (/speckit.tasks コマンド) ✅ tasks.md作成済み (20タスク)
+- [ ] Phase 4: 実装完了 (TDD遵守でtasks.md実行)
 - [ ] Phase 5: 検証合格
 
 **ゲートステータス**:
