@@ -69,7 +69,7 @@
 
 **すべてのSPEC開発はWorktreeで並行作業**
 
-本プロジェクトは**Git Worktree**を使用した並行開発フローを採用しています。各SPECは独立したWorktreeで作業し、完了後にmainブランチへローカルマージします（**PR不要**）。
+本プロジェクトは**Git Worktree**を使用した並行開発フローを採用しています。各SPECは独立したWorktreeで作業し、完了後にGitHub Pull Requestを作成して自動マージします（**GitHub Actions自動マージ**）。
 
 **ブランチ命名規則**:
 
@@ -109,14 +109,19 @@
 2. finish-featureスクリプト実行:
    ```bash
    .specify/scripts/bash/finish-feature.sh
+   # またはドラフトPRとして作成:
+   .specify/scripts/bash/finish-feature.sh --draft
    ```
 
 3. 自動実行される処理:
-   - mainブランチに切り替え
-   - `--no-ff`でマージ（履歴保持）
-   - Worktree削除
-   - featureブランチ削除
-   - リモートにpush
+   - featureブランチをリモートにpush
+   - GitHub PRを自動作成（spec.mdからタイトル取得）
+   - GitHub Actionsで品質チェック実行:
+     - tasks.md 全タスク完了チェック
+     - テスト実行（npm + Unity）
+     - コンパイルチェック（TypeScript + C#）
+     - commitlint 規約チェック
+   - 全チェック成功時、自動的にmainへマージ（`--no-ff`で履歴保持）
 
 **既存SPEC移行**:
 
@@ -136,16 +141,18 @@ cd .worktrees/SPEC-0d5d84f9/
 **重要な注意事項**:
 
 - **mainブランチで直接SPEC作業禁止**: 必ずWorktreeを使用
-- **PR作成不要**: ローカルマージで完結
+- **PR自動マージ**: GitHub Actionsで品質チェック後に自動マージ
+- **ドラフトPR**: `--draft`オプションで作成したPRは自動マージ対象外
 - **並行開発推奨**: 複数のSPECを同時に異なるWorktreeで作業可能
 - **Worktree間の独立性**: 各Worktreeは完全に独立（相互干渉なし）
 - **コミット**: Worktree内でのコミットはfeatureブランチに記録される
+- **GitHub CLI必須**: `gh auth login`で認証が必要
 
 **スクリプト**:
 
 - `.specify/scripts/bash/create-new-feature.sh`: 新規SPEC＆Worktree作成
-- `.specify/scripts/bash/finish-feature.sh`: 完了したSPECをmainにマージ
-- `.specify/scripts/bash/migrate-specs-to-worktrees.sh`: 既存SPEC一括移行
+- `.specify/scripts/bash/finish-feature.sh`: PR作成（自動マージトリガー）
+- `.specify/scripts/checks/*.sh`: 品質チェックスクリプト（tasks/tests/compile/commits）
 
 ### TDD遵守（妥協不可）
 

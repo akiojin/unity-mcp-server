@@ -1,40 +1,38 @@
 #!/usr/bin/env bash
 
-# Finish feature: Merge feature branch to main locally and cleanup worktree
+# Finish feature: Create Pull Request for auto-merge workflow
 #
 # Usage: ./finish-feature.sh [OPTIONS]
 #
 # OPTIONS:
-#   --no-cleanup    Don't remove worktree after merge
+#   --draft         Create as draft PR (will not auto-merge)
 #   --help, -h      Show help message
 
 set -e
 
-NO_CLEANUP=false
+DRAFT=false
 
 for arg in "$@"; do
     case "$arg" in
-        --no-cleanup)
-            NO_CLEANUP=true
+        --draft)
+            DRAFT=true
             ;;
         --help|-h)
             cat << 'EOF'
 Usage: finish-feature.sh [OPTIONS]
 
-Finish feature development by merging to main branch locally.
+Finish feature development by creating a Pull Request.
 
 OPTIONS:
-  --no-cleanup    Don't remove worktree after merge
+  --draft         Create as draft PR (will not auto-merge)
   --help, -h      Show this help message
 
 WORKFLOW:
   1. Verify current branch is a feature branch (feature/SPEC-xxx)
-  2. Commit any pending changes
-  3. Switch to main branch
-  4. Merge feature branch to main (--no-ff)
-  5. Remove worktree (unless --no-cleanup)
-  6. Delete feature branch
-  7. Push to remote
+  2. Check for uncommitted changes
+  3. Push feature branch to remote
+  4. Create GitHub Pull Request
+  5. Auto-merge will be triggered by GitHub Actions
 
 EOF
             exit 0
@@ -87,49 +85,98 @@ if ! git diff-index --quiet HEAD --; then
     exit 1
 fi
 
-# Switch to main branch
+# Check if gh CLI is installed and authenticated
 echo ""
-echo "[1/6] Switching to main branch..."
-git checkout main
-
-# Merge feature branch (no fast-forward to preserve history)
-echo ""
-echo "[2/6] Merging $CURRENT_BRANCH to main (no fast-forward)..."
-git merge --no-ff "$CURRENT_BRANCH" -m "feat: Merge $CURRENT_BRANCH - $(cat "$WORKTREE_DIR/specs/$SPEC_ID/spec.md" 2>/dev/null | head -1 | sed 's/^# //' || echo 'Feature implementation')"
-
-# Remove worktree if requested
-if [ "$NO_CLEANUP" = false ]; then
-    echo ""
-    echo "[3/6] Removing worktree: $WORKTREE_DIR..."
-    if [ -d "$WORKTREE_DIR" ]; then
-        git worktree remove "$WORKTREE_DIR" --force
-    else
-        echo "  Warning: Worktree directory not found: $WORKTREE_DIR"
-    fi
-else
-    echo ""
-    echo "[3/6] Skipping worktree cleanup (--no-cleanup specified)"
+echo "[1/4] Checking GitHub CLI..."
+if ! command -v gh &> /dev/null; then
+    echo "ERROR: GitHub CLI (gh) is not installed." >&2
+    echo "Please install it from: https://cli.github.com/" >&2
+    exit 1
 fi
 
-# Delete feature branch
-echo ""
-echo "[4/6] Deleting feature branch: $CURRENT_BRANCH..."
-git branch -d "$CURRENT_BRANCH"
+if ! gh auth status &> /dev/null; then
+    echo "ERROR: GitHub CLI is not authenticated." >&2
+    echo "Please run: gh auth login" >&2
+    exit 1
+fi
 
-# Clear current feature
+echo "✓ GitHub CLI is ready"
+
+# Push feature branch to remote
 echo ""
-echo "[5/6] Clearing current feature tracking..."
+echo "[2/4] Pushing feature branch to remote..."
+git push -u origin "$CURRENT_BRANCH"
+
+# Get PR title from spec.md
+echo ""
+echo "[3/4] Creating Pull Request..."
+SPEC_FILE="$REPO_ROOT/specs/$SPEC_ID/spec.md"
+PR_TITLE="Feature implementation"
+
+if [ -f "$SPEC_FILE" ]; then
+    # Extract title from spec.md (first line after removing markdown header)
+    PR_TITLE=$(head -1 "$SPEC_FILE" | sed 's/^# 機能仕様書: //' | sed 's/^# //')
+fi
+
+# Create PR body
+PR_BODY=$(cat <<EOF
+## SPEC Information
+
+**機能ID**: \`$SPEC_ID\`
+**ブランチ**: \`$CURRENT_BRANCH\`
+
+---
+
+## 変更サマリー
+
+$(git log origin/main..HEAD --oneline --no-merges | head -10)
+
+---
+
+## チェックリスト
+
+- [ ] tasks.md の全タスクが完了している
+- [ ] 全テストが合格している
+- [ ] コンパイルエラーがない
+- [ ] コミットメッセージが規約に準拠している
+
+---
+
+📝 **詳細**: \`specs/$SPEC_ID/spec.md\` を参照してください。
+
+🤖 このPRは自動マージワークフローの対象です。すべてのCI/CDチェックが成功すると自動的にmainブランチへマージされます。
+EOF
+)
+
+# Create PR (draft or normal)
+if [ "$DRAFT" = true ]; then
+    gh pr create --base main --head "$CURRENT_BRANCH" --title "$PR_TITLE" --body "$PR_BODY" --draft
+    echo "✓ Draft PR created successfully"
+else
+    gh pr create --base main --head "$CURRENT_BRANCH" --title "$PR_TITLE" --body "$PR_BODY"
+    echo "✓ PR created successfully"
+fi
+
+# Get PR URL
+PR_URL=$(gh pr view "$CURRENT_BRANCH" --json url --jq .url 2>/dev/null || echo "")
+
+echo ""
+echo "[4/4] Cleaning up..."
 rm -f "$REPO_ROOT/.specify/.current-feature"
 
-# Push to remote
-echo ""
-echo "[6/6] Pushing to remote..."
-git push origin main
-
 echo ""
 echo "========================================="
-echo "✓ Feature $SPEC_ID merged successfully!"
+echo "✓ Feature $SPEC_ID PR created!"
 echo "========================================="
 echo ""
-echo "Main branch is now up to date with your changes."
-echo "Worktree and feature branch have been cleaned up."
+if [ -n "$PR_URL" ]; then
+    echo "PR URL: $PR_URL"
+    echo ""
+fi
+echo "GitHub Actions will now run quality checks."
+echo "If all checks pass, the PR will be automatically merged to main."
+echo ""
+if [ "$DRAFT" = true ]; then
+    echo "Note: This is a draft PR and will NOT be auto-merged."
+    echo "Mark it as ready for review to enable auto-merge."
+fi
