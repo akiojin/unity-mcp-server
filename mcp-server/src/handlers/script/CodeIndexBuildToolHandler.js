@@ -5,12 +5,13 @@ import path from 'path';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 import { LspRpcClient } from '../../lsp/LspRpcClient.js';
 import { logger } from '../../core/config.js';
+import { JobManager } from '../../core/jobManager.js';
 
 export class CodeIndexBuildToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'code_index_build',
-      'Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Stores DB under .unity/cache/code-index/code-index.db.',
+      'Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Returns immediately with jobId for background execution. Check progress with script_index_status. Stores DB under .unity/cache/code-index/code-index.db.',
       {
         type: 'object',
         properties: {},
@@ -21,9 +22,47 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
     this.index = new CodeIndex(unityConnection);
     this.projectInfo = new ProjectInfoProvider(unityConnection);
     this.lsp = null; // lazy init with projectRoot
+    this.jobManager = new JobManager();
+    this.currentJobId = null; // Track current running job
   }
 
   async execute(params = {}) {
+    // Check if a build is already running
+    if (this.currentJobId) {
+      const existingJob = this.jobManager.get(this.currentJobId);
+      if (existingJob && existingJob.status === 'running') {
+        return {
+          success: false,
+          error: 'build_already_running',
+          message: `Code index build is already running (jobId: ${this.currentJobId}). Use script_index_status to check progress.`,
+          jobId: this.currentJobId
+        };
+      }
+    }
+
+    // Generate new jobId
+    const jobId = `build-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    this.currentJobId = jobId;
+
+    // Create background job
+    this.jobManager.create(jobId, async (job) => {
+      return await this._executeBuild(params, job);
+    });
+
+    // Return immediately with jobId
+    return {
+      success: true,
+      jobId,
+      message: 'Code index build started in background',
+      checkStatus: 'Use script_index_status to check progress and completion'
+    };
+  }
+
+  /**
+   * Internal method that performs the actual build
+   * @private
+   */
+  async _executeBuild(params, job) {
     try {
       const info = await this.projectInfo.get();
       const roots = [
@@ -74,6 +113,11 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
       const startAt = Date.now();
       let i = 0; let updated = 0; let processed = 0;
 
+      // Initialize progress
+      job.progress.total = absList.length;
+      job.progress.processed = 0;
+      job.progress.rate = 0;
+
       // LSP request with small retry/backoff
       const requestWithRetry = async (uri, maxRetries = Math.max(0, Math.min(5, Number(params?.retry ?? 2)))) => {
         let lastErr = null;
@@ -104,10 +148,14 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
           } catch {}
           finally {
             processed += 1;
+
+            // Update job progress
+            const elapsed = Math.max(1, Date.now() - startAt);
+            job.progress.processed = processed;
+            job.progress.rate = parseFloat((processed * 1000 / elapsed).toFixed(1));
+
             if (processed % reportEvery === 0 || processed === absList.length) {
-              const elapsed = Math.max(1, Date.now() - startAt);
-              const rate = (processed * 1000 / elapsed).toFixed(1);
-              logger.info(`[index] progress ${processed}/${absList.length} (removed:${removed.length}) rate:${rate} f/s`);
+              logger.info(`[index] progress ${processed}/${absList.length} (removed:${removed.length}) rate:${job.progress.rate} f/s`);
             }
           }
         }
@@ -116,14 +164,25 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
       await Promise.all(workers);
 
       const stats = await this.index.getStats();
-      return { success: true, updatedFiles: updated, removedFiles: removed.length, totalIndexedSymbols: stats.total, lastIndexedAt: stats.lastIndexedAt };
-    } catch (e) {
+
+      // Clear current job tracking on success
+      if (this.currentJobId === job.id) {
+        this.currentJobId = null;
+      }
+
       return {
-        success: false,
-        error: 'code_index_build_failed',
-        message: e.message,
-        hint: 'C# LSP not ready. Ensure manifest/auto-download and workspace paths are valid.'
+        updatedFiles: updated,
+        removedFiles: removed.length,
+        totalIndexedSymbols: stats.total,
+        lastIndexedAt: stats.lastIndexedAt
       };
+    } catch (e) {
+      // Clear current job tracking on error
+      if (this.currentJobId === job.id) {
+        this.currentJobId = null;
+      }
+
+      throw new Error(`Code index build failed: ${e.message}. Hint: C# LSP not ready. Ensure manifest/auto-download and workspace paths are valid.`);
     }
   }
 
