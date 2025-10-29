@@ -1,9 +1,10 @@
-#if UNITY_EDITOR && ENABLE_INPUT_SYSTEM
+#if UNITY_EDITOR && ENABLE_INPUT_SYSTEM && UNITY_INPUT_SYSTEM_PACKAGE
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEditor;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections;
 using UnityMCPServer.Handlers;
 
@@ -20,18 +21,39 @@ namespace UnityMCPServer.Tests
     [TestFixture]
     public class InputSystemHandlerTests
     {
+        private const string InputSystemTypeName = "UnityEngine.InputSystem.InputSystem, Unity.InputSystem";
+
+        private static bool inputSystemAvailable;
+
         private Keyboard keyboard;
         private Mouse mouse;
         private Gamepad gamepad;
         private Touchscreen touchscreen;
 
+        [OneTimeSetUp]
+        public void OneTimeSetup()
+        {
+            inputSystemAvailable = Type.GetType(InputSystemTypeName) != null;
+
+            if (!inputSystemAvailable)
+            {
+                Assert.Ignore("Unity Input System package is not available; skipping InputSystemHandlerTests.");
+            }
+        }
+
         [SetUp]
         public void Setup()
         {
-            // Clean up any existing devices
-            foreach (var device in InputSystem.devices)
+            // Clean up any existing devices. Iterate in reverse so that removing devices
+            // does not invalidate our index and guard against null entries that can appear
+            // in InputSystem.devices during teardown of previous tests.
+            for (var i = InputSystem.devices.Count - 1; i >= 0; i--)
             {
-                InputSystem.RemoveDevice(device);
+                var device = InputSystem.devices[i];
+                if (device != null)
+                {
+                    InputSystem.RemoveDevice(device);
+                }
             }
 
             // Add test devices
@@ -44,11 +66,21 @@ namespace UnityMCPServer.Tests
         [TearDown]
         public void TearDown()
         {
+            if (!inputSystemAvailable)
+            {
+                return;
+            }
+
             // Clean up test devices
             if (keyboard != null) InputSystem.RemoveDevice(keyboard);
             if (mouse != null) InputSystem.RemoveDevice(mouse);
             if (gamepad != null) InputSystem.RemoveDevice(gamepad);
             if (touchscreen != null) InputSystem.RemoveDevice(touchscreen);
+
+            keyboard = null;
+            mouse = null;
+            gamepad = null;
+            touchscreen = null;
         }
 
         #region Keyboard Tests
