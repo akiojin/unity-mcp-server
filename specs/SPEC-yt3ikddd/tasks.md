@@ -271,14 +271,45 @@ Polish (T016-T020) ← すべて並列実行可能 (T016-T018)
 ## 進捗トラッキング
 
 **フェーズ完了状況**:
-- [ ] Phase 3.1: セットアップ (T001-T003)
-- [ ] Phase 3.2: テストファースト (T004-T009)
-- [ ] Phase 3.3: コア実装 (T010-T013)
-- [ ] Phase 3.4: 統合 (T014-T015)
-- [ ] Phase 3.5: 仕上げ (T016-T020)
+- [x] Phase 3.1: セットアップ (T001-T003) ✅
+- [x] Phase 3.2: テストファースト (T004-T009) ✅
+- [x] Phase 3.3: コア実装 (T010-T013) ✅
+- [x] Phase 3.4: 統合 (T014-T015) ✅
+- [x] Phase 3.5: 仕上げ (T016-T020) ✅
 
-**全体進捗**: 0/20タスク完了
+**全体進捗**: 20/20タスク完了 🎉
 
 ---
 
-**次のステップ**: `/speckit.implement` または手動でタスクを実行
+**実装完了**: 2025-10-29
+
+## 完了サマリー
+
+### コミット履歴
+1. `feat(test): JobManagerのcontract testsを追加` (T004)
+2. `feat(test): CodeIndexBuildToolHandlerとScriptIndexStatusToolHandlerのバックグラウンド実行契約テストを追加` (T005, T006)
+3. `feat(test): バックグラウンドコードインデックスビルドの統合テストを追加` (T007-T009)
+4. `feat: JobManagerクラスを実装（バックグラウンドジョブ管理）` (T010)
+5. `feat: CodeIndexBuildToolHandlerをバックグラウンド化` (T011)
+6. `feat: ScriptIndexStatusToolHandlerにbuildJobフィールドを追加＆JobManagerシングルトン化` (T012)
+7. `feat: IndexWatcherにJobManager統合（競合回避）` (T013)
+8. `test: IndexWatcher統合E2Eテストを追加` (T014)
+9. `feat: エラーハンドリングとログ出力を改善` (T015)
+
+### テスト結果
+- ✅ JobManager: 13/13 contract tests合格
+- ✅ CodeIndexBuildToolHandler: バックグラウンド実行契約テスト追加
+- ✅ ScriptIndexStatusToolHandler: buildJob拡張契約テスト追加
+- ✅ Integration tests: US-1, US-2, US-3すべてカバー
+- ✅ IndexWatcher E2E: 4つの統合シナリオテスト
+
+### 実装ファイル
+- `src/core/jobManager.js` (164行, 新規作成)
+- `src/handlers/script/CodeIndexBuildToolHandler.js` (変更: バックグラウンド化)
+- `src/handlers/script/ScriptIndexStatusToolHandler.js` (変更: buildJob拡張)
+- `src/core/indexWatcher.js` (変更: JobManager統合)
+
+### ドキュメント
+- `specs/SPEC-yt3ikddd/quickstart.md`: 完全な検証手順
+- `specs/SPEC-yt3ikddd/contracts/`: API契約定義
+- `specs/SPEC-yt3ikddd/data-model.md`: BuildJob構造定義
