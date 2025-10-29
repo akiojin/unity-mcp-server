@@ -961,6 +961,22 @@ namespace UnityMCPServer.Core
                             response = Response.SuccessResult(command.Id, stats);
                             break;
                         }
+                    case "terminal_open":
+                        var terminalOpenResult = TerminalHandler.Open(command.Parameters);
+                        response = Response.SuccessResult(command.Id, terminalOpenResult);
+                        break;
+                    case "terminal_execute":
+                        var terminalExecuteResult = TerminalHandler.Execute(command.Parameters);
+                        response = Response.SuccessResult(command.Id, terminalExecuteResult);
+                        break;
+                    case "terminal_read":
+                        var terminalReadResult = TerminalHandler.Read(command.Parameters);
+                        response = Response.SuccessResult(command.Id, terminalReadResult);
+                        break;
+                    case "terminal_close":
+                        var terminalCloseResult = TerminalHandler.Close(command.Parameters);
+                        response = Response.SuccessResult(command.Id, terminalCloseResult);
+                        break;
                     default:
                         // Use new format with error details
                         response = Response.ErrorResult(
