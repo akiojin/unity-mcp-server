@@ -35,7 +35,6 @@ namespace UnityMCPServer.Core
         private static Task listenerTask;
         private static bool isProcessingCommand;
         private static bool verboseReceiveLogs = false; // 受信ログの詳細表示を制御
-        private static bool logIncomingCommands = false; // 受信コマンドの種別をログ出力（デバッグ用）
         private static int minEditorStateIntervalMs = 250; // get_editor_stateの最小間隔（抑制）
         private static DateTime lastEditorStateQueryTime = DateTime.MinValue;
         private static object lastEditorStateData = null;
@@ -147,11 +146,6 @@ namespace UnityMCPServer.Core
                             if (verboseToken != null && bool.TryParse(verboseToken.ToString(), out var verbose))
                             {
                                 verboseReceiveLogs = verbose;
-                            }
-                            var logCmdToken = json.SelectToken("unity.logIncomingCommands") ?? json.SelectToken("logging.logIncomingCommands");
-                            if (logCmdToken != null && bool.TryParse(logCmdToken.ToString(), out var logcmd))
-                            {
-                                logIncomingCommands = logcmd;
                             }
                             var minIntToken = json.SelectToken("unity.minEditorStateIntervalMs");
                             if (minIntToken != null && int.TryParse(minIntToken.ToString(), out var minMs) && minMs >= 0 && minMs <= 10000)
@@ -539,19 +533,6 @@ namespace UnityMCPServer.Core
                         await SendFramedMessage(client.GetStream(), response, CancellationToken.None);
                     }
                     return;
-                }
-
-                // 任意のデバッグログ（コマンド種別を明示）
-                if (logIncomingCommands)
-                {
-                    try
-                    {
-                        var type = command.Type ?? "(null)";
-                        var id = command.Id ?? "(n/a)";
-                        var keys = string.Join(",", (command.Parameters?.Properties()?.Select(p => p.Name) ?? Enumerable.Empty<string>()));
-                        Debug.Log($"[MCP Command] id={id} type={type} keys=[{keys}]");
-                    }
-                    catch { }
                 }
 
                 // Handle command based on type
