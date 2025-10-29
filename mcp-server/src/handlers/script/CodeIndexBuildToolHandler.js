@@ -74,7 +74,16 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
       const seen = new Set();
       for (const r of roots) this.walkCs(r, files, seen);
 
-      if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
+      // Initialize LSP with error handling
+      if (!this.lsp) {
+        try {
+          this.lsp = new LspRpcClient(info.projectRoot);
+          logger.info(`[index][${job.id}] LSP initialized for project: ${info.projectRoot}`);
+        } catch (lspError) {
+          logger.error(`[index][${job.id}] LSP initialization failed: ${lspError.message}`);
+          throw new Error(`LSP initialization failed: ${lspError.message}. Ensure C# LSP is properly configured and OmniSharp is available.`);
+        }
+      }
       const lsp = this.lsp;
 
       // Incremental detection based on size-mtime signature
@@ -118,6 +127,8 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
       job.progress.processed = 0;
       job.progress.rate = 0;
 
+      logger.info(`[index][${job.id}] Build started: ${absList.length} files to process, ${removed.length} to remove (status: ${job.status})`);
+
       // LSP request with small retry/backoff
       const requestWithRetry = async (uri, maxRetries = Math.max(0, Math.min(5, Number(params?.retry ?? 2)))) => {
         let lastErr = null;
@@ -137,15 +148,22 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
           const idx = i++;
           if (idx >= absList.length) break;
           const abs = absList[idx];
+          const rel = this.toRel(abs, info.projectRoot);
           try {
             const uri = 'file://' + abs.replace(/\\/g, '/');
             const docSymbols = await requestWithRetry(uri, 2);
             const rows = toRows(uri, docSymbols);
-            const rel = this.toRel(abs, info.projectRoot);
             await this.index.replaceSymbolsForPath(rel, rows);
             await this.index.upsertFile(rel, wanted.get(rel));
             updated += 1;
-          } catch {}
+          } catch (err) {
+            // File access or LSP error - skip and continue
+            // This allows build to continue even if some files fail
+            if (processed % 50 === 0) {
+              // Log occasionally to avoid spam
+              logger.warn(`[index][${job.id}] Skipped file due to error: ${rel} - ${err.message}`);
+            }
+          }
           finally {
             processed += 1;
 
@@ -155,7 +173,7 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
             job.progress.rate = parseFloat((processed * 1000 / elapsed).toFixed(1));
 
             if (processed % reportEvery === 0 || processed === absList.length) {
-              logger.info(`[index] progress ${processed}/${absList.length} (removed:${removed.length}) rate:${job.progress.rate} f/s`);
+              logger.info(`[index][${job.id}] progress ${processed}/${absList.length} (removed:${removed.length}) rate:${job.progress.rate} f/s (status: ${job.status})`);
             }
           }
         }
@@ -170,19 +188,31 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
         this.currentJobId = null;
       }
 
-      return {
+      const result = {
         updatedFiles: updated,
         removedFiles: removed.length,
         totalIndexedSymbols: stats.total,
         lastIndexedAt: stats.lastIndexedAt
       };
+
+      logger.info(`[index][${job.id}] Build completed successfully: updated=${result.updatedFiles}, removed=${result.removedFiles}, total=${result.totalIndexedSymbols} (status: completed)`);
+
+      return result;
     } catch (e) {
       // Clear current job tracking on error
       if (this.currentJobId === job.id) {
         this.currentJobId = null;
       }
 
-      throw new Error(`Code index build failed: ${e.message}. Hint: C# LSP not ready. Ensure manifest/auto-download and workspace paths are valid.`);
+      // Log detailed error with job context
+      logger.error(`[index][${job.id}] Build failed: ${e.message} (status: failed)`);
+
+      // Provide helpful error message with context
+      const errorMessage = e.message.includes('LSP')
+        ? `LSP error: ${e.message}`
+        : `Build error: ${e.message}. Hint: C# LSP not ready. Ensure manifest/auto-download and workspace paths are valid.`;
+
+      throw new Error(errorMessage);
     }
   }
 
