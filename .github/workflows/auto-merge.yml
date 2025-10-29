@@ -1,0 +1,181 @@
+name: Auto Merge PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  quality-checks:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 全履歴を取得（commitlintチェック用）
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mcp-server/package-lock.json
+
+      - name: Install mcp-server dependencies
+        run: |
+          cd mcp-server
+          npm ci
+
+      - name: Check tasks completion
+        id: check-tasks
+        run: |
+          echo "Checking tasks completion..."
+
+          # PRのブランチ名からSPEC IDを抽出
+          BRANCH_NAME="${{ github.head_ref }}"
+          SPEC_ID=$(echo "$BRANCH_NAME" | grep -oP 'SPEC-[a-z0-9]{8}' || echo "")
+
+          if [ -z "$SPEC_ID" ]; then
+            echo "⚠️  Warning: SPEC ID not found in branch name: $BRANCH_NAME"
+            echo "Skipping tasks check"
+            exit 0
+          fi
+
+          TASKS_FILE="specs/$SPEC_ID/tasks.md"
+
+          if [ ! -f "$TASKS_FILE" ]; then
+            echo "⚠️  Warning: tasks.md not found: $TASKS_FILE"
+            echo "Skipping tasks check"
+            exit 0
+          fi
+
+          .specify/scripts/checks/check-tasks.sh "$TASKS_FILE"
+
+      - name: Run tests
+        id: run-tests
+        run: |
+          echo "Running tests..."
+          .specify/scripts/checks/check-tests.sh --npm-only
+
+      - name: Check compilation
+        id: check-compile
+        run: |
+          echo "Checking compilation..."
+          .specify/scripts/checks/check-compile.sh --typescript-only
+
+      - name: Check commit messages
+        id: check-commits
+        run: |
+          echo "Checking commit messages..."
+          .specify/scripts/checks/check-commits.sh --from origin/main --to HEAD
+
+      - name: Comment on PR (Success)
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ **All quality checks passed!**\n\nThe PR is ready to be merged automatically.\n\n- ✅ Tasks completion check\n- ✅ Tests passed\n- ✅ Compilation successful\n- ✅ Commit messages follow conventions'
+            })
+
+      - name: Comment on PR (Failure)
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const failedSteps = [];
+            if ('${{ steps.check-tasks.outcome }}' === 'failure') failedSteps.push('❌ Tasks completion check');
+            if ('${{ steps.run-tests.outcome }}' === 'failure') failedSteps.push('❌ Tests');
+            if ('${{ steps.check-compile.outcome }}' === 'failure') failedSteps.push('❌ Compilation');
+            if ('${{ steps.check-commits.outcome }}' === 'failure') failedSteps.push('❌ Commit messages');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **Quality checks failed!**\n\nPlease fix the following issues before merging:\n\n' + failedSteps.join('\n') + '\n\nCheck the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
+            })
+
+  auto-merge:
+    name: Auto Merge
+    needs: quality-checks
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge PR
+        id: merge
+        run: |
+          echo "Attempting to merge PR #${{ github.event.pull_request.number }}..."
+
+          # mainブランチに切り替え
+          git checkout main
+          git pull origin main
+
+          # PRブランチをマージ（--no-ffでマージコミットを作成）
+          if git merge --no-ff -m "Merge pull request #${{ github.event.pull_request.number }} from ${{ github.head_ref }}" "origin/${{ github.head_ref }}"; then
+            echo "merge_success=true" >> $GITHUB_OUTPUT
+
+            # mainブランチにpush
+            git push origin main
+
+            echo "✅ PR merged successfully"
+          else
+            echo "merge_success=false" >> $GITHUB_OUTPUT
+            echo "❌ Merge failed (conflict detected)"
+            exit 1
+          fi
+
+      - name: Close PR
+        if: steps.merge.outputs.merge_success == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              state: 'closed'
+            })
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ **PR automatically merged!**\n\nAll quality checks passed and the PR has been successfully merged into main branch.'
+            })
+
+      - name: Comment on merge failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **Auto-merge failed!**\n\nA merge conflict was detected. Please resolve the conflicts manually and try again.\n\nTo resolve:\n1. Pull the latest changes from main\n2. Merge main into your feature branch\n3. Resolve any conflicts\n4. Push the changes'
+            })
