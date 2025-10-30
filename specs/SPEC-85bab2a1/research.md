@@ -12,7 +12,7 @@
 ## 未解決の論点とアクション
 | ID | テーマ | 状態 | 次のアクション |
 |----|--------|------|----------------|
-| RQ-1 | カスタムAIツールの登録/認証管理 | 調査中 | 既存設定ファイル (`.unity/config.json`) へのセクション追加と専用ファイル案を比較し、推奨構成を決定する |
+| RQ-1 | カスタムAIツールの登録/認証管理 | 完了 | Codex/Claudeはコード固定。カスタムツールのみ `.unity/config.json` の `aiAgents` で宣言する方針を採用 |
 | RQ-2 | セッション情報の保持方針 (ワンショット vs 短期永続) | 未着手 | Unity/Node双方でのライフサイクル要件を整理し、最小限の永続化要否を判断する |
 | RQ-3 | エージェント応答のストリーミング可否とUI更新戦略 | 下調べ中 | Node SDK / Unity UI Toolkit のサンプルを確認し、逐次描画の性能影響を測定する計画を立てる |
 | RQ-4 | 実行ログの最大件数と保管ポリシー | 未着手 | チャットビューのパフォーマンス実測計画を作成し、ログサマリ圧縮の要否を検討する |
@@ -21,10 +21,25 @@
 ## 調査ノート
 
 ### RQ-1: カスタムAIツール設定
-- `mcp-server/src/core/config.js` は `.unity/config.json` をワークスペースルートから検索してマージする仕組み。追加セクションがあればそのまま `config` オブジェクトに反映される。
-- `.unity/config.json` 現状例: `unity` と `project` の2セクションのみ。`aiAgents` セクションを追加すれば Node 起動時に読み取れる。
-- 代替案として `mcp-server/config/ai-tools.json` を別途読み込むことも可能。ただし配置ガイドと権限管理が分かれるため、まずは既存ファイルに `aiAgents` を追加する案を第一候補とする。
-- Unity側GUI編集の将来的な要件が出た際には ScriptableObject から生成→JSON同期する拡張を検討する。
+- Codex/Claude Code はサーバー内で固定定義し、ユーザー設定は不要とする。
+- `mcp-server/src/core/config.js` では `.unity/config.json` をマージする仕組みが既にあるため、カスタムツールのみ `aiAgents` 配列に記述する。
+- シンプルなスキーマ案:
+  ```json
+  {
+    "aiAgents": [
+      {
+        "id": "custom-doc-bot",
+        "provider": "http",
+        "endpoint": "https://example.com/agents/doc-bot",
+        "capabilities": ["code"],
+        "auth": { "type": "bearer", "tokenEnv": "DOC_BOT_TOKEN" },
+        "metadata": { "label": "社内ドキュメント検索" }
+      }
+    ]
+  }
+  ```
+- `aiAgents` が存在しない場合でも問題なく起動し、Codex/Claude の2件は常に利用可能とする。
+- 将来的にUnity UIから登録させる場合は、このJSONを更新するスクリプト/ツールを別途検討する。
 
 ### RQ-3: ストリーミング応答
 - Node側では @modelcontextprotocol/sdk がストリーミング対応 (`tool.handler.onChunk`) を提供していることを確認。Unity側で逐次反映する場合、UI Toolkit の `ListView` + `ScrollView` の最適化が必要。
@@ -41,7 +56,6 @@
 - `CLAUDE.md` — 既存のエージェント向けインストラクション。新UI追加時に更新が必要
 
 ## 次のステップ (Phase 0 継続)
-- [ ] RQ-1: `.unity/config.json` への `aiAgents` 追加仕様をまとめ、必要なバリデーション/ドキュメント更新案を作成 — 2025-10-31 まで
 - [ ] RQ-2: セッション存続条件のユーザービヘイビア調査 (複数Unity再起動ケース) — 2025-11-01 までに結論
 - [ ] RQ-3: ストリーミング実装プロトタイプの検証 — Nodeハンドラで疑似チャンクを返すテストを作成
 - [ ] RQ-4: ログ保持ポリシー案 (メッセージ数・クリッピング戦略) を提示
