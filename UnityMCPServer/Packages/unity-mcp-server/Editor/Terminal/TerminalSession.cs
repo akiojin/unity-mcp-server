@@ -139,17 +139,8 @@ namespace UnityMCPServer.Editor.Terminal
                 // Set shell-specific arguments
                 if (ShellType == "wsl")
                 {
-                    // WSL: Set UTF-8 locale and change directory
-                    if (WSLPathConverter.IsWindowsPath(WorkingDirectory))
-                    {
-                        string wslPath = WSLPathConverter.ToWSLPath(WorkingDirectory);
-                        // Execute bash with UTF-8 locale set and cd to working directory
-                        startInfo.Arguments = $"~ -e bash -c \"export LANG=C.UTF-8; export LC_ALL=C.UTF-8; cd '{wslPath}'; exec bash\"";
-                    }
-                    else
-                    {
-                        startInfo.Arguments = $"~ -e bash -c \"export LANG=C.UTF-8; export LC_ALL=C.UTF-8; cd '{WorkingDirectory}'; exec bash\"";
-                    }
+                    // WSL: No arguments needed, will set locale and cd after start
+                    startInfo.Arguments = "";
                 }
                 else if (ShellType == "pwsh" || ShellType == "powershell")
                 {
@@ -166,6 +157,26 @@ namespace UnityMCPServer.Editor.Terminal
                 _process.Start();
                 _process.BeginOutputReadLine();
                 _process.BeginErrorReadLine();
+
+                // For WSL, set locale and change directory after start
+                if (ShellType == "wsl")
+                {
+                    string wslPath = WSLPathConverter.IsWindowsPath(WorkingDirectory)
+                        ? WSLPathConverter.ToWSLPath(WorkingDirectory)
+                        : WorkingDirectory;
+
+                    // Set UTF-8 locale
+                    _process.StandardInput.WriteLine("export LANG=C.UTF-8");
+                    _process.StandardInput.WriteLine("export LC_ALL=C.UTF-8");
+                    _process.StandardInput.WriteLine("export LC_CTYPE=C.UTF-8");
+
+                    // Change directory
+                    _process.StandardInput.WriteLine($"cd \"{wslPath}\"");
+
+                    // Clear the screen to hide setup commands
+                    _process.StandardInput.WriteLine("clear");
+                    _process.StandardInput.Flush();
+                }
 
                 IsRunning = true;
 
