@@ -56,6 +56,8 @@
 - 仮リスク: 大量トークン出力でEditorがフリーズする可能性。`Dispatcher` 経由でチャンクをバッチ処理する案を検討。
 - シンプル案: Node側でチャンクを一定長にまとめて送信し、Unityでは1フレームあたりのUI更新数を制限する。
 - 旧ターミナルのTerminalReadはポーリング前提のため、本機能では push 型のイベント (Unity側 -> UI) を新設予定。
+- プロトタイプ計画: `tests/integration/ai-streaming.test.js` で200文字チャンクを50ms間隔で送信する疑似ストリームを生成し、Unity側スタブが `onChunk` を連続受信してバッファへ格納できるか検証する。
+- UI検証: EditModeテストで1秒あたり20チャンクの更新を想定し、`ScrollView` のスクロール応答速度を計測。200ms超の遅延が出た場合は1フレームあたりの描画件数を制限するバッチ処理を導入する。
 
 ### RQ-5: ターミナルハンドラの再利用
 - 既存ファイル: `mcp-server/src/handlers/terminal/TerminalOpenToolHandler.js` ほか3件。
@@ -73,7 +75,6 @@
 - `UnityMCPServer/Packages/unity-mcp-server/Editor/Terminal/` — 旧ターミナルWindow実装。UI要件は異なるため直接流用しないが、Processラッパーの使い方を参考にする
 - `CLAUDE.md` — 既存のエージェント向けインストラクション。新UI追加時に更新が必要
 
-## 次のステップ (Phase 0 継続)
-- [ ] RQ-3: ストリーミング実装プロトタイプの検証 — Nodeハンドラで疑似チャンクを返すテストを作成
+- [ ] RQ-3: `tests/integration/ai-streaming.test.js` および Unity EditMode スタブで疑似チャンクを検証
 - [ ] RQ-4: ログ保持ポリシー案のベンチマーク計画 (10k行テスト) を策定し、必要な計測スクリプトを定義
 - [ ] research.md を更新し、未解決項目が解決したら `status=完了` に変更する
