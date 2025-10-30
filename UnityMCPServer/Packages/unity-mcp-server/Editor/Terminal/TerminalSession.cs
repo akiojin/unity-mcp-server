@@ -73,6 +73,20 @@ namespace UnityMCPServer.Editor.Terminal
         {
             try
             {
+                // Determine appropriate encoding based on platform and shell
+                Encoding outputEncoding;
+                if (ShellType == "pwsh" || ShellType == "powershell")
+                {
+                    // PowerShell on Windows often uses the system default codepage
+                    // We'll try UTF-8 first, but may need to fall back
+                    outputEncoding = Encoding.UTF8;
+                }
+                else
+                {
+                    // Unix shells use UTF-8
+                    outputEncoding = Encoding.UTF8;
+                }
+
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = ShellPath,
@@ -82,8 +96,8 @@ namespace UnityMCPServer.Editor.Terminal
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true,
-                    StandardOutputEncoding = Encoding.UTF8,
-                    StandardErrorEncoding = Encoding.UTF8,
+                    StandardOutputEncoding = outputEncoding,
+                    StandardErrorEncoding = outputEncoding,
                     StandardInputEncoding = Encoding.UTF8
                 };
 
@@ -111,12 +125,10 @@ namespace UnityMCPServer.Editor.Terminal
                 // Set UTF-8 locale to prevent character encoding issues (for Unix shells)
                 if (ShellType == "wsl" || ShellType == "bash" || ShellType == "zsh")
                 {
-                    // Use C.UTF-8 as a safe fallback locale available on most systems
-                    if (!startInfo.EnvironmentVariables.ContainsKey("LANG") || string.IsNullOrEmpty(startInfo.EnvironmentVariables["LANG"]))
-                    {
-                        startInfo.EnvironmentVariables["LANG"] = "C.UTF-8";
-                    }
+                    // Force C.UTF-8 locale for WSL and Unix shells
+                    startInfo.EnvironmentVariables["LANG"] = "C.UTF-8";
                     startInfo.EnvironmentVariables["LC_ALL"] = "C.UTF-8";
+                    startInfo.EnvironmentVariables["LC_CTYPE"] = "C.UTF-8";
                 }
                 // PowerShell specific encoding settings
                 else if (ShellType == "pwsh" || ShellType == "powershell")
@@ -125,21 +137,24 @@ namespace UnityMCPServer.Editor.Terminal
                 }
 
                 // Set shell-specific arguments
-                if (ShellType == "wsl" && WSLPathConverter.IsWindowsPath(WorkingDirectory))
+                if (ShellType == "wsl")
                 {
-                    // Convert working directory to WSL path
-                    string wslPath = WSLPathConverter.ToWSLPath(WorkingDirectory);
-                    // WSL requires cd command as argument
-                    startInfo.Arguments = $"-d {wslPath}";
+                    // WSL: Set UTF-8 locale and change directory
+                    if (WSLPathConverter.IsWindowsPath(WorkingDirectory))
+                    {
+                        string wslPath = WSLPathConverter.ToWSLPath(WorkingDirectory);
+                        // Execute bash with UTF-8 locale set and cd to working directory
+                        startInfo.Arguments = $"~ -e bash -c \"export LANG=C.UTF-8; export LC_ALL=C.UTF-8; cd '{wslPath}'; exec bash\"";
+                    }
+                    else
+                    {
+                        startInfo.Arguments = $"~ -e bash -c \"export LANG=C.UTF-8; export LC_ALL=C.UTF-8; cd '{WorkingDirectory}'; exec bash\"";
+                    }
                 }
                 else if (ShellType == "pwsh" || ShellType == "powershell")
                 {
-                    // PowerShell: Set UTF-8 encoding on startup with -NoExit to keep interactive mode
-                    // This ensures all output is UTF-8 encoded from the very beginning
-                    string encodingCommand = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; " +
-                                           "[Console]::InputEncoding=[System.Text.Encoding]::UTF8; " +
-                                           "$OutputEncoding=[System.Text.Encoding]::UTF8";
-                    startInfo.Arguments = $"-NoLogo -NoProfile -NoExit -Command \"{encodingCommand}\"";
+                    // PowerShell: NoLogo and NoProfile for cleaner output
+                    startInfo.Arguments = "-NoLogo -NoProfile -ExecutionPolicy Bypass";
                 }
 
                 _process = new Process { StartInfo = startInfo };
