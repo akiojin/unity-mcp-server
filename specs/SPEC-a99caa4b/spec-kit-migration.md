@@ -267,7 +267,7 @@ fi
 - SPEC-e757a01f
 - SPEC-e7c9b50c
 - SPEC-e8f7a2c1
-- SPEC-er035v7o
+- SPEC-e7035f70
 
 **確認コマンド**:
 
