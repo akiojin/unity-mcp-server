@@ -128,9 +128,10 @@ namespace UnityMCPServer.Editor.Terminal
                 // Set shell-specific arguments
                 if (ShellType == "wsl")
                 {
-                    // WSL: Start without arguments, will set directory after start
-                    // This allows us to use wslpath command for proper path conversion
-                    startInfo.Arguments = "";
+                    // WSL: Use --cd option to set working directory
+                    // WSL automatically converts Windows paths to WSL paths
+                    startInfo.Arguments = $"--cd \"{WorkingDirectory}\"";
+                    UnityEngine.Debug.Log($"[TerminalSession] Starting WSL with --cd \"{WorkingDirectory}\"");
                 }
                 else if (ShellType == "pwsh" || ShellType == "powershell")
                 {
@@ -148,28 +149,13 @@ namespace UnityMCPServer.Editor.Terminal
                 _process.BeginOutputReadLine();
                 _process.BeginErrorReadLine();
 
-                // For WSL, set locale and change directory after start
+                // For WSL, set locale after start
                 if (ShellType == "wsl")
                 {
-                    string targetPath;
-
-                    // Convert Windows path to WSL path
-                    if (WSLPathConverter.IsWindowsPath(WorkingDirectory))
-                    {
-                        targetPath = WSLPathConverter.ToWSLPath(WorkingDirectory);
-                        UnityEngine.Debug.Log($"[TerminalSession] Converted Windows path '{WorkingDirectory}' to WSL path '{targetPath}'");
-                    }
-                    else
-                    {
-                        targetPath = WorkingDirectory;
-                        UnityEngine.Debug.Log($"[TerminalSession] Using WSL path directly: '{targetPath}'");
-                    }
-
-                    // Use Write with explicit \n instead of WriteLine to avoid platform-specific line endings
+                    // Set UTF-8 locale
                     _process.StandardInput.Write("export LANG=C.UTF-8\n");
                     _process.StandardInput.Write("export LC_ALL=C.UTF-8\n");
                     _process.StandardInput.Write("export LC_CTYPE=C.UTF-8\n");
-                    _process.StandardInput.Write($"cd '{targetPath}' 2>/dev/null || echo 'CD_ERROR: Failed to change to {targetPath}'\n");
                     _process.StandardInput.Flush();
                 }
 
