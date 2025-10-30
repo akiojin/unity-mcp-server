@@ -142,10 +142,17 @@ Unity Editor内でクロスプラットフォーム対応のターミナルウ�
 **ログ改善**
 - [ ] T055 [P] 構造化ログを追加 (sessionId, command, error context含む)
 
+**UI改善**
+- [x] T059 TerminalWindow.cs にコマンド実行後の自動スクロール機能を実装 (FR-013)
+- [x] T060 TerminalWindow.cs にコマンド送信後のフォーカス維持機能を実装 (FR-014)
+- [x] T061 TerminalWindow.cs を複数行入力対応に変更 (TextArea使用、Shift+Enterで改行、Enterで送信) (FR-015)
+- [x] T062 TerminalWindow.cs からRunボタンを削除 (Enterのみで送信)
+- [x] T063 TerminalWindow.cs からAuto-scrollトグルボタンを削除 (常に自動スクロール)
+
 **ドキュメント更新**
-- [ ] T056 [P] README.md にターミナル機能の説明を追加
-- [ ] T057 [P] CLAUDE.md にターミナルセクションを追加
-- [ ] T058 specs/SPEC-3a7f2e8d/quickstart.md を作成 (5分で動作確認できる手順)
+- [ ] T064 [P] README.md にターミナル機能の説明を追加
+- [ ] T065 [P] CLAUDE.md にターミナルセクションを追加
+- [ ] T066 specs/SPEC-3a7f2e8d/quickstart.md を作成 (5分で動作確認できる手順)
 
 ## 依存関係
 

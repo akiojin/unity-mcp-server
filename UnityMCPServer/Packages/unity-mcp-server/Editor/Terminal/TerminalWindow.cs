@@ -168,6 +168,8 @@ namespace UnityMCPServer.Editor.Terminal
             // Handle Enter key BEFORE drawing TextArea
             Event e = Event.current;
             bool shouldExecute = false;
+            string commandToExecute = null;
+
             if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Return && GUI.GetNameOfFocusedControl() == "CommandInput")
             {
                 // Shift+Enter: Insert newline (don't execute)
@@ -175,6 +177,8 @@ namespace UnityMCPServer.Editor.Terminal
                 if (!e.shift && !string.IsNullOrWhiteSpace(_commandInput))
                 {
                     shouldExecute = true;
+                    commandToExecute = _commandInput;
+                    _commandInput = "";  // Clear immediately to prevent TextArea from inserting newline
                     e.Use();
                 }
                 // If Shift is pressed, let the TextArea handle the newline insertion naturally
@@ -190,10 +194,9 @@ namespace UnityMCPServer.Editor.Terminal
             EditorGUILayout.EndHorizontal();
 
             // Execute command after drawing
-            if (shouldExecute)
+            if (shouldExecute && !string.IsNullOrEmpty(commandToExecute))
             {
-                ExecuteCommand(_commandInput);
-                _commandInput = "";
+                ExecuteCommand(commandToExecute);
 
                 // Scroll to bottom after command execution
                 _scrollPosition.y = float.MaxValue;
