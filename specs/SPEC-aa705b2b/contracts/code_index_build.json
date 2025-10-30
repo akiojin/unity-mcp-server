@@ -25,6 +25,16 @@
         "minimum": 1,
         "default": 100,
         "description": "Progress logging frequency (every N files)"
+      },
+      "throttleMs": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Optional delay (ms) after each file to slow down builds for testing"
+      },
+      "delayStartMs": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Optional delay (ms) before processing begins to hold the job in running state"
       }
     },
     "required": []
@@ -50,7 +60,7 @@
           },
           "checkStatus": {
             "type": "string",
-            "example": "Use script_index_status to check progress"
+            "example": "Use code_index_status to check progress"
           }
         },
         "required": ["success", "message", "jobId", "checkStatus"]
@@ -89,7 +99,7 @@
         "success": true,
         "message": "Code index build started in background",
         "jobId": "build-1730188800000-abc123",
-        "checkStatus": "Use script_index_status to check progress"
+        "checkStatus": "Use code_index_status to check progress"
       }
     },
     {
@@ -101,7 +111,7 @@
         "success": true,
         "message": "Code index build started in background",
         "jobId": "build-1730188805000-def456",
-        "checkStatus": "Use script_index_status to check progress"
+        "checkStatus": "Use code_index_status to check progress"
       }
     },
     {

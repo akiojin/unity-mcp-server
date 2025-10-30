@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "script_index_status Contract",
+  "title": "code_index_status Contract",
   "description": "MCP tool contract for code index status reporting (with background job support)",
-  "tool": "script_index_status",
+  "tool": "code_index_status",
   "request": {
     "type": "object",
     "properties": {},
@@ -11,7 +11,7 @@
   "response": {
     "oneOf": [
       {
-        "title": "Success Response (with running job)",
+        "title": "Success Response",
         "type": "object",
         "properties": {
           "success": {
@@ -47,15 +47,16 @@
             "properties": {
               "ready": {
                 "type": "boolean",
-                "const": true
+                "description": "true when the code index already contains symbols; false when an initial build is still running"
               },
               "rows": {
                 "type": "number",
                 "description": "Total symbols indexed"
               },
               "lastIndexedAt": {
-                "type": "string",
-                "format": "date-time"
+                "type": ["string", "null"],
+                "format": "date-time",
+                "description": "Timestamp of the most recent completed index build; null when no build has finished yet"
               },
               "buildJob": {
                 "type": "object",
@@ -138,6 +139,37 @@
     ]
   },
   "examples": [
+    {
+      "title": "Initial build in progress (not yet ready)",
+      "request": {},
+      "response": {
+        "success": true,
+        "totalFiles": 1500,
+        "indexedFiles": 0,
+        "coverage": 0,
+        "breakdown": {
+          "assets": 500,
+          "packages": 800,
+          "packageCache": 150,
+          "other": 50
+        },
+        "index": {
+          "ready": false,
+          "rows": 0,
+          "lastIndexedAt": null,
+          "buildJob": {
+            "id": "build-1730188800000-abc123",
+            "status": "running",
+            "progress": {
+              "processed": 200,
+              "total": 1500,
+              "rate": 8.5
+            },
+            "startedAt": "2025-10-29T10:00:00Z"
+          }
+        }
+      }
+    },
     {
       "title": "Status with running job",
       "request": {},

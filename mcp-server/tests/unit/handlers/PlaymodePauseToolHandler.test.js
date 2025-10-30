@@ -26,7 +26,7 @@ describe('PlaymodePauseToolHandler', () => {
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'playmode_pause');
-      assert.equal(handler.description, 'Pause or resume Unity play mode');
+      assert.equal(handler.description, 'Toggle Pause/Resume in Play Mode.');
       assert.equal(handler.inputSchema.required, undefined);
     });
   });

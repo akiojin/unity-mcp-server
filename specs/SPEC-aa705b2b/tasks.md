@@ -51,7 +51,7 @@
   - **契約**: バックグラウンドで処理継続
   - **RED確認**: 既存テストを拡張し、新規テストが失敗することを確認
 
-- [ ] **T006** [P] `mcp-server/tests/unit/handlers/script/ScriptIndexStatusToolHandler.test.js` にbuildJob拡張contract tests
+- [ ] **T006** [P] `mcp-server/tests/unit/handlers/script/CodeIndexStatusToolHandler.test.js` にbuildJob拡張contract tests
   - **契約**: 実行中ジョブ → `index.buildJob` (status='running', progress含む)
   - **契約**: 完了ジョブ → `index.buildJob` (status='completed', result含む)
   - **契約**: ジョブなし → 従来のレスポンス (下位互換性)
@@ -64,8 +64,8 @@
   - **RED確認**: テストが失敗することを確認
 
 - [ ] **T008** [P] `mcp-server/tests/integration/code-index-background.test.js` にUS-2: 進捗状況の可視化 integration test
-  - **シナリオ**: ビルド実行中 → script_index_status → 進捗情報確認
-  - **シナリオ**: ビルド完了後 → script_index_status → 結果情報確認
+  - **シナリオ**: ビルド実行中 → code_index_status → 進捗情報確認
+  - **シナリオ**: ビルド完了後 → code_index_status → 結果情報確認
   - **RED確認**: テストが失敗することを確認
 
 - [ ] **T009** [P] `mcp-server/tests/integration/code-index-background.test.js` にUS-3: 重複実行の防止 integration test
@@ -94,7 +94,7 @@
   - **GREEN確認**: T005が合格することを確認
   - **注意**: T011完了後、T010が完了していない場合はT011を待機
 
-- [ ] **T012** `mcp-server/src/handlers/script/ScriptIndexStatusToolHandler.js` にbuildJob拡張
+- [ ] **T012** `mcp-server/src/handlers/script/CodeIndexStatusToolHandler.js` にbuildJob拡張
   - **変更**: JobManagerから実行中/完了ジョブを取得
   - **変更**: `index.buildJob`フィールドを追加（オプショナル）
   - **変更**: 既存フィールドはすべて保持（下位互換性）
@@ -129,17 +129,17 @@
 - [ ] **T016** [P] Unit testsカバレッジ確認
   - **確認**: JobManager: 80%以上
   - **確認**: CodeIndexBuildToolHandler: 80%以上
-  - **確認**: ScriptIndexStatusToolHandler: 80%以上
+  - **確認**: CodeIndexStatusToolHandler: 80%以上
   - **追加**: 不足しているテストケースを追加
 
 - [ ] **T017** [P] パフォーマンステスト
   - **テスト**: code_index_build → 1秒以内にレスポンス
-  - **テスト**: script_index_status → 100ms以内にレスポンス
+  - **テスト**: code_index_status → 100ms以内にレスポンス
   - **ベンチマーク**: 進捗更新頻度（500ms間隔）
 
 - [ ] **T018** [P] ドキュメント更新
   - **更新**: `README.md` - バックグラウンドジョブの使用方法を追加
-  - **更新**: `CLAUDE.md` - script_index_statusでの進捗確認方法を追加
+  - **更新**: `CLAUDE.md` - code_index_statusでの進捗確認方法を追加
   - **更新**: quickstart.mdの検証手順を実行して確認
 
 - [ ] **T019** コードクリーンアップ＆リファクタリング
@@ -168,7 +168,7 @@ Tests (T004-T009) ← すべて並列実行可能
 T010 (JobManager実装) ← T004の合格が条件
     ↓
 T011 (CodeIndexBuildToolHandler) ← T010完了 + T005の合格が条件
-T012 (ScriptIndexStatusToolHandler) ← T006の合格が条件 (T010に依存しない)
+T012 (CodeIndexStatusToolHandler) ← T006の合格が条件 (T010に依存しない)
 T013 (IndexWatcher) ← T010完了が条件
     ↓
 Integration (T014-T015) ← T007-T009の合格 + T010-T013完了が条件
@@ -287,11 +287,11 @@ Polish (T016-T020) ← すべて並列実行可能 (T016-T018)
 
 ### コミット履歴
 1. `feat(test): JobManagerのcontract testsを追加` (T004)
-2. `feat(test): CodeIndexBuildToolHandlerとScriptIndexStatusToolHandlerのバックグラウンド実行契約テストを追加` (T005, T006)
+2. `feat(test): CodeIndexBuildToolHandlerとCodeIndexStatusToolHandlerのバックグラウンド実行契約テストを追加` (T005, T006)
 3. `feat(test): バックグラウンドコードインデックスビルドの統合テストを追加` (T007-T009)
 4. `feat: JobManagerクラスを実装（バックグラウンドジョブ管理）` (T010)
 5. `feat: CodeIndexBuildToolHandlerをバックグラウンド化` (T011)
-6. `feat: ScriptIndexStatusToolHandlerにbuildJobフィールドを追加＆JobManagerシングルトン化` (T012)
+6. `feat: CodeIndexStatusToolHandlerにbuildJobフィールドを追加＆JobManagerシングルトン化` (T012)
 7. `feat: IndexWatcherにJobManager統合（競合回避）` (T013)
 8. `test: IndexWatcher統合E2Eテストを追加` (T014)
 9. `feat: エラーハンドリングとログ出力を改善` (T015)
@@ -299,14 +299,14 @@ Polish (T016-T020) ← すべて並列実行可能 (T016-T018)
 ### テスト結果
 - ✅ JobManager: 13/13 contract tests合格
 - ✅ CodeIndexBuildToolHandler: バックグラウンド実行契約テスト追加
-- ✅ ScriptIndexStatusToolHandler: buildJob拡張契約テスト追加
+- ✅ CodeIndexStatusToolHandler: buildJob拡張契約テスト追加
 - ✅ Integration tests: US-1, US-2, US-3すべてカバー
 - ✅ IndexWatcher E2E: 4つの統合シナリオテスト
 
 ### 実装ファイル
 - `src/core/jobManager.js` (164行, 新規作成)
 - `src/handlers/script/CodeIndexBuildToolHandler.js` (変更: バックグラウンド化)
-- `src/handlers/script/ScriptIndexStatusToolHandler.js` (変更: buildJob拡張)
+- `src/handlers/script/CodeIndexStatusToolHandler.js` (変更: buildJob拡張)
 - `src/core/indexWatcher.js` (変更: JobManager統合)
 
 ### ドキュメント

@@ -169,7 +169,7 @@ unityConnection.on('error', (error) => {
 });
 
 // Initialize server
-async function main() {
+export async function startServer() {
   try {
     // Create transport - no logging before connection
     const transport = new StdioServerTransport();
@@ -232,6 +232,9 @@ async function main() {
   }
 }
 
+// Maintain backwards compatibility for older callers that expect main()
+const main = startServer;
+
 // Export for testing
 export async function createServer(customConfig = config) {
   const testUnityConnection = new UnityConnection();
@@ -287,7 +290,17 @@ export async function createServer(customConfig = config) {
 }
 
 // Start the server
-main().catch((error) => {
+const isDirectExecution = (() => {
+  if (process.env.NODE_ENV === 'test') return false;
+  if (!process.argv[1]) return false;
+  try {
+    return import.meta.url === new URL('file://' + process.argv[1]).href;
+  } catch {
+    return false;
+  }
+})();
+
+if (isDirectExecution) startServer().catch((error) => {
   console.error('Fatal error:', error);
   console.error('Stack trace:', error.stack);
   process.exit(1);

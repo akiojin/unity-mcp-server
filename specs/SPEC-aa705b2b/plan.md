@@ -17,7 +17,7 @@
 
 ## 概要
 
-現在のcode_index_buildは2分以上かかるブロッキング処理であり、開発者は完了まで待機する必要がある。本機能では、バックグラウンドジョブ化によりビルド開始後即座に制御を返し、既存のscript_index_statusツールで進捗を確認できるようにする。
+現在のcode_index_buildは2分以上かかるブロッキング処理であり、開発者は完了まで待機する必要がある。本機能では、バックグラウンドジョブ化によりビルド開始後即座に制御を返し、既存のcode_index_statusツールで進捗を確認できるようにする。
 
 既存のコードインデックスビルド機能は、Promise.allによるWorkerプールパターンで並列実行されているが、MCPツール呼び出しがブロックされる問題がある。本計画では、軽量なメモリ内JobManagerを導入し、ビルドをバックグラウンドで実行しながら進捗情報を共有する。
 
@@ -65,7 +65,7 @@
 **バージョニング**:
 - バージョン番号割り当て済み? 次回npm version minor (新機能) ✅
 - 変更ごとにBUILDインクリメント? Yes ✅
-- 破壊的変更を処理? No - script_index_statusの下位互換性維持 ✅
+- 破壊的変更を処理? No - code_index_statusの下位互換性維持 ✅
 
 ## プロジェクト構造
 
@@ -95,7 +95,7 @@ mcp-server/
 │   │   │   └── BaseToolHandler.js # 既存: ハンドラ基底クラス
 │   │   └── script/
 │   │       ├── CodeIndexBuildToolHandler.js    # 変更: バックグラウンド化
-│   │       └── ScriptIndexStatusToolHandler.js # 変更: buildJob追加
+│   │       └── CodeIndexStatusToolHandler.js # 変更: buildJob追加
 │   └── lsp/
 │       └── LspRpcClient.js        # 既存: LSP通信
 └── tests/
@@ -104,7 +104,7 @@ mcp-server/
     │   │   └── jobManager.test.js # 新規: JobManagerテスト
     │   └── handlers/script/
     │       ├── CodeIndexBuildToolHandler.test.js    # 変更
-    │       └── ScriptIndexStatusToolHandler.test.js # 変更
+    │       └── CodeIndexStatusToolHandler.test.js # 変更
     └── integration/
         └── code-index-background.test.js # 新規: E2Eテスト
 ```
@@ -132,7 +132,7 @@ mcp-server/
 
 4. **既存ハンドラの拡張パターン**
    - 調査: BaseToolHandlerの変更なしでの拡張
-   - 調査: script_index_statusの下位互換性維持
+   - 調査: code_index_statusの下位互換性維持
    - 調査: エラーハンドリング（LSP起動失敗、ファイルアクセスエラー）
 
 ### リサーチ結果の統合 (research.md作成)
@@ -211,7 +211,7 @@ running → failed (エラー時)
   "success": true,
   "message": "Code index build started in background",
   "jobId": "build-1730188800000-abc123",
-  "checkStatus": "Use script_index_status to check progress"
+  "checkStatus": "Use code_index_status to check progress"
 }
 ```
 
@@ -225,7 +225,7 @@ running → failed (エラー時)
 }
 ```
 
-**契約2: script_index_status (拡張)**
+**契約2: code_index_status (拡張)**
 
 レスポンス (ビルド実行中):
 ```json
@@ -312,7 +312,7 @@ running → failed (エラー時)
 - バックグラウンドで処理が継続される
 - 進捗情報がJobManagerに更新される
 
-**テストファイル**: `tests/unit/handlers/script/ScriptIndexStatusToolHandler.test.js`
+**テストファイル**: `tests/unit/handlers/script/CodeIndexStatusToolHandler.test.js`
 
 テストシナリオ:
 - 実行中ジョブの進捗情報を含むレスポンス
@@ -334,7 +334,7 @@ running → failed (エラー時)
 - Integration test: ビルド開始 → 1秒以内にレスポンス → 他ツール使用可能
 
 **US-2: 進捗状況の可視化**
-- Integration test: ビルド実行中 → script_index_status呼び出し → 進捗情報確認
+- Integration test: ビルド実行中 → code_index_status呼び出し → 進捗情報確認
 
 **US-3: 重複実行の防止**
 - Integration test: ビルド実行中 → 再度ビルド開始 → エラー＋既存jobId返却
@@ -343,7 +343,7 @@ running → failed (エラー時)
 
 **CLAUDE.md更新**:
 - バックグラウンドジョブの使用方法を追加
-- script_index_statusでの進捗確認方法を追加
+- code_index_statusでの進捗確認方法を追加
 
 **出力**: data-model.md, /contracts/*, 失敗するテスト, quickstart.md, CLAUDE.md更新
 
@@ -361,7 +361,7 @@ running → failed (エラー時)
 **Test タスク (TDD順序)**:
 1. [P] Contract test: JobManager API (RED)
 2. [P] Contract test: code_index_build レスポンス (RED)
-3. [P] Contract test: script_index_status 拡張レスポンス (RED)
+3. [P] Contract test: code_index_status 拡張レスポンス (RED)
 4. Integration test: バックグラウンドビルド実行 (RED)
 5. Integration test: 進捗確認 (RED)
 6. Integration test: 重複実行防止 (RED)
@@ -370,7 +370,7 @@ running → failed (エラー時)
 **Core タスク (実装)**:
 8. JobManager実装 (GREEN - test 1合格)
 9. CodeIndexBuildToolHandler バックグラウンド化 (GREEN - test 2合格)
-10. ScriptIndexStatusToolHandler 拡張 (GREEN - test 3合格)
+10. CodeIndexStatusToolHandler 拡張 (GREEN - test 3合格)
 11. IndexWatcher統合 (GREEN - test 4-7合格)
 
 **Integration タスク**:

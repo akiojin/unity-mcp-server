@@ -7,7 +7,7 @@ export class PlaymodePauseToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'playmode_pause',
-      'Toggle Pause/Resume in Play Mode.',
+      'Pause or resume Unity play mode',
       {
         type: 'object',
         properties: {},

@@ -1,9 +1,9 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { ScriptIndexStatusToolHandler } from '../../../../src/handlers/script/ScriptIndexStatusToolHandler.js';
+import { CodeIndexStatusToolHandler } from '../../../../src/handlers/script/CodeIndexStatusToolHandler.js';
 import { createMockUnityConnection } from '../../../utils/test-helpers.js';
 
-describe('ScriptIndexStatusToolHandler', () => {
+describe('CodeIndexStatusToolHandler', () => {
   let handler;
   let mockConnection;
 
@@ -13,12 +13,12 @@ describe('ScriptIndexStatusToolHandler', () => {
         success: true
       }
     });
-    handler = new ScriptIndexStatusToolHandler(mockConnection);
+    handler = new CodeIndexStatusToolHandler(mockConnection);
   });
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'script_index_status');
+      assert.equal(handler.name, 'code_index_status');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('index status'));
     });
@@ -27,7 +27,7 @@ describe('ScriptIndexStatusToolHandler', () => {
       const schema = handler.inputSchema;
       assert.equal(schema.type, 'object');
       assert.deepEqual(schema.properties, {});
-      assert.deepEqual(schema.required, []);
+      assert.deepEqual(schema.required ?? [], []);
     });
   });
 
@@ -152,7 +152,7 @@ describe('ScriptIndexStatusToolHandler', () => {
   describe('SPEC-e757a01f compliance', () => {
     it('FR-003: should report index status', async () => {
       // Index status reporting is core functionality
-      assert.equal(handler.name, 'script_index_status');
+      assert.equal(handler.name, 'code_index_status');
       assert.ok(handler.description.includes('status'));
     });
 
@@ -218,6 +218,35 @@ describe('ScriptIndexStatusToolHandler', () => {
         assert.ok(typeof mockResult.index.buildJob.progress.total === 'number');
         assert.ok(typeof mockResult.index.buildJob.progress.rate === 'number');
         assert.ok(mockResult.index.buildJob.startedAt);
+      });
+
+      it('should allow index.ready to be false during an initial build', async () => {
+        const mockResult = {
+          success: true,
+          totalFiles: 1500,
+          indexedFiles: 0,
+          coverage: 0,
+          breakdown: { assets: 500, packages: 800, packageCache: 150, other: 50 },
+          index: {
+            ready: false,
+            rows: 0,
+            lastIndexedAt: null,
+            buildJob: {
+              id: 'build-1730188800000-xyz789',
+              status: 'running',
+              progress: {
+                processed: 200,
+                total: 1500,
+                rate: 8.5
+              },
+              startedAt: '2025-10-29T10:00:00Z'
+            }
+          }
+        };
+
+        assert.equal(mockResult.index.ready, false, 'ready can be false while build runs');
+        assert.ok(mockResult.index.buildJob, 'buildJob should be present');
+        assert.equal(mockResult.index.buildJob.status, 'running');
       });
 
       it('should not include completedAt or result for running job', async () => {

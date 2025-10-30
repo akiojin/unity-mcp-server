@@ -7,7 +7,7 @@ export class PlaymodeGetStateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'playmode_get_state',
-      'Get editor state (play mode, platform, selected objects, etc.). Optionally wait for a target state.',
+      'Get current Unity editor state including play mode status',
       {
         type: 'object',
         properties: {

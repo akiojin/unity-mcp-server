@@ -23,7 +23,7 @@
 
    ```
    MCPツール: code_index_build
-   パラメータ: {}
+   パラメータ: { "delayStartMs": 300 }
    ```
 
    期待されるレスポンス（1秒以内）:
@@ -32,7 +32,7 @@
      "success": true,
      "message": "Code index build started in background",
      "jobId": "build-1730188800000-abc123",
-     "checkStatus": "Use script_index_status to check progress"
+     "checkStatus": "Use code_index_status to check progress"
    }
    ```
 
@@ -52,7 +52,7 @@
 3. **複数回実行しても問題ないことを確認**
 
    ```
-   MCPツール: script_index_status
+   MCPツール: code_index_status
    パラメータ: {}
    ```
 
@@ -76,7 +76,7 @@
 2. **実行中の進捗を確認する**（ビルド完了前）
 
    ```
-   MCPツール: script_index_status
+   MCPツール: code_index_status
    パラメータ: {}
    ```
 
@@ -115,7 +115,7 @@
 3. **数秒待ってから再度確認**
 
    ```
-   MCPツール: script_index_status
+   MCPツール: code_index_status
    パラメータ: {}
    ```
 
@@ -126,7 +126,7 @@
    ビルド完了を待って（2-5分）：
 
    ```
-   MCPツール: script_index_status
+   MCPツール: code_index_status
    パラメータ: {}
    ```
 
@@ -303,7 +303,7 @@
 3. **エラー状態を確認**
 
    ```
-   MCPツール: script_index_status
+   MCPツール: code_index_status
    パラメータ: {}
    ```
 
@@ -336,10 +336,10 @@
 
 1. **ビルドを完了させる**
 
-2. **script_index_statusを実行**
+2. **code_index_statusを実行**
 
    ```
-   MCPツール: script_index_status
+   MCPツール: code_index_status
    パラメータ: {}
    ```
 
@@ -414,7 +414,7 @@
 ### 進捗が表示されない
 
 - ビルドが開始されているか確認: `code_index_build`のレスポンスを確認
-- `script_index_status`を実行してbuildJobフィールドを確認
+- `code_index_status`を実行してbuildJobフィールドを確認
 
 ### 下位互換性の問題
 

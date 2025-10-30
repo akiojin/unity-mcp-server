@@ -16,6 +16,9 @@ export class IndexWatcher {
     const interval = Math.max(2000, Number(config.indexing.intervalMs || 15000));
     logger.info(`[index] watcher enabled (interval=${interval}ms)`);
     this.timer = setInterval(() => this.tick(), interval);
+    if (typeof this.timer.unref === 'function') {
+      this.timer.unref();
+    }
     // Initial kick
     this.tick();
   }
@@ -105,8 +108,14 @@ export class IndexWatcher {
         clearInterval(checkInterval);
       }
     }, 1000);
+    if (typeof checkInterval.unref === 'function') {
+      checkInterval.unref();
+    }
 
     // Cleanup interval after 10 minutes (longer than job cleanup)
-    setTimeout(() => clearInterval(checkInterval), 600000);
+    const cleanupTimeout = setTimeout(() => clearInterval(checkInterval), 600000);
+    if (typeof cleanupTimeout.unref === 'function') {
+      cleanupTimeout.unref();
+    }
   }
 }
