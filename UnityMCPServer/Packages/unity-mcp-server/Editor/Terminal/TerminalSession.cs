@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
+using System.Text;
 using UnityEngine;
 
 namespace UnityMCPServer.Editor.Terminal
@@ -80,7 +81,10 @@ namespace UnityMCPServer.Editor.Terminal
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = Encoding.UTF8,
+                    StandardErrorEncoding = Encoding.UTF8,
+                    StandardInputEncoding = Encoding.UTF8
                 };
 
                 // Copy all environment variables from Unity Editor
@@ -103,6 +107,22 @@ namespace UnityMCPServer.Editor.Terminal
                 // Add terminal-specific environment variables
                 startInfo.EnvironmentVariables["TERM"] = "xterm-256color";
                 startInfo.EnvironmentVariables["UNITY_MCP_SESSION_ID"] = SessionId;
+
+                // Set UTF-8 locale to prevent character encoding issues (for Unix shells)
+                if (ShellType == "wsl" || ShellType == "bash" || ShellType == "zsh")
+                {
+                    // Use C.UTF-8 as a safe fallback locale available on most systems
+                    if (!startInfo.EnvironmentVariables.ContainsKey("LANG") || string.IsNullOrEmpty(startInfo.EnvironmentVariables["LANG"]))
+                    {
+                        startInfo.EnvironmentVariables["LANG"] = "C.UTF-8";
+                    }
+                    startInfo.EnvironmentVariables["LC_ALL"] = "C.UTF-8";
+                }
+                // PowerShell specific encoding settings
+                else if (ShellType == "pwsh" || ShellType == "powershell")
+                {
+                    startInfo.EnvironmentVariables["POWERSHELL_TELEMETRY_OPTOUT"] = "1";
+                }
 
                 // Convert working directory to WSL path if using WSL
                 if (ShellType == "wsl" && WSLPathConverter.IsWindowsPath(WorkingDirectory))
