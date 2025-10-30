@@ -124,12 +124,18 @@ namespace UnityMCPServer.Editor.Terminal
                     startInfo.EnvironmentVariables["POWERSHELL_TELEMETRY_OPTOUT"] = "1";
                 }
 
-                // Convert working directory to WSL path if using WSL
+                // Set shell-specific arguments
                 if (ShellType == "wsl" && WSLPathConverter.IsWindowsPath(WorkingDirectory))
                 {
+                    // Convert working directory to WSL path
                     string wslPath = WSLPathConverter.ToWSLPath(WorkingDirectory);
                     // WSL requires cd command as argument
                     startInfo.Arguments = $"-d {wslPath}";
+                }
+                else if (ShellType == "pwsh" || ShellType == "powershell")
+                {
+                    // PowerShell: NoLogo and NoProfile for cleaner output
+                    startInfo.Arguments = "-NoLogo -NoProfile";
                 }
 
                 _process = new Process { StartInfo = startInfo };
@@ -139,6 +145,22 @@ namespace UnityMCPServer.Editor.Terminal
                 _process.ErrorDataReceived += OnErrorDataReceived;
 
                 _process.Start();
+
+                // Set UTF-8 encoding for PowerShell immediately after start
+                if (ShellType == "pwsh" || ShellType == "powershell")
+                {
+                    _process.StandardInput.WriteLine("[Console]::OutputEncoding = [System.Text.Encoding]::UTF8");
+                    _process.StandardInput.WriteLine("[Console]::InputEncoding = [System.Text.Encoding]::UTF8");
+                    _process.StandardInput.WriteLine("$OutputEncoding = [System.Text.Encoding]::UTF8");
+                    _process.StandardInput.Flush();
+                }
+                // Set UTF-8 for CMD (Windows Command Prompt)
+                else if (ShellType == "cmd")
+                {
+                    _process.StandardInput.WriteLine("chcp 65001 >nul");
+                    _process.StandardInput.Flush();
+                }
+
                 _process.BeginOutputReadLine();
                 _process.BeginErrorReadLine();
 
