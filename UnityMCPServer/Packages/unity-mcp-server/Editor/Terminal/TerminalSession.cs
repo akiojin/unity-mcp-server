@@ -150,15 +150,27 @@ namespace UnityMCPServer.Editor.Terminal
                 // For WSL, set locale and change directory after start
                 if (ShellType == "wsl")
                 {
-                    string wslPath = WSLPathConverter.IsWindowsPath(WorkingDirectory)
-                        ? WSLPathConverter.ToWSLPath(WorkingDirectory).Trim()
-                        : WorkingDirectory.Trim();
+                    string wslPath;
+                    bool isWindowsPath = WSLPathConverter.IsWindowsPath(WorkingDirectory);
+
+                    if (isWindowsPath)
+                    {
+                        wslPath = WSLPathConverter.ToWSLPath(WorkingDirectory).Trim();
+                        UnityEngine.Debug.Log($"[TerminalSession] Converted Windows path '{WorkingDirectory}' to WSL path '{wslPath}'");
+                    }
+                    else
+                    {
+                        wslPath = WorkingDirectory.Trim();
+                        UnityEngine.Debug.Log($"[TerminalSession] Using WSL internal path: '{wslPath}'");
+                    }
 
                     // Use Write with explicit \n instead of WriteLine to avoid platform-specific line endings
                     _process.StandardInput.Write("export LANG=C.UTF-8\n");
                     _process.StandardInput.Write("export LC_ALL=C.UTF-8\n");
                     _process.StandardInput.Write("export LC_CTYPE=C.UTF-8\n");
-                    _process.StandardInput.Write($"cd '{wslPath}'\n");
+
+                    // Check if directory exists before cd
+                    _process.StandardInput.Write($"if [ -d '{wslPath}' ]; then cd '{wslPath}'; else echo 'ERROR: Directory not found: {wslPath}' >&2; fi\n");
                     _process.StandardInput.Flush();
                 }
 
