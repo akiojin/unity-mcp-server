@@ -11,10 +11,21 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'code_index_build',
-      'Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Returns immediately with jobId for background execution. Check progress with script_index_status. Stores DB under .unity/cache/code-index/code-index.db.',
+      'Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Returns immediately with jobId for background execution. Check progress with code_index_status. Stores DB under .unity/cache/code-index/code-index.db.',
       {
         type: 'object',
-        properties: {},
+        properties: {
+          throttleMs: {
+            type: 'number',
+            minimum: 0,
+            description: 'Optional delay in milliseconds after processing each file (testing/debugging).'
+          },
+          delayStartMs: {
+            type: 'number',
+            minimum: 0,
+            description: 'Optional delay before processing begins (useful to keep job in running state briefly).'
+          }
+        },
         required: []
       }
     );
@@ -34,7 +45,7 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
         return {
           success: false,
           error: 'build_already_running',
-          message: `Code index build is already running (jobId: ${this.currentJobId}). Use script_index_status to check progress.`,
+          message: `Code index build is already running (jobId: ${this.currentJobId}). Use code_index_status to check progress.`,
           jobId: this.currentJobId
         };
       }
@@ -54,7 +65,7 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
       success: true,
       jobId,
       message: 'Code index build started in background',
-      checkStatus: 'Use script_index_status to check progress and completion'
+      checkStatus: 'Use code_index_status to check progress and completion'
     };
   }
 
@@ -64,6 +75,8 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
    */
   async _executeBuild(params, job) {
     try {
+      const throttleMs = Math.max(0, Number(params?.throttleMs ?? 0));
+      const delayStartMs = Math.max(0, Number(params?.delayStartMs ?? 0));
       const info = await this.projectInfo.get();
       const roots = [
         path.resolve(info.projectRoot, 'Assets'),
@@ -143,6 +156,10 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
         }
         throw lastErr || new Error('documentSymbol failed');
       };
+      if (delayStartMs > 0) {
+        await new Promise(resolve => setTimeout(resolve, delayStartMs));
+      }
+
       const worker = async () => {
         while (true) {
           const idx = i++;
@@ -174,6 +191,10 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
 
             if (processed % reportEvery === 0 || processed === absList.length) {
               logger.info(`[index][${job.id}] progress ${processed}/${absList.length} (removed:${removed.length}) rate:${job.progress.rate} f/s (status: ${job.status})`);
+            }
+
+            if (throttleMs > 0) {
+              await new Promise(resolve => setTimeout(resolve, throttleMs));
             }
           }
         }
