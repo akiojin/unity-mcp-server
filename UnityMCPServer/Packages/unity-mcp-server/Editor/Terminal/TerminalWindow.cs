@@ -190,6 +190,13 @@ namespace UnityMCPServer.Editor.Terminal
                     _pendingCommand = _commandInput;
                     _shouldClearInput = true;
 
+                    // CRITICAL: Force clear TextEditor internal state
+                    // TextArea uses an internal TextEditor that maintains its own buffer
+                    // Changing _commandInput alone doesn't clear this internal buffer
+                    GUIUtility.keyboardControl = 0;
+                    EditorGUIUtility.editingTextField = false;
+                    GUI.FocusControl("");
+
                     // Consume the event to prevent TextArea from processing it
                     e.Use();
 
