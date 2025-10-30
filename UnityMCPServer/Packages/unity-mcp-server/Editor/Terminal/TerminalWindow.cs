@@ -196,8 +196,10 @@ namespace UnityMCPServer.Editor.Terminal
             // This is the only reliable way to prevent TextArea from inserting a newline
             if (_shouldClearInput && e.type == EventType.Layout)
             {
+                Debug.Log($"[TerminalWindow] Clearing input at Layout, before='{_commandInput}'");
                 _commandInput = "";
                 _shouldClearInput = false;
+                Debug.Log($"[TerminalWindow] Cleared input at Layout, after='{_commandInput}'");
             }
 
             // Handle Enter key at KeyDown event
@@ -216,6 +218,7 @@ namespace UnityMCPServer.Editor.Terminal
                 else if (!string.IsNullOrWhiteSpace(_commandInput))
                 {
                     // Enter only: Execute command
+                    Debug.Log($"[TerminalWindow] Enter pressed, setting _shouldClearInput=true, command='{_commandInput}'");
                     _pendingCommand = _commandInput;
                     _shouldClearInput = true;
                     _shouldRestoreFocus = true;
