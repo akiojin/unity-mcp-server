@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AI Session Close",
+  "description": "Closes an existing AI agent session",
+  "type": "object",
+  "properties": {
+    "sessionId": {
+      "type": "string",
+      "description": "Target session identifier"
+    },
+    "saveTranscript": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, exports the chat log before closing"
+    }
+  },
+  "required": ["sessionId"],
+  "response": {
+    "type": "object",
+    "properties": {
+      "sessionId": { "type": "string" },
+      "closed": { "type": "boolean" }
+    },
+    "required": ["sessionId", "closed"]
+  }
+}

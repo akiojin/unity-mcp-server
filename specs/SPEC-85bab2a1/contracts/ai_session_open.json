@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AI Session Open",
+  "description": "Opens a new AI agent session inside Unity",
+  "type": "object",
+  "properties": {
+    "agentId": {
+      "type": "string",
+      "description": "Identifier of the agent to use (codex, claude, or custom AI)"
+    },
+    "workspace": {
+      "type": "string",
+      "enum": ["workspace", "project"],
+      "default": "workspace",
+      "description": "Initial working directory scope"
+    },
+    "title": {
+      "type": "string",
+      "description": "Optional window title override"
+    }
+  },
+  "required": ["agentId"],
+  "response": {
+    "type": "object",
+    "properties": {
+      "sessionId": { "type": "string" },
+      "windowId": { "type": "string" },
+      "agent": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "provider": { "type": "string" },
+          "capabilities": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["id", "provider", "capabilities"]
+      }
+    },
+    "required": ["sessionId", "agent"]
+  }
+}
