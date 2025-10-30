@@ -23,6 +23,9 @@ namespace UnityMCPServer.Editor.Terminal
         private bool _shouldClearInput = false;
         private bool _shouldRestoreFocus = false;
 
+        // Live output update tracking
+        private int _lastOutputCount = 0;
+
         /// <summary>
         /// Opens terminal at workspace root
         /// </summary>
@@ -78,10 +81,16 @@ namespace UnityMCPServer.Editor.Terminal
                     Close();
                 }
             }
+
+            // Register for editor updates to handle live output
+            EditorApplication.update += OnEditorUpdate;
         }
 
         private void OnDestroy()
         {
+            // Unregister editor updates
+            EditorApplication.update -= OnEditorUpdate;
+
             // Close session when window is closed
             if (!string.IsNullOrEmpty(_sessionId))
             {
@@ -93,6 +102,20 @@ namespace UnityMCPServer.Editor.Terminal
                 catch (Exception ex)
                 {
                     Debug.LogWarning($"[TerminalWindow] Error closing session: {ex.Message}");
+                }
+            }
+        }
+
+        private void OnEditorUpdate()
+        {
+            // Check if output has changed
+            if (_session != null && _session.IsRunning)
+            {
+                int currentOutputCount = _session.OutputBuffer.GetLines(MAX_DISPLAY_LINES).Count;
+                if (currentOutputCount != _lastOutputCount)
+                {
+                    _lastOutputCount = currentOutputCount;
+                    Repaint();
                 }
             }
         }
@@ -127,9 +150,6 @@ namespace UnityMCPServer.Editor.Terminal
 
             // Command input area
             DrawCommandInput();
-
-            // Auto-repaint for live output updates
-            Repaint();
         }
 
         private void DrawOutputArea()
