@@ -23,7 +23,24 @@
 
 - **参照**:
   - 統合後のSPEC: `../SPEC-e757a01f/spec.md`
-  - アーカイブSPEC: `./SPEC-4tyqsgzk/spec.md`
+- アーカイブSPEC: `./SPEC-4tyqsgzk/spec.md`
+
+---
+
+## 廃止SPEC
+
+### SPEC-3a7f2e8d: Unity Editor内ターミナル
+
+- **作成日**: 2025-10-29
+- **廃止日**: 2025-10-30
+- **廃止理由**:
+  - プロダクト方向を「AIエージェントウィンドウ」中心へ見直し、ターミナル機能は当面提供対象外
+  - 新SPEC `SPEC-85bab2a1` にてCodex/Claude/カスタムAIツールを扱うチャットUIを定義
+  - 既存ターミナル要件は参考資料として保持しつつ、混乱を避けるためアーカイブへ移動
+
+- **参照**:
+  - 後継SPEC: `../SPEC-85bab2a1/spec.md`
+  - アーカイブSPEC: `./SPEC-3a7f2e8d/spec.md`
 
 ---
 
