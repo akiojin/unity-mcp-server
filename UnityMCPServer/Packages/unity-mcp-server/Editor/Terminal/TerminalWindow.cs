@@ -248,15 +248,14 @@ namespace UnityMCPServer.Editor.Terminal
                 GUILayout.MinHeight(20),
                 GUILayout.MaxHeight(100));
 
-            EditorGUILayout.EndHorizontal();
-
-            // Restore focus only after Shift+Enter or Enter (not every frame)
-            // This prevents text selection issues while enabling focus retention after key events
-            if (_shouldRestoreFocus && e.type == EventType.Repaint)
+            // Restore focus immediately after TextArea drawing (not in Repaint)
+            if (_shouldRestoreFocus && e.type == EventType.Layout)
             {
-                GUI.FocusControl("CommandInput");
+                EditorGUI.FocusTextInControl("CommandInput");
                 _shouldRestoreFocus = false;
             }
+
+            EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.EndVertical();
         }
