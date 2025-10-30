@@ -128,8 +128,12 @@ namespace UnityMCPServer.Editor.Terminal
                 // Set shell-specific arguments
                 if (ShellType == "wsl")
                 {
-                    // WSL: No arguments needed, will set locale and cd after start
-                    startInfo.Arguments = "";
+                    // WSL: Use --cd option to set working directory
+                    // This ensures WSL starts in the correct directory even if /mnt/ is not accessible
+                    string wslPath = WSLPathConverter.IsWindowsPath(WorkingDirectory)
+                        ? WSLPathConverter.ToWSLPath(WorkingDirectory)
+                        : WorkingDirectory;
+                    startInfo.Arguments = $"--cd \"{wslPath}\"";
                 }
                 else if (ShellType == "pwsh" || ShellType == "powershell")
                 {
@@ -147,30 +151,13 @@ namespace UnityMCPServer.Editor.Terminal
                 _process.BeginOutputReadLine();
                 _process.BeginErrorReadLine();
 
-                // For WSL, set locale and change directory after start
+                // For WSL, set locale after start (directory is already set by --cd)
                 if (ShellType == "wsl")
                 {
-                    string wslPath;
-                    bool isWindowsPath = WSLPathConverter.IsWindowsPath(WorkingDirectory);
-
-                    if (isWindowsPath)
-                    {
-                        wslPath = WSLPathConverter.ToWSLPath(WorkingDirectory).Trim();
-                        UnityEngine.Debug.Log($"[TerminalSession] Converted Windows path '{WorkingDirectory}' to WSL path '{wslPath}'");
-                    }
-                    else
-                    {
-                        wslPath = WorkingDirectory.Trim();
-                        UnityEngine.Debug.Log($"[TerminalSession] Using WSL internal path: '{wslPath}'");
-                    }
-
                     // Use Write with explicit \n instead of WriteLine to avoid platform-specific line endings
                     _process.StandardInput.Write("export LANG=C.UTF-8\n");
                     _process.StandardInput.Write("export LC_ALL=C.UTF-8\n");
                     _process.StandardInput.Write("export LC_CTYPE=C.UTF-8\n");
-
-                    // Check if directory exists before cd
-                    _process.StandardInput.Write($"if [ -d '{wslPath}' ]; then cd '{wslPath}'; else echo 'ERROR: Directory not found: {wslPath}' >&2; fi\n");
                     _process.StandardInput.Flush();
                 }
 
