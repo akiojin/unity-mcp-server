@@ -148,6 +148,7 @@ Unity Editor内でクロスプラットフォーム対応のターミナルウ�
 - [x] T061 TerminalWindow.cs を複数行入力対応に変更 (TextArea使用、Shift+Enterで改行、Enterで送信) (FR-015)
 - [x] T062 TerminalWindow.cs からRunボタンを削除 (Enterのみで送信)
 - [x] T063 TerminalWindow.cs からAuto-scrollトグルボタンを削除 (常に自動スクロール)
+- [x] T067 TerminalWindow.cs にEnterキー処理の遅延実行パターンを実装 (FR-016, FR-017) - Layout イベント時にクリア、KeyDown イベント時にコマンド保存、Repaint イベント時に実行
 
 **ドキュメント更新**
 - [ ] T064 [P] README.md にターミナル機能の説明を追加
