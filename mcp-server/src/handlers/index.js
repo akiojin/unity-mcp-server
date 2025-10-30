@@ -113,6 +113,13 @@ export { TerminalExecuteToolHandler } from './terminal/TerminalExecuteToolHandle
 export { TerminalReadToolHandler } from './terminal/TerminalReadToolHandler.js';
 export { TerminalCloseToolHandler } from './terminal/TerminalCloseToolHandler.js';
 
+// AI session handlers
+export { AiSessionOpenHandler } from './ai/AiSessionOpenHandler.js';
+export { AiSessionMessageHandler } from './ai/AiSessionMessageHandler.js';
+export { AiSessionExecuteHandler } from './ai/AiSessionExecuteHandler.js';
+export { AiSessionCloseHandler } from './ai/AiSessionCloseHandler.js';
+export { AiStreamDispatcher } from './ai/AiStreamDispatcher.js';
+
 // Editor control handlers
 export { EditorTagsManageToolHandler } from './editor/EditorTagsManageToolHandler.js';
 export { EditorLayersManageToolHandler } from './editor/EditorLayersManageToolHandler.js';
@@ -370,6 +377,10 @@ const HANDLER_CLASSES = [
   TerminalExecuteToolHandler,
   TerminalReadToolHandler,
   TerminalCloseToolHandler,
+  AiSessionOpenHandler,
+  AiSessionMessageHandler,
+  AiSessionExecuteHandler,
+  AiSessionCloseHandler,
 
   // Editor control handlers
   EditorTagsManageToolHandler,
