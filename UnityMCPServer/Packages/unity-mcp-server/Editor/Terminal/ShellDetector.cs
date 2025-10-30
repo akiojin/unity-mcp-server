@@ -27,6 +27,12 @@ namespace UnityMCPServer.Editor.Terminal
             // This works correctly in Docker containers where RuntimeInformation may report Windows
             // but the actual filesystem is Linux
 
+            Debug.Log("[ShellDetector] Starting platform detection...");
+            Debug.Log($"[ShellDetector] /bin/bash exists: {File.Exists("/bin/bash")}");
+            Debug.Log($"[ShellDetector] /usr/bin/bash exists: {File.Exists("/usr/bin/bash")}");
+            Debug.Log($"[ShellDetector] /bin/zsh exists: {File.Exists("/bin/zsh")}");
+            Debug.Log($"[ShellDetector] C:\\Windows\\System32\\cmd.exe exists: {File.Exists(@"C:\Windows\System32\cmd.exe")}");
+
             // Check for Linux shells first
             if (File.Exists("/bin/bash") || File.Exists("/usr/bin/bash"))
             {
