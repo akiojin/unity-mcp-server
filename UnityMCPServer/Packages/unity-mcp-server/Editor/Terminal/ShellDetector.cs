@@ -35,6 +35,17 @@ namespace UnityMCPServer.Editor.Terminal
 
         private static (string shellType, string shellPath) DetectWindowsShell()
         {
+            // Check if we're running inside WSL (not Windows calling WSL)
+            if (IsRunningInsideWSL())
+            {
+                Debug.Log("[ShellDetector] Detected WSL environment, using bash instead of wsl.exe");
+                // We're inside WSL, so use bash directly
+                if (File.Exists("/bin/bash"))
+                    return ("bash", "/bin/bash");
+                if (File.Exists("/usr/bin/bash"))
+                    return ("bash", "/usr/bin/bash");
+            }
+
             // Priority: WSL2 → PowerShell Core → Windows PowerShell → cmd
             if (File.Exists(@"C:\Windows\System32\wsl.exe"))
                 return ("wsl", @"C:\Windows\System32\wsl.exe");
@@ -49,6 +60,38 @@ namespace UnityMCPServer.Editor.Terminal
                 return ("cmd", @"C:\Windows\System32\cmd.exe");
 
             throw new Exception("No shell found on Windows. Please install WSL2, PowerShell, or use cmd.exe");
+        }
+
+        /// <summary>
+        /// Checks if we're running inside WSL environment
+        /// </summary>
+        private static bool IsRunningInsideWSL()
+        {
+            try
+            {
+                // Check for /proc/version containing "Microsoft" or "WSL"
+                if (File.Exists("/proc/version"))
+                {
+                    string version = File.ReadAllText("/proc/version");
+                    if (version.Contains("Microsoft") || version.Contains("WSL"))
+                    {
+                        return true;
+                    }
+                }
+
+                // Check for WSL_DISTRO_NAME environment variable
+                string wslDistro = Environment.GetEnvironmentVariable("WSL_DISTRO_NAME");
+                if (!string.IsNullOrEmpty(wslDistro))
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                // If we can't check, assume not in WSL
+            }
+
+            return false;
         }
 
         private static (string shellType, string shellPath) DetectMacOSShell()
