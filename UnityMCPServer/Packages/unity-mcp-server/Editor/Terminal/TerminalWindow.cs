@@ -178,26 +178,29 @@ namespace UnityMCPServer.Editor.Terminal
             // Prompt
             GUILayout.Label("$", GUILayout.Width(15));
 
+            // Handle Enter key BEFORE drawing TextField
+            Event e = Event.current;
+            bool shouldExecute = false;
+            if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Return && GUI.GetNameOfFocusedControl() == "CommandInput")
+            {
+                if (!string.IsNullOrWhiteSpace(_commandInput))
+                {
+                    shouldExecute = true;
+                }
+                e.Use();
+            }
+
             // Command input field
             GUI.SetNextControlName("CommandInput");
             _commandInput = EditorGUILayout.TextField(_commandInput, GUILayout.ExpandWidth(true));
 
-            // Handle Enter key
-            if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
+            // Execute command after drawing
+            if (shouldExecute)
             {
-                Debug.Log($"[TerminalWindow] Enter pressed, commandInput='{_commandInput}'");
-                if (!string.IsNullOrWhiteSpace(_commandInput))
-                {
-                    Debug.Log($"[TerminalWindow] Executing command: '{_commandInput}'");
-                    ExecuteCommand(_commandInput);
-                    _commandInput = "";
-                    GUI.FocusControl("CommandInput");
-                }
-                else
-                {
-                    Debug.Log("[TerminalWindow] Command input is empty, not executing");
-                }
-                Event.current.Use();
+                ExecuteCommand(_commandInput);
+                _commandInput = "";
+                GUI.FocusControl("CommandInput");
+                Repaint();
             }
 
             // Execute button
