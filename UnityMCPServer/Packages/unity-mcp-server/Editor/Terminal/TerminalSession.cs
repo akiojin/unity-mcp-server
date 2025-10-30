@@ -207,7 +207,8 @@ namespace UnityMCPServer.Editor.Terminal
 
                 try
                 {
-                    _process.StandardInput.WriteLine(command);
+                    // Use Write with explicit \n to avoid platform-specific line endings (\r\n)
+                    _process.StandardInput.Write(command + "\n");
                     _process.StandardInput.Flush();
                 }
                 catch (Exception ex)
