@@ -199,16 +199,21 @@ namespace UnityMCPServer.Editor.Terminal
                 _shouldClearInput = false;
             }
 
-            // Handle Enter key at KeyDown event (only without Shift modifier)
-            // Shift+Enter is handled naturally by TextArea for newline insertion
+            // Handle Enter key at KeyDown event
             if (e.type == EventType.KeyDown &&
                 e.keyCode == KeyCode.Return &&
-                !e.shift &&  // CRITICAL: Skip this block entirely for Shift+Enter
                 GUI.GetNameOfFocusedControl() == "CommandInput")
             {
-                if (!string.IsNullOrWhiteSpace(_commandInput))
+                if (e.shift)
                 {
-                    // Save command for delayed execution
+                    // Shift+Enter: Manually insert newline
+                    _commandInput += "\n";
+                    e.Use();
+                    Repaint();
+                }
+                else if (!string.IsNullOrWhiteSpace(_commandInput))
+                {
+                    // Enter only: Execute command
                     _pendingCommand = _commandInput;
                     _shouldClearInput = true;
 
