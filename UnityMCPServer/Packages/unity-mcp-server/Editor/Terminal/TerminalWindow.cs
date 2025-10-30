@@ -188,15 +188,11 @@ namespace UnityMCPServer.Editor.Terminal
             GUILayout.Label("$", GUILayout.Width(15));
 
             GUI.SetNextControlName("CommandInput");
-            _commandInput = EditorGUILayout.TextArea(_commandInput, GUILayout.ExpandWidth(true), GUILayout.MinHeight(20), GUILayout.MaxHeight(100));
+            // Pass empty string to TextArea if executing to clear it immediately
+            string textAreaInput = shouldExecute ? "" : _commandInput;
+            _commandInput = EditorGUILayout.TextArea(textAreaInput, GUILayout.ExpandWidth(true), GUILayout.MinHeight(20), GUILayout.MaxHeight(100));
 
             EditorGUILayout.EndHorizontal();
-
-            // Clear input field AFTER TextArea draws to prevent it from being re-assigned
-            if (shouldExecute)
-            {
-                _commandInput = "";
-            }
 
             // Execute command after drawing
             if (shouldExecute && !string.IsNullOrEmpty(commandToExecute))
