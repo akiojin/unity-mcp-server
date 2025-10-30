@@ -151,26 +151,25 @@ namespace UnityMCPServer.Editor.Terminal
                 // For WSL, set locale and change directory after start
                 if (ShellType == "wsl")
                 {
+                    string targetPath;
+
+                    // Convert Windows path to WSL path
+                    if (WSLPathConverter.IsWindowsPath(WorkingDirectory))
+                    {
+                        targetPath = WSLPathConverter.ToWSLPath(WorkingDirectory);
+                        UnityEngine.Debug.Log($"[TerminalSession] Converted Windows path '{WorkingDirectory}' to WSL path '{targetPath}'");
+                    }
+                    else
+                    {
+                        targetPath = WorkingDirectory;
+                        UnityEngine.Debug.Log($"[TerminalSession] Using WSL path directly: '{targetPath}'");
+                    }
+
                     // Use Write with explicit \n instead of WriteLine to avoid platform-specific line endings
                     _process.StandardInput.Write("export LANG=C.UTF-8\n");
                     _process.StandardInput.Write("export LC_ALL=C.UTF-8\n");
                     _process.StandardInput.Write("export LC_CTYPE=C.UTF-8\n");
-
-                    // Convert Windows path to WSL path using wslpath command
-                    if (WSLPathConverter.IsWindowsPath(WorkingDirectory))
-                    {
-                        // Use wslpath to convert Windows path to WSL path
-                        // Format: wslpath "C:\path" returns /mnt/c/path or proper WSL path
-                        _process.StandardInput.Write($"cd \"$(wslpath '{WorkingDirectory.Replace("\\", "/")}')\"\n");
-                        UnityEngine.Debug.Log($"[TerminalSession] Using wslpath to convert Windows path: {WorkingDirectory}");
-                    }
-                    else
-                    {
-                        // Already a WSL path, use it directly
-                        _process.StandardInput.Write($"cd '{WorkingDirectory}'\n");
-                        UnityEngine.Debug.Log($"[TerminalSession] Using WSL path directly: {WorkingDirectory}");
-                    }
-
+                    _process.StandardInput.Write($"cd '{targetPath}' 2>/dev/null || echo 'CD_ERROR: Failed to change to {targetPath}'\n");
                     _process.StandardInput.Flush();
                 }
 
