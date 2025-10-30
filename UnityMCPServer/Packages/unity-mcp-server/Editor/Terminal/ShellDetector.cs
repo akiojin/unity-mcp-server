@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace UnityMCPServer.Editor.Terminal
@@ -22,15 +23,26 @@ namespace UnityMCPServer.Editor.Terminal
                 return FindShellPath(requestedShell);
             }
 
-#if UNITY_EDITOR_WIN
-            return DetectWindowsShell();
-#elif UNITY_EDITOR_OSX
-            return DetectMacOSShell();
-#elif UNITY_EDITOR_LINUX
-            return DetectLinuxShell();
-#else
-            throw new System.PlatformNotSupportedException("Unsupported platform for terminal");
-#endif
+            // Use RuntimeInformation to detect actual OS platform instead of Unity Editor build target
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Debug.Log("[ShellDetector] Detected Windows OS via RuntimeInformation");
+                return DetectWindowsShell();
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Debug.Log("[ShellDetector] Detected macOS via RuntimeInformation");
+                return DetectMacOSShell();
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Debug.Log("[ShellDetector] Detected Linux OS via RuntimeInformation");
+                return DetectLinuxShell();
+            }
+            else
+            {
+                throw new System.PlatformNotSupportedException("Unsupported platform for terminal");
+            }
         }
 
         private static (string shellType, string shellPath) DetectWindowsShell()
