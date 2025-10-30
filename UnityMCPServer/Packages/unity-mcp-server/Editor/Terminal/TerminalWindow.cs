@@ -185,11 +185,17 @@ namespace UnityMCPServer.Editor.Terminal
             // Handle Enter key
             if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
             {
+                Debug.Log($"[TerminalWindow] Enter pressed, commandInput='{_commandInput}'");
                 if (!string.IsNullOrWhiteSpace(_commandInput))
                 {
+                    Debug.Log($"[TerminalWindow] Executing command: '{_commandInput}'");
                     ExecuteCommand(_commandInput);
                     _commandInput = "";
                     GUI.FocusControl("CommandInput");
+                }
+                else
+                {
+                    Debug.Log("[TerminalWindow] Command input is empty, not executing");
                 }
                 Event.current.Use();
             }
