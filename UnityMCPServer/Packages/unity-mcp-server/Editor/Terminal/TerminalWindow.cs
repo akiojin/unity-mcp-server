@@ -216,6 +216,10 @@ namespace UnityMCPServer.Editor.Terminal
         {
             try
             {
+                // Add command to output buffer (echo the input)
+                _session.OutputBuffer.Add($"$ {command}", isError: false);
+
+                // Execute the command
                 _session.ExecuteCommand(command);
             }
             catch (Exception ex)
