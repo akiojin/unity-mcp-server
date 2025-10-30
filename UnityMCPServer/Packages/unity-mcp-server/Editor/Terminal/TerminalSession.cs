@@ -134,8 +134,14 @@ namespace UnityMCPServer.Editor.Terminal
                 }
                 else if (ShellType == "pwsh" || ShellType == "powershell")
                 {
-                    // PowerShell: NoLogo and NoProfile for cleaner output
-                    startInfo.Arguments = "-NoLogo -NoProfile";
+                    // PowerShell: Set UTF-8 encoding on startup with -NoExit to keep interactive mode
+                    // This ensures all output is UTF-8 encoded from the very beginning
+                    string encodingCommand = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; " +
+                                           "[Console]::InputEncoding=[System.Text.Encoding]::UTF8; " +
+                                           "$OutputEncoding=[System.Text.Encoding]::UTF8; " +
+                                           "chcp 65001 > $null 2>&1; " +
+                                           "Clear-Host";
+                    startInfo.Arguments = $"-NoLogo -NoProfile -NoExit -Command \"{encodingCommand}\"";
                 }
 
                 _process = new Process { StartInfo = startInfo };
@@ -145,22 +151,6 @@ namespace UnityMCPServer.Editor.Terminal
                 _process.ErrorDataReceived += OnErrorDataReceived;
 
                 _process.Start();
-
-                // Set UTF-8 encoding for PowerShell immediately after start
-                if (ShellType == "pwsh" || ShellType == "powershell")
-                {
-                    _process.StandardInput.WriteLine("[Console]::OutputEncoding = [System.Text.Encoding]::UTF8");
-                    _process.StandardInput.WriteLine("[Console]::InputEncoding = [System.Text.Encoding]::UTF8");
-                    _process.StandardInput.WriteLine("$OutputEncoding = [System.Text.Encoding]::UTF8");
-                    _process.StandardInput.Flush();
-                }
-                // Set UTF-8 for CMD (Windows Command Prompt)
-                else if (ShellType == "cmd")
-                {
-                    _process.StandardInput.WriteLine("chcp 65001 >nul");
-                    _process.StandardInput.Flush();
-                }
-
                 _process.BeginOutputReadLine();
                 _process.BeginErrorReadLine();
 
