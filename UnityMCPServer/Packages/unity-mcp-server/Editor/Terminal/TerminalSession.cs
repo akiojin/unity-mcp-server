@@ -73,19 +73,8 @@ namespace UnityMCPServer.Editor.Terminal
         {
             try
             {
-                // Determine appropriate encoding based on platform and shell
-                Encoding outputEncoding;
-                if (ShellType == "pwsh" || ShellType == "powershell")
-                {
-                    // PowerShell on Windows often uses the system default codepage
-                    // We'll try UTF-8 first, but may need to fall back
-                    outputEncoding = Encoding.UTF8;
-                }
-                else
-                {
-                    // Unix shells use UTF-8
-                    outputEncoding = Encoding.UTF8;
-                }
+                // Use UTF-8 without BOM to avoid encoding issues
+                var utf8WithoutBOM = new UTF8Encoding(false);
 
                 var startInfo = new ProcessStartInfo
                 {
@@ -96,9 +85,9 @@ namespace UnityMCPServer.Editor.Terminal
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true,
-                    StandardOutputEncoding = outputEncoding,
-                    StandardErrorEncoding = outputEncoding,
-                    StandardInputEncoding = Encoding.UTF8
+                    StandardOutputEncoding = utf8WithoutBOM,
+                    StandardErrorEncoding = utf8WithoutBOM,
+                    StandardInputEncoding = utf8WithoutBOM
                 };
 
                 // Copy all environment variables from Unity Editor
