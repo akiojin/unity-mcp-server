@@ -14,7 +14,7 @@
 |----|--------|------|----------------|
 | RQ-1 | カスタムAIツールの登録/認証管理 | 完了 | Codex/Claudeはコード固定。カスタムツールのみ `.unity/config.json` の `aiAgents` で宣言する方針を採用 |
 | RQ-2 | セッション情報の保持方針 (ワンショット vs 短期永続) | 調査中 | Unity/Node双方でのライフサイクル要件を整理し、最小限の永続化要否を判断する |
-| RQ-3 | エージェント応答のストリーミング可否とUI更新戦略 | 下調べ中 | Node SDK / Unity UI Toolkit のサンプルを確認し、逐次描画の性能影響を測定する計画を立てる |
+| RQ-3 | エージェント応答のストリーミング可否とUI更新戦略 | 調査中 | Node SDK / Unity UI Toolkit のサンプルを確認し、逐次描画の性能影響を測定する計画を立てる |
 | RQ-4 | 実行ログの最大件数と保管ポリシー | 未着手 | チャットビューのパフォーマンス実測計画を作成し、ログサマリ圧縮の要否を検討する |
 | RQ-5 | 既存ターミナルハンドラ資産の再利用範囲 | 調査済み | `mcp-server/src/handlers/terminal/*.js` でシェル実行ロジックが既に存在。AIエージェントのシェル操作はこれをラップして再利用する方針 |
 
@@ -50,6 +50,8 @@
 ### RQ-3: ストリーミング応答
 - Node側では @modelcontextprotocol/sdk がストリーミング対応 (`tool.handler.onChunk`) を提供していることを確認。Unity側で逐次反映する場合、UI Toolkit の `ListView` + `ScrollView` の最適化が必要。
 - 仮リスク: 大量トークン出力でEditorがフリーズする可能性。`Dispatcher` 経由でチャンクをバッチ処理する案を検討。
+- シンプル案: Node側でチャンクを一定長にまとめて送信し、Unityでは1フレームあたりのUI更新数を制限する。
+- 旧ターミナルのTerminalReadはポーリング前提のため、本機能では push 型のイベント (Unity側 -> UI) を新設予定。
 
 ### RQ-5: ターミナルハンドラの再利用
 - 既存ファイル: `mcp-server/src/handlers/terminal/TerminalOpenToolHandler.js` ほか3件。
