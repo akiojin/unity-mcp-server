@@ -162,19 +162,14 @@ namespace UnityMCPServer.Editor.Terminal
                 if (ShellType == "wsl")
                 {
                     string wslPath = WSLPathConverter.IsWindowsPath(WorkingDirectory)
-                        ? WSLPathConverter.ToWSLPath(WorkingDirectory)
-                        : WorkingDirectory;
+                        ? WSLPathConverter.ToWSLPath(WorkingDirectory).Trim()
+                        : WorkingDirectory.Trim();
 
-                    // Set UTF-8 locale
-                    _process.StandardInput.WriteLine("export LANG=C.UTF-8");
-                    _process.StandardInput.WriteLine("export LC_ALL=C.UTF-8");
-                    _process.StandardInput.WriteLine("export LC_CTYPE=C.UTF-8");
-
-                    // Change directory
-                    _process.StandardInput.WriteLine($"cd \"{wslPath}\"");
-
-                    // Clear the screen to hide setup commands
-                    _process.StandardInput.WriteLine("clear");
+                    // Use Write with explicit \n instead of WriteLine to avoid platform-specific line endings
+                    _process.StandardInput.Write("export LANG=C.UTF-8\n");
+                    _process.StandardInput.Write("export LC_ALL=C.UTF-8\n");
+                    _process.StandardInput.Write("export LC_CTYPE=C.UTF-8\n");
+                    _process.StandardInput.Write($"cd '{wslPath}'\n");
                     _process.StandardInput.Flush();
                 }
 
