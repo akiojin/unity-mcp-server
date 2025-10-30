@@ -178,7 +178,6 @@ namespace UnityMCPServer.Editor.Terminal
                 {
                     shouldExecute = true;
                     commandToExecute = _commandInput;
-                    _commandInput = "";  // Clear immediately to prevent TextArea from inserting newline
                     e.Use();
                 }
                 // If Shift is pressed, let the TextArea handle the newline insertion naturally
@@ -192,6 +191,12 @@ namespace UnityMCPServer.Editor.Terminal
             _commandInput = EditorGUILayout.TextArea(_commandInput, GUILayout.ExpandWidth(true), GUILayout.MinHeight(20), GUILayout.MaxHeight(100));
 
             EditorGUILayout.EndHorizontal();
+
+            // Clear input field AFTER TextArea draws to prevent it from being re-assigned
+            if (shouldExecute)
+            {
+                _commandInput = "";
+            }
 
             // Execute command after drawing
             if (shouldExecute && !string.IsNullOrEmpty(commandToExecute))
