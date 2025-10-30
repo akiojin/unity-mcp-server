@@ -69,28 +69,39 @@ namespace UnityMCPServer.Editor.Terminal
         {
             try
             {
+                Debug.Log("[ShellDetector] Checking if running inside WSL...");
+
                 // Check for /proc/version containing "Microsoft" or "WSL"
                 if (File.Exists("/proc/version"))
                 {
                     string version = File.ReadAllText("/proc/version");
+                    Debug.Log($"[ShellDetector] /proc/version exists: {version}");
                     if (version.Contains("Microsoft") || version.Contains("WSL"))
                     {
+                        Debug.Log("[ShellDetector] Found Microsoft/WSL in /proc/version");
                         return true;
                     }
+                }
+                else
+                {
+                    Debug.Log("[ShellDetector] /proc/version does not exist");
                 }
 
                 // Check for WSL_DISTRO_NAME environment variable
                 string wslDistro = Environment.GetEnvironmentVariable("WSL_DISTRO_NAME");
+                Debug.Log($"[ShellDetector] WSL_DISTRO_NAME environment variable: '{wslDistro}'");
                 if (!string.IsNullOrEmpty(wslDistro))
                 {
+                    Debug.Log("[ShellDetector] Found WSL_DISTRO_NAME");
                     return true;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // If we can't check, assume not in WSL
+                Debug.LogWarning($"[ShellDetector] Error checking WSL environment: {ex.Message}");
             }
 
+            Debug.Log("[ShellDetector] Not running inside WSL");
             return false;
         }
 
