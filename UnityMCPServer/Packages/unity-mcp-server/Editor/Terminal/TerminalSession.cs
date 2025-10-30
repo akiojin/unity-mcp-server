@@ -138,9 +138,7 @@ namespace UnityMCPServer.Editor.Terminal
                     // This ensures all output is UTF-8 encoded from the very beginning
                     string encodingCommand = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; " +
                                            "[Console]::InputEncoding=[System.Text.Encoding]::UTF8; " +
-                                           "$OutputEncoding=[System.Text.Encoding]::UTF8; " +
-                                           "chcp 65001 > $null 2>&1; " +
-                                           "Clear-Host";
+                                           "$OutputEncoding=[System.Text.Encoding]::UTF8";
                     startInfo.Arguments = $"-NoLogo -NoProfile -NoExit -Command \"{encodingCommand}\"";
                 }
 
