@@ -200,12 +200,14 @@ namespace UnityMCPServer.Editor.Terminal
                 _shouldClearInput = false;
             }
 
-            // Handle Enter key at KeyDown event
+            // Handle Enter key at KeyDown event (only without Shift modifier)
+            // Shift+Enter is handled naturally by TextArea for newline insertion
             if (e.type == EventType.KeyDown &&
                 e.keyCode == KeyCode.Return &&
+                !e.shift &&  // CRITICAL: Skip this block entirely for Shift+Enter
                 GUI.GetNameOfFocusedControl() == "CommandInput")
             {
-                if (!e.shift && !string.IsNullOrWhiteSpace(_commandInput))
+                if (!string.IsNullOrWhiteSpace(_commandInput))
                 {
                     // Save command for delayed execution
                     _pendingCommand = _commandInput;
@@ -225,7 +227,6 @@ namespace UnityMCPServer.Editor.Terminal
                     // Trigger next frame to apply the clear
                     Repaint();
                 }
-                // If Shift is pressed, let the TextArea handle the newline insertion naturally
             }
 
             // Execute pending command at Repaint event (after Layout has cleared the input)
