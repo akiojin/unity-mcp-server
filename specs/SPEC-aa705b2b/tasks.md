@@ -1,6 +1,6 @@
 # タスク: コードインデックスビルドのバックグラウンド実行
 
-**入力**: `/specs/SPEC-yt3ikddd/`の設計ドキュメント
+**入力**: `/specs/SPEC-aa705b2b/`の設計ドキュメント
 **前提条件**: plan.md, research.md, data-model.md, contracts/, quickstart.md
 
 ## 実行フロー (完了)
@@ -310,6 +310,6 @@ Polish (T016-T020) ← すべて並列実行可能 (T016-T018)
 - `src/core/indexWatcher.js` (変更: JobManager統合)
 
 ### ドキュメント
-- `specs/SPEC-yt3ikddd/quickstart.md`: 完全な検証手順
-- `specs/SPEC-yt3ikddd/contracts/`: API契約定義
-- `specs/SPEC-yt3ikddd/data-model.md`: BuildJob構造定義
+- `specs/SPEC-aa705b2b/quickstart.md`: 完全な検証手順
+- `specs/SPEC-aa705b2b/contracts/`: API契約定義
+- `specs/SPEC-aa705b2b/data-model.md`: BuildJob構造定義

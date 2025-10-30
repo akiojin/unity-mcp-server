@@ -116,12 +116,8 @@
 3. 自動実行される処理:
    - featureブランチをリモートにpush
    - GitHub PRを自動作成（spec.mdからタイトル取得）
-   - GitHub Actionsで品質チェック実行:
-     - tasks.md 全タスク完了チェック
-     - テスト実行（npm + Unity）
-     - コンパイルチェック（TypeScript + C#）
-     - commitlint 規約チェック
-   - 全チェック成功時、自動的にmainへマージ（`--no-ff`で履歴保持）
+   - GitHub ActionsでRequiredチェックを監視し、自動マージ可否を判定
+   - Requiredチェックがすべて成功した場合のみ自動的にmainへマージ（`--no-ff`で履歴保持）
 
 **既存SPEC移行**:
 
@@ -141,7 +137,7 @@ cd .worktrees/SPEC-0d5d84f9/
 **重要な注意事項**:
 
 - **mainブランチで直接SPEC作業禁止**: 必ずWorktreeを使用
-- **PR自動マージ**: GitHub Actionsで品質チェック後に自動マージ
+- **PR自動マージ**: GitHub Actionsで Required チェック完了後に自動マージ
 - **ドラフトPR**: `--draft`オプションで作成したPRは自動マージ対象外
 - **並行開発推奨**: 複数のSPECを同時に異なるWorktreeで作業可能
 - **Worktree間の独立性**: 各Worktreeは完全に独立（相互干渉なし）
@@ -152,7 +148,7 @@ cd .worktrees/SPEC-0d5d84f9/
 
 - `.specify/scripts/bash/create-new-feature.sh`: 新規SPEC＆Worktree作成
 - `.specify/scripts/bash/finish-feature.sh`: PR作成（自動マージトリガー）
-- `.specify/scripts/checks/*.sh`: 品質チェックスクリプト（tasks/tests/compile/commits）
+- `.specify/scripts/checks/*.sh`: 任意チェック用スクリプト（tasks/tests/compile/commits 等）
 
 ### TDD遵守（妥協不可）
 
