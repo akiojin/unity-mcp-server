@@ -114,6 +114,9 @@ export class JobManager {
       this.jobs.delete(jobId);
       this.cleanupTimers.delete(jobId);
     }, retentionMs);
+    if (typeof timer.unref === 'function') {
+      timer.unref();
+    }
 
     this.cleanupTimers.set(jobId, timer);
   }

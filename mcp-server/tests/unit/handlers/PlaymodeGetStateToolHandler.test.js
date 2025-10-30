@@ -126,11 +126,14 @@ describe('PlaymodeGetStateToolHandler', () => {
     });
 
     it('should throw error if not connected', async () => {
+      mockConnection = createMockUnityConnection();
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      
+      mockConnection.connect.mock.mockImplementation(async () => { throw new Error('Connection refused'); });
+      handler = new PlaymodeGetStateToolHandler(mockConnection);
+
       await assert.rejects(
         async () => await handler.execute({}),
-        /Unity connection not available/
+        /Connection refused/
       );
     });
   });

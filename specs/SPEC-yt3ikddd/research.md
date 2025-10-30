@@ -99,7 +99,7 @@ const jobId = `watcher-${Date.now()}`;
 
 **理由**:
 - BaseToolHandler変更不要（execute()内で完結）
-- script_index_statusは`index.buildJob`フィールドを追加（オプショナル）
+- code_index_statusは`index.buildJob`フィールドを追加（オプショナル）
 - 既存クライアントは`buildJob`を無視可能（下位互換）
 
 **エラーハンドリング戦略**:
@@ -114,7 +114,7 @@ const jobId = `watcher-${Date.now()}`;
   - 却下理由: 既存ハンドラへの影響大、不要な複雑さ
 
 **下位互換性保証**:
-- script_index_statusの既存フィールドはすべて保持
+- code_index_statusの既存フィールドはすべて保持
 - buildJobフィールドは存在しなくてもエラーにならない
 - 既存のcode_index_build呼び出しは引き続き動作（レスポンス形式変更のみ）
 

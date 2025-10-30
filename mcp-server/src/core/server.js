@@ -287,8 +287,19 @@ export async function createServer(customConfig = config) {
 }
 
 // Start the server
-main().catch((error) => {
+const isDirectExecution = (() => {
+  if (process.env.NODE_ENV === 'test') return false;
+  if (!process.argv[1]) return false;
+  try {
+    return import.meta.url === new URL('file://' + process.argv[1]).href;
+  } catch {
+    return false;
+  }
+})();
+
+if (isDirectExecution) main().catch((error) => {
   console.error('Fatal error:', error);
   console.error('Stack trace:', error.stack);
   process.exit(1);
 });
+
