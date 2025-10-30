@@ -18,6 +18,10 @@ namespace UnityMCPServer.Editor.Terminal
         private Vector2 _scrollPosition;
         private const int MAX_DISPLAY_LINES = 1000;
 
+        // Delayed execution pattern for Enter key handling
+        private string _pendingCommand = null;
+        private bool _shouldClearInput = false;
+
         /// <summary>
         /// Opens terminal at workspace root
         /// </summary>
@@ -165,22 +169,44 @@ namespace UnityMCPServer.Editor.Terminal
         {
             EditorGUILayout.BeginVertical();
 
-            // Handle Enter key BEFORE drawing TextArea
             Event e = Event.current;
-            bool shouldExecute = false;
-            string commandToExecute = null;
 
-            if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Return && GUI.GetNameOfFocusedControl() == "CommandInput")
+            // CRITICAL: Clear input field at Layout event BEFORE TextArea initializes its internal state
+            // This is the only reliable way to prevent TextArea from inserting a newline
+            if (_shouldClearInput && e.type == EventType.Layout)
             {
-                // Shift+Enter: Insert newline (don't execute)
-                // Enter only: Execute command
+                _commandInput = "";
+                _shouldClearInput = false;
+            }
+
+            // Handle Enter key at KeyDown event
+            if (e.type == EventType.KeyDown &&
+                e.keyCode == KeyCode.Return &&
+                GUI.GetNameOfFocusedControl() == "CommandInput")
+            {
                 if (!e.shift && !string.IsNullOrWhiteSpace(_commandInput))
                 {
-                    shouldExecute = true;
-                    commandToExecute = _commandInput;
+                    // Save command for delayed execution
+                    _pendingCommand = _commandInput;
+                    _shouldClearInput = true;
+
+                    // Consume the event to prevent TextArea from processing it
                     e.Use();
+
+                    // Trigger next frame to apply the clear
+                    Repaint();
                 }
                 // If Shift is pressed, let the TextArea handle the newline insertion naturally
+            }
+
+            // Execute pending command at Repaint event (after Layout has cleared the input)
+            if (_pendingCommand != null && e.type == EventType.Repaint)
+            {
+                ExecuteCommand(_pendingCommand);
+                _pendingCommand = null;
+
+                // Scroll to bottom after command execution
+                _scrollPosition.y = float.MaxValue;
             }
 
             // Command input area (multi-line)
@@ -188,25 +214,15 @@ namespace UnityMCPServer.Editor.Terminal
             GUILayout.Label("$", GUILayout.Width(15));
 
             GUI.SetNextControlName("CommandInput");
-            // Pass empty string to TextArea if executing to clear it immediately
-            string textAreaInput = shouldExecute ? "" : _commandInput;
-            _commandInput = EditorGUILayout.TextArea(textAreaInput, GUILayout.ExpandWidth(true), GUILayout.MinHeight(20), GUILayout.MaxHeight(100));
+            _commandInput = EditorGUILayout.TextArea(_commandInput,
+                GUILayout.ExpandWidth(true),
+                GUILayout.MinHeight(20),
+                GUILayout.MaxHeight(100));
 
             EditorGUILayout.EndHorizontal();
 
-            // Execute command after drawing
-            if (shouldExecute && !string.IsNullOrEmpty(commandToExecute))
-            {
-                ExecuteCommand(commandToExecute);
-
-                // Scroll to bottom after command execution
-                _scrollPosition.y = float.MaxValue;
-
-                Repaint();
-            }
-
             // Always keep focus on input field after processing
-            if (Event.current.type == EventType.Repaint)
+            if (e.type == EventType.Repaint)
             {
                 GUI.FocusControl("CommandInput");
             }
