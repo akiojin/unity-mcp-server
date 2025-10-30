@@ -21,7 +21,6 @@ namespace UnityMCPServer.Editor.Terminal
         // Delayed execution pattern for Enter key handling
         private string _pendingCommand = null;
         private bool _shouldClearInput = false;
-        private bool _shouldRestoreFocus = false;
 
         // Live output update tracking
         private int _lastOutputCount = 0;
@@ -212,14 +211,6 @@ namespace UnityMCPServer.Editor.Terminal
                     // Save command for delayed execution
                     _pendingCommand = _commandInput;
                     _shouldClearInput = true;
-                    _shouldRestoreFocus = true;
-
-                    // CRITICAL: Force clear TextEditor internal state
-                    // TextArea uses an internal TextEditor that maintains its own buffer
-                    // Changing _commandInput alone doesn't clear this internal buffer
-                    GUIUtility.keyboardControl = 0;
-                    EditorGUIUtility.editingTextField = false;
-                    GUI.FocusControl("");
 
                     // Consume the event to prevent TextArea from processing it
                     e.Use();
@@ -250,14 +241,6 @@ namespace UnityMCPServer.Editor.Terminal
                 GUILayout.MaxHeight(100));
 
             EditorGUILayout.EndHorizontal();
-
-            // Restore focus only after command execution (not every frame)
-            // This prevents text selection on every Repaint, which would break Shift+Enter
-            if (_shouldRestoreFocus && e.type == EventType.Repaint)
-            {
-                GUI.FocusControl("CommandInput");
-                _shouldRestoreFocus = false;
-            }
 
             EditorGUILayout.EndVertical();
         }
