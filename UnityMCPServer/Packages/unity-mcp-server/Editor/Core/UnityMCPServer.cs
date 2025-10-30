@@ -977,6 +977,26 @@ namespace UnityMCPServer.Core
                         var terminalCloseResult = TerminalHandler.Close(command.Parameters);
                         response = Response.SuccessResult(command.Id, terminalCloseResult);
                         break;
+                    case "ai_session_open":
+                        var aiOpen = AISessionHandler.Open(command.Parameters);
+                        response = Response.SuccessResult(command.Id, aiOpen);
+                        break;
+                    case "ai_session_message":
+                        var aiMessage = AISessionHandler.Message(command.Parameters);
+                        response = Response.SuccessResult(command.Id, aiMessage);
+                        break;
+                    case "ai_session_execute":
+                        var aiExecute = AISessionHandler.Execute(command.Parameters);
+                        response = Response.SuccessResult(command.Id, aiExecute);
+                        break;
+                    case "ai_session_close":
+                        var aiClose = AISessionHandler.Close(command.Parameters);
+                        response = Response.SuccessResult(command.Id, aiClose);
+                        break;
+                    case "ai_stream_chunk":
+                        var streamResult = AISessionHandler.StreamChunk(command.Parameters);
+                        response = Response.SuccessResult(command.Id, streamResult);
+                        break;
                     default:
                         // Use new format with error details
                         response = Response.ErrorResult(

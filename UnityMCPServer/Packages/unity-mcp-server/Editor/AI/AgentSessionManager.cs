@@ -33,6 +33,17 @@ namespace UnityMCPServer.AI
             return session.AddMessage(message);
         }
 
+        public SessionMessage AddAgentMessage(string sessionId, string content)
+        {
+            if (!TryGetSession(sessionId, out var session))
+            {
+                return null;
+            }
+
+            var message = new SessionMessage(Guid.NewGuid().ToString("N"), "agent", content);
+            return session.AddMessage(message);
+        }
+
         public ActionRequest QueueAction(string sessionId, string type, object payload)
         {
             if (!TryGetSession(sessionId, out var session))
