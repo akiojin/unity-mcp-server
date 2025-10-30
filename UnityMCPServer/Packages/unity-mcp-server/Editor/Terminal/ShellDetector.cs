@@ -23,26 +23,32 @@ namespace UnityMCPServer.Editor.Terminal
                 return FindShellPath(requestedShell);
             }
 
-            // Use RuntimeInformation to detect actual OS platform instead of Unity Editor build target
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            // Use filesystem-based detection instead of RuntimeInformation
+            // This works correctly in Docker containers where RuntimeInformation may report Windows
+            // but the actual filesystem is Linux
+
+            // Check for Linux shells first
+            if (File.Exists("/bin/bash") || File.Exists("/usr/bin/bash"))
             {
-                Debug.Log("[ShellDetector] Detected Windows OS via RuntimeInformation");
-                return DetectWindowsShell();
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Debug.Log("[ShellDetector] Detected macOS via RuntimeInformation");
-                return DetectMacOSShell();
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Debug.Log("[ShellDetector] Detected Linux OS via RuntimeInformation");
+                Debug.Log("[ShellDetector] Detected Linux environment (found /bin/bash or /usr/bin/bash)");
                 return DetectLinuxShell();
             }
-            else
+
+            // Check for macOS shells
+            if (File.Exists("/bin/zsh"))
             {
-                throw new System.PlatformNotSupportedException("Unsupported platform for terminal");
+                Debug.Log("[ShellDetector] Detected macOS environment (found /bin/zsh)");
+                return DetectMacOSShell();
             }
+
+            // Check for Windows shells
+            if (File.Exists(@"C:\Windows\System32\cmd.exe"))
+            {
+                Debug.Log("[ShellDetector] Detected Windows environment (found cmd.exe)");
+                return DetectWindowsShell();
+            }
+
+            throw new System.Exception("Unable to detect platform: no known shell found");
         }
 
         private static (string shellType, string shellPath) DetectWindowsShell()
