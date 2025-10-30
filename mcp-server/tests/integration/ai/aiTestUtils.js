@@ -10,6 +10,11 @@ export async function createUnityConnection() {
   try {
     await connection.connect();
   } catch (error) {
+    if (process.env.CI || process.env.UNITY_MCP_TEST_SKIP_UNITY === 'true') {
+      console.warn('[AI Tests] Unity connection unavailable (CI mode). Returning null connection.');
+      return null;
+    }
+
     console.error('❌ Failed to connect to Unity for AI integration tests.');
     console.error('   1. Ensure Unity Editor is running the UnityMCPServer project.');
     console.error('   2. Confirm the MCP bridge is listening on localhost:6400.');
