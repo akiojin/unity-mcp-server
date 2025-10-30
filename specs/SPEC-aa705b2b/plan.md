@@ -1,7 +1,7 @@
 # 実装計画: コードインデックスビルドのバックグラウンド実行
 
-**機能ID**: `SPEC-yt3ikddd` | **日付**: 2025-10-29 | **仕様**: [spec.md](./spec.md)
-**入力**: `/specs/SPEC-yt3ikddd/spec.md`の機能仕様
+**機能ID**: `SPEC-aa705b2b` | **日付**: 2025-10-29 | **仕様**: [spec.md](./spec.md)
+**入力**: `/specs/SPEC-aa705b2b/spec.md`の機能仕様
 
 ## 実行フロー (/speckit.plan コマンドのスコープ)
 ```
@@ -71,7 +71,7 @@
 
 ### ドキュメント (この機能)
 ```
-specs/SPEC-yt3ikddd/
+specs/SPEC-aa705b2b/
 ├── spec.md              # 機能仕様 (完了)
 ├── plan.md              # このファイル (/speckit.plan コマンド出力)
 ├── research.md          # Phase 0 出力 (作成予定)
