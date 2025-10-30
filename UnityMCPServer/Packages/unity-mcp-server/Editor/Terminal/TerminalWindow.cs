@@ -16,7 +16,6 @@ namespace UnityMCPServer.Editor.Terminal
         private string _initialShellType = "auto";
         private string _commandInput = "";
         private Vector2 _scrollPosition;
-        private bool _autoScroll = true;
         private const int MAX_DISPLAY_LINES = 1000;
 
         /// <summary>
@@ -110,9 +109,6 @@ namespace UnityMCPServer.Editor.Terminal
             GUILayout.Label($"{_session.ShellType} | {_session.WorkingDirectory}", EditorStyles.miniLabel);
             GUILayout.FlexibleSpace();
 
-            // Auto-scroll toggle
-            _autoScroll = GUILayout.Toggle(_autoScroll, "Auto-scroll", EditorStyles.toolbarButton, GUILayout.Width(100));
-
             // Clear button
             if (GUILayout.Button("Clear", EditorStyles.toolbarButton, GUILayout.Width(60)))
             {
@@ -163,12 +159,6 @@ namespace UnityMCPServer.Editor.Terminal
             EditorGUILayout.SelectableLabel(outputText, textAreaStyle, GUILayout.Height(Mathf.Max(textHeight, position.height - 100)));
 
             EditorGUILayout.EndScrollView();
-
-            // Auto-scroll to bottom
-            if (_autoScroll && lines.Count > 0)
-            {
-                _scrollPosition.y = float.MaxValue;
-            }
         }
 
         private void DrawCommandInput()
@@ -199,7 +189,12 @@ namespace UnityMCPServer.Editor.Terminal
             {
                 ExecuteCommand(_commandInput);
                 _commandInput = "";
-                GUI.FocusControl("CommandInput");
+
+                // Scroll to bottom after command execution
+                _scrollPosition.y = float.MaxValue;
+
+                // Keep focus on input field
+                EditorGUI.FocusTextInControl("CommandInput");
                 Repaint();
             }
 
@@ -210,7 +205,12 @@ namespace UnityMCPServer.Editor.Terminal
                 {
                     ExecuteCommand(_commandInput);
                     _commandInput = "";
-                    GUI.FocusControl("CommandInput");
+
+                    // Scroll to bottom after command execution
+                    _scrollPosition.y = float.MaxValue;
+
+                    // Keep focus on input field
+                    EditorGUI.FocusTextInControl("CommandInput");
                 }
             }
 
