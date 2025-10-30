@@ -27,45 +27,8 @@ jobs:
             const coreLib = core;
             const { owner, repo } = context.repo;
             const pullNumber = context.payload.pull_request.number;
-            const baseBranch = context.payload.pull_request.base.ref;
             const maxAttempts = 40;
             const delayMs = 15000;
-
-            async function loadRequiredContexts(branch) {
-              try {
-                const response = await github.request('GET /repos/{owner}/{repo}/branches/{branch}/protection', {
-                  owner,
-                  repo,
-                  branch
-                });
-                const contexts = response.data?.required_status_checks?.contexts ?? [];
-                return Array.from(new Set(contexts.filter(Boolean)));
-              } catch (error) {
-                if (error.status === 404) {
-                  coreLib.info(`Branch ${branch} has no protection rule; treating as no required checks.`);
-                  return [];
-                }
-                throw error;
-              }
-            }
-
-            let requiredNames = [];
-            try {
-              requiredNames = await loadRequiredContexts(baseBranch);
-            } catch (error) {
-              const message = error?.message || 'unknown error';
-              coreLib.setFailed(`Failed to load branch protection for ${baseBranch}: ${message}`);
-              return;
-            }
-
-            if (requiredNames.length === 0) {
-              coreLib.info('No required checks configured; proceeding.');
-              const result = { state: 'no_required_checks', contexts: [] };
-              coreLib.setOutput('result', JSON.stringify(result));
-              return result;
-            }
-
-            const requiredSet = new Set(requiredNames);
 
             const query = `
               query($owner: String!, $repo: String!, $number: Int!) {
@@ -83,11 +46,13 @@ jobs:
                                   status
                                   conclusion
                                   detailsUrl
+                                  isRequired(pullRequestNumber: $number)
                                 }
                                 ... on StatusContext {
                                   context
                                   state
                                   targetUrl
+                                  isRequired(pullRequestNumber: $number)
                                 }
                               }
                             }
@@ -101,36 +66,35 @@ jobs:
             `;
 
             function normalize(node) {
-              if (!node) {
+              if (!node?.isRequired) {
                 return null;
               }
 
               if (node.__typename === 'CheckRun') {
-                const name = node.name || 'Unnamed check';
                 return {
                   type: 'CheckRun',
-                  name,
-                  key: name,
+                  name: node.name,
                   status: node.status || 'UNKNOWN',
                   conclusion: node.conclusion || null,
                   detailsUrl: node.detailsUrl || null
                 };
               }
 
-              if (node.__typename === 'StatusContext') {
-                const name = node.context || 'Unnamed status';
-                const state = node.state || 'UNKNOWN';
-                return {
-                  type: 'StatusContext',
-                  name,
-                  key: name,
-                  status: state,
-                  conclusion: state,
-                  detailsUrl: node.targetUrl || null
-                };
-              }
+              return {
+                type: 'StatusContext',
+                name: node.context,
+                status: node.state || 'UNKNOWN',
+                conclusion: node.state || 'UNKNOWN',
+                detailsUrl: node.targetUrl || null
+              };
+            }
 
-              return null;
+            async function fetchRequired() {
+              const data = await github.graphql(query, { owner, repo, number: pullNumber });
+              const nodes = data.repository?.pullRequest?.commits?.nodes ?? [];
+              const latest = nodes[nodes.length - 1];
+              const contexts = latest?.commit?.statusCheckRollup?.contexts?.nodes ?? [];
+              return contexts.map(normalize).filter(Boolean);
             }
 
             const summarize = (contexts) => contexts.map((ctx) => ({
@@ -142,31 +106,14 @@ jobs:
             }));
 
             function isPending(ctx) {
-              if (!ctx) {
-                return false;
-              }
-
               if (ctx.type === 'CheckRun') {
                 return (ctx.status || '').toUpperCase() !== 'COMPLETED';
               }
-
-              if (ctx.type === 'StatusContext') {
-                const state = (ctx.status || '').toUpperCase();
-                return state === 'PENDING' || state === 'EXPECTED';
-              }
-
-              if (ctx.type === 'Pending') {
-                return true;
-              }
-
-              return false;
+              const state = (ctx.status || '').toUpperCase();
+              return state === 'PENDING' || state === 'EXPECTED';
             }
 
             function isFailure(ctx) {
-              if (!ctx) {
-                return false;
-              }
-
               if (ctx.type === 'CheckRun') {
                 if ((ctx.status || '').toUpperCase() !== 'COMPLETED') {
                   return false;
@@ -176,52 +123,22 @@ jobs:
                 return conclusion && !['SUCCESS', 'NEUTRAL', 'SKIPPED'].includes(conclusion);
               }
 
-              if (ctx.type === 'StatusContext') {
-                const state = (ctx.status || '').toUpperCase();
-                return state === 'ERROR' || state === 'FAILURE';
-              }
-
-              return false;
-            }
-
-            async function fetchRequired(requiredNamesList) {
-              const data = await github.graphql(query, { owner, repo, number: pullNumber });
-              const nodes = data.repository?.pullRequest?.commits?.nodes ?? [];
-              const latest = nodes[nodes.length - 1];
-              const contexts = latest?.commit?.statusCheckRollup?.contexts?.nodes ?? [];
-
-              const byName = new Map();
-
-              for (const raw of contexts) {
-                const normalized = normalize(raw);
-                if (!normalized) {
-                  continue;
-                }
-                if (requiredSet.has(normalized.key)) {
-                  byName.set(normalized.key, normalized);
-                }
-              }
-
-              return requiredNamesList.map((name) => {
-                if (byName.has(name)) {
-                  return byName.get(name);
-                }
-                return {
-                  type: 'Pending',
-                  name,
-                  key: name,
-                  status: 'PENDING',
-                  conclusion: null,
-                  detailsUrl: null
-                };
-              });
+              const state = (ctx.status || '').toUpperCase();
+              return state === 'ERROR' || state === 'FAILURE';
             }
 
             let attempt = 0;
             let latestContexts = [];
 
             while (attempt < maxAttempts) {
-              latestContexts = await fetchRequired(requiredNames);
+              latestContexts = await fetchRequired();
+
+              if (latestContexts.length === 0) {
+                coreLib.info('No required checks configured; proceeding.');
+                const result = { state: 'no_required_checks', contexts: [] };
+                coreLib.setOutput('result', JSON.stringify(result));
+                return result;
+              }
 
               const failures = latestContexts.filter(isFailure);
               if (failures.length > 0) {
