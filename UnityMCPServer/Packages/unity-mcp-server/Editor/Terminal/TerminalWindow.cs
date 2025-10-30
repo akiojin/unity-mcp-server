@@ -248,14 +248,15 @@ namespace UnityMCPServer.Editor.Terminal
                 GUILayout.MinHeight(20),
                 GUILayout.MaxHeight(100));
 
-            // Restore focus immediately after TextArea drawing (not in Repaint)
-            if (_shouldRestoreFocus && e.type == EventType.Layout)
+            EditorGUILayout.EndHorizontal();
+
+            // Restore focus after everything is drawn (in Repaint event)
+            // This must happen AFTER TextArea has been drawn and AFTER _commandInput has been cleared
+            if (_shouldRestoreFocus && e.type == EventType.Repaint)
             {
                 EditorGUI.FocusTextInControl("CommandInput");
                 _shouldRestoreFocus = false;
             }
-
-            EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.EndVertical();
         }
