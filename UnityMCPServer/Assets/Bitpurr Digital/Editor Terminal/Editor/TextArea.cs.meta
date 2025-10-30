@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: caecd7cbbf28b6f4bb87c304e8d82acf
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 318204
+  packageName: Editor Terminal
+  packageVersion: 1.4.2
+  assetPath: Assets/Bitpurr Digital/Editor Terminal/Editor/TextArea.cs
+  uploadId: 781412

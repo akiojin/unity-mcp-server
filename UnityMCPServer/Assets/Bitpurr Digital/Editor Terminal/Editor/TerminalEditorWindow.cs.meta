@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: e8d7c8b4796b5e947a34b5c42381c897
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 318204
+  packageName: Editor Terminal
+  packageVersion: 1.4.2
+  assetPath: Assets/Bitpurr Digital/Editor Terminal/Editor/TerminalEditorWindow.cs
+  uploadId: 781412

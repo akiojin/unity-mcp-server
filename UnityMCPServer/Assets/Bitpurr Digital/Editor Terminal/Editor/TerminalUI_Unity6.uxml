@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:ScrollView name="scroll" style="background-color: rgb(0, 0, 0); flex-grow: 1;">
+        <BitpurrDigital.TextArea parse-escape-sequences="true" name="historyBufferText" data-source-type="BitpurrDigital.TerminalEditorWindowData, EditorTerminal" selectable="true" style="color: rgb(255, 255, 255); padding-top: 4px; padding-right: 4px; padding-bottom: 4px; padding-left: 4px; flex-grow: 1;">
+            <Bindings>
+                <ui:DataBinding property="text" data-source-path="historyBuffer" data-source-type="BitpurrDigital.TerminalEditorWindowData, EditorTerminal" binding-mode="ToTarget" />
+            </Bindings>
+        </BitpurrDigital.TextArea>
+        <ui:VisualElement style="flex-grow: 1; flex-direction: row; flex-wrap: nowrap;">
+            <ui:Label text="&gt;" name="chevron" style="color: rgb(255, 255, 255); -unity-text-align: middle-center; flex-wrap: nowrap; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 4px; flex-basis: auto; position: relative; flex-shrink: 0; flex-grow: 0;" />
+            <ui:TextField multiline="true" name="commandBufferText" data-source-type="BitpurrDigital.TerminalEditorWindowData, EditorTerminal" style="flex-grow: 1; margin-left: 4px; white-space: normal;" />
+        </ui:VisualElement>
+    </ui:ScrollView>
+</ui:UXML>
