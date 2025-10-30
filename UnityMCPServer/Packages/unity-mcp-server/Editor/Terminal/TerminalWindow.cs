@@ -21,6 +21,7 @@ namespace UnityMCPServer.Editor.Terminal
         // Delayed execution pattern for Enter key handling
         private string _pendingCommand = null;
         private bool _shouldClearInput = false;
+        private bool _shouldRestoreFocus = false;
 
         // Live output update tracking
         private int _lastOutputCount = 0;
@@ -208,6 +209,7 @@ namespace UnityMCPServer.Editor.Terminal
                 {
                     // Shift+Enter: Manually insert newline
                     _commandInput += "\n";
+                    _shouldRestoreFocus = true;
                     e.Use();
                     Repaint();
                 }
@@ -216,6 +218,7 @@ namespace UnityMCPServer.Editor.Terminal
                     // Enter only: Execute command
                     _pendingCommand = _commandInput;
                     _shouldClearInput = true;
+                    _shouldRestoreFocus = true;
 
                     // Consume the event to prevent TextArea from processing it
                     e.Use();
@@ -246,6 +249,14 @@ namespace UnityMCPServer.Editor.Terminal
                 GUILayout.MaxHeight(100));
 
             EditorGUILayout.EndHorizontal();
+
+            // Restore focus only after Shift+Enter or Enter (not every frame)
+            // This prevents text selection issues while enabling focus retention after key events
+            if (_shouldRestoreFocus && e.type == EventType.Repaint)
+            {
+                GUI.FocusControl("CommandInput");
+                _shouldRestoreFocus = false;
+            }
 
             EditorGUILayout.EndVertical();
         }
