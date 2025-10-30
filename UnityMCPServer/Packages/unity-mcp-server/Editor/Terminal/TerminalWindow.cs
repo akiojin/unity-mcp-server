@@ -163,26 +163,31 @@ namespace UnityMCPServer.Editor.Terminal
 
         private void DrawCommandInput()
         {
-            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.BeginVertical();
 
-            // Prompt
-            GUILayout.Label("$", GUILayout.Width(15));
-
-            // Handle Enter key BEFORE drawing TextField
+            // Handle Enter key BEFORE drawing TextArea
             Event e = Event.current;
             bool shouldExecute = false;
             if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Return && GUI.GetNameOfFocusedControl() == "CommandInput")
             {
-                if (!string.IsNullOrWhiteSpace(_commandInput))
+                // Shift+Enter: Insert newline (don't execute)
+                // Enter only: Execute command
+                if (!e.shift && !string.IsNullOrWhiteSpace(_commandInput))
                 {
                     shouldExecute = true;
+                    e.Use();
                 }
-                e.Use();
+                // If Shift is pressed, let the TextArea handle the newline insertion naturally
             }
 
-            // Command input field
+            // Command input area (multi-line)
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Label("$", GUILayout.Width(15));
+
             GUI.SetNextControlName("CommandInput");
-            _commandInput = EditorGUILayout.TextField(_commandInput, GUILayout.ExpandWidth(true));
+            _commandInput = EditorGUILayout.TextArea(_commandInput, GUILayout.ExpandWidth(true), GUILayout.MinHeight(20), GUILayout.MaxHeight(100));
+
+            EditorGUILayout.EndHorizontal();
 
             // Execute command after drawing
             if (shouldExecute)
@@ -202,22 +207,7 @@ namespace UnityMCPServer.Editor.Terminal
                 GUI.FocusControl("CommandInput");
             }
 
-            // Execute button
-            if (GUILayout.Button("Run", GUILayout.Width(60)))
-            {
-                if (!string.IsNullOrWhiteSpace(_commandInput))
-                {
-                    ExecuteCommand(_commandInput);
-                    _commandInput = "";
-
-                    // Scroll to bottom after command execution
-                    _scrollPosition.y = float.MaxValue;
-
-                    Repaint();
-                }
-            }
-
-            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
         }
 
         private void ExecuteCommand(string command)
