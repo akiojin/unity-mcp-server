@@ -246,8 +246,21 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          echo "Attempting to merge PR #${{ github.event.pull_request.number }} with a merge commit..."
-          gh pr merge ${{ github.event.pull_request.number }} --merge --yes --delete-branch=false
+          pr_number=${{ github.event.pull_request.number }}
+          owner=${GITHUB_REPOSITORY_OWNER}
+          repo=${GITHUB_REPOSITORY#*/}
+          head_sha=${{ github.event.pull_request.head.sha }}
+
+          echo "Attempting to merge PR #${{ github.event.pull_request.number }} via GitHub API..."
+
+          gh api \
+            --method PUT \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/$owner/$repo/pulls/$pr_number/merge" \
+            -f merge_method=merge \
+            -f commit_title="Merge pull request #$pr_number" \
+            -f commit_message="Merge pull request #$pr_number" \
+            -f sha="$head_sha"
 
       - name: Comment on merge failure
         if: failure()
