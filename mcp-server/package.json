@@ -13,7 +13,7 @@
     "build:index": "node src/tools/buildCodeIndex.js",
     "test": "node --test tests/unit/**/*.test.js tests/integration/*.test.js",
     "test:unit": "NODE_ENV=test node --test tests/unit/**/*.test.js",
-    "test:integration": "NODE_ENV=test node --test tests/integration/code-index-background.test.js",
+    "test:integration": "NODE_ENV=test node scripts/run-non-unity-tests.mjs",
     "test:e2e": "NODE_ENV=test node --test tests/e2e/*.test.js",
     "test:coverage": "c8 --reporter=lcov --reporter=text --reporter=html node --test tests/unit/**/*.test.js tests/integration/*.test.js",
     "test:coverage:full": "c8 --reporter=lcov --reporter=text --reporter=html node --test tests/**/*.test.js",
@@ -28,7 +28,7 @@
     "postinstall": "chmod +x bin/unity-mcp-server || true",
     "test:ci:unity": "timeout 60 node --test tests/unit/core/codeIndex.test.js tests/unit/core/codeIndexDb.test.js tests/unit/core/config.test.js tests/unit/core/indexWatcher.test.js tests/unit/core/projectInfo.test.js tests/unit/core/server.test.js || exit 0",
     "test:unity": "node tests/run-unity-integration.mjs",
-    "test:nounity": "NODE_ENV=test node scripts/run-non-unity-tests.mjs",
+    "test:nounity": "npm run test:integration",
     "test:ci:integration": "CI=true NODE_ENV=test node --test tests/integration/code-index-background.test.js"
   },
   "keywords": [
