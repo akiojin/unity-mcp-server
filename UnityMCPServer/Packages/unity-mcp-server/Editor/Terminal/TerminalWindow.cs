@@ -193,9 +193,13 @@ namespace UnityMCPServer.Editor.Terminal
                 // Scroll to bottom after command execution
                 _scrollPosition.y = float.MaxValue;
 
-                // Keep focus on input field
-                EditorGUI.FocusTextInControl("CommandInput");
                 Repaint();
+            }
+
+            // Always keep focus on input field after processing
+            if (Event.current.type == EventType.Repaint)
+            {
+                GUI.FocusControl("CommandInput");
             }
 
             // Execute button
@@ -209,8 +213,7 @@ namespace UnityMCPServer.Editor.Terminal
                     // Scroll to bottom after command execution
                     _scrollPosition.y = float.MaxValue;
 
-                    // Keep focus on input field
-                    EditorGUI.FocusTextInControl("CommandInput");
+                    Repaint();
                 }
             }
 
