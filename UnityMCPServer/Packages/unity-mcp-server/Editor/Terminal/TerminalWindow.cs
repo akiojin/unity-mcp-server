@@ -180,7 +180,7 @@ namespace UnityMCPServer.Editor.Terminal
 
             // Command input field
             GUI.SetNextControlName("CommandInput");
-            var newCommand = EditorGUILayout.TextField(_commandInput, GUILayout.ExpandWidth(true));
+            _commandInput = EditorGUILayout.TextField(_commandInput, GUILayout.ExpandWidth(true));
 
             // Handle Enter key
             if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
@@ -192,10 +192,6 @@ namespace UnityMCPServer.Editor.Terminal
                     GUI.FocusControl("CommandInput");
                 }
                 Event.current.Use();
-            }
-            else
-            {
-                _commandInput = newCommand;
             }
 
             // Execute button
