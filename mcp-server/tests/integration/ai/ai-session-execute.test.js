@@ -2,7 +2,7 @@
  * Contract Tests for SPEC-85bab2a1: AI Session Execute
  */
 
-import { describe, it, before, after, beforeEach } from 'node:test';
+import { describe, it, before, after, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { createUnityConnection, safeDisconnect } from './aiTestUtils.js';
 import { AiSessionOpenHandler } from '../../../src/handlers/ai/AiSessionOpenHandler.js';
