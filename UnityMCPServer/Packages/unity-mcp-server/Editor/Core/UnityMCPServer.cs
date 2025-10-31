@@ -34,11 +34,9 @@ namespace UnityMCPServer.Core
         private static CancellationTokenSource cancellationTokenSource;
         private static Task listenerTask;
         private static bool isProcessingCommand;
-        private static bool verboseReceiveLogs = false; // 受信ログの詳細表示を制御
         private static int minEditorStateIntervalMs = 250; // get_editor_stateの最小間隔（抑制）
         private static DateTime lastEditorStateQueryTime = DateTime.MinValue;
         private static object lastEditorStateData = null;
-        private static DateTime lastReceiveLogTime = DateTime.MinValue;
         
         
         private static McpStatus _status = McpStatus.NotConfigured;
@@ -140,12 +138,6 @@ namespace UnityMCPServer.Core
                             {
                                 var bh = bindToken.ToString();
                                 if (!string.IsNullOrWhiteSpace(bh)) bindAddress = ResolveBindAddress(bh.Trim());
-                            }
-                            // 受信ログの多量出力を抑制するためのフラグ（デフォルトfalse）
-                            var verboseToken = json.SelectToken("unity.verboseReceiveLogs") ?? json.SelectToken("logging.verboseReceiveLogs");
-                            if (verboseToken != null && bool.TryParse(verboseToken.ToString(), out var verbose))
-                            {
-                                verboseReceiveLogs = verbose;
                             }
                             var minIntToken = json.SelectToken("unity.minEditorStateIntervalMs");
                             if (minIntToken != null && int.TryParse(minIntToken.ToString(), out var minMs) && minMs >= 0 && minMs <= 10000)
@@ -390,16 +382,7 @@ namespace UnityMCPServer.Core
                             messageBuffer.RemoveRange(0, 4 + messageLength);
                             
                             var json = Encoding.UTF8.GetString(messageBytes);
-                            // 受信ログは既定で抑制。必要時のみ設定で有効化し、かつ10秒に1回まで。
-                            if (verboseReceiveLogs)
-                            {
-                                var now = DateTime.UtcNow;
-                                if ((now - lastReceiveLogTime).TotalSeconds >= 10)
-                                {
-                                    lastReceiveLogTime = now;
-                                    Debug.Log($"[Unity Editor MCP] Received command (length={messageLength})");
-                                }
-                            }
+                            // 受信ログは Unity コンソールには出力せず、コマンド処理キューのみを更新する。
                             
                             try
                             {
