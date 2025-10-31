@@ -251,6 +251,18 @@ import { CodeIndexUpdateToolHandler } from './script/CodeIndexUpdateToolHandler.
 import { CodeIndexBuildToolHandler } from './script/CodeIndexBuildToolHandler.js';
 // Roslyn (external CLI) tool handlers removed（内部ユーティリティのみ存続）
 
+// Terminal handlers
+import { TerminalOpenToolHandler } from './terminal/TerminalOpenToolHandler.js';
+import { TerminalExecuteToolHandler } from './terminal/TerminalExecuteToolHandler.js';
+import { TerminalReadToolHandler } from './terminal/TerminalReadToolHandler.js';
+import { TerminalCloseToolHandler } from './terminal/TerminalCloseToolHandler.js';
+
+// AI session handlers
+import { AiSessionOpenHandler } from './ai/AiSessionOpenHandler.js';
+import { AiSessionMessageHandler } from './ai/AiSessionMessageHandler.js';
+import { AiSessionExecuteHandler } from './ai/AiSessionExecuteHandler.js';
+import { AiSessionCloseHandler } from './ai/AiSessionCloseHandler.js';
+
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
   // System handlers
