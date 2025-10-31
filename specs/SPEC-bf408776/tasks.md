@@ -180,12 +180,19 @@
     - テストカバレッジ80%以上
   - **期待結果**: すべてGREEN
 
-- [ ] **I004**: featureブランチでドライラン
+- [x] **I004**: featureブランチでドライラン
   - **手順**:
     1. テストコミット作成（feat: Test release automation）
     2. ローカルでsemantic-release実行（--dry-run）
     3. バージョン決定とCHANGELOG生成を確認
   - **検証**: エラーなくドライラン完了
+
+- [x] **I005**: finish-feature.sh実行してPR作成
+  - **実施内容**:
+    - finish-feature.shのブランチ名検証を修正（feature/* 全般対応）
+    - PR #17を作成
+    - GitHub Actions自動マージワークフロー起動
+  - **検証**: PR正常作成、自動マージ待機中
 
 ---
 
@@ -249,6 +256,10 @@
 - [x] I002: CLAUDE.md更新完了
 - [x] I003: 全テスト実行＆検証完了（63/63 pass）
 - [x] ワークスペースpackage.json作成＆semantic-releaseドライラン成功
+- [x] I004: semantic-releaseドライラン完了（バージョン決定とCHANGELOG生成確認）
+- [x] I005: finish-feature.shのブランチ名検証修正完了（feature/* 全般対応）
+- [x] PR #17作成完了（https://github.com/akiojin/unity-mcp-server/pull/17）
+- [x] GitHub Actions自動マージワークフロー起動中
 
 ---
 
