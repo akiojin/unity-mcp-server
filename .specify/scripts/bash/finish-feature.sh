@@ -62,14 +62,24 @@ fi
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # Verify we're on a feature branch
-if [[ ! "$CURRENT_BRANCH" =~ ^feature/SPEC-[a-z0-9]{8}$ ]]; then
+if [[ ! "$CURRENT_BRANCH" =~ ^feature/ ]]; then
     echo "ERROR: Not on a feature branch. Current branch: $CURRENT_BRANCH" >&2
-    echo "Feature branches should be named like: feature/SPEC-a1b2c3d4" >&2
+    echo "Feature branches should be named like: feature/SPEC-a1b2c3d4 or feature/something" >&2
     exit 1
 fi
 
-# Extract SPEC-ID
-SPEC_ID=$(echo "$CURRENT_BRANCH" | sed 's/^feature\///')
+# Extract feature name (everything after feature/)
+FEATURE_NAME=$(echo "$CURRENT_BRANCH" | sed 's/^feature\///')
+
+# Determine SPEC-ID: use SPEC-xxx if pattern matches, otherwise use feature name
+if [[ "$FEATURE_NAME" =~ ^SPEC-[a-z0-9]{8}$ ]]; then
+    SPEC_ID="$FEATURE_NAME"
+else
+    # For non-SPEC branches, try to find corresponding SPEC from specs directory
+    # Default to feature name if no SPEC found
+    SPEC_ID="$FEATURE_NAME"
+fi
+
 WORKTREE_DIR="$REPO_ROOT/.worktrees/$SPEC_ID"
 
 echo "========================================="
@@ -110,16 +120,26 @@ git push -u origin "$CURRENT_BRANCH"
 # Get PR title from spec.md
 echo ""
 echo "[3/4] Creating Pull Request..."
-SPEC_FILE="$REPO_ROOT/specs/$SPEC_ID/spec.md"
-PR_TITLE="Feature implementation"
+PR_TITLE="$CURRENT_BRANCH"
 
-if [ -f "$SPEC_FILE" ]; then
-    # Extract title from spec.md (first line after removing markdown header)
-    PR_TITLE=$(head -1 "$SPEC_FILE" | sed 's/^# 機能仕様書: //' | sed 's/^# //')
+# Check if this is a SPEC branch
+if [[ "$FEATURE_NAME" =~ ^SPEC-[a-z0-9]{8}$ ]]; then
+    SPEC_FILE="$REPO_ROOT/specs/$SPEC_ID/spec.md"
+    if [ -f "$SPEC_FILE" ]; then
+        # Extract title from spec.md (first line after removing markdown header)
+        PR_TITLE=$(head -1 "$SPEC_FILE" | sed 's/^# 機能仕様書: //' | sed 's/^# //')
+    else
+        PR_TITLE="$SPEC_ID implementation"
+    fi
+else
+    # Use branch name as title for non-SPEC branches
+    PR_TITLE=$(echo "$FEATURE_NAME" | tr '-' ' ' | sed 's/\b\(.\)/\u\1/g')
 fi
 
 # Create PR body
-PR_BODY=$(cat <<EOF
+if [[ "$FEATURE_NAME" =~ ^SPEC-[a-z0-9]{8}$ ]]; then
+    # SPEC branch PR body
+    PR_BODY=$(cat <<EOF
 ## SPEC Information
 
 **機能ID**: \`$SPEC_ID\`
@@ -147,6 +167,33 @@ $(git log origin/main..HEAD --oneline --no-merges | head -10)
 🤖 このPRは自動マージワークフローの対象です。すべてのCI/CDチェックが成功すると自動的にmainブランチへマージされます。
 EOF
 )
+else
+    # Non-SPEC branch PR body
+    PR_BODY=$(cat <<EOF
+## Feature: $FEATURE_NAME
+
+**ブランチ**: \`$CURRENT_BRANCH\`
+
+---
+
+## 変更サマリー
+
+$(git log origin/main..HEAD --oneline --no-merges | head -10)
+
+---
+
+## チェックリスト
+
+- [ ] 全テストが合格している
+- [ ] コンパイルエラーがない
+- [ ] コミットメッセージが規約に準拠している
+
+---
+
+🤖 このPRは自動マージワークフローの対象です。すべてのCI/CDチェックが成功すると自動的にmainブランチへマージされます。
+EOF
+)
+fi
 
 # Create PR (draft or normal)
 if [ "$DRAFT" = true ]; then
