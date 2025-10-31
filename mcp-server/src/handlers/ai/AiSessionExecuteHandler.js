@@ -1,6 +1,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { addAction, getSession } from './sessionStore.js';
 import { aiSessionLogger } from './aiSessionLogger.js';
+import { executeAction } from './aiActionExecutor.js';
 
 const SUPPORTED_ACTIONS = new Set(['code_generate', 'test_run', 'shell_command']);
 
@@ -80,6 +81,9 @@ export class AiSessionExecuteHandler extends BaseToolHandler {
         });
       }
     }
+
+    // Fire and forget execution (async). Awaiting ensures errors are logged.
+    await executeAction(this.unityConnection, params.sessionId, action);
 
     return {
       actionId: action.actionId,

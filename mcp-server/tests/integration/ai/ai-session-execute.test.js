@@ -52,7 +52,7 @@ describe('SPEC-85bab2a1: ai_session_execute contract', () => {
     });
 
     assert.ok(response.actionId, 'actionId should be returned');
-    assert.match(response.status, /pending|queued|started/);
+    assert.match(response.status, /pending|queued|started|executing|succeeded/);
   });
 
   it('rejects unsupported action types', async () => {
