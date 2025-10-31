@@ -29,7 +29,6 @@
 - [x] T019 `UnityMCPServer/Packages/unity-mcp-server/Editor/AI/AgentDefinitionLoader.cs` を実装し、内蔵エージェントと `aiAgents` 設定をマージ
 - [x] T020 `UnityMCPServer/Packages/unity-mcp-server/Editor/AI/AgentSessionManager.cs` を実装し、セッションとアクションの状態管理を行う
 - [x] T021 `UnityMCPServer/Packages/unity-mcp-server/Editor/AI/StreamingBuffer.cs` を実装し、チャンクキューと1フレーム処理上限を制御
-- [ ] T022 `UnityMCPServer/Packages/unity-mcp-server/Editor/AI/AIChatWindow.uxml` と USS を追加し、UI Toolkit でレイアウトを定義（IMGUI版で代替中、必要なら別タスクで再検討）
 - [x] T023 `UnityMCPServer/Packages/unity-mcp-server/Editor/AI/AIChatWindow.cs` を実装し、送受信/承認UIと SessionManager を接続
 - [x] T024 `UnityMCPServer/Packages/unity-mcp-server/Editor/AI/ActionRequestController.cs` を実装し、実行提案の承認/取消しフローを提供
 
