@@ -1,4 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { logger } from '../../core/config.js';
 
 /**
  * Handler for the system_ping tool
@@ -30,6 +31,18 @@ export class SystemPingToolHandler extends BaseToolHandler {
    * @returns {Promise<object>} Ping result
    */
   async execute(params) {
+    if (process.env.UNITY_MCP_TEST_SKIP_UNITY === 'true') {
+      logger.info('[system_ping] Returning stubbed response (UNITY_MCP_TEST_SKIP_UNITY=true)');
+      const now = new Date().toISOString();
+      const message = params.message || 'ping';
+      return {
+        message: 'pong',
+        echo: message,
+        timestamp: now,
+        unityVersion: 'UnitySkipped/TestMode'
+      };
+    }
+
     // Ensure connected
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
