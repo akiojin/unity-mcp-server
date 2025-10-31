@@ -404,23 +404,65 @@ cd .worktrees/SPEC-0d5d84f9/
 
 ## バージョン管理
 
-### npm versionコマンドの使用
+### 自動リリース（semantic-release）
 
-バージョンアップは必ず`npm version`コマンドを使用する：
+本プロジェクトは**semantic-release**を使用した完全自動リリースフローを採用しています。
 
-- **パッチバージョン**: `npm version patch` (例: 2.9.0 → 2.9.1)
-- **マイナーバージョン**: `npm version minor` (例: 2.9.0 → 2.10.0)
-- **メジャーバージョン**: `npm version major` (例: 2.9.0 → 3.0.0)
+#### Conventional Commits規約
 
-**重要**: package.jsonを直接編集してのバージョン変更は禁止
+コミットメッセージで自動的にバージョンが決定されます：
 
-### バージョンアップ手順
+- **`feat:`** - 新機能追加 → **minor** version up (例: 2.16.3 → 2.17.0)
+- **`fix:`** - バグ修正 → **patch** version up (例: 2.16.3 → 2.16.4)
+- **`BREAKING CHANGE:`** または **`feat!:`** - 破壊的変更 → **major** version up (例: 2.16.3 → 3.0.0)
+- **`chore:`**, **`docs:`**, **`test:`** - version up なし
 
-1. 変更内容に応じて適切なバージョンコマンドを選択
-2. mcp-serverディレクトリで: `npm version [patch|minor|major]`
-3. Unity packageのバージョンも同期して更新（unity-mcp-server/package.json）
-4. git commit & push
-5. npm publish
+#### リリースフロー
+
+1. featureブランチで開発（Conventional Commitsを使用）
+2. finish-feature.sh実行 → PR作成
+3. Required Checks成功 → 自動マージ（mainへ）
+4. **semantic-release自動実行**:
+   - コミット解析 → バージョン決定
+   - package.json更新（mcp-server + Unity Package自動同期）
+   - CHANGELOG.md生成
+   - タグ作成（v*）
+5. csharp-lspビルド（全プラットフォーム）
+6. GitHub Release作成
+7. npm publish実行
+
+**重要**: 手動でのバージョン変更・npm publishは禁止（すべて自動化）
+
+#### コミット例
+
+```bash
+# 新機能追加（minor version up）
+git commit -m "feat: Add video capture support"
+
+# バグ修正（patch version up）
+git commit -m "fix: Resolve screenshot path issue"
+
+# 破壊的変更（major version up）
+git commit -m "feat!: Remove deprecated API"
+
+# バージョンアップなし
+git commit -m "chore: Update dependencies"
+git commit -m "docs: Update README"
+git commit -m "test: Add unit tests"
+```
+
+#### バージョン同期
+
+- **mcp-server**: semantic-releaseが自動更新
+- **Unity Package**: scripts/sync-unity-package-version.jsで自動同期
+- **csharp-lsp**: 同一バージョンでタグ作成、GitHub Releaseに添付
+- **CHANGELOG.md**: コミットメッセージから自動生成
+
+#### トラブルシューティング
+
+- **リリースが作成されない**: Conventional Commits形式を確認
+- **バージョンが不正**: semantic-releaseのログを確認
+- **Unity Packageバージョン同期失敗**: sync-unity-package-version.jsのログを確認
 
 ## コードクオリティガイドライン
 

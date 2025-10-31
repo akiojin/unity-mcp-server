@@ -173,4 +173,5 @@ jobs:
           files: |
             dist/**/csharp-lsp-*
             csharp-lsp-manifest.json
+          generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, '-') }}
