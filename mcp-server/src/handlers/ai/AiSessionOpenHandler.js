@@ -1,6 +1,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { findAgent, getDefaultAgent } from './agentRegistry.js';
 import { createSession } from './sessionStore.js';
+import { aiSessionLogger } from './aiSessionLogger.js';
 
 const WORKSPACE_OPTIONS = new Set(['workspace', 'project']);
 
@@ -41,6 +42,12 @@ export class AiSessionOpenHandler extends BaseToolHandler {
       title: params.title
     });
 
+    aiSessionLogger.info('Session opened', {
+      sessionId: session.sessionId,
+      agentId: agent.id,
+      event: 'session_open'
+    });
+
     if (this.unityConnection && process.env.UNITY_MCP_TEST_SKIP_UNITY !== 'true') {
       try {
         if (!this.unityConnection.isConnected()) {
@@ -59,7 +66,11 @@ export class AiSessionOpenHandler extends BaseToolHandler {
           throw new Error(unityResponse.error);
         }
       } catch (error) {
-        console.warn(`[AI] Unable to notify Unity about session open: ${error.message}`);
+        aiSessionLogger.warn(`Unity notification failed for session open: ${error.message}`, {
+          sessionId: session.sessionId,
+          agentId: agent.id,
+          event: 'session_open_unity_warn'
+        });
       }
     }
 

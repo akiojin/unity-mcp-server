@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { addAction, getSession } from './sessionStore.js';
+import { aiSessionLogger } from './aiSessionLogger.js';
 
 const SUPPORTED_ACTIONS = new Set(['code_generate', 'test_run', 'shell_command']);
 
@@ -48,6 +49,13 @@ export class AiSessionExecuteHandler extends BaseToolHandler {
       throw new Error('SESSION_NOT_FOUND: Unable to register action');
     }
 
+    aiSessionLogger.info('Action queued', {
+      sessionId: params.sessionId,
+      agentId: session.agentId,
+      actionId: action.actionId,
+      event: `action_${actionType}`
+    });
+
     if (this.unityConnection && process.env.UNITY_MCP_TEST_SKIP_UNITY !== 'true') {
       try {
         if (!this.unityConnection.isConnected()) {
@@ -64,7 +72,12 @@ export class AiSessionExecuteHandler extends BaseToolHandler {
           throw new Error(unityResponse.error);
         }
       } catch (error) {
-        console.warn(`[AI] Unable to notify Unity about action execution: ${error.message}`);
+        aiSessionLogger.warn(`Unity notification failed for action execution: ${error.message}`, {
+          sessionId: params.sessionId,
+          agentId: session.agentId,
+          actionId: action.actionId,
+          event: 'action_notify_warn'
+        });
       }
     }
 

@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { addMessage, getSession } from './sessionStore.js';
+import { aiSessionLogger } from './aiSessionLogger.js';
 
 export class AiSessionMessageHandler extends BaseToolHandler {
   constructor(unityConnection) {
@@ -47,6 +48,12 @@ export class AiSessionMessageHandler extends BaseToolHandler {
       throw new Error('SESSION_NOT_FOUND: Unable to append message');
     }
 
+    aiSessionLogger.info('User message queued', {
+      sessionId: params.sessionId,
+      agentId: session.agentId,
+      event: 'message_user'
+    });
+
     if (this.unityConnection && process.env.UNITY_MCP_TEST_SKIP_UNITY !== 'true') {
       try {
         if (!this.unityConnection.isConnected()) {
@@ -63,7 +70,11 @@ export class AiSessionMessageHandler extends BaseToolHandler {
           throw new Error(unityResponse.error);
         }
       } catch (error) {
-        console.warn(`[AI] Unable to notify Unity about session message: ${error.message}`);
+        aiSessionLogger.warn(`Unity notification failed for message: ${error.message}`, {
+          sessionId: params.sessionId,
+          agentId: session.agentId,
+          event: 'message_unity_warn'
+        });
       }
     }
 

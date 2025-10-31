@@ -1,3 +1,5 @@
+import { aiSessionLogger } from './aiSessionLogger.js';
+
 export class AiStreamDispatcher {
   constructor(unityConnection) {
     this.unityConnection = unityConnection;
@@ -13,6 +15,12 @@ export class AiStreamDispatcher {
       actionId,
       chunk,
       isFinal
+    });
+
+    aiSessionLogger.info('Stream chunk dispatched', {
+      sessionId,
+      actionId,
+      event: isFinal ? 'stream_chunk_final' : 'stream_chunk'
     });
   }
 }

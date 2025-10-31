@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { closeSession } from './sessionStore.js';
+import { aiSessionLogger } from './aiSessionLogger.js';
 
 export class AiSessionCloseHandler extends BaseToolHandler {
   constructor(unityConnection) {
@@ -22,6 +23,12 @@ export class AiSessionCloseHandler extends BaseToolHandler {
       throw new Error(`SESSION_NOT_FOUND: Session '${params.sessionId}' does not exist`);
     }
 
+    aiSessionLogger.info('Session closed', {
+      sessionId: params.sessionId,
+      agentId: session.agentId,
+      event: 'session_close'
+    });
+
     if (this.unityConnection && process.env.UNITY_MCP_TEST_SKIP_UNITY !== 'true') {
       try {
         if (!this.unityConnection.isConnected()) {
@@ -38,7 +45,11 @@ export class AiSessionCloseHandler extends BaseToolHandler {
           throw new Error(unityResponse.error);
         }
       } catch (error) {
-        console.warn(`[AI] Unable to notify Unity about session close: ${error.message}`);
+        aiSessionLogger.warn(`Unity notification failed for session close: ${error.message}`, {
+          sessionId: params.sessionId,
+          agentId: session.agentId,
+          event: 'session_close_unity_warn'
+        });
       }
     }
 
