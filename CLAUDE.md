@@ -491,3 +491,10 @@ cd .worktrees/SPEC-0d5d84f9/
 ### Git 管理
 - `/.unity/capture/` は `.gitignore` に登録（一時成果物の保護）。
 - `Library/PackageCache/**` は編集禁止（生成物）。
+
+## AIエージェントウィンドウ (SPEC-85bab2a1)
+- Unityメニュー `Window > Unity MCP Server > AI Agent Window` からチャットUIを起動。
+- Codex / Claude Code は組み込み。カスタムAIツールは `.unity/config.json` の `aiAgents[]` で宣言する。
+- AIが提案した `code_generate` / `test_run` / `shell_command` は Pending Actions として一覧表示され、承認／却下ボタンで制御する。
+- 5分で試せる手順: [`specs/SPEC-85bab2a1/quickstart.md`](specs/SPEC-85bab2a1/quickstart.md)
+- Unityを起動しないCI等では `UNITY_MCP_TEST_SKIP_UNITY=true node --test tests/integration/ai/*.test.js` で契約テストを実行（Unity RPCをスキップ）。

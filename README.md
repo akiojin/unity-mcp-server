@@ -9,6 +9,7 @@ Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on
 ### Feature Specifications
 
 - **All Features**: [`specs/`](specs/) - 15 features documented with SDD format (including Unity Test Execution)
+- **AI Agent Window (SPEC-85bab2a1)**: Chat with Codex / Claude Code / custom tools directly from the Unity Editor. See [Quickstart](specs/SPEC-85bab2a1/quickstart.md) for a 5 minute guide.
 
 ### Development Process
 
@@ -197,6 +198,14 @@ Environment-specific notes:
   - Run `npm ci` wherever the package is installed (for repo clones: `cd ~/unity-mcp-server/mcp-server && npm ci`).
 
 After installation you can verify the server with `node mcp-server/bin/unity-mcp-server --version`. If `better-sqlite3` fails to load, reinstall the dependencies _inside the target environment_ or rebuild with `npm rebuild better-sqlite3 --build-from-source` once the toolchain is present.
+
+### AI Agent Window Usage
+
+- Open the Unity menu: `Window > Unity MCP Server > AI Agent Window`.
+- Pick Codex / Claude Code / a custom entry (declared under `.unity/config.json` → `aiAgents[]`).
+- Chat in the editor; pending actions (code/test/shell) appear in the sidebar for approval.
+- The MCP server exposes `ai_session_*` tools for automation. Contract tests live under `mcp-server/tests/integration/ai/`.
+- CI / local testing without Unity: `UNITY_MCP_TEST_SKIP_UNITY=true node --test tests/integration/ai/*.test.js` (skips Unity RPC but exercises the contract flow).
 
 Usage Flow
 - Open Unity project (TCP listener starts on port 6400)

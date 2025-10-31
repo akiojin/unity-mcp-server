@@ -25,24 +25,61 @@ async function runShellCommand(unityConnection, sessionId, actionId, payload) {
     return;
   }
 
-  if (!unityConnection.isConnected()) {
-    await unityConnection.connect();
+  let terminalSessionId;
+
+  try {
+    if (!unityConnection.isConnected()) {
+      await unityConnection.connect();
+    }
+
+    const openResponse = await unityConnection.sendCommand({
+      command: 'terminal_open',
+      workingDirectory: payload.workspace ?? 'workspace',
+      shell: payload.shell ?? 'auto',
+      title: payload.title ?? 'AI Shell Session'
+    });
+
+    terminalSessionId = openResponse?.sessionId;
+
+    if (!terminalSessionId) {
+      throw new Error('TERMINAL_OPEN_FAILED');
+    }
+
+    await unityConnection.sendCommand({
+      command: 'terminal_execute',
+      sessionId: terminalSessionId,
+      commandText: payload.command
+    });
+
+    aiSessionLogger.info('Shell command sent to Unity terminal', {
+      sessionId,
+      actionId,
+      event: 'shell_command_sent'
+    });
+
+    updateActionStatus(sessionId, actionId, 'succeeded');
+
+    aiSessionLogger.info('Shell command execution finished', {
+      sessionId,
+      actionId,
+      event: 'shell_command_finish'
+    });
+  } finally {
+    if (terminalSessionId) {
+      try {
+        await unityConnection.sendCommand({
+          command: 'terminal_close',
+          sessionId: terminalSessionId
+        });
+      } catch (closeError) {
+        aiSessionLogger.warn(`Failed to close temporary terminal: ${closeError.message}`, {
+          sessionId,
+          actionId,
+          event: 'shell_terminal_close_warn'
+        });
+      }
+    }
   }
-
-  const command = {
-    command: 'terminal_execute',
-    sessionId: payload.sessionId,
-    commandText: payload.command
-  };
-
-  await unityConnection.sendCommand(command);
-  updateActionStatus(sessionId, actionId, 'succeeded');
-
-  aiSessionLogger.info('Shell command execution finished', {
-    sessionId,
-    actionId,
-    event: 'shell_command_finish'
-  });
 }
 
 export async function executeAction(unityConnection, sessionId, action) {
