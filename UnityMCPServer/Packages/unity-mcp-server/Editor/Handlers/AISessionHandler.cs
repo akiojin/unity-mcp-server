@@ -10,12 +10,13 @@ namespace UnityMCPServer.Handlers
         public static object Open(JObject parameters)
         {
             var agentId = parameters["agentId"]?.ToString();
+            var sessionId = parameters["sessionId"]?.ToString();
             var workspace = parameters["workspace"]?.ToString() ?? "workspace";
             var title = parameters["title"]?.ToString();
 
             var agent = string.IsNullOrEmpty(agentId)
-                ? AgentDefinitionLoader.GetDefault()
-                : AgentDefinitionLoader.FindById(agentId);
+                ? AIEditorContext.GetDefaultAgent()
+                : AIEditorContext.FindAgent(agentId);
 
             if (agent == null)
             {
@@ -23,7 +24,7 @@ namespace UnityMCPServer.Handlers
             }
 
             var manager = AIEditorContext.SessionManager;
-            var session = manager.CreateSession(agent, workspace, title);
+            var session = manager.CreateSession(agent, workspace, title, sessionId);
 
             AIChatWindow.EnsureOpen();
             AIChatWindow.FocusSession(session.SessionId);

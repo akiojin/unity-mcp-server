@@ -22,6 +22,26 @@ export class AiSessionCloseHandler extends BaseToolHandler {
       throw new Error(`SESSION_NOT_FOUND: Session '${params.sessionId}' does not exist`);
     }
 
+    if (this.unityConnection && process.env.UNITY_MCP_TEST_SKIP_UNITY !== 'true') {
+      try {
+        if (!this.unityConnection.isConnected()) {
+          await this.unityConnection.connect();
+        }
+
+        const unityResponse = await this.unityConnection.sendCommand({
+          command: 'ai_session_close',
+          sessionId: params.sessionId,
+          saveTranscript: params.saveTranscript ?? false
+        });
+
+        if (unityResponse?.error) {
+          throw new Error(unityResponse.error);
+        }
+      } catch (error) {
+        console.warn(`[AI] Unable to notify Unity about session close: ${error.message}`);
+      }
+    }
+
     // TODO: handle transcript export when Unity side supports it
     return {
       sessionId: params.sessionId,

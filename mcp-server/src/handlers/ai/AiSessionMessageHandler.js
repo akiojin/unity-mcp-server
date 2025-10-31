@@ -47,6 +47,26 @@ export class AiSessionMessageHandler extends BaseToolHandler {
       throw new Error('SESSION_NOT_FOUND: Unable to append message');
     }
 
+    if (this.unityConnection && process.env.UNITY_MCP_TEST_SKIP_UNITY !== 'true') {
+      try {
+        if (!this.unityConnection.isConnected()) {
+          await this.unityConnection.connect();
+        }
+
+        const unityResponse = await this.unityConnection.sendCommand({
+          command: 'ai_session_message',
+          sessionId: params.sessionId,
+          message: trimmed
+        });
+
+        if (unityResponse?.error) {
+          throw new Error(unityResponse.error);
+        }
+      } catch (error) {
+        console.warn(`[AI] Unable to notify Unity about session message: ${error.message}`);
+      }
+    }
+
     return {
       messageId: message.messageId,
       queued: true

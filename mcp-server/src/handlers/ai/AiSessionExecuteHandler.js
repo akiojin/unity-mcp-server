@@ -48,6 +48,26 @@ export class AiSessionExecuteHandler extends BaseToolHandler {
       throw new Error('SESSION_NOT_FOUND: Unable to register action');
     }
 
+    if (this.unityConnection && process.env.UNITY_MCP_TEST_SKIP_UNITY !== 'true') {
+      try {
+        if (!this.unityConnection.isConnected()) {
+          await this.unityConnection.connect();
+        }
+
+        const unityResponse = await this.unityConnection.sendCommand({
+          command: 'ai_session_execute',
+          sessionId: params.sessionId,
+          action: params.action
+        });
+
+        if (unityResponse?.error) {
+          throw new Error(unityResponse.error);
+        }
+      } catch (error) {
+        console.warn(`[AI] Unable to notify Unity about action execution: ${error.message}`);
+      }
+    }
+
     return {
       actionId: action.actionId,
       status: action.status

@@ -9,11 +9,11 @@ namespace UnityMCPServer.AI
     {
         private readonly Dictionary<string, AgentSession> _sessions = new Dictionary<string, AgentSession>();
 
-        public AgentSession CreateSession(AgentDefinition agent, string workspace, string title = null)
+        public AgentSession CreateSession(AgentDefinition agent, string workspace, string title = null, string sessionId = null)
         {
-            var sessionId = Guid.NewGuid().ToString("N");
-            var session = new AgentSession(sessionId, agent, workspace, title ?? $"AI Session ({agent.Id})");
-            _sessions[sessionId] = session;
+            var id = string.IsNullOrEmpty(sessionId) ? Guid.NewGuid().ToString("N") : sessionId;
+            var session = new AgentSession(id, agent, workspace, title ?? $"AI Session ({agent.Id})");
+            _sessions[id] = session;
             return session;
         }
 

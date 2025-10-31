@@ -2,8 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 const sessions = new Map();
 
-export function createSession({ agentId, workspace = 'workspace', title = null }) {
-  const sessionId = randomUUID();
+export function createSession({ sessionId = randomUUID(), agentId, workspace = 'workspace', title = null }) {
   const session = {
     sessionId,
     agentId,

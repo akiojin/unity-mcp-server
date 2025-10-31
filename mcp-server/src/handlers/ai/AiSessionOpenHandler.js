@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { findAgent, getDefaultAgent } from './agentRegistry.js';
 import { createSession } from './sessionStore.js';
@@ -41,6 +40,28 @@ export class AiSessionOpenHandler extends BaseToolHandler {
       workspace,
       title: params.title
     });
+
+    if (this.unityConnection && process.env.UNITY_MCP_TEST_SKIP_UNITY !== 'true') {
+      try {
+        if (!this.unityConnection.isConnected()) {
+          await this.unityConnection.connect();
+        }
+
+        const unityResponse = await this.unityConnection.sendCommand({
+          command: 'ai_session_open',
+          sessionId: session.sessionId,
+          agentId: agent.id,
+          workspace,
+          title: params.title
+        });
+
+        if (unityResponse?.error) {
+          throw new Error(unityResponse.error);
+        }
+      } catch (error) {
+        console.warn(`[AI] Unable to notify Unity about session open: ${error.message}`);
+      }
+    }
 
     return {
       sessionId: session.sessionId,
