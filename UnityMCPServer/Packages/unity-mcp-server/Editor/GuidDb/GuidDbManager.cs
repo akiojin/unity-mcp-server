@@ -129,7 +129,7 @@ namespace UnityMCPServer.GuidDb
             SaveLedger(dict);
         }
 
-        [MenuItem("Window/Unity Editor MCP/Guid DB/Full Scan (Assets)")]
+        [MenuItem("Window/Unity MCP Server/Guid DB/Full Scan (Assets)")]
         public static void FullScanMenu()
         {
             var scheduled = FullScan(() =>

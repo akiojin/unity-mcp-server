@@ -125,6 +125,22 @@ function loadExternalConfig() {
 const external = loadExternalConfig();
 export const config = merge(baseConfig, external);
 
+// AI agent defaults
+if (!Array.isArray(config.aiAgents)) {
+  config.aiAgents = [];
+}
+
+if (!config.aiSessions || typeof config.aiSessions !== 'object') {
+  config.aiSessions = {};
+}
+
+const cacheConfig = config.aiSessions.cache || {};
+config.aiSessions.cache = {
+  enabled: Boolean(cacheConfig.enabled),
+  maxSessions: Number.isFinite(cacheConfig.maxSessions) ? cacheConfig.maxSessions : 100,
+  maxLogsPerAction: Number.isFinite(cacheConfig.maxLogsPerAction) ? cacheConfig.maxLogsPerAction : 500
+};
+
 const normalizeUnityConfig = () => {
   const unityConfig = config.unity || (config.unity = {});
 

@@ -26,7 +26,7 @@ namespace UnityMCPServer.GuidDb
         private readonly Dictionary<string, UnityEngine.Object> _replacement = new Dictionary<string, UnityEngine.Object>();
         private readonly HashSet<string> _busy = new HashSet<string>();
 
-        [MenuItem("Window/Unity Editor MCP/Guid DB/Explorer")]
+        [MenuItem("Window/Unity MCP Server/Guid DB/Explorer")]
         public static void Open()
         {
             var win = GetWindow<GuidDbExplorerWindow>("GUID DB Explorer");

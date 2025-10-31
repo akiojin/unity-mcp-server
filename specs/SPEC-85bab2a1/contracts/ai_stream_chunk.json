@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AI Stream Chunk",
+  "description": "Push notification from Node to Unity for streaming output",
+  "type": "object",
+  "properties": {
+    "sessionId": {
+      "type": "string",
+      "description": "Owning session"
+    },
+    "actionId": {
+      "type": "string",
+      "description": "Associated action (optional for plain chat)"
+    },
+    "chunk": {
+      "type": "string",
+      "description": "Chunk text appended to the transcript"
+    },
+    "isFinal": {
+      "type": "boolean",
+      "description": "True when this chunk completes the stream"
+    }
+  },
+  "required": ["sessionId", "chunk", "isFinal"]
+}

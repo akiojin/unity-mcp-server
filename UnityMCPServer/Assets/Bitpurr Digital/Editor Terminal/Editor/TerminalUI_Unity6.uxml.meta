@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 0e82e170d564a0e4aa9285d5c1719ce1
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 13804, guid: 0000000000000000e000000000000000, type: 0}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 318204
+  packageName: Editor Terminal
+  packageVersion: 1.4.2
+  assetPath: Assets/Bitpurr Digital/Editor Terminal/Editor/TerminalUI_Unity6.uxml
+  uploadId: 781412

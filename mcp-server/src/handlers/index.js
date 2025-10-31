@@ -107,6 +107,19 @@ export { CompilationGetStateToolHandler } from './compilation/CompilationGetStat
 export { TestRunToolHandler } from './test/TestRunToolHandler.js';
 export { TestGetStatusToolHandler } from './test/TestGetStatusToolHandler.js';
 
+// Terminal handlers
+export { TerminalOpenToolHandler } from './terminal/TerminalOpenToolHandler.js';
+export { TerminalExecuteToolHandler } from './terminal/TerminalExecuteToolHandler.js';
+export { TerminalReadToolHandler } from './terminal/TerminalReadToolHandler.js';
+export { TerminalCloseToolHandler } from './terminal/TerminalCloseToolHandler.js';
+
+// AI session handlers
+export { AiSessionOpenHandler } from './ai/AiSessionOpenHandler.js';
+export { AiSessionMessageHandler } from './ai/AiSessionMessageHandler.js';
+export { AiSessionExecuteHandler } from './ai/AiSessionExecuteHandler.js';
+export { AiSessionCloseHandler } from './ai/AiSessionCloseHandler.js';
+export { AiStreamDispatcher } from './ai/AiStreamDispatcher.js';
+
 // Editor control handlers
 export { EditorTagsManageToolHandler } from './editor/EditorTagsManageToolHandler.js';
 export { EditorLayersManageToolHandler } from './editor/EditorLayersManageToolHandler.js';
@@ -238,6 +251,18 @@ import { CodeIndexUpdateToolHandler } from './script/CodeIndexUpdateToolHandler.
 import { CodeIndexBuildToolHandler } from './script/CodeIndexBuildToolHandler.js';
 // Roslyn (external CLI) tool handlers removed（内部ユーティリティのみ存続）
 
+// Terminal handlers
+import { TerminalOpenToolHandler } from './terminal/TerminalOpenToolHandler.js';
+import { TerminalExecuteToolHandler } from './terminal/TerminalExecuteToolHandler.js';
+import { TerminalReadToolHandler } from './terminal/TerminalReadToolHandler.js';
+import { TerminalCloseToolHandler } from './terminal/TerminalCloseToolHandler.js';
+
+// AI session handlers
+import { AiSessionOpenHandler } from './ai/AiSessionOpenHandler.js';
+import { AiSessionMessageHandler } from './ai/AiSessionMessageHandler.js';
+import { AiSessionExecuteHandler } from './ai/AiSessionExecuteHandler.js';
+import { AiSessionCloseHandler } from './ai/AiSessionCloseHandler.js';
+
 // Handler registry - single source of truth
 const HANDLER_CLASSES = [
   // System handlers
@@ -358,6 +383,16 @@ const HANDLER_CLASSES = [
   // Test handlers
   TestRunToolHandler,
   TestGetStatusToolHandler,
+
+  // Terminal handlers
+  TerminalOpenToolHandler,
+  TerminalExecuteToolHandler,
+  TerminalReadToolHandler,
+  TerminalCloseToolHandler,
+  AiSessionOpenHandler,
+  AiSessionMessageHandler,
+  AiSessionExecuteHandler,
+  AiSessionCloseHandler,
 
   // Editor control handlers
   EditorTagsManageToolHandler,

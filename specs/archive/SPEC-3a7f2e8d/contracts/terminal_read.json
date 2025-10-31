@@ -1,0 +1,62 @@
+{
+  "tool": "terminal_read",
+  "description": "Read terminal output from a session",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "sessionId": {
+        "type": "string",
+        "description": "Session identifier"
+      },
+      "maxLines": {
+        "type": "number",
+        "description": "Maximum number of lines to return (default: 100, max: 1000)"
+      }
+    },
+    "required": ["sessionId"]
+  },
+  "responseSchema": {
+    "type": "object",
+    "properties": {
+      "lines": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "Output text (ANSI escape codes stripped)"
+            },
+            "isError": {
+              "type": "boolean",
+              "description": "true if this line came from stderr"
+            },
+            "timestamp": {
+              "type": "string",
+              "description": "ISO 8601 timestamp (UTC) when the line was output"
+            }
+          },
+          "required": ["text", "isError", "timestamp"]
+        },
+        "description": "Array of output lines"
+      },
+      "hasMore": {
+        "type": "boolean",
+        "description": "true if there are more lines available beyond maxLines"
+      }
+    },
+    "required": ["lines", "hasMore"]
+  },
+  "errorCases": [
+    {
+      "condition": "Session not found",
+      "errorCode": "SESSION_NOT_FOUND",
+      "message": "Terminal session '{sessionId}' not found"
+    },
+    {
+      "condition": "maxLines exceeds limit",
+      "errorCode": "MAX_LINES_EXCEEDED",
+      "message": "maxLines {value} exceeds maximum allowed (1000)"
+    }
+  ]
+}

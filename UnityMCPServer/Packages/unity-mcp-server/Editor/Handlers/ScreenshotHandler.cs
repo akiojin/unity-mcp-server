@@ -127,7 +127,7 @@ namespace UnityMCPServer.Handlers
                 
                 // Otherwise try to get Game View and capture it
                 Debug.Log("[ScreenshotHandler] Getting Game View window");
-                var gameViewType = typeof(Editor).Assembly.GetType("UnityEditor.GameView");
+                var gameViewType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView");
                 var gameView = EditorWindow.GetWindow(gameViewType, false);
                 
                 if (gameView == null)
@@ -643,7 +643,7 @@ namespace UnityMCPServer.Handlers
         /// </summary>
         private static Vector2Int GetGameViewResolution()
         {
-            var gameViewType = typeof(Editor).Assembly.GetType("UnityEditor.GameView");
+            var gameViewType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView");
             var gameView = EditorWindow.GetWindow(gameViewType, false);
             
             if (gameView != null)
