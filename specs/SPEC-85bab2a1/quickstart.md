@@ -52,3 +52,5 @@ npm start
 ## 追加ヒント
 - ログは最大 1000 メッセージ / 200KB まで保持され、それ以上は要約表示に折りたたまれます。
 - 長時間実行コマンドはバックグラウンドで継続し、完了時に通知されます。
+- Unityを起動せずに契約テストだけ検証したい場合は、MCPサーバー側で `UNITY_MCP_TEST_SKIP_UNITY=true node --test tests/integration/ai/*.test.js` を実行するとUnity RPCをスキップしたフロー検証ができます。
+- セッションログを短期キャッシュしたい場合は `.unity/config.json` に `"aiSessions": { "cache": { "enabled": true } }` を設定すると、最新100件を SQLite にスナップショット保存して再起動後でも参照できます。
