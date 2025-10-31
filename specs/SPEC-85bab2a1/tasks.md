@@ -35,8 +35,8 @@
 ## Phase 3.4: 統合
 - [x] T025 `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/` に AI 用コマンドハンドラを追加し、Node からの `ai_stream_chunk` を受信して StreamingBuffer に流し込む
 - [x] T026 `mcp-server/tests/integration/ai/ai-session-error.test.js` にエラーパス (未登録エージェント、WSL変換失敗など) のテストを追加
-- [ ] T027 `mcp-server/tests/e2e/ai-window.e2e.test.js` に open→message→execute→close を実機(Unity)で検証する E2E テストを追加
-- [ ] T028 `UnityMCPServer/Packages/unity-mcp-server/Tests/Editor/AI/AIChatWindowStreamingTests.cs` にストリーミング負荷テスト (バッチ処理) を追加
+- [x] T027 `mcp-server/tests/e2e/ai-window.e2e.test.js` に open→message→execute→close を実機(Unity)で検証する E2E テストを追加
+- [x] T028 `UnityMCPServer/Packages/unity-mcp-server/Tests/Editor/AI/AIChatWindowStreamingTests.cs` にストリーミング負荷テスト (バッチ処理) を追加
 
 ## Phase 3.5: 仕上げ
 - [x] T029 `mcp-server/src/core/server.js` と `UnityMCPServer/Packages/unity-mcp-server/Editor/AI/` にAIセッション用構造化ログ出力を追加
