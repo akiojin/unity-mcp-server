@@ -40,7 +40,7 @@
 
 ## Phase 3.5: 仕上げ
 - [x] T029 `mcp-server/src/core/server.js` と `UnityMCPServer/Packages/unity-mcp-server/Editor/AI/` にAIセッション用構造化ログ出力を追加
-- [ ] T030 [P] `CLAUDE.md` と `README.md` を更新し、AIエージェントウィンドウの利用方法を追記
+- [x] T030 [P] `CLAUDE.md` と `README.md` を更新し、AIエージェントウィンドウの利用方法を追記
 - [ ] T031 [P] `specs/SPEC-85bab2a1/quickstart.md` を最新UIスクリーンショットとキャッシュ設定の注意書きで更新
 - [ ] T032 [P] manual テスト手順を `UnityMCPServer/Packages/unity-mcp-server/Tests/Manual/AI/Checklist.md` に追加してQA観点を整理
 
