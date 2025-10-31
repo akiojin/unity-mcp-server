@@ -15,6 +15,7 @@ namespace UnityMCPServer.AI
         private Vector2 _scrollPosition;
         private string _inputBuffer = string.Empty;
         private int _selectedAgentIndex;
+        private ActionRequestController _actionController;
 
         [MenuItem("Window/Unity MCP Server/AI Agent Window")]
         public static void ShowWindow()
@@ -51,6 +52,7 @@ namespace UnityMCPServer.AI
             _sessionManager = AIEditorContext.SessionManager;
             _agents = AIEditorContext.Agents;
             _selectedAgentIndex = Mathf.Clamp(_selectedAgentIndex, 0, Mathf.Max(0, _agents.Count - 1));
+            _actionController = new ActionRequestController(_sessionManager);
         }
 
         private void OnEnable()
@@ -181,6 +183,9 @@ namespace UnityMCPServer.AI
                         }
                     }
                 }
+
+                GUILayout.Space(12);
+                DrawActionList();
             }
         }
 
@@ -206,6 +211,49 @@ namespace UnityMCPServer.AI
 
             _sessionManager.AddUserMessage(_activeSession.SessionId, text);
             _inputBuffer = string.Empty;
+        }
+
+        private void DrawActionList()
+        {
+            GUILayout.Label("Pending Actions", EditorStyles.boldLabel);
+
+            if (_activeSession.Actions.Count == 0)
+            {
+                EditorGUILayout.HelpBox("No actions pending approval.", MessageType.Info);
+                return;
+            }
+
+            foreach (var action in _activeSession.Actions)
+            {
+                using (new GUILayout.VerticalScope(GUI.skin.box))
+                {
+                    GUILayout.Label($"Type: {action.Type}");
+                    GUILayout.Label($"Status: {action.Status}");
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        using (new EditorGUI.DisabledGroupScope(action.Status != ActionRequestStatus.Pending))
+                        {
+                            if (GUILayout.Button("Approve", GUILayout.Width(80)))
+                            {
+                                if (_actionController.Approve(_activeSession.SessionId, action.ActionId))
+                                {
+                                    Repaint();
+                                }
+                            }
+
+                            if (GUILayout.Button("Reject", GUILayout.Width(80)))
+                            {
+                                if (_actionController.Reject(_activeSession.SessionId, action.ActionId))
+                                {
+                                    Repaint();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
