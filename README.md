@@ -400,10 +400,57 @@ Example:
 
 ## Release Process
 
-- Versions for MCP server, C# LSP, and Unity sample are synchronized.
-- Run `scripts/publish.sh` to update versions and create release tags.
-- GitHub Actions publish both MCP server (npm) and LSP binaries (per RID).
-- MCP clients auto-download matching LSP on first use (no manual install needed).
+### Automated Release Flow
+
+This project uses [semantic-release](https://semantic-release.gitbook.io/) with [Conventional Commits](https://www.conventionalcommits.org/) for fully automated releases.
+
+#### How It Works
+
+1. **Developer**: Create feature branch, commit with Conventional Commits, create PR
+2. **Auto-Merge**: Required checks pass → automatic merge to `main`
+3. **semantic-release**: Analyzes commits → determines version → updates package.json (mcp-server + Unity Package) → generates CHANGELOG.md → creates tag (`v*`)
+4. **csharp-lsp Build**: Triggered by tag → builds all platforms → creates GitHub Release
+5. **npm Publish**: Triggered by Release → waits for csharp-lsp-manifest.json → publishes to npm
+
+All components (mcp-server, Unity Package, csharp-lsp) are released with the same version number.
+
+#### Commit Message Format
+
+Use Conventional Commits to trigger automatic version bumps:
+
+- `feat: Add new feature` → **minor** version (2.16.3 → 2.17.0)
+- `fix: Resolve bug` → **patch** version (2.16.3 → 2.16.4)
+- `feat!: Breaking change` or `BREAKING CHANGE:` in body → **major** version (2.16.3 → 3.0.0)
+- `chore:`, `docs:`, `test:` → no version bump
+
+Examples:
+
+```bash
+git commit -m "feat: Add video capture support"
+git commit -m "fix: Resolve screenshot path issue"
+git commit -m "feat!: Remove deprecated API"
+```
+
+#### Manual Release (if needed)
+
+If automated release fails, you can manually trigger workflows:
+
+1. Go to Actions tab on GitHub
+2. Select "Release" workflow
+3. Click "Run workflow" on `main` branch
+
+#### Troubleshooting
+
+- **No release created**: Check if commits follow Conventional Commits format
+- **csharp-lsp build failed**: npm publish will timeout after 20 minutes
+- **Version mismatch**: Ensure Unity Package version is synced (automatic via `sync-unity-package-version.js`)
+
+#### Version Synchronization
+
+- **mcp-server**: Updated by semantic-release
+- **Unity Package**: Auto-synced via `scripts/sync-unity-package-version.js`
+- **csharp-lsp**: Tagged with same version, binaries attached to GitHub Release
+- **CHANGELOG.md**: Auto-generated from commit messages
 
 ## Repository Structure (Workspace Root)
 
