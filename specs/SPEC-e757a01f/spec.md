@@ -306,7 +306,7 @@
 - `mcp-server/src/handlers/script/ScriptRefactorRenameToolHandler.js`: リネーム
 - `mcp-server/src/handlers/script/ScriptSymbolsGetToolHandler.js`: シンボル定義取得
 - `mcp-server/src/handlers/script/BuildCodeIndexToolHandler.js`: インデックス構築
-- `mcp-server/src/handlers/script/ScriptIndexStatusToolHandler.js`: インデックス状態
+- `mcp-server/src/handlers/script/CodeIndexStatusToolHandler.js`: インデックス状態
 
 ---
 

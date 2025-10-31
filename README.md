@@ -26,7 +26,7 @@ See also: Spec Kit workflow (`/speckit.specify`, `/speckit.plan`, `/speckit.task
 
 - Spec Kit CLI v0.0.78 is installed under `.specify/` (scripts, templates, memory).
 - Use `uvx --from git+https://github.com/github/spec-kit.git specify check` to verify the CLI and templates are up to date.
-- Feature IDs always follow `SPEC-xxxxxxxx` (lowercase hex). The helper script skips git branch creation and stores the active feature in `.specify/.current-feature`.
+- Feature IDs always follow the `SPEC-[0-9a-f]{8}` pattern (e.g., `SPEC-1a2b3c4d`). The helper script skips git branch creation and stores the active feature in `.specify/.current-feature`.
 - Templates are localized to Japanese; edit `/.specify/templates/*.md` when updating specs/plan/tasks/agent guides.
 - Legacy wrappers remain in `scripts/` and delegate to the new `.specify/scripts/bash/` implementations for backward compatibility.
 

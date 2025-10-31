@@ -248,10 +248,25 @@ export class ConsoleReadToolHandler extends BaseToolHandler {
     }
 
     // Build result object
+    const rawLogs = Array.isArray(response.logs) ? response.logs : [];
+    const logs = rawLogs.map((log) => {
+      const type = log.type ?? log.logType ?? null;
+      return {
+        ...log,
+        type,
+        logType: log.logType ?? type,
+        timestamp: log.timestamp ?? log.time ?? null
+      };
+    });
+
+    const totalCaptured = response.totalCaptured ?? response.totalCount ?? logs.length;
+    const returnedCount = response.count ?? logs.length;
+
     const result = {
-      logs: response.logs || [],
-      count: response.count || 0,
-      totalCaptured: response.totalCaptured || 0
+      logs,
+      count: returnedCount,
+      totalCaptured,
+      totalCount: totalCaptured
     };
 
     // Include optional fields if available

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { fileURLToPath } from 'url';
 import { logger } from '../core/config.js';
 import { WORKSPACE_ROOT } from '../core/config.js';
 
@@ -14,12 +15,34 @@ export class CSharpLspUtils {
   }
 
   getDesiredVersion() {
+    const candidates = [];
+
+    // When launched from workspace root: mcp-server/package.json
+    candidates.push(path.resolve('mcp-server/package.json'));
+    // When launched within mcp-server directory
+    candidates.push(path.resolve('package.json'));
+
+    // Resolve relative to this module (always inside mcp-server/src/lsp)
     try {
-      const pkg = JSON.parse(fs.readFileSync(path.resolve('mcp-server/package.json'), 'utf8'));
-      return pkg.version;
-    } catch {
-      return null;
+      const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+      candidates.push(path.resolve(moduleDir, '../../package.json'));
+    } catch {}
+
+    // Resolve relative to WORKSPACE_ROOT if provided
+    if (WORKSPACE_ROOT) {
+      candidates.push(path.resolve(WORKSPACE_ROOT, 'mcp-server', 'package.json'));
+      candidates.push(path.resolve(WORKSPACE_ROOT, 'package.json'));
     }
+
+    for (const candidate of candidates) {
+      try {
+        if (!fs.existsSync(candidate)) continue;
+        const pkg = JSON.parse(fs.readFileSync(candidate, 'utf8'));
+        if (pkg?.version) return pkg.version;
+      } catch {}
+    }
+
+    return null;
   }
 
   getExecutableName() {

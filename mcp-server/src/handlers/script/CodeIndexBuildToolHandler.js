@@ -5,15 +5,27 @@ import path from 'path';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 import { LspRpcClient } from '../../lsp/LspRpcClient.js';
 import { logger } from '../../core/config.js';
+import { JobManager } from '../../core/jobManager.js';
 
 export class CodeIndexBuildToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'code_index_build',
-      'Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Stores DB under .unity/cache/code-index/code-index.db.',
+      'Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Returns immediately with jobId for background execution. Check progress with code_index_status. Stores DB under .unity/cache/code-index/code-index.db.',
       {
         type: 'object',
-        properties: {},
+        properties: {
+          throttleMs: {
+            type: 'number',
+            minimum: 0,
+            description: 'Optional delay in milliseconds after processing each file (testing/debugging).'
+          },
+          delayStartMs: {
+            type: 'number',
+            minimum: 0,
+            description: 'Optional delay before processing begins (useful to keep job in running state briefly).'
+          }
+        },
         required: []
       }
     );
@@ -21,10 +33,50 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
     this.index = new CodeIndex(unityConnection);
     this.projectInfo = new ProjectInfoProvider(unityConnection);
     this.lsp = null; // lazy init with projectRoot
+    this.jobManager = JobManager.getInstance();
+    this.currentJobId = null; // Track current running job
   }
 
   async execute(params = {}) {
+    // Check if a build is already running
+    if (this.currentJobId) {
+      const existingJob = this.jobManager.get(this.currentJobId);
+      if (existingJob && existingJob.status === 'running') {
+        return {
+          success: false,
+          error: 'build_already_running',
+          message: `Code index build is already running (jobId: ${this.currentJobId}). Use code_index_status to check progress.`,
+          jobId: this.currentJobId
+        };
+      }
+    }
+
+    // Generate new jobId
+    const jobId = `build-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    this.currentJobId = jobId;
+
+    // Create background job
+    this.jobManager.create(jobId, async (job) => {
+      return await this._executeBuild(params, job);
+    });
+
+    // Return immediately with jobId
+    return {
+      success: true,
+      jobId,
+      message: 'Code index build started in background',
+      checkStatus: 'Use code_index_status to check progress and completion'
+    };
+  }
+
+  /**
+   * Internal method that performs the actual build
+   * @private
+   */
+  async _executeBuild(params, job) {
     try {
+      const throttleMs = Math.max(0, Number(params?.throttleMs ?? 0));
+      const delayStartMs = Math.max(0, Number(params?.delayStartMs ?? 0));
       const info = await this.projectInfo.get();
       const roots = [
         path.resolve(info.projectRoot, 'Assets'),
@@ -35,7 +87,16 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
       const seen = new Set();
       for (const r of roots) this.walkCs(r, files, seen);
 
-      if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
+      // Initialize LSP with error handling
+      if (!this.lsp) {
+        try {
+          this.lsp = new LspRpcClient(info.projectRoot);
+          logger.info(`[index][${job.id}] LSP initialized for project: ${info.projectRoot}`);
+        } catch (lspError) {
+          logger.error(`[index][${job.id}] LSP initialization failed: ${lspError.message}`);
+          throw new Error(`LSP initialization failed: ${lspError.message}. Ensure C# LSP is properly configured and OmniSharp is available.`);
+        }
+      }
       const lsp = this.lsp;
 
       // Incremental detection based on size-mtime signature
@@ -74,6 +135,13 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
       const startAt = Date.now();
       let i = 0; let updated = 0; let processed = 0;
 
+      // Initialize progress
+      job.progress.total = absList.length;
+      job.progress.processed = 0;
+      job.progress.rate = 0;
+
+      logger.info(`[index][${job.id}] Build started: ${absList.length} files to process, ${removed.length} to remove (status: ${job.status})`);
+
       // LSP request with small retry/backoff
       const requestWithRetry = async (uri, maxRetries = Math.max(0, Math.min(5, Number(params?.retry ?? 2)))) => {
         let lastErr = null;
@@ -88,26 +156,45 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
         }
         throw lastErr || new Error('documentSymbol failed');
       };
+      if (delayStartMs > 0) {
+        await new Promise(resolve => setTimeout(resolve, delayStartMs));
+      }
+
       const worker = async () => {
         while (true) {
           const idx = i++;
           if (idx >= absList.length) break;
           const abs = absList[idx];
+          const rel = this.toRel(abs, info.projectRoot);
           try {
             const uri = 'file://' + abs.replace(/\\/g, '/');
             const docSymbols = await requestWithRetry(uri, 2);
             const rows = toRows(uri, docSymbols);
-            const rel = this.toRel(abs, info.projectRoot);
             await this.index.replaceSymbolsForPath(rel, rows);
             await this.index.upsertFile(rel, wanted.get(rel));
             updated += 1;
-          } catch {}
+          } catch (err) {
+            // File access or LSP error - skip and continue
+            // This allows build to continue even if some files fail
+            if (processed % 50 === 0) {
+              // Log occasionally to avoid spam
+              logger.warn(`[index][${job.id}] Skipped file due to error: ${rel} - ${err.message}`);
+            }
+          }
           finally {
             processed += 1;
+
+            // Update job progress
+            const elapsed = Math.max(1, Date.now() - startAt);
+            job.progress.processed = processed;
+            job.progress.rate = parseFloat((processed * 1000 / elapsed).toFixed(1));
+
             if (processed % reportEvery === 0 || processed === absList.length) {
-              const elapsed = Math.max(1, Date.now() - startAt);
-              const rate = (processed * 1000 / elapsed).toFixed(1);
-              logger.info(`[index] progress ${processed}/${absList.length} (removed:${removed.length}) rate:${rate} f/s`);
+              logger.info(`[index][${job.id}] progress ${processed}/${absList.length} (removed:${removed.length}) rate:${job.progress.rate} f/s (status: ${job.status})`);
+            }
+
+            if (throttleMs > 0) {
+              await new Promise(resolve => setTimeout(resolve, throttleMs));
             }
           }
         }
@@ -116,14 +203,37 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
       await Promise.all(workers);
 
       const stats = await this.index.getStats();
-      return { success: true, updatedFiles: updated, removedFiles: removed.length, totalIndexedSymbols: stats.total, lastIndexedAt: stats.lastIndexedAt };
-    } catch (e) {
-      return {
-        success: false,
-        error: 'code_index_build_failed',
-        message: e.message,
-        hint: 'C# LSP not ready. Ensure manifest/auto-download and workspace paths are valid.'
+
+      // Clear current job tracking on success
+      if (this.currentJobId === job.id) {
+        this.currentJobId = null;
+      }
+
+      const result = {
+        updatedFiles: updated,
+        removedFiles: removed.length,
+        totalIndexedSymbols: stats.total,
+        lastIndexedAt: stats.lastIndexedAt
       };
+
+      logger.info(`[index][${job.id}] Build completed successfully: updated=${result.updatedFiles}, removed=${result.removedFiles}, total=${result.totalIndexedSymbols} (status: completed)`);
+
+      return result;
+    } catch (e) {
+      // Clear current job tracking on error
+      if (this.currentJobId === job.id) {
+        this.currentJobId = null;
+      }
+
+      // Log detailed error with job context
+      logger.error(`[index][${job.id}] Build failed: ${e.message} (status: failed)`);
+
+      // Provide helpful error message with context
+      const errorMessage = e.message.includes('LSP')
+        ? `LSP error: ${e.message}`
+        : `Build error: ${e.message}. Hint: C# LSP not ready. Ensure manifest/auto-download and workspace paths are valid.`;
+
+      throw new Error(errorMessage);
     }
   }
 

@@ -87,6 +87,16 @@ Add to your `claude_desktop_config.json`:
 
 > **Tip:** `code_index_update` は JSON パラメータ `paths` に絶対パス／相対パスの配列を渡すだけで完了します。内部で存在チェックと LSP リトライを行うため、Unity を起動したままでも短時間で終わります。
 
+### インデックス状態を検証したいとき
+
+ビルド中・未構築・完了後といったステータスを再現したい場合は、`code_index_build` に `delayStartMs` や `throttleMs` を付けて進捗を意図的に保ちます。さらに、`npm run simulate:code-index` を実行すると以下が自動化されます。
+
+- 既存インデックスのリセット（`--reset`）
+- `code_index_build` のバックグラウンド実行（任意の `--delayStart=MS` / `--throttle=MS`）
+- 指定間隔での `code_index_status` ポーリング（`--poll=MS`）
+
+出力される JSON を追うことで、`ready: false` → `true` へ遷移する様子や `buildJob.status` の変化を簡単に確認できます。
+
 ## Available Tools (Standardized Names)
 
 ### System & Core Tools
@@ -149,10 +159,10 @@ Add to your `claude_desktop_config.json`:
 - `script_remove_symbol` — Delete symbols (types/members) with reference checks
 - `script_refactor_rename` — Rename symbols project-wide via LSP
 - `script_packages_list` — List installed packages relevant to scripting
-- `script_index_status` — Report status of the persistent code index
+- `code_index_status` — Report status of the persistent code index
 
 ### Code Index Utilities
-- `code_index_build` — フルスキャンでシンボルインデックスを再構築
+- `code_index_build` — フルスキャンでシンボルインデックスを再構築（開発時は `delayStartMs` や `throttleMs` で進捗観測用に速度調整可能）
 - `code_index_update` — 変更した C# ファイルのみ差分再インデックス
 
 ### Play Mode Controls

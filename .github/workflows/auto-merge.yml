@@ -13,163 +13,251 @@ permissions:
   issues: write
 
 jobs:
-  quality-checks:
-    name: Quality Checks
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # 全履歴を取得（commitlintチェック用）
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: mcp-server/package-lock.json
-
-      - name: Install mcp-server dependencies
-        run: |
-          cd mcp-server
-          npm ci
-
-      - name: Check tasks completion
-        id: check-tasks
-        run: |
-          echo "Checking tasks completion..."
-
-          # PRのブランチ名からSPEC IDを抽出
-          BRANCH_NAME="${{ github.head_ref }}"
-          SPEC_ID=$(echo "$BRANCH_NAME" | grep -oP 'SPEC-[a-z0-9]{8}' || echo "")
-
-          if [ -z "$SPEC_ID" ]; then
-            echo "⚠️  Warning: SPEC ID not found in branch name: $BRANCH_NAME"
-            echo "Skipping tasks check"
-            exit 0
-          fi
-
-          TASKS_FILE="specs/$SPEC_ID/tasks.md"
-
-          if [ ! -f "$TASKS_FILE" ]; then
-            echo "⚠️  Warning: tasks.md not found: $TASKS_FILE"
-            echo "Skipping tasks check"
-            exit 0
-          fi
-
-          .specify/scripts/checks/check-tasks.sh "$TASKS_FILE"
-
-      - name: Run tests
-        id: run-tests
-        run: |
-          echo "Running tests..."
-          .specify/scripts/checks/check-tests.sh --npm-only
-
-      - name: Check compilation
-        id: check-compile
-        run: |
-          echo "Checking compilation..."
-          .specify/scripts/checks/check-compile.sh --typescript-only
-
-      - name: Check commit messages
-        id: check-commits
-        run: |
-          echo "Checking commit messages..."
-          .specify/scripts/checks/check-commits.sh --from origin/main --to HEAD
-
-      - name: Comment on PR (Success)
-        if: success()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '✅ **All quality checks passed!**\n\nThe PR is ready to be merged automatically.\n\n- ✅ Tasks completion check\n- ✅ Tests passed\n- ✅ Compilation successful\n- ✅ Commit messages follow conventions'
-            })
-
-      - name: Comment on PR (Failure)
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const failedSteps = [];
-            if ('${{ steps.check-tasks.outcome }}' === 'failure') failedSteps.push('❌ Tasks completion check');
-            if ('${{ steps.run-tests.outcome }}' === 'failure') failedSteps.push('❌ Tests');
-            if ('${{ steps.check-compile.outcome }}' === 'failure') failedSteps.push('❌ Compilation');
-            if ('${{ steps.check-commits.outcome }}' === 'failure') failedSteps.push('❌ Commit messages');
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ **Quality checks failed!**\n\nPlease fix the following issues before merging:\n\n' + failedSteps.join('\n') + '\n\nCheck the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
-            })
-
   auto-merge:
     name: Auto Merge
-    needs: quality-checks
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Wait for required checks
+        id: wait-required
+        uses: actions/github-script@v7
         with:
-          fetch-depth: 0
+          script: |
+            const coreLib = core;
+            const { owner, repo } = context.repo;
+            const pullNumber = context.payload.pull_request.number;
+            const maxAttempts = 40;
+            const delayMs = 15000;
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+            const query = `
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    commits(last: 1) {
+                      nodes {
+                        commit {
+                          statusCheckRollup {
+                            contexts(first: 100) {
+                              nodes {
+                                __typename
+                                ... on CheckRun {
+                                  name
+                                  status
+                                  conclusion
+                                  detailsUrl
+                                  isRequired(pullRequestNumber: $number)
+                                }
+                                ... on StatusContext {
+                                  context
+                                  state
+                                  targetUrl
+                                  isRequired(pullRequestNumber: $number)
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            function normalize(node) {
+              if (!node?.isRequired) {
+                return null;
+              }
+
+              if (node.__typename === 'CheckRun') {
+                return {
+                  type: 'CheckRun',
+                  name: node.name,
+                  status: node.status || 'UNKNOWN',
+                  conclusion: node.conclusion || null,
+                  detailsUrl: node.detailsUrl || null
+                };
+              }
+
+              return {
+                type: 'StatusContext',
+                name: node.context,
+                status: node.state || 'UNKNOWN',
+                conclusion: node.state || 'UNKNOWN',
+                detailsUrl: node.targetUrl || null
+              };
+            }
+
+            async function fetchRequired() {
+              const data = await github.graphql(query, { owner, repo, number: pullNumber });
+              const nodes = data.repository?.pullRequest?.commits?.nodes ?? [];
+              const latest = nodes[nodes.length - 1];
+              const contexts = latest?.commit?.statusCheckRollup?.contexts?.nodes ?? [];
+              return contexts.map(normalize).filter(Boolean);
+            }
+
+            const summarize = (contexts) => contexts.map((ctx) => ({
+              type: ctx.type,
+              name: ctx.name,
+              status: ctx.status,
+              conclusion: ctx.conclusion,
+              detailsUrl: ctx.detailsUrl
+            }));
+
+            function isPending(ctx) {
+              if (ctx.type === 'CheckRun') {
+                return (ctx.status || '').toUpperCase() !== 'COMPLETED';
+              }
+              const state = (ctx.status || '').toUpperCase();
+              return state === 'PENDING' || state === 'EXPECTED';
+            }
+
+            function isFailure(ctx) {
+              if (ctx.type === 'CheckRun') {
+                if ((ctx.status || '').toUpperCase() !== 'COMPLETED') {
+                  return false;
+                }
+
+                const conclusion = (ctx.conclusion || '').toUpperCase();
+                return conclusion && !['SUCCESS', 'NEUTRAL', 'SKIPPED'].includes(conclusion);
+              }
+
+              const state = (ctx.status || '').toUpperCase();
+              return state === 'ERROR' || state === 'FAILURE';
+            }
+
+            let attempt = 0;
+            let latestContexts = [];
+
+            while (attempt < maxAttempts) {
+              latestContexts = await fetchRequired();
+
+              if (latestContexts.length === 0) {
+                coreLib.info('No required checks configured; proceeding.');
+                const result = { state: 'no_required_checks', contexts: [] };
+                coreLib.setOutput('result', JSON.stringify(result));
+                return result;
+              }
+
+              const failures = latestContexts.filter(isFailure);
+              if (failures.length > 0) {
+                const result = {
+                  state: 'failed',
+                  contexts: summarize(latestContexts),
+                  failures: summarize(failures)
+                };
+                coreLib.setOutput('result', JSON.stringify(result));
+                coreLib.setFailed('Required checks failed.');
+                return result;
+              }
+
+              const pending = latestContexts.filter(isPending);
+              if (pending.length === 0) {
+                const result = {
+                  state: 'passed',
+                  contexts: summarize(latestContexts)
+                };
+                coreLib.setOutput('result', JSON.stringify(result));
+                return result;
+              }
+
+              attempt += 1;
+              coreLib.info(`Waiting for required checks to complete (attempt ${attempt}/${maxAttempts})...`);
+              await new Promise((resolve) => setTimeout(resolve, delayMs));
+            }
+
+            const result = {
+              state: 'timeout',
+              contexts: summarize(latestContexts)
+            };
+            coreLib.setOutput('result', JSON.stringify(result));
+            coreLib.setFailed('Timed out waiting for required checks.');
+            return result;
+
+      - name: Comment on PR (Success)
+        if: steps.wait-required.outcome == 'success'
+        uses: actions/github-script@v7
+        env:
+          RESULT_JSON: ${{ steps.wait-required.outputs.result }}
+        with:
+          script: |
+            const result = JSON.parse(process.env.RESULT_JSON || '{"contexts":[]}');
+            const lines = result.contexts?.map((ctx) => {
+              const status = (ctx.conclusion || ctx.status || 'UNKNOWN').toUpperCase();
+              const icon = ['SUCCESS', 'NEUTRAL', 'SKIPPED'].includes(status) ? '✅' : 'ℹ️';
+              const name = ctx.name || 'Unnamed check';
+              return `${icon} ${name}: ${status}`;
+            }) || [];
+
+            const body = [
+              '✅ **All required checks passed!**',
+              '',
+              lines.length ? lines.join('\n') : '- No required checks configured on the target branch.',
+              '',
+              'The PR is ready to be merged automatically.'
+            ].join('\n');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+      - name: Comment on PR (Failure)
+        if: steps.wait-required.outcome == 'failure'
+        uses: actions/github-script@v7
+        env:
+          RESULT_JSON: ${{ steps.wait-required.outputs.result }}
+        with:
+          script: |
+            const result = JSON.parse(process.env.RESULT_JSON || '{}');
+            const failing = (result.failures || []).map((ctx) => {
+              const status = (ctx.conclusion || ctx.status || 'UNKNOWN').toUpperCase();
+              const name = ctx.name || 'Unnamed check';
+              return `❌ ${name}: ${status}`;
+            });
+
+            const body = [
+              '❌ **Required checks failed!**',
+              '',
+              failing.length ? failing.join('\n') : '- Unable to identify failing required checks.',
+              '',
+              `Check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`
+            ].join('\n');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
 
       - name: Merge PR
-        id: merge
+        if: steps.wait-required.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Attempting to merge PR #${{ github.event.pull_request.number }}..."
+          set -euo pipefail
+          pr_number=${{ github.event.pull_request.number }}
+          owner=${GITHUB_REPOSITORY_OWNER}
+          repo=${GITHUB_REPOSITORY#*/}
+          head_sha=${{ github.event.pull_request.head.sha }}
 
-          # mainブランチに切り替え
-          git checkout main
-          git pull origin main
+          echo "Attempting to merge PR #${{ github.event.pull_request.number }} via GitHub API..."
 
-          # PRブランチをマージ（--no-ffでマージコミットを作成）
-          if git merge --no-ff -m "Merge pull request #${{ github.event.pull_request.number }} from ${{ github.head_ref }}" "origin/${{ github.head_ref }}"; then
-            echo "merge_success=true" >> $GITHUB_OUTPUT
-
-            # mainブランチにpush
-            git push origin main
-
-            echo "✅ PR merged successfully"
-          else
-            echo "merge_success=false" >> $GITHUB_OUTPUT
-            echo "❌ Merge failed (conflict detected)"
-            exit 1
-          fi
-
-      - name: Close PR
-        if: steps.merge.outputs.merge_success == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.pulls.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number,
-              state: 'closed'
-            })
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '✅ **PR automatically merged!**\n\nAll quality checks passed and the PR has been successfully merged into main branch.'
-            })
+          gh api \
+            --method PUT \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/$owner/$repo/pulls/$pr_number/merge" \
+            -f merge_method=merge \
+            -f commit_title="Merge pull request #$pr_number" \
+            -f commit_message="Merge pull request #$pr_number" \
+            -f sha="$head_sha"
 
       - name: Comment on merge failure
-        if: failure()
+        if: failure() && steps.wait-required.outcome == 'success'
         uses: actions/github-script@v7
         with:
           script: |
@@ -177,5 +265,17 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '❌ **Auto-merge failed!**\n\nA merge conflict was detected. Please resolve the conflicts manually and try again.\n\nTo resolve:\n1. Pull the latest changes from main\n2. Merge main into your feature branch\n3. Resolve any conflicts\n4. Push the changes'
+              body: '❌ **Auto-merge failed!**\n\nGitHub refused to merge the PR automatically. This usually happens if required conversations remain unresolved or branch protection checks are not satisfied. Please resolve the outstanding items and try again.'
+            })
+
+      - name: Comment on automatic merge
+        if: success() && steps.wait-required.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ **PR automatically merged!**\n\nAll required checks passed and GitHub confirmed the merge into the main branch.'
             })

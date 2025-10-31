@@ -144,7 +144,7 @@ export { ScriptEditSnippetToolHandler } from './script/ScriptEditSnippetToolHand
 export { ScriptRefsFindToolHandler } from './script/ScriptRefsFindToolHandler.js';
 export { ScriptSymbolFindToolHandler } from './script/ScriptSymbolFindToolHandler.js';
 export { ScriptSymbolsGetToolHandler } from './script/ScriptSymbolsGetToolHandler.js';
-export { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHandler.js';
+export { CodeIndexStatusToolHandler } from './script/CodeIndexStatusToolHandler.js';
 export { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
 export { ScriptCreateClassToolHandler } from './script/ScriptCreateClassToolHandler.js';
 export { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
@@ -243,7 +243,7 @@ import { ScriptEditSnippetToolHandler } from './script/ScriptEditSnippetToolHand
 import { ScriptSymbolsGetToolHandler } from './script/ScriptSymbolsGetToolHandler.js';
 import { ScriptSymbolFindToolHandler } from './script/ScriptSymbolFindToolHandler.js';
 import { ScriptRefsFindToolHandler } from './script/ScriptRefsFindToolHandler.js';
-import { ScriptIndexStatusToolHandler } from './script/ScriptIndexStatusToolHandler.js';
+import { CodeIndexStatusToolHandler } from './script/CodeIndexStatusToolHandler.js';
 import { ScriptRefactorRenameToolHandler } from './script/ScriptRefactorRenameToolHandler.js';
 import { ScriptCreateClassToolHandler } from './script/ScriptCreateClassToolHandler.js';
 import { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
@@ -350,7 +350,7 @@ const HANDLER_CLASSES = [
   ScriptRefsFindToolHandler,
   ScriptSymbolFindToolHandler,
   ScriptSymbolsGetToolHandler,
-  ScriptIndexStatusToolHandler,
+  CodeIndexStatusToolHandler,
   ScriptRefactorRenameToolHandler,
   ScriptCreateClassToolHandler,
   ScriptRemoveSymbolToolHandler,

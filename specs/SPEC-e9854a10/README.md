@@ -4,7 +4,7 @@
 
 ## マージ済みSPEC
 
-### SPEC-4tyqsgzk: 軽量スニペット編集ツール
+### SPEC-4f7a596b: 軽量スニペット編集ツール
 
 - **作成日**: 2025-10-23
 - **マージ日**: 2025-10-24
@@ -23,7 +23,12 @@
 
 - **参照**:
   - 統合後のSPEC: `../SPEC-e757a01f/spec.md`
-- アーカイブSPEC: `./SPEC-4tyqsgzk/spec.md`
+  - アーカイブSPEC: `./SPEC-4f7a596b/spec.md`
+
+### SPEC-4tyqsgzk
+
+- **参照**:
+  - アーカイブSPEC: `./SPEC-4tyqsgzk/spec.md`
 
 ---
 
