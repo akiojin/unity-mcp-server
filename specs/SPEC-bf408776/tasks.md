@@ -9,7 +9,7 @@
 
 - [x] **S001**: SPEC-bf408776のspec.md更新（リリース自動化要件追加）
 - [x] **S002**: plan.md作成（semantic-release技術設計）
-- [ ] **S003**: tasks.md作成（このファイル）
+- [x] **S003**: tasks.md作成（このファイル）
 
 ---
 
@@ -17,7 +17,7 @@
 
 ### Unit Tests
 
-- [ ] **T001** [P]: Unity Packageバージョン同期スクリプトのテスト作成
+- [x] **T001** [P]: Unity Packageバージョン同期スクリプトのテスト作成
   - **ファイル**: `tests/unit/scripts/sync-unity-version.test.js`
   - **目的**: sync-unity-package-version.jsの動作検証
   - **検証内容**:
@@ -75,7 +75,7 @@
 
 ### Configuration Files
 
-- [ ] **C001** [P]: .releaserc.json作成
+- [x] **C001** [P]: .releaserc.json作成
   - **ファイル**: `.releaserc.json`
   - **内容**:
     - branches: ["main"]
@@ -89,7 +89,7 @@
       - @semantic-release/git
   - **検証**: T003統合テストが合格（GREEN）
 
-- [ ] **C002** [P]: package.jsonにsemantic-release依存追加
+- [x] **C002** [P]: package.jsonにsemantic-release依存追加
   - **ファイル**: `mcp-server/package.json`
   - **追加内容**:
     ```json
@@ -106,7 +106,7 @@
 
 ### Scripts
 
-- [ ] **C003**: Unity Packageバージョン同期スクリプト実装
+- [x] **C003**: Unity Packageバージョン同期スクリプト実装
   - **ファイル**: `scripts/sync-unity-package-version.js`
   - **実装内容**:
     - コマンドライン引数からバージョン取得
@@ -118,7 +118,7 @@
 
 ### GitHub Actions Workflows
 
-- [ ] **C004**: Release Workflow作成
+- [x] **C004**: Release Workflow作成
   - **ファイル**: `.github/workflows/release.yml`
   - **実装内容**:
     - トリガー: push to main
@@ -131,7 +131,7 @@
     - 権限: contents: write
   - **検証**: T004統合テストが合格
 
-- [ ] **C005**: csharp-lsp Workflow更新（GitHub Release作成追加）
+- [x] **C005**: csharp-lsp Workflow更新（GitHub Release作成追加）
   - **ファイル**: `.github/workflows/release-csharp-lsp.yml`
   - **変更内容**:
     - releaseジョブに`body_path`追加
@@ -139,7 +139,7 @@
     - `softprops/action-gh-release@v2`でRelease作成
   - **検証**: タグpush時にGitHub Releaseが作成される
 
-- [ ] **C006**: npm Publish Workflow更新（トリガー調整）
+- [x] **C006**: npm Publish Workflow更新（トリガー調整）
   - **ファイル**: `.github/workflows/mcp-server-publish.yml`
   - **変更内容**:
     - トリガーを`release.published`に変更
@@ -152,7 +152,7 @@
 
 ### Documentation
 
-- [ ] **I001**: README.md更新（リリースプロセスセクション追加）
+- [x] **I001**: README.md更新（リリースプロセスセクション追加）
   - **ファイル**: `README.md`
   - **追加セクション**:
     - ## リリースプロセス
@@ -162,7 +162,7 @@
       - トラブルシューティング
   - **検証**: markdownlintエラーなし
 
-- [ ] **I002**: CLAUDE.md更新（バージョン管理セクション）
+- [x] **I002**: CLAUDE.md更新（バージョン管理セクション）
   - **ファイル**: `CLAUDE.md`
   - **変更内容**:
     - `npm version`コマンド → semantic-releaseに更新
@@ -172,7 +172,7 @@
 
 ### Testing & Validation
 
-- [ ] **I003**: 全テスト実行＆検証
+- [x] **I003**: 全テスト実行＆検証
   - **コマンド**: `npm run test:ci`
   - **検証内容**:
     - すべてのユニットテストが合格
@@ -220,14 +220,14 @@
 
 ## Completion Checklist
 
-- [ ] すべてのSetup Tasksが完了
-- [ ] すべてのTest Tasks（RED）が完了
-- [ ] すべてのCore Tasks（GREEN）が完了し、テストが合格
-- [ ] すべてのIntegration Tasksが完了
-- [ ] すべてのPolish Tasksが完了
-- [ ] SPEC-bf408776の成功基準をすべて満たす
-- [ ] ドキュメント（README.md, CLAUDE.md）が最新
-- [ ] mainマージ後のリリースが正常に完了
+- [x] すべてのSetup Tasksが完了
+- [x] すべてのTest Tasks（RED）が完了
+- [x] すべてのCore Tasks（GREEN）が完了し、テストが合格
+- [x] すべてのIntegration Tasksが完了
+- [ ] すべてのPolish Tasksが完了（Optional: commitlint、カオステストなど）
+- [x] SPEC-bf408776の成功基準をすべて満たす
+- [x] ドキュメント（README.md, CLAUDE.md）が最新
+- [ ] mainマージ後のリリースが正常に完了（PR作成後に確認）
 
 ---
 
@@ -237,7 +237,18 @@
 
 - [x] S001: spec.md更新完了
 - [x] S002: plan.md作成完了
-- [ ] S003: tasks.md作成中
+- [x] S003: tasks.md作成完了
+- [x] T001: Unity同期スクリプトテスト作成完了（RED）
+- [x] C003: Unity同期スクリプト実装完了（GREEN、全テスト合格）
+- [x] C001: .releaserc.json作成完了
+- [x] C002: package.json依存追加完了
+- [x] C004: release.ymlワークフロー作成完了
+- [x] C005: release-csharp-lsp.yml更新完了
+- [x] C006: mcp-server-publish.yml更新完了
+- [x] I001: README.md更新完了
+- [x] I002: CLAUDE.md更新完了
+- [x] I003: 全テスト実行＆検証完了（63/63 pass）
+- [x] ワークスペースpackage.json作成＆semantic-releaseドライラン成功
 
 ---
 
