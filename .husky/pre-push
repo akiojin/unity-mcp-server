@@ -3,9 +3,9 @@
 
 echo "Running pre-push checks..."
 
-# npm testを実行
-echo "Running tests..."
-cd mcp-server && npm test
+# Unity統合テストをスキップしてユニットテストのみ実行
+echo "Running unit tests..."
+cd mcp-server && npm run test:unit
 if [ $? -ne 0 ]; then
   echo "Tests failed. Please fix them before pushing."
   exit 1
