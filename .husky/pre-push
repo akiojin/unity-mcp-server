@@ -1,0 +1,12 @@
+echo "Running pre-push checks..."
+
+# CIと同じテストセットを実行（Unity接続テストを除外）
+echo "Running CI tests..."
+cd mcp-server && npm run test:ci
+if [ $? -ne 0 ]; then
+  echo "Tests failed. Please fix them before pushing."
+  exit 1
+fi
+cd ..
+
+echo "Pre-push checks passed!"
