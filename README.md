@@ -21,6 +21,35 @@ This project follows **Spec-Driven Development (SDD)** and **Test-Driven Develop
 
 See also: Spec Kit workflow (`/speckit.specify`, `/speckit.plan`, `/speckit.tasks`) for structured feature development.
 
+### Git Hooks (Husky)
+
+This project uses [Husky](https://typicode.github.io/husky/) to enforce code quality and commit message standards through Git hooks:
+
+- **commit-msg**: Validates commit messages against [Conventional Commits](https://www.conventionalcommits.org/) using commitlint
+- **pre-commit**: Runs ESLint, Prettier, and markdownlint on staged files
+- **pre-push**: Executes test suite before pushing to remote
+- **post-merge**: Notifies when package.json changes require dependency updates
+
+#### Bypassing Hooks
+
+In emergency situations, you can skip hooks with `--no-verify`:
+
+```bash
+git commit --no-verify -m "emergency fix"
+git push --no-verify
+```
+
+**Note**: Use this sparingly. Hooks exist to maintain code quality and prevent CI failures.
+
+#### Hook Configuration
+
+- Commitlint: `.commitlintrc.json` (Conventional Commits rules)
+- ESLint: `.eslintrc.json` (JavaScript code style)
+- Prettier: `.prettierrc.json` (code formatting)
+- Markdownlint: `.markdownlint.json` (Markdown rules)
+
+See [CLAUDE.md](CLAUDE.md) for detailed development guidelines.
+
 ### Spec Kit (SDD) Conventions
 
 - Spec Kit CLI v0.0.78 is installed under `.specify/` (scripts, templates, memory).
@@ -261,9 +290,9 @@ Tip: Prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.json` to make discovery e
 | `server.name` | string | `unity-mcp-server` | Server name exposed via MCP. | — |
 | `server.version` | string | `0.1.0` | Server version string. | — |
 | `server.description` | string | `MCP server for Unity Editor integration` | Human-readable description. | — |
-| `logging.level` | string | `process.env.LOG_LEVEL` or `info` | Log verbosity for stderr logging. | `debug` | `info` | `warn` |
+| `logging.level` | string | `process.env.LOG_LEVEL` or `info` | Log verbosity for stderr logging. | `debug`, `info`, `warn` |
 | `logging.prefix` | string | `[Unity Editor MCP]` | Log prefix used in stderr. | — |
-| `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` or `compact` | Default return detail for search; `compact` maps to `snippets`. | `compact` | `metadata` | `snippets` | `full` |
+| `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` or `compact` | Default return detail for search; `compact` maps to `snippets`. | `compact`, `metadata`, `snippets`, `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` or `naive` | Search engine implementation. | `naive` (treesitter planned) |
 
 ### Workspace Directory (`.unity/`)
@@ -367,8 +396,6 @@ sequenceDiagram
     end
     Node-->>Client: Result (edits confirmed or search hits)
 ```
-
- 
 
 ## Other Clients
 
