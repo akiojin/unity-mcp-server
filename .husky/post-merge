@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # package.jsonまたはpackage-lock.jsonが変更されているか確認
 if git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD | grep -E 'package(-lock)?\.json'; then
   echo ""
