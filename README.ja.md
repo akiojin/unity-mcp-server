@@ -268,16 +268,10 @@ sequenceDiagram
 
 ### ワークスペースディレクトリ（`.unity/`）
 - バージョン管理すべきファイルは `config.json` のみです。リポジトリと同階層に配置し、ワークスペースルートを定義します。
-- `.unity/` 配下のその他（例: `cache/`, `guid-db/`, `tools/`）は実行時に生成されるキャッシュであり、コミットしないでください。
+- `.unity/` 配下のその他（例: `cache/`, `tools/`）は実行時に生成されるキャッシュであり、コミットしないでください。
 - Code Index のデータベースは `.unity/cache/code-index/` に保存されます。
 
 ヒント: Unity をホストOSで起動し、MCPサーバーを Docker コンテナ内で動かす場合は `unity.unityHost` を `localhost`（Unityはローカルで待受け）に保ちつつ、`unity.mcpHost` を `host.docker.internal` に設定するとコンテナから Unity へ接続しやすくなります。
-
-### GUID DB（台帳）
-
-- 保存場所: ワークスペース直下の `./.unity/guid-db/` に保存されます。
-- バージョン管理: `./.unity/guid-db/` をリポジトリにコミットして履歴を残す運用を推奨します。
-
 ## スクリーンショット
 
 - Game/Scene/Explorer/Window の各ビューをキャプチャ可能。
