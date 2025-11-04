@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Running pre-push checks..."
+
+# npm testを実行
+echo "Running tests..."
+cd mcp-server && npm test
+if [ $? -ne 0 ]; then
+  echo "Tests failed. Please fix them before pushing."
+  exit 1
+fi
+cd ..
+
+echo "Pre-push checks passed!"

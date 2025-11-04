@@ -4,7 +4,8 @@
   "private": true,
   "description": "Workspace root for unity-mcp-server monorepo",
   "scripts": {
-    "release": "semantic-release"
+    "release": "semantic-release",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
@@ -12,6 +13,7 @@
     "@semantic-release/exec": "^6.0.3",
     "@semantic-release/github": "^10.0.0",
     "@semantic-release/release-notes-generator": "^12.1.0",
+    "husky": "^9.1.7",
     "semantic-release": "^22.0.12"
   },
   "workspaces": [
