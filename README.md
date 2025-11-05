@@ -297,10 +297,16 @@ Tip: Prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.json` to make discovery e
 
 ### Workspace Directory (`.unity/`)
 - `config.json` is the only file intended for version control; keep it alongside your repo to define the workspace root.
-- Everything else under `.unity/` (e.g., `cache/`, `tools/`) is generated at runtime and should remain untracked.
+- Everything else under `.unity/` (e.g., `cache/`, `guid-db/`, `tools/`) is generated at runtime and should remain untracked.
 - The Code Index database now lives at `.unity/cache/code-index/` next to other transient assets.
 
 Tip: when Unity runs on your host machine and the MCP server runs inside Docker, keep `unity.unityHost` as `localhost` (Unity listens locally) and set `unity.mcpHost` to `host.docker.internal` so the container can reach the editor.
+
+### GUID DB
+
+- Storage root: Stored under your workspace at `./.unity/guid-db/`.
+- Version control: Commit `./.unity/guid-db/` to your VCS so history is preserved.
+
 ## Screenshot System
 
 - Capture Game View, Scene View, Explorer（AI-framed）, or a specific Editor window.
