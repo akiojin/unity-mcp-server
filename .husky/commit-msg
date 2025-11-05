@@ -1,2 +1,0 @@
-# commitlintでコミットメッセージを検証
-npx --no -- commitlint --edit "$1"

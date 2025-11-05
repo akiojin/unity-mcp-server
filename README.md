@@ -21,35 +21,6 @@ This project follows **Spec-Driven Development (SDD)** and **Test-Driven Develop
 
 See also: Spec Kit workflow (`/speckit.specify`, `/speckit.plan`, `/speckit.tasks`) for structured feature development.
 
-### Git Hooks (Husky)
-
-This project uses [Husky](https://typicode.github.io/husky/) to enforce code quality and commit message standards through Git hooks:
-
-- **commit-msg**: Validates commit messages against [Conventional Commits](https://www.conventionalcommits.org/) using commitlint
-- **pre-commit**: Runs ESLint, Prettier, and markdownlint on staged files
-- **pre-push**: Executes test suite before pushing to remote
-- **post-merge**: Notifies when package.json changes require dependency updates
-
-#### Bypassing Hooks
-
-In emergency situations, you can skip hooks with `--no-verify`:
-
-```bash
-git commit --no-verify -m "emergency fix"
-git push --no-verify
-```
-
-**Note**: Use this sparingly. Hooks exist to maintain code quality and prevent CI failures.
-
-#### Hook Configuration
-
-- Commitlint: `.commitlintrc.json` (Conventional Commits rules)
-- ESLint: `.eslintrc.json` (JavaScript code style)
-- Prettier: `.prettierrc.json` (code formatting)
-- Markdownlint: `.markdownlint.json` (Markdown rules)
-
-See [CLAUDE.md](CLAUDE.md) for detailed development guidelines.
-
 ### Spec Kit (SDD) Conventions
 
 - Spec Kit CLI v0.0.78 is installed under `.specify/` (scripts, templates, memory).
@@ -290,17 +261,23 @@ Tip: Prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.json` to make discovery e
 | `server.name` | string | `unity-mcp-server` | Server name exposed via MCP. | — |
 | `server.version` | string | `0.1.0` | Server version string. | — |
 | `server.description` | string | `MCP server for Unity Editor integration` | Human-readable description. | — |
-| `logging.level` | string | `process.env.LOG_LEVEL` or `info` | Log verbosity for stderr logging. | `debug`, `info`, `warn` |
+| `logging.level` | string | `process.env.LOG_LEVEL` or `info` | Log verbosity for stderr logging. | `debug` | `info` | `warn` |
 | `logging.prefix` | string | `[Unity Editor MCP]` | Log prefix used in stderr. | — |
-| `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` or `compact` | Default return detail for search; `compact` maps to `snippets`. | `compact`, `metadata`, `snippets`, `full` |
+| `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` or `compact` | Default return detail for search; `compact` maps to `snippets`. | `compact` | `metadata` | `snippets` | `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` or `naive` | Search engine implementation. | `naive` (treesitter planned) |
 
 ### Workspace Directory (`.unity/`)
 - `config.json` is the only file intended for version control; keep it alongside your repo to define the workspace root.
-- Everything else under `.unity/` (e.g., `cache/`, `tools/`) is generated at runtime and should remain untracked.
+- Everything else under `.unity/` (e.g., `cache/`, `guid-db/`, `tools/`) is generated at runtime and should remain untracked.
 - The Code Index database now lives at `.unity/cache/code-index/` next to other transient assets.
 
 Tip: when Unity runs on your host machine and the MCP server runs inside Docker, keep `unity.unityHost` as `localhost` (Unity listens locally) and set `unity.mcpHost` to `host.docker.internal` so the container can reach the editor.
+
+### GUID DB
+
+- Storage root: Stored under your workspace at `./.unity/guid-db/`.
+- Version control: Commit `./.unity/guid-db/` to your VCS so history is preserved.
+
 ## Screenshot System
 
 - Capture Game View, Scene View, Explorer（AI-framed）, or a specific Editor window.
@@ -390,6 +367,8 @@ sequenceDiagram
     end
     Node-->>Client: Result (edits confirmed or search hits)
 ```
+
+ 
 
 ## Other Clients
 
