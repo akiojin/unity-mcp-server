@@ -1,7 +1,0 @@
-# package.jsonまたはpackage-lock.jsonが変更されているか確認
-if git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD | grep -E 'package(-lock)?\.json'; then
-  echo ""
-  echo "⚠️  package.json or package-lock.json has changed."
-  echo "   Run 'npm install' to update dependencies."
-  echo ""
-fi

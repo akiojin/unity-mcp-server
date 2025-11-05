@@ -21,35 +21,6 @@ Unity Editor MCP は、LLMクライアントからUnity Editorを自動化しま
 
 Spec Kitワークフロー (`/speckit.specify`, `/speckit.plan`, `/speckit.tasks`) も参照してください。
 
-### Gitフック（Husky）
-
-このプロジェクトでは [Husky](https://typicode.github.io/husky/) を使用して、Gitフックによるコード品質とコミットメッセージの標準化を強制しています：
-
-- **commit-msg**: commitlintによる [Conventional Commits](https://www.conventionalcommits.org/) 形式の検証
-- **pre-commit**: ステージされたファイルに対してESLint、Prettier、markdownlintを実行
-- **pre-push**: リモートへのプッシュ前にテストスイートを実行
-- **post-merge**: package.jsonの変更時に依存関係の更新が必要な旨を通知
-
-#### フックのバイパス
-
-緊急時には `--no-verify` でフックをスキップできます：
-
-```bash
-git commit --no-verify -m "emergency fix"
-git push --no-verify
-```
-
-**注意**: 使用は最小限に留めてください。フックはコード品質の維持とCI失敗の防止のために存在します。
-
-#### フック設定
-
-- Commitlint: `.commitlintrc.json` (Conventional Commits規則)
-- ESLint: `.eslintrc.json` (JavaScriptコードスタイル)
-- Prettier: `.prettierrc.json` (コードフォーマット)
-- Markdownlint: `.markdownlint.json` (Markdown規則)
-
-詳細な開発ガイドラインは [CLAUDE.md](CLAUDE.md) を参照してください。
-
 ### Spec Kit（SDD）運用
 
 - `.specify/` 配下に Spec Kit v0.0.78 のスクリプト・テンプレート・メモリが展開されています。
