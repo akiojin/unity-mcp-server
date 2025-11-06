@@ -93,8 +93,37 @@ const baseConfig = {
  * 1) UNITY_MCP_CONFIG (explicit file path)
  * 2) ./.unity/config.json (project-local)
  * 3) ~/.unity/config.json (user-global)
- * If none found, return {} and rely on env/defaults.
+ * If none found, create ./.unity/config.json with defaults.
  */
+function ensureDefaultProjectConfig(baseDir) {
+  const dir = path.resolve(baseDir, '.unity');
+  const file = path.join(dir, 'config.json');
+
+  try {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    if (!fs.existsSync(file)) {
+      const inferredRoot = fs.existsSync(path.join(baseDir, 'Assets')) ? baseDir : '';
+      const defaultConfig = {
+        unity: {
+          unityHost: 'localhost',
+          mcpHost: 'localhost',
+          port: 6400,
+        },
+        project: {
+          root: inferredRoot ? inferredRoot.replace(/\\/g, '/') : '',
+        },
+      };
+      fs.writeFileSync(file, `${JSON.stringify(defaultConfig, null, 2)}\n`, 'utf8');
+    }
+    return file;
+  } catch (error) {
+    return null;
+  }
+}
+
 function loadExternalConfig() {
   const explicitPath = process.env.UNITY_MCP_CONFIG;
 
@@ -117,6 +146,19 @@ function loadExternalConfig() {
       }
     } catch (e) {
       return { __configLoadError: `${p}: ${e.message}` };
+    }
+  }
+  const fallbackPath = ensureDefaultProjectConfig(process.cwd());
+  if (fallbackPath && fs.existsSync(fallbackPath)) {
+    try {
+      const raw = fs.readFileSync(fallbackPath, 'utf8');
+      const json = JSON.parse(raw);
+      const out = json && typeof json === 'object' ? json : {};
+      out.__configPath = fallbackPath;
+      out.__configGenerated = true;
+      return out;
+    } catch (e) {
+      return { __configLoadError: `${fallbackPath}: ${e.message}` };
     }
   }
   return {};

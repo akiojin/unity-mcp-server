@@ -237,6 +237,43 @@ describe('Config', () => {
         await fs.rm(tmpDir, { recursive: true, force: true });
       }
     });
+
+    it('should create default config when none exists', async () => {
+      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-default-'));
+      const prevCwd = process.cwd();
+      const prevConfigPath = process.env.UNITY_MCP_CONFIG;
+      delete process.env.UNITY_MCP_CONFIG;
+
+      try {
+        process.chdir(tmpDir);
+        const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
+        moduleUrl.searchParams.set('ts', Date.now().toString());
+        const { config: generatedConfig } = await import(moduleUrl.href);
+
+        const defaultPath = path.join(tmpDir, '.unity', 'config.json');
+        const stat = await fs.stat(defaultPath);
+        assert.ok(stat.isFile());
+
+        const contents = JSON.parse(await fs.readFile(defaultPath, 'utf8'));
+        assert.equal(contents.unity.unityHost, 'localhost');
+        assert.equal(contents.unity.mcpHost, 'localhost');
+        assert.equal(contents.unity.port, 6400);
+
+        assert.equal(generatedConfig.unity.unityHost, 'localhost');
+        assert.equal(generatedConfig.unity.mcpHost, 'localhost');
+        assert.equal(generatedConfig.unity.port, 6400);
+        assert.equal(generatedConfig.__configPath, defaultPath);
+        assert.equal(generatedConfig.__configGenerated, true);
+      } finally {
+        if (prevConfigPath === undefined) {
+          delete process.env.UNITY_MCP_CONFIG;
+        } else {
+          process.env.UNITY_MCP_CONFIG = prevConfigPath;
+        }
+        process.chdir(prevCwd);
+        await fs.rm(tmpDir, { recursive: true, force: true });
+      }
+    });
   });
 
   describe('logger', () => {
