@@ -1,6 +1,7 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { ProjectInfoProvider } from '../../../src/core/projectInfo.js';
+import { config } from '../../../src/core/config.js';
 
 describe('ProjectInfoProvider', () => {
   let provider;
@@ -57,6 +58,23 @@ describe('ProjectInfoProvider', () => {
     it('should provide project info functionality', () => {
       assert.ok(ProjectInfoProvider);
       assert.equal(typeof ProjectInfoProvider, 'function');
+    });
+  });
+
+  describe('configuration requirements', () => {
+    it('should throw when project.root is configured but empty', async () => {
+      const originalProject = { ...config.project };
+      config.project = { ...(config.project || {}), root: '' };
+
+      try {
+        const provider = new ProjectInfoProvider({
+          isConnected: () => false,
+          sendCommand: async () => ({})
+        });
+        await assert.rejects(() => provider.get(), /project\.root is configured but empty/);
+      } finally {
+        config.project = originalProject;
+      }
     });
   });
 });

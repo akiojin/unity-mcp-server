@@ -20,8 +20,9 @@ export class ProjectInfoProvider {
   async get() {
     if (this.cached) return this.cached;
     // Config-driven project root (no env fallback)
-    const cfgRoot = config?.project?.root;
-    if (cfgRoot) {
+    const cfgRootRaw = config?.project?.root;
+    if (typeof cfgRootRaw === 'string' && cfgRootRaw.trim().length > 0) {
+      const cfgRoot = cfgRootRaw.trim();
       // Resolve relative paths against WORKSPACE_ROOT
       const projectRoot = normalize(path.isAbsolute(cfgRoot) ? cfgRoot : path.resolve(WORKSPACE_ROOT, cfgRoot));
       const codeIndexRoot = normalize(config?.project?.codeIndexRoot || resolveDefaultCodeIndexRoot(projectRoot));
@@ -52,67 +53,13 @@ export class ProjectInfoProvider {
         logger.warn(`get_editor_info failed: ${e.message}`);
       }
     }
-    // Fallback: infer by walking up from CWD to find Assets/
-    const inferred = this.inferFromCwd();
-    if (inferred) {
-      this.cached = inferred;
-      return this.cached;
+    if (typeof cfgRootRaw === 'string') {
+      throw new Error('project.root is configured but empty. Set a valid path in .unity/config.json or UNITY_MCP_CONFIG.');
     }
-    throw new Error('Unable to resolve Unity project root (no connection and no Assets/ found)');
+    throw new Error('Unable to resolve Unity project root. Configure project.root in .unity/config.json or provide UNITY_MCP_CONFIG.');
   }
 
   inferFromCwd() {
-    // First, check for Docker environment default path
-    const dockerDefaultPath = '/unity-mcp-server/UnityMCPServer';
-    const dockerAssets = path.join(dockerDefaultPath, 'Assets');
-    if (fs.existsSync(dockerAssets)) {
-      const projectRoot = normalize(dockerDefaultPath);
-      logger.info(`Found Unity project at Docker default path: ${projectRoot}`);
-      return {
-        projectRoot,
-        assetsPath: normalize(dockerAssets),
-        packagesPath: normalize(path.join(dockerDefaultPath, 'Packages')),
-        codeIndexRoot: resolveDefaultCodeIndexRoot(projectRoot),
-      };
-    }
-
-    let dir = process.cwd();
-    // Walk up max 5 levels (look for Assets directly under a directory)
-    for (let i = 0; i < 5; i++) {
-      const assets = path.join(dir, 'Assets');
-      if (fs.existsSync(assets)) {
-        const projectRoot = normalize(dir);
-        return {
-          projectRoot,
-          assetsPath: normalize(assets),
-          packagesPath: normalize(path.join(dir, 'Packages')),
-          codeIndexRoot: resolveDefaultCodeIndexRoot(projectRoot),
-        };
-      }
-      dir = path.dirname(dir);
-    }
-
-    // Fallback: search shallow subdirectories for Unity projects (depth 2)
-    const rootsToCheck = [process.cwd(), path.dirname(process.cwd())];
-    for (const root of rootsToCheck) {
-      try {
-        const entries = fs.readdirSync(root, { withFileTypes: true });
-        for (const e of entries) {
-          if (!e.isDirectory()) continue;
-          const candidate = path.join(root, e.name);
-          const assets = path.join(candidate, 'Assets');
-          if (fs.existsSync(assets)) {
-            const projectRoot = normalize(candidate);
-            return {
-              projectRoot,
-              assetsPath: normalize(assets),
-              packagesPath: normalize(path.join(candidate, 'Packages')),
-              codeIndexRoot: resolveDefaultCodeIndexRoot(projectRoot),
-            };
-          }
-        }
-      } catch {}
-    }
     return null;
   }
 }
