@@ -1,3 +1,24 @@
+# [2.26.0](https://github.com/akiojin/unity-mcp-server/compare/v2.25.0...v2.26.0) (2025-11-07)
+
+
+### Bug Fixes
+
+* Correct GitHub Secret name from PAT_TOKEN to PAT ([9aeaa97](https://github.com/akiojin/unity-mcp-server/commit/9aeaa97ab974b5cf2f2b0e690a0376c4c7b55b57))
+* Disable husky in semantic-release step ([d209d17](https://github.com/akiojin/unity-mcp-server/commit/d209d1798de3ab9238f43a13461b9feb2dad4e88))
+* huskyフックをスキップしてリリースブランチ作成を修正 ([3ffead2](https://github.com/akiojin/unity-mcp-server/commit/3ffead2bdea7547f398eb81afa5e9476a0bc5120))
+* semantic-releaseの出力をGitHub Actionsの出力として正しく設定 ([a63d029](https://github.com/akiojin/unity-mcp-server/commit/a63d029f226728f959bdad0db6f3f85d6be46967))
+* semantic-releaseの出力解析を修正してリリース検出を改善 ([b4b408e](https://github.com/akiojin/unity-mcp-server/commit/b4b408ef40a8a4dd51810c4378b6edd2d17ad002))
+* Skip husky hooks in release workflow to avoid markdownlint errors ([caf1acb](https://github.com/akiojin/unity-mcp-server/commit/caf1acb8216118c45cf103ac26366f2a4165eecd))
+
+
+### Features
+
+* Add automated backmerge and csharp-lsp build workflows ([6ce2486](https://github.com/akiojin/unity-mcp-server/commit/6ce2486e0d2b839ad2dc8f262faec789baaab1da))
+* Git Flow方式リリースフローへ統合・変更 ([e3a5a73](https://github.com/akiojin/unity-mcp-server/commit/e3a5a73cadb78cd93446af13f57ad77d1ea6acea))
+* GitHub Actionsベースのリリースブランチ作成フローを追加 ([c7cae9d](https://github.com/akiojin/unity-mcp-server/commit/c7cae9d6aca29d19570cf36d1a753515cc9734ac))
+* Implement Git-Flow with release branch ([3638144](https://github.com/akiojin/unity-mcp-server/commit/3638144a44b14e55c0b8f3961006d1b9b62507bb))
+* Implement Git-Flow with release branch ([368cc63](https://github.com/akiojin/unity-mcp-server/commit/368cc6393c42ba764763a58380cbf4f60cb46f37))
+
 # [2.25.0](https://github.com/akiojin/unity-mcp-server/compare/v2.24.0...v2.25.0) (2025-11-07)
 
 
