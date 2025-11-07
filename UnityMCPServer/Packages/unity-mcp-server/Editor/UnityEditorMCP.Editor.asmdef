@@ -4,7 +4,9 @@
     "references": [
         "Unity.InputSystem",
         "Unity.Recorder",
-        "Unity.Recorder.Editor"
+        "Unity.Recorder.Editor",
+        "Unity.Addressables",
+        "Unity.Addressables.Editor"
     ],
     "includePlatforms": [
         "Editor"

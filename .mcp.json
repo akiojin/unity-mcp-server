@@ -1,9 +1,9 @@
 {
   "mcpServers": {
     "UnityMCP": {
-      "command": "npx",
+      "command": "node",
       "args": [
-        "./mcp-server"
+        "mcp-server/bin/unity-mcp-server"
       ]
     },
     "context7": {
