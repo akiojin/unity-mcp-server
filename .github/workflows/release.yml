@@ -3,7 +3,8 @@ name: Release
 on:
   push:
     branches:
-      - main
+      - 'release/**'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -11,17 +12,22 @@ permissions:
   pull-requests: write
 
 jobs:
-  release:
+  semantic-release:
     name: Semantic Release
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    outputs:
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
+      new_release_git_tag: ${{ steps.semantic.outputs.new_release_git_tag }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -33,8 +39,9 @@ jobs:
         run: npm ci
 
       - name: Run semantic-release
+        id: semantic
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
@@ -43,23 +50,35 @@ jobs:
           HUSKY: 0
         run: npx semantic-release
 
-      - name: Sync develop branch
-        if: success()
+  create-release-to-main-pr:
+    name: Create PR to main
+    needs: semantic-release
+    runs-on: ubuntu-latest
+    if: needs.semantic-release.outputs.new_release_published == 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create PR to main
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          git fetch origin main:main
-          git fetch origin develop:develop || git checkout -b develop main
-          git checkout develop
-          if git merge main --no-edit; then
-            git push origin develop
-          else
-            echo "Merge conflict - creating sync PR"
-            git merge --abort
-            SYNC_BRANCH="sync/main-to-develop-$(date +%s)"
-            git checkout -b "$SYNC_BRANCH" main
-            git push origin "$SYNC_BRANCH"
-            gh pr create --base develop --head "$SYNC_BRANCH" \
-              --title "Sync main → develop after release" \
-              --body "Automatic sync after release." || true
-          fi
+          RELEASE_BRANCH="${GITHUB_REF#refs/heads/}"
+          VERSION="${{ needs.semantic-release.outputs.new_release_version }}"
+
+          gh pr create \
+            --base main \
+            --head "$RELEASE_BRANCH" \
+            --title "chore(release): v${VERSION}" \
+            --body "Automated release PR for version ${VERSION}
+
+          This PR merges the release branch to main for final deployment.
+
+          ## Release Notes
+          See [GitHub Release](https://github.com/${{ github.repository }}/releases/tag/v${VERSION}) for details.
+
+          🤖 Generated with GitHub Actions" \
+            || echo "PR already exists"

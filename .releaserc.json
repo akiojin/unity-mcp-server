@@ -1,5 +1,10 @@
 {
-  "branches": ["main"],
+  "branches": [
+    {
+      "name": "release/*",
+      "prerelease": false
+    }
+  ],
   "tagFormat": "v${version}",
   "plugins": [
     "@semantic-release/commit-analyzer",
@@ -19,7 +24,7 @@
     [
       "@semantic-release/npm",
       {
-        "npmPublish": true,
+        "npmPublish": false,
         "pkgRoot": "mcp-server"
       }
     ],
