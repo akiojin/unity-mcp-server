@@ -27,7 +27,14 @@ git push -u origin develop
 
 ### 2. GitHubデフォルトブランチ変更
 
-GitHub Web UIでデフォルトブランチをdevelopに変更：
+gh CLIでデフォルトブランチをdevelopに変更：
+
+```bash
+# デフォルトブランチをdevelopに設定
+gh repo edit --default-branch develop
+```
+
+**または GitHub Web UI**:
 
 1. リポジトリページ → **Settings**
 2. 左メニュー → **Branches**
@@ -37,7 +44,60 @@ GitHub Web UIでデフォルトブランチをdevelopに変更：
 
 これにより、新規PRのデフォルトベースがdevelopになります。
 
-### 3. 既存PRの移行（オプション）
+### 3. Branch Protection Rules設定（重要）
+
+develop → main の自動マージを有効化するため、mainブランチにRequired status checksを設定：
+
+```bash
+# mainブランチのBranch Protection Rules設定
+gh api repos/{owner}/{repo}/branches/main/protection \
+  -X PUT \
+  --input - <<EOF
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": ["test"]
+  },
+  "enforce_admins": false,
+  "required_pull_request_reviews": null,
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false
+}
+EOF
+```
+
+**{owner}と{repo}を実際の値に置き換えてください**（例: `akiojin/unity-mcp-server`）
+
+**設定内容**:
+- `required_status_checks.contexts: ["test"]`: testチェックが必須
+- `strict: true`: PRブランチがベースブランチの最新であることを要求
+- `enforce_admins: false`: 管理者は制限をバイパス可能
+- `required_pull_request_reviews: null`: レビュー不要
+- `allow_force_pushes: false`: force pushを禁止
+
+**developブランチも同様に設定（オプション）**:
+
+```bash
+# developブランチのBranch Protection Rules設定
+gh api repos/{owner}/{repo}/branches/develop/protection \
+  -X PUT \
+  --input - <<EOF
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": ["test"]
+  },
+  "enforce_admins": false,
+  "required_pull_request_reviews": null,
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false
+}
+EOF
+```
+
+### 4. 既存PRの移行（オプション）
 
 既にmainベースのPRが存在する場合、developベースに変更します：
 
@@ -244,14 +304,15 @@ $(git log origin/main..origin/develop --oneline)
 🎉 リリース準備完了です！
 ```
 
-### 3. PRマージとリリース実行
+### 3. PRマージとリリース実行（自動）
 
-1. GitHub Web UIでPRをレビュー
-2. CI/CDチェック（test等）の完了を確認
-3. **Merge pull request** をクリック
-4. マージ後、自動的にsemantic-releaseが実行される
-5. GitHub Releaseが作成され、LSPバイナリが添付される
-6. MCPサーバーがnpmjs.comに公開される
+1. PRのCI/CDチェック（Required checks）の完了を待機
+2. すべてのRequired checks成功 → **自動的にmainへマージ**
+3. マージ後、自動的にsemantic-releaseが実行される
+4. GitHub Releaseが作成され、LSPバイナリが添付される
+5. MCPサーバーがnpmjs.comに公開される
+
+**注**: 手動マージは不要です。Required checksが通れば自動マージされます。
 
 ---
 
@@ -298,7 +359,33 @@ gh auth login
 
 ### PRが自動マージされない
 
-feature → develop PRは自動マージされますが、develop → main PRは**手動マージ**です。これは意図的な設計です。
+**原因と対策**:
+
+1. **Branch Protection Rulesが未設定**
+   ```bash
+   # mainブランチのProtection Rules確認
+   gh api repos/{owner}/{repo}/branches/main/protection
+
+   # 設定されていない場合は初期セットアップの手順3を実行
+   ```
+
+2. **Required checksが失敗している**
+   ```bash
+   # PRのチェック状態確認
+   gh pr checks <PR番号>
+
+   # 失敗しているチェックを修正してpush
+   ```
+
+3. **PRがdraftモード**
+   ```bash
+   # draft状態を解除
+   gh pr ready <PR番号>
+   ```
+
+4. **GitHub Actions権限不足**
+   - リポジトリ設定 → Actions → General → Workflow permissions
+   - "Read and write permissions"を選択
 
 ---
 

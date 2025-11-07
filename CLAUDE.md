@@ -424,15 +424,15 @@ cd .worktrees/SPEC-0d5d84f9/
 3. **Required Checks成功** → 自動マージ（developへ）
 4. **developブランチで変更を蓄積**（複数のfeatureを統合）
 5. **`/release` コマンド実行** → develop → main PR作成
-6. **PRをマージ（手動）** → mainブランチに反映
+6. **Required Checks成功** → 自動マージ（mainへ）
 7. **semantic-release自動実行**:
    - コミット解析 → バージョン決定
    - package.json更新（mcp-server + Unity Package自動同期）
    - CHANGELOG.md生成
    - タグ作成（v*）
-5. csharp-lspビルド（全プラットフォーム）
-6. GitHub Release作成
-7. npm publish実行
+8. **csharp-lspビルド**（全プラットフォーム）
+9. **GitHub Release作成**
+10. **npm publish実行**
 
 **重要**: 手動でのバージョン変更・npm publishは禁止（すべて自動化）
 

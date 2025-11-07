@@ -135,7 +135,7 @@ $(git log origin/main..origin/develop --oneline)
 
 ---
 
-⚠️ **重要**: このPRは自動マージされません。手動でレビュー＆承認が必要です。
+⚠️ **重要**: このPRはRequiredチェック成功後に自動マージされます。
 
 📝 **仕様**: specs/SPEC-1ac96646/spec.md を参照してください。
 EOF
@@ -155,9 +155,9 @@ PR作成成功後、以下を表示:
 **PR URL**: https://github.com/akiojin/unity-mcp-server/pull/XX
 
 **次のステップ**:
-1. PRをレビュー
-2. CI/CDチェックの完了を待機
-3. PRをマージ → 自動リリース開始
+1. PRのCI/CDチェック（Required checks）の完了を待機
+2. チェック成功 → 自動的にmainへマージ
+3. マージ後 → semantic-release自動実行でリリース開始
 
 **マージ後の成果物**:
 - npmjs.com: @akiojin/unity-mcp-server v2.17.0
