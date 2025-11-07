@@ -237,7 +237,7 @@ jobs:
       - name: Merge PR
         if: steps.wait-required.outcome == 'success'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           pr_number=${{ github.event.pull_request.number }}
@@ -246,6 +246,13 @@ jobs:
           head_sha=${{ github.event.pull_request.head.sha }}
 
           echo "Attempting to merge PR #${{ github.event.pull_request.number }} via GitHub API..."
+
+          # Use PAT if available to trigger subsequent workflows
+          if [ -n "${{ secrets.PAT }}" ]; then
+            echo "Using PAT to trigger subsequent workflows"
+          else
+            echo "Warning: Using GITHUB_TOKEN - subsequent workflows may not trigger"
+          fi
 
           gh api \
             --method PUT \
