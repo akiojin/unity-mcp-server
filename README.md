@@ -426,6 +426,8 @@ Example:
 
 This project uses [semantic-release](https://semantic-release.gitbook.io/) with [Conventional Commits](https://www.conventionalcommits.org/) for fully automated releases.
 
+**Note**: Testing automated release workflow.
+
 #### How It Works
 
 1. **Developer**: Create feature branch, commit with Conventional Commits, create PR
