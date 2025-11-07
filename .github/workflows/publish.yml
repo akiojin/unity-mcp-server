@@ -181,7 +181,7 @@ jobs:
 
   npm-publish:
     name: Publish to npm
-    needs: release-csharp-lsp
+    needs: build-csharp-lsp
     runs-on: ubuntu-latest
 
     steps:
@@ -246,7 +246,7 @@ jobs:
 
   openupm-publish:
     name: Publish to OpenUPM
-    needs: npm-publish
+    needs: build-csharp-lsp
     runs-on: ubuntu-latest
 
     steps:
@@ -257,7 +257,7 @@ jobs:
 
   backmerge-to-develop:
     name: Backmerge to develop
-    needs: [npm-publish, openupm-publish]
+    needs: [release-csharp-lsp, npm-publish, openupm-publish]
     runs-on: ubuntu-latest
     if: always()
 
