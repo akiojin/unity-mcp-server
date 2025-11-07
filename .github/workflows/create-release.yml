@@ -48,7 +48,12 @@ jobs:
           fi
 
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Next version will be: $VERSION"
+
+          # バージョン情報の詳細表示
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📦 Next Release Version: $VERSION"
+          echo "🔖 Release Branch: release/v$VERSION"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
       - name: Configure Git
         run: |
