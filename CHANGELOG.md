@@ -1,3 +1,10 @@
+# [2.28.0](https://github.com/akiojin/unity-mcp-server/compare/v2.27.2...v2.28.0) (2025-11-07)
+
+
+### Features
+
+* create-release.ymlにバージョン情報の詳細表示機能を追加 ([e0c9e7d](https://github.com/akiojin/unity-mcp-server/commit/e0c9e7d248e74aba5eda557fcec595868ca798d9))
+
 ## [2.27.2](https://github.com/akiojin/unity-mcp-server/compare/v2.27.1...v2.27.2) (2025-11-07)
 
 
