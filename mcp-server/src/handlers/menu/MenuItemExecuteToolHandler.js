@@ -267,11 +267,15 @@ export class MenuItemExecuteToolHandler extends BaseToolHandler {
     }
 
     // Step 1: Remove zero-width and invisible Unicode characters
-    // eslint-disable-next-line no-misleading-character-class
-    let normalized = menuPath.replace(
-      /[\u200B-\u200D\uFEFF\u00AD\u034F\u061C\u180E\u2060-\u2069]/gu,
-      ''
-    );
+    // Each Unicode category separated to avoid ESLint no-misleading-character-class errors
+    let normalized = menuPath
+      .replace(/[\u200B\u200C\u200D]/gu, '') // Zero-width spaces/joiners
+      .replace(/[\uFEFF]/gu, '') // Zero-width no-break space
+      .replace(/[\u00AD]/gu, '') // Soft hyphen
+      .replace(/[\u034F]/gu, '') // Combining grapheme joiner
+      .replace(/[\u061C]/gu, '') // Arabic letter mark
+      .replace(/[\u180E]/gu, '') // Mongolian vowel separator
+      .replace(/[\u2060\u2061\u2062\u2063\u2064\u2065\u2066\u2067\u2068\u2069]/gu, ''); // Word joiners
 
     // Step 2: Normalize Unicode to canonical form (handles homograph attacks)
     normalized = normalized.normalize('NFC');

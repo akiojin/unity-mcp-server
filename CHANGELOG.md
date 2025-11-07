@@ -1,3 +1,16 @@
+## [2.27.1](https://github.com/akiojin/unity-mcp-server/compare/v2.27.0...v2.27.1) (2025-11-07)
+
+
+### Bug Fixes
+
+* ESLintのno-misleading-character-classエラーを修正 ([36ec5a1](https://github.com/akiojin/unity-mcp-server/commit/36ec5a1d77381a0675f8352e47c74cf1e47d4e84))
+* README.ja.mdの表現を統一（かつ→で） ([23008eb](https://github.com/akiojin/unity-mcp-server/commit/23008eb5c33d7154bcb4c36948f09e4fb0924bf3))
+* release.ymlでcheckout時に明示的にブランチを指定し、semantic-releaseが正しいブランチで実行されるように修正 ([471505c](https://github.com/akiojin/unity-mcp-server/commit/471505c2593037685608f52429fdd7a2818fa13e))
+* release.ymlのマージログメッセージを改善してバージョン情報を表示 ([73c97cf](https://github.com/akiojin/unity-mcp-server/commit/73c97cfa8cbcce720679b588691dd3a054005bd8))
+* release.ymlを修正し、PRを作成せずに直接mainにマージするように変更 ([ed49693](https://github.com/akiojin/unity-mcp-server/commit/ed496938cf5d2ce687903deb74f2450af4d1642a))
+* semantic-releaseコミットメッセージから[skip ci]を削除 ([015ee8f](https://github.com/akiojin/unity-mcp-server/commit/015ee8f6d5f7e3ddeb07672f153544dbe00f9b79))
+* semantic-releaseの無限ループを防ぐため、[skip ci]の代わりにchore(release):プレフィックスでスキップ ([124b6c0](https://github.com/akiojin/unity-mcp-server/commit/124b6c085e6ff844e20b91d7e16636bcf8e8e64b))
+
 # [2.27.0](https://github.com/akiojin/unity-mcp-server/compare/v2.26.1...v2.27.0) (2025-11-07)
 
 
