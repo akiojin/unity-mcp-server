@@ -70,8 +70,8 @@ jobs:
           # releaseブランチを作成
           git checkout -b "$RELEASE_BRANCH"
 
-          # リモートにpush
-          git push origin "$RELEASE_BRANCH"
+          # リモートにpush（huskyフックをスキップ）
+          git push --no-verify origin "$RELEASE_BRANCH"
 
           echo "✓ Created and pushed $RELEASE_BRANCH"
           echo "Semantic-release will now run on this branch automatically."
