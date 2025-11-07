@@ -4,3 +4,6 @@ UnityMCPServer/
 .worktrees/
 dist/
 coverage/
+AGENTS.md
+CHANGELOG.md
+CONTRIBUTING.md
