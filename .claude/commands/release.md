@@ -31,5 +31,10 @@ developブランチから`release/vX.Y.Z`ブランチを自動作成し、リリ
 リリースブランチを作成するため、以下のスクリプトを実行してください：
 
 ```bash
-.specify/scripts/bash/create-release-branch.sh
+scripts/create-release-branch.sh
 ```
+
+スクリプトはGitHub Actions ワークフローを起動し、リモートで以下を実行します：
+1. developブランチでsemantic-release dry-run
+2. バージョン番号を判定
+3. release/vX.Y.Zブランチを作成＆push
