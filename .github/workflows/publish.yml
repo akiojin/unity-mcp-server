@@ -1,17 +1,17 @@
-name: Release csharp-lsp
+name: Publish
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    name: build ${{ matrix.rid }}
+  build-csharp-lsp:
+    name: Build csharp-lsp ${{ matrix.rid }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -35,6 +35,7 @@ jobs:
           - os: macos-latest
             rid: osx-arm64
             ext: ''
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,27 +52,24 @@ jobs:
           fi
 
       - name: Setup .NET
+        if: steps.detect.outputs.present == 'true'
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-          include-prerelease: true
 
-      - name: .NET info
-        run: dotnet --info
-
-      - name: Setup Node.js (for hashing)
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Restore
-        if: ${{ steps.detect.outputs.present == 'true' }}
+        if: steps.detect.outputs.present == 'true'
         shell: bash
         run: |
           dotnet restore csharp-lsp/Server.csproj -r "${{ matrix.rid }}"
 
-      - name: Publish csharp-lsp (self-contained single-file)
-        if: ${{ steps.detect.outputs.present == 'true' }}
+      - name: Publish csharp-lsp
+        if: steps.detect.outputs.present == 'true'
         shell: bash
         run: |
           mkdir -p out/${{ matrix.rid }}
@@ -81,7 +79,7 @@ jobs:
             -o out/${{ matrix.rid }}
           BIN="out/${{ matrix.rid }}/server${{ matrix.ext }}"
           ASSET="csharp-lsp-${{ matrix.rid }}${{ matrix.ext }}"
-          test -f "$BIN" || { echo "binary not found: $BIN" >&2; ls -la out/${{ matrix.rid }}; exit 1; }
+          test -f "$BIN" || { echo "binary not found: $BIN" >&2; exit 1; }
           mv "$BIN" "$ASSET"
           node -e '
             const fs=require("fs"),crypto=require("crypto");
@@ -92,7 +90,7 @@ jobs:
           ' "$ASSET" > "$ASSET.sha256"
 
       - name: Upload artifact
-        if: ${{ steps.detect.outputs.present == 'true' }}
+        if: steps.detect.outputs.present == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: asset-${{ matrix.rid }}
@@ -100,11 +98,12 @@ jobs:
             csharp-lsp-${{ matrix.rid }}${{ matrix.ext }}
             csharp-lsp-${{ matrix.rid }}${{ matrix.ext }}.sha256
 
-  release:
-    name: publish release
-    needs: build
+  release-csharp-lsp:
+    name: Publish csharp-lsp to GitHub Release
+    needs: build-csharp-lsp
     runs-on: ubuntu-latest
-    if: ${{ needs.build.result == 'success' }}
+    if: needs.build-csharp-lsp.result == 'success'
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -119,7 +118,6 @@ jobs:
         id: assets
         shell: bash
         run: |
-          set -euo pipefail
           if compgen -G "dist/**/csharp-lsp-*" > /dev/null; then
             echo "found=true" >> $GITHUB_OUTPUT
           else
@@ -131,17 +129,23 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Get latest tag
+        id: tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
       - name: Generate manifest
-        id: gen
-        if: ${{ steps.assets.outputs.found == 'true' }}
-        shell: bash
+        if: steps.assets.outputs.found == 'true'
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
         run: |
           node -e '
             const fs = require("fs");
             const path = require("path");
             const crypto = require("crypto");
             const repo = process.env.GITHUB_REPOSITORY;
-            const tag = process.env.GITHUB_REF_NAME;
+            const tag = process.env.TAG;
             const base = `https://github.com/${repo}/releases/download/${tag}`;
             const root = "dist";
             const dirs = fs.readdirSync(root, { withFileTypes: true }).filter(d => d.isDirectory());
@@ -153,7 +157,7 @@ jobs:
             }
             const assets = {};
             for (const { dir, file } of files) {
-              const m = file.match(/^csharp-lsp-([^\.]+)(\.exe)?$/);
+              const m = file.match(/^csharp-lsp-([^\\.]+)(\\.exe)?$/);
               if (!m) continue;
               const rid = m[1];
               const p = path.join(root, `asset-${rid}`, file);
@@ -166,12 +170,121 @@ jobs:
             fs.writeFileSync("csharp-lsp-manifest.json", JSON.stringify(manifest, null, 2));
           '
 
-      - name: Create GitHub Release
+      - name: Upload to GitHub Release
+        if: steps.assets.outputs.found == 'true'
         uses: softprops/action-gh-release@v2
-        if: ${{ steps.assets.outputs.found == 'true' }}
         with:
+          tag_name: ${{ steps.tag.outputs.tag }}
           files: |
             dist/**/csharp-lsp-*
             csharp-lsp-manifest.json
-          generate_release_notes: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
+
+  npm-publish:
+    name: Publish to npm
+    needs: release-csharp-lsp
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Get latest tag
+        id: tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Verify version matches tag
+        working-directory: mcp-server
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          PKG_VER=$(node -p "require('./package.json').version")
+          if [ "v$PKG_VER" != "$TAG" ]; then
+            echo "Version mismatch: tag($TAG) != package($PKG_VER)" >&2
+            exit 1
+          fi
+
+      - name: Wait for csharp-lsp manifest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          REPO="${{ github.repository }}"
+          for i in $(seq 1 60); do
+            if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+              NAMES=$(gh release view "$TAG" --repo "$REPO" --json assets --jq '.assets[].name' || true)
+              if echo "$NAMES" | grep -qx 'csharp-lsp-manifest.json'; then
+                echo "Manifest found"
+                exit 0
+              fi
+            fi
+            sleep 10
+          done
+          echo "Manifest not found after 10 minutes" >&2
+          exit 1
+
+      - name: Install dependencies
+        working-directory: mcp-server
+        run: npm ci
+
+      - name: Run tests
+        working-directory: mcp-server
+        run: npm run test:ci
+
+      - name: Publish to npm
+        working-directory: mcp-server
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
+
+  openupm-publish:
+    name: Publish to OpenUPM
+    needs: npm-publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: OpenUPM auto-publish
+        run: |
+          echo "OpenUPM will automatically detect the new Git tag and publish the Unity Package."
+          echo "Initial registration: https://github.com/openupm/openupm"
+
+  backmerge-to-develop:
+    name: Backmerge to develop
+    needs: [npm-publish, openupm-publish]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main to develop
+        run: |
+          git fetch origin main develop
+          git checkout develop
+          git merge origin/main --no-edit -m "chore: Backmerge main to develop [skip ci]
+
+          Automated backmerge from main to develop after release.
+
+          🤖 Generated with GitHub Actions"
+
+      - name: Push to develop
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin develop
