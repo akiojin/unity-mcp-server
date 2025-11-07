@@ -34,7 +34,7 @@ jobs:
         working-directory: ./mcp-server
 
       - name: Run Markdownlint
-        run: npx --prefix ./mcp-server markdownlint "**/*.md" --config ./.markdownlint.json
+        run: npx --prefix ./mcp-server markdownlint "mcp-server/**/*.md" --config ./.markdownlint.json
 
       - name: Run ESLint
         working-directory: ./mcp-server
