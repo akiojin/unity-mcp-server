@@ -269,3 +269,4 @@ export default class AddressablesManageToolHandler extends BaseToolHandler {
     return lines.join('\n')
   }
 }
+

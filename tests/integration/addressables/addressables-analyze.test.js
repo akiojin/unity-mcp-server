@@ -215,3 +215,4 @@ describe('addressables_analyze contract tests', () => {
     })
   })
 })
+

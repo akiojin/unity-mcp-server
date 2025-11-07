@@ -143,3 +143,4 @@ export default class AddressablesBuildToolHandler extends BaseToolHandler {
     return lines.join('\n')
   }
 }
+
