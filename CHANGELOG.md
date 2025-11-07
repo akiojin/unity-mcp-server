@@ -1,3 +1,10 @@
+## [2.26.1](https://github.com/akiojin/unity-mcp-server/compare/v2.26.0...v2.26.1) (2025-11-07)
+
+
+### Bug Fixes
+
+* README.mdの誤字修正（zero- or low → zero or low） ([db9b2df](https://github.com/akiojin/unity-mcp-server/commit/db9b2df4241cc87f082c8bd16770b14571015ce9))
+
 # [2.26.0](https://github.com/akiojin/unity-mcp-server/compare/v2.25.0...v2.26.0) (2025-11-07)
 
 
