@@ -4,8 +4,9 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
-      - develop
       - main
+      - develop
+      - release
 
 permissions:
   contents: write
@@ -237,7 +238,7 @@ jobs:
       - name: Merge PR
         if: steps.wait-required.outcome == 'success'
         env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           pr_number=${{ github.event.pull_request.number }}
@@ -247,9 +248,9 @@ jobs:
 
           echo "Attempting to merge PR #${{ github.event.pull_request.number }} via GitHub API..."
 
-          # Use PAT_TOKEN if available to trigger subsequent workflows
-          if [ -n "${{ secrets.PAT_TOKEN }}" ]; then
-            echo "Using PAT_TOKEN to trigger subsequent workflows"
+          # Use PAT if available to trigger subsequent workflows
+          if [ -n "${{ secrets.PAT }}" ]; then
+            echo "Using PAT to trigger subsequent workflows"
           else
             echo "Warning: Using GITHUB_TOKEN - subsequent workflows may not trigger"
           fi
@@ -280,9 +281,17 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const targetBranch = context.payload.pull_request.base.ref;
+            const branchMessages = {
+              develop: 'develop branch',
+              release: 'release branch',
+              main: 'main branch'
+            };
+            const branchMsg = branchMessages[targetBranch] || targetBranch;
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '✅ **PR automatically merged!**\n\nAll required checks passed and GitHub confirmed the merge into the develop branch.'
+              body: `✅ **PR automatically merged!**\n\nAll required checks passed and GitHub confirmed the merge into the ${branchMsg}.`
             })
