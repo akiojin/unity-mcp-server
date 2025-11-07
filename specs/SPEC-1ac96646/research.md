@@ -317,7 +317,12 @@ fi
 ### 変更不要なファイル
 - `.releaserc.json`: 既にmainブランチ専用
 - `.github/workflows/release.yml`: mainへのpushでトリガー済み
-- `.github/workflows/mcp-server-publish.yml`: GitHub Release時のnpm publish
+- `.github/workflows/mcp-server-publish.yml`: GitHub Release作成時にトリガー（ブランチ非依存）
+- `.github/workflows/release-csharp-lsp.yml`: タグpush時にトリガー（ブランチ非依存）
+
+**補足説明**:
+- **mcp-server-publish.yml**: `on.release.types: [published]`でトリガー。semantic-releaseがmainでGitHub Releaseを作成するため、develop/mainフロー導入後も正常動作。変更不要。
+- **release-csharp-lsp.yml**: `on.push.tags: ['v*']`でトリガー。semantic-releaseがmainでタグ（v*）を作成するため、develop/mainフロー導入後も正常動作。変更不要。
 
 ### リスク＆対策
 | リスク | 対策 |
