@@ -122,6 +122,7 @@ Suggested caps
 - Visual capture: deterministic screenshots from Game/Scene/Explorer/Window views, optional analysis
 - Code base awareness: safe structured edits and accurate symbol/search powered by the bundled C# LSP
 - Project control: read/update selected project/editor settings; read logs, monitor compilation
+- **Addressables management**: register/organize assets, manage groups, build automation, dependency analysis
 
 ## Unity–MCP Connection
 
