@@ -12,7 +12,7 @@ import assert from 'node:assert'
  */
 
 describe('addressables_manage contract tests', () => {
-  let mcpClient = null
+  const mcpClient = null
 
   before(async () => {
     // TODO: Initialize MCP client connection to Unity
