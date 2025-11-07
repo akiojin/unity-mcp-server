@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 // Lightweight C# symbol extractor for Node-side fallback (not Roslyn-accurate)
 export function parseFileSymbols(relPath, text) {
   const lines = text.split('\n');
@@ -85,4 +86,3 @@ export function parseFileSymbols(relPath, text) {
   }
   return result;
 }
-

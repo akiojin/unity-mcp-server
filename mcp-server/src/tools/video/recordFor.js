@@ -14,7 +14,8 @@ async function main() {
         height: 720,
         fps: 30,
         durationSec: 2,
-        play: true
+        play: true,
+        outputPath
     });
     if (result && result.error) {
       console.error('capture_video_for error:', result.error);

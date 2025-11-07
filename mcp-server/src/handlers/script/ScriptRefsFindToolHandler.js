@@ -75,14 +75,9 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
     async execute(params) {
         const {
             name,
-            path,
-            kind,
-            namespace,
-            container,
             scope = 'all',
             pageSize = 50,
             maxBytes = 1024 * 64,
-            snippetContext = 2, // 現状CLIは±1行固定。ハンドラ側では文字数トリムのみ行う。
             maxMatchesPerFile = 5
         } = params;
 

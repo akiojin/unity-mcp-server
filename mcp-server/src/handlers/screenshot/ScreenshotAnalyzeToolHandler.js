@@ -1,5 +1,4 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import fs from 'fs/promises';
 import path from 'path';
 
 /**

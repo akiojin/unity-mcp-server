@@ -265,7 +265,8 @@ export class MenuItemExecuteToolHandler extends BaseToolHandler {
     }
 
     // Step 1: Remove zero-width and invisible Unicode characters
-    let normalized = menuPath.replace(/[\u200B-\u200D\uFEFF\u00AD\u034F\u061C\u180E\u2060-\u2069]/g, '');
+    // eslint-disable-next-line no-misleading-character-class
+    let normalized = menuPath.replace(/[\u200B-\u200D\uFEFF\u00AD\u034F\u061C\u180E\u2060-\u2069]/gu, '');
     
     // Step 2: Normalize Unicode to canonical form (handles homograph attacks)
     normalized = normalized.normalize('NFC');

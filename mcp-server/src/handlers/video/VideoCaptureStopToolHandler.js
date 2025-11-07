@@ -19,7 +19,7 @@ export class VideoCaptureStopToolHandler extends BaseToolHandler {
   }
 
   /** @override */
-  async execute(params, context) {
+  async execute(params, _context) {
     const response = await this.unityConnection.sendCommand('capture_video_stop', params || {});
     if (response.error) {
       return { error: response.error, code: response.code || 'UNITY_ERROR' };

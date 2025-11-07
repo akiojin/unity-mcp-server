@@ -104,7 +104,7 @@ export class BaseToolHandler {
    * @param {object} params - Validated input parameters
    * @returns {Promise<object>} Tool result
    */
-  async execute(params) {
+  async execute(_params) {
     throw new Error('execute() must be implemented by subclass');
   }
 

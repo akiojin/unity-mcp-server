@@ -1,4 +1,3 @@
-import fs from 'fs';
 import path from 'path';
 import { logger, config, WORKSPACE_ROOT } from './config.js';
 

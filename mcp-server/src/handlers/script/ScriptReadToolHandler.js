@@ -1,5 +1,4 @@
 import fs from 'fs/promises';
-import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 import { logger } from '../../core/config.js';

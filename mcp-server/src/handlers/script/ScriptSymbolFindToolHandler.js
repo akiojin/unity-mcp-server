@@ -1,4 +1,3 @@
-import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { CodeIndex } from '../../core/codeIndex.js';
 import { LspRpcClient } from '../../lsp/LspRpcClient.js';

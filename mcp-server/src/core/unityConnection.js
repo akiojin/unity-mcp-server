@@ -97,14 +97,13 @@ export class UnityConnection extends EventEmitter {
         
         logger.info('Disconnected from Unity Editor');
         this.connected = false;
-        const wasSocket = this.socket;
         this.socket = null;
         
         // Clear message buffer
         this.messageBuffer = Buffer.alloc(0);
         
         // Clear pending commands
-        for (const [id, pending] of this.pendingCommands) {
+        for (const [, pending] of this.pendingCommands) {
           pending.reject(new Error('Connection closed'));
         }
         this.pendingCommands.clear();

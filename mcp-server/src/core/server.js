@@ -189,7 +189,7 @@ export async function startServer() {
     }
 
     // Best-effort: prepare and start persistent C# LSP process (non-blocking)
-    ;(async () => {
+    (async () => {
       try {
         const { LspProcessManager } = await import('../lsp/LspProcessManager.js');
         const mgr = new LspProcessManager();
@@ -233,7 +233,7 @@ export async function startServer() {
 }
 
 // Maintain backwards compatibility for older callers that expect main()
-const main = startServer;
+export const main = startServer;
 
 // Export for testing
 export async function createServer(customConfig = config) {
