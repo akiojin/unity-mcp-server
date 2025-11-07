@@ -57,3 +57,15 @@ jobs:
           else
             echo "No new commits on release to merge to main"
           fi
+
+      - name: Trigger csharp-lsp build
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the latest tag created by semantic-release
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "Triggering csharp-lsp build for tag: $LATEST_TAG"
+
+          gh workflow run release-csharp-lsp.yml --ref "$LATEST_TAG" \
+            || echo "Failed to trigger csharp-lsp build workflow"

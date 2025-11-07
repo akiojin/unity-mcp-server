@@ -1,0 +1,64 @@
+name: Backmerge to develop
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  backmerge:
+    name: Backmerge main to develop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Merge main into develop
+        run: |
+          git fetch origin develop
+          git checkout develop
+          git merge origin/main --no-edit -m "chore: Backmerge main to develop [skip ci]
+
+          Automated backmerge from main to develop after release.
+
+          🤖 Generated with GitHub Actions"
+
+      - name: Update npm dependencies if needed
+        run: |
+          cd mcp-server
+          if git diff --name-only HEAD~1 HEAD | grep -E "package\.json|package-lock\.json"; then
+            npm install
+            if ! git diff --quiet package-lock.json; then
+              git add package-lock.json
+              git commit -m "chore: Update package-lock.json after backmerge [skip ci]"
+            fi
+          fi
+
+      - name: Run tests
+        run: |
+          cd mcp-server
+          npm run test:ci
+
+      - name: Push to develop
+        env:
+          GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin develop
