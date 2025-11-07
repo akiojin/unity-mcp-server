@@ -1,0 +1,80 @@
+name: Lint
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint:
+    name: Markdown, ESLint & Formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mcp-server/package-lock.json
+
+      - name: Install build tools (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 make gcc g++
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./mcp-server
+
+      - name: Run Markdownlint
+        run: |
+          npx --prefix ./mcp-server markdownlint "**/*.md" \
+            --config ./.markdownlint.json \
+            --ignore "node_modules" \
+            --ignore ".worktrees" \
+            --ignore "UnityMCPServer"
+
+      - name: Run ESLint
+        working-directory: ./mcp-server
+        run: npx eslint src tests --ext .js --max-warnings=0
+
+      - name: Check formatting
+        working-directory: ./mcp-server
+        run: npx prettier --check .
+        continue-on-error: true
+
+  commitlint:
+    name: Commit Message Lint
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mcp-server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./mcp-server
+
+      - name: Validate commit messages
+        run: |
+          npx --prefix ./mcp-server commitlint \
+            --from ${{ github.event.pull_request.base.sha }} \
+            --to ${{ github.event.pull_request.head.sha }} \
+            --verbose
