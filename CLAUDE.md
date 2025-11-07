@@ -76,7 +76,7 @@
 - **形式**: `feature/SPEC-[UUID8桁]`
 - **例**: `feature/SPEC-a1b2c3d4`, `feature/SPEC-3f8e9d2a`
 - 各SPECに対して1つのfeatureブランチを作成
-- mainブランチから派生
+- developブランチから派生
 
 **Worktree配置**:
 
@@ -117,7 +117,7 @@
    - featureブランチをリモートにpush
    - GitHub PRを自動作成（spec.mdからタイトル取得）
    - GitHub ActionsでRequiredチェックを監視し、自動マージ可否を判定
-   - Requiredチェックがすべて成功した場合のみ自動的にmainへマージ（`--no-ff`で履歴保持）
+   - Requiredチェックがすべて成功した場合のみ自動的にdevelopへマージ（`--no-ff`で履歴保持）
 
 **既存SPEC移行**:
 
@@ -193,7 +193,7 @@ cd .worktrees/SPEC-0d5d84f9/
 4. タスク実行（TDDサイクル厳守）
    - Worktree内で独立して作業
    - 各変更をfeatureブランチにコミット
-5. 完了後、`finish-feature.sh`でmainにマージ＆Worktree削除
+5. 完了後、`finish-feature.sh`でdevelopにマージ＆Worktree削除
 
 **既存機能のSpec化フロー**:
 
@@ -201,7 +201,7 @@ cd .worktrees/SPEC-0d5d84f9/
 2. `/speckit.specify` - 実装済み機能のビジネス要件を文書化
 3. `/speckit.plan` - （必要に応じて）技術設計を追記
 4. 既存実装とSpecの整合性確認
-5. 完了後、`finish-feature.sh`でmainにマージ
+5. 完了後、`finish-feature.sh`でdevelopにマージ
 
 **Spec作成原則**:
 
@@ -417,12 +417,15 @@ cd .worktrees/SPEC-0d5d84f9/
 - **`BREAKING CHANGE:`** または **`feat!:`** - 破壊的変更 → **major** version up (例: 2.16.3 → 3.0.0)
 - **`chore:`**, **`docs:`**, **`test:`** - version up なし
 
-#### リリースフロー
+#### リリースフロー（3層: feature → develop → main）
 
-1. featureブランチで開発（Conventional Commitsを使用）
-2. finish-feature.sh実行 → PR作成
-3. Required Checks成功 → 自動マージ（mainへ）
-4. **semantic-release自動実行**:
+1. **featureブランチで開発**（Conventional Commitsを使用）
+2. **finish-feature.sh実行** → PR作成（developベース）
+3. **Required Checks成功** → 自動マージ（developへ）
+4. **developブランチで変更を蓄積**（複数のfeatureを統合）
+5. **`/release` コマンド実行** → develop → main PR作成
+6. **PRをマージ（手動）** → mainブランチに反映
+7. **semantic-release自動実行**:
    - コミット解析 → バージョン決定
    - package.json更新（mcp-server + Unity Package自動同期）
    - CHANGELOG.md生成
