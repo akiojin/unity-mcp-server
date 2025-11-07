@@ -4,7 +4,7 @@ English | [日本語](README.ja.md)
 
 ## Overview
 
-Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on reliable, scriptable workflows with a simple interface and zero- or low-configuration setup.
+Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on reliable, scriptable workflows with a simple interface and zero or low-configuration setup.
 
 ### Feature Specifications
 
