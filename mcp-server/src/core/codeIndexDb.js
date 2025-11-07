@@ -1,8 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import Database from 'better-sqlite3';
-import { logger } from './config.js';
-
 let dbCache = new Map();
 
 function getDbPath(projectRoot) {
@@ -47,16 +45,29 @@ export function openDb(projectRoot) {
 }
 
 export function upsertFile(db, filePath, mtimeMs) {
-  const stmt = db.prepare('INSERT INTO files(path, mtime) VALUES(?, ?) ON CONFLICT(path) DO UPDATE SET mtime=excluded.mtime');
+  const stmt = db.prepare(
+    'INSERT INTO files(path, mtime) VALUES(?, ?) ON CONFLICT(path) DO UPDATE SET mtime=excluded.mtime'
+  );
   stmt.run(filePath, Math.floor(mtimeMs));
 }
 
 export function replaceSymbols(db, filePath, symbols) {
   const del = db.prepare('DELETE FROM symbols WHERE path = ?');
   del.run(filePath);
-  const ins = db.prepare('INSERT INTO symbols(path, name, kind, container, ns, line, column) VALUES(?,?,?,?,?,?,?)');
-  const tr = db.transaction((rows) => {
-    for (const s of rows) ins.run(filePath, s.name || '', s.kind || '', s.container || null, s.ns || null, s.line || 0, s.column || 0);
+  const ins = db.prepare(
+    'INSERT INTO symbols(path, name, kind, container, ns, line, column) VALUES(?,?,?,?,?,?,?)'
+  );
+  const tr = db.transaction(rows => {
+    for (const s of rows)
+      ins.run(
+        filePath,
+        s.name || '',
+        s.kind || '',
+        s.container || null,
+        s.ns || null,
+        s.line || 0,
+        s.column || 0
+      );
   });
   tr(symbols || []);
 }
@@ -65,7 +76,7 @@ export function replaceReferences(db, filePath, refs) {
   const del = db.prepare('DELETE FROM refs WHERE path = ?');
   del.run(filePath);
   const ins = db.prepare('INSERT INTO refs(path, name, line, snippet) VALUES(?,?,?,?)');
-  const tr = db.transaction((rows) => {
+  const tr = db.transaction(rows => {
     for (const r of rows) ins.run(filePath, r.name || '', r.line || 0, r.snippet || null);
   });
   tr(refs || []);
@@ -73,9 +84,15 @@ export function replaceReferences(db, filePath, refs) {
 
 export function querySymbolsByName(db, name, kind = null) {
   if (kind) {
-    return db.prepare('SELECT path,name,kind,container,ns,line,column FROM symbols WHERE name = ? AND kind = ? LIMIT 500').all(name, kind);
+    return db
+      .prepare(
+        'SELECT path,name,kind,container,ns,line,column FROM symbols WHERE name = ? AND kind = ? LIMIT 500'
+      )
+      .all(name, kind);
   }
-  return db.prepare('SELECT path,name,kind,container,ns,line,column FROM symbols WHERE name = ? LIMIT 500').all(name);
+  return db
+    .prepare('SELECT path,name,kind,container,ns,line,column FROM symbols WHERE name = ? LIMIT 500')
+    .all(name);
 }
 
 export function queryRefsByName(db, name) {
@@ -93,4 +110,3 @@ export function isFresh(projectRoot, filePath, db) {
     return false;
   }
 }
-

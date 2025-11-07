@@ -32,14 +32,18 @@ describe('Config', () => {
     it('should load mcpHost and unityHost from external config', async () => {
       const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-config-'));
       const configPath = path.join(tmpDir, 'config.json');
-      await fs.writeFile(configPath, JSON.stringify({
-        unity: {
-          unityHost: '127.0.0.1',
-          mcpHost: 'host.docker.internal',
-          bindHost: '0.0.0.0',
-          port: 6410
-        }
-      }), 'utf8');
+      await fs.writeFile(
+        configPath,
+        JSON.stringify({
+          unity: {
+            unityHost: '127.0.0.1',
+            mcpHost: 'host.docker.internal',
+            bindHost: '0.0.0.0',
+            port: 6410
+          }
+        }),
+        'utf8'
+      );
 
       const prevConfigPath = process.env.UNITY_MCP_CONFIG;
       const prevHost = process.env.UNITY_HOST;
@@ -169,12 +173,16 @@ describe('Config', () => {
     it('should map legacy clientHost/bindHost to new fields', async () => {
       const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-config-'));
       const configPath = path.join(tmpDir, 'config.json');
-      await fs.writeFile(configPath, JSON.stringify({
-        unity: {
-          clientHost: 'legacy-client',
-          bindHost: 'legacy-bind'
-        }
-      }), 'utf8');
+      await fs.writeFile(
+        configPath,
+        JSON.stringify({
+          unity: {
+            clientHost: 'legacy-client',
+            bindHost: 'legacy-bind'
+          }
+        }),
+        'utf8'
+      );
 
       const prevConfigPath = process.env.UNITY_MCP_CONFIG;
       const prevHost = process.env.UNITY_HOST;
@@ -262,7 +270,9 @@ describe('Config', () => {
         assert.equal(generatedConfig.unity.unityHost, 'localhost');
         assert.equal(generatedConfig.unity.mcpHost, 'localhost');
         assert.equal(generatedConfig.unity.port, 6400);
-        assert.equal(generatedConfig.__configPath, defaultPath);
+        const resolvedDefaultPath = await fs.realpath(defaultPath);
+        const resolvedConfigPath = await fs.realpath(generatedConfig.__configPath);
+        assert.equal(resolvedConfigPath, resolvedDefaultPath);
         assert.equal(generatedConfig.__configGenerated, true);
       } finally {
         if (prevConfigPath === undefined) {
@@ -287,7 +297,7 @@ describe('Config', () => {
       originalConsoleError = console.error;
       logOutput = [];
       errorOutput = [];
-      
+
       console.log = (...args) => logOutput.push(args.join(' '));
       console.error = (...args) => errorOutput.push(args.join(' '));
     });
@@ -328,11 +338,11 @@ describe('Config', () => {
       // Temporarily change log level
       const originalLevel = config.logging.level;
       config.logging.level = 'debug';
-      
+
       logger.debug('Debug message');
       assert.equal(errorOutput.length, 1);
       assert.match(errorOutput[0], /\[Unity Editor MCP\] DEBUG: Debug message/);
-      
+
       // Restore original level
       config.logging.level = originalLevel;
     });
@@ -347,11 +357,11 @@ describe('Config', () => {
       // Temporarily change log level
       const originalLevel = config.logging.level;
       config.logging.level = 'warn';
-      
+
       logger.warn('Warning message');
       assert.equal(errorOutput.length, 1);
       assert.match(errorOutput[0], /\[Unity Editor MCP\] WARN: Warning message/);
-      
+
       // Restore original level
       config.logging.level = originalLevel;
     });
@@ -360,10 +370,10 @@ describe('Config', () => {
       // Temporarily change log level
       const originalLevel = config.logging.level;
       config.logging.level = 'warn';
-      
+
       logger.info('Info message');
       assert.equal(errorOutput.length, 0);
-      
+
       // Restore original level
       config.logging.level = originalLevel;
     });
@@ -381,16 +391,16 @@ describe('Config', () => {
     it('should always log error messages regardless of level', () => {
       // Test with different log levels
       const originalLevel = config.logging.level;
-      
+
       config.logging.level = 'debug';
       logger.error('Error message 1');
       assert.equal(errorOutput.length, 1);
-      
+
       errorOutput.length = 0; // Clear
       config.logging.level = 'warn';
       logger.error('Error message 2');
       assert.equal(errorOutput.length, 1);
-      
+
       // Restore original level
       config.logging.level = originalLevel;
     });
@@ -398,7 +408,7 @@ describe('Config', () => {
     it('should handle error objects in logger.error', () => {
       const error = new Error('Test error');
       error.stack = 'Stack trace here';
-      
+
       logger.error('Operation failed', error);
       assert.equal(errorOutput.length, 1);
       assert.match(errorOutput[0], /Operation failed/);
