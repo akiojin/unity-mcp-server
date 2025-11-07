@@ -94,7 +94,7 @@ jobs:
           RELEASE_BRANCH="${GITHUB_REF#refs/heads/}"
           VERSION="${{ needs.semantic-release.outputs.new_release_version }}"
 
-          echo "Merging $RELEASE_BRANCH to main..."
+          echo "Merging $RELEASE_BRANCH to main (version: $VERSION)..."
           git fetch origin "$RELEASE_BRANCH"
           git merge "origin/$RELEASE_BRANCH" --no-ff -m "chore(release): merge v${VERSION} to main
 
