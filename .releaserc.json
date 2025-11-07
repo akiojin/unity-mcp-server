@@ -1,5 +1,5 @@
 {
-  "branches": ["main"],
+  "branches": ["release"],
   "tagFormat": "v${version}",
   "plugins": [
     "@semantic-release/commit-analyzer",
@@ -19,8 +19,20 @@
     [
       "@semantic-release/npm",
       {
-        "npmPublish": false,
+        "npmPublish": true,
         "pkgRoot": "mcp-server"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "mcp-server/package.json",
+          "mcp-server/package-lock.json",
+          "CHANGELOG.md",
+          "UnityMCPServer/Packages/unity-mcp-server/package.json"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
     ],
     [

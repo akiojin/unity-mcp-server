@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - develop
+      - release
 
 permissions:
   contents: write
@@ -280,9 +281,17 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const targetBranch = context.payload.pull_request.base.ref;
+            const branchMessages = {
+              develop: 'develop branch',
+              release: 'release branch',
+              main: 'main branch'
+            };
+            const branchMsg = branchMessages[targetBranch] || targetBranch;
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '✅ **PR automatically merged!**\n\nAll required checks passed and GitHub confirmed the merge into the main branch.'
+              body: `✅ **PR automatically merged!**\n\nAll required checks passed and GitHub confirmed the merge into the ${branchMsg}.`
             })
