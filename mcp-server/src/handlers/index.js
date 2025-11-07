@@ -76,6 +76,11 @@ export { AssetImportSettingsManageToolHandler } from './asset/AssetImportSetting
 export { AssetDatabaseManageToolHandler } from './asset/AssetDatabaseManageToolHandler.js';
 export { AssetDependencyAnalyzeToolHandler } from './asset/AssetDependencyAnalyzeToolHandler.js';
 
+// Addressables handlers
+export { default as AddressablesManageToolHandler } from './addressables/AddressablesManageToolHandler.js';
+export { default as AddressablesBuildToolHandler } from './addressables/AddressablesBuildToolHandler.js';
+export { default as AddressablesAnalyzeToolHandler } from './addressables/AddressablesAnalyzeToolHandler.js';
+
 // Menu handlers
 export { MenuItemExecuteToolHandler } from './menu/MenuItemExecuteToolHandler.js';
 
@@ -196,6 +201,9 @@ import { AssetPrefabSaveToolHandler } from './asset/AssetPrefabSaveToolHandler.j
 import { AssetImportSettingsManageToolHandler } from './asset/AssetImportSettingsManageToolHandler.js';
 import { AssetDatabaseManageToolHandler } from './asset/AssetDatabaseManageToolHandler.js';
 import { AssetDependencyAnalyzeToolHandler } from './asset/AssetDependencyAnalyzeToolHandler.js';
+import AddressablesManageToolHandler from './addressables/AddressablesManageToolHandler.js';
+import AddressablesBuildToolHandler from './addressables/AddressablesBuildToolHandler.js';
+import AddressablesAnalyzeToolHandler from './addressables/AddressablesAnalyzeToolHandler.js';
 import { MenuItemExecuteToolHandler } from './menu/MenuItemExecuteToolHandler.js';
 import { ConsoleClearToolHandler } from './console/ConsoleClearToolHandler.js';
 import { ConsoleReadToolHandler } from './console/ConsoleReadToolHandler.js';
@@ -312,7 +320,12 @@ const HANDLER_CLASSES = [
   AssetImportSettingsManageToolHandler,
   AssetDatabaseManageToolHandler,
   AssetDependencyAnalyzeToolHandler,
-  
+
+  // Addressables handlers
+  AddressablesManageToolHandler,
+  AddressablesBuildToolHandler,
+  AddressablesAnalyzeToolHandler,
+
   // Menu handlers
   MenuItemExecuteToolHandler,
   
