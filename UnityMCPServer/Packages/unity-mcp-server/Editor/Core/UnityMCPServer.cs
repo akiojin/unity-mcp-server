@@ -834,6 +834,10 @@ namespace UnityMCPServer.Core
                         var modifyComponentResult = ComponentHandler.ModifyComponent(command.Parameters);
                         response = Response.SuccessResult(command.Id, modifyComponentResult);
                         break;
+                    case "set_component_field":
+                        var setComponentFieldResult = ComponentHandler.SetComponentField(command.Parameters);
+                        response = Response.SuccessResult(command.Id, setComponentFieldResult);
+                        break;
                     case "list_components":
                         var listComponentsResult = ComponentHandler.ListComponents(command.Parameters);
                         response = Response.SuccessResult(command.Id, listComponentsResult);
