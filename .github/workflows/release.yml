@@ -1,5 +1,10 @@
 name: Release
 
+# This workflow handles the automated release process:
+# 1. semantic-release creates version, tag, and GitHub Release
+# 2. Direct merge to main (no PR to avoid GitHub Actions event limitations)
+# 3. Backmerge to develop
+# 4. Release branch cleanup
 on:
   push:
     branches:
