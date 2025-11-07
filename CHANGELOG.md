@@ -1,3 +1,10 @@
+## [2.27.2](https://github.com/akiojin/unity-mcp-server/compare/v2.27.1...v2.27.2) (2025-11-07)
+
+
+### Bug Fixes
+
+* release.ymlにワークフローの処理フローを説明するコメントを追加 ([2b51f26](https://github.com/akiojin/unity-mcp-server/commit/2b51f268221c43f21266476126f68f82e88be7ea))
+
 ## [2.27.1](https://github.com/akiojin/unity-mcp-server/compare/v2.27.0...v2.27.1) (2025-11-07)
 
 
