@@ -48,7 +48,22 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
           HUSKY: 0
-        run: npx semantic-release
+        run: |
+          # semantic-releaseを実行して出力を取得
+          npx semantic-release > release-output.txt 2>&1 || true
+          cat release-output.txt
+
+          # 新しいリリースが作成されたか確認（タグが作成されているか）
+          if git describe --exact-match HEAD >/dev/null 2>&1; then
+            VERSION=$(git describe --exact-match HEAD | sed 's/^v//')
+            echo "new_release_published=true" >> $GITHUB_OUTPUT
+            echo "new_release_version=$VERSION" >> $GITHUB_OUTPUT
+            echo "new_release_git_tag=v$VERSION" >> $GITHUB_OUTPUT
+            echo "✓ New release published: v$VERSION"
+          else
+            echo "new_release_published=false" >> $GITHUB_OUTPUT
+            echo "No new release published"
+          fi
 
   create-release-to-main-pr:
     name: Create PR to main
