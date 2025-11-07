@@ -23,7 +23,8 @@
 - [ ] U30-01: add_component（Rigidbody）
 - [ ] U30-02: get_component_values（Rigidbody）
 - [ ] U30-03: modify_component（useGravity=false 等）
-- [ ] U30-04: list_components（Rigidbody を含む）
+- [ ] U30-04: component_field_set（SerializeField 更新）
+- [ ] U30-05: list_components（Rigidbody を含む）
 - [ ] U30-E01: 未知 componentType で fail
 - [ ] U30-E02: 不正プロパティ/型不一致で fail
 - [ ] U30-E03: 対象なしで fail
@@ -33,7 +34,8 @@
 - U30-01: `add_component`（`Rigidbody`）→ 成功
 - U30-02: `get_component_values`（`Rigidbody`）→ 値取得
 - U30-03: `modify_component`（`useGravity=false` 等）→ 反映
-- U30-04: `list_components` → 追加済みが列挙
+- U30-04: `component_field_set`（SerializeField 値更新）→ 反映
+- U30-05: `list_components` → 追加済みが列挙
 
 ## 異常系
 

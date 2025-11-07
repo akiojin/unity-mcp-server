@@ -115,6 +115,7 @@ Add to your `claude_desktop_config.json`:
 - `component_add` — Add Unity components to GameObjects with initial properties
 - `component_remove` — Remove components from GameObjects with safety checks
 - `component_modify` — Modify component properties with nested support
+- `component_field_set` — Update serialized fields (including private `[SerializeField]` values, arrays, and nested structs)
 - `component_list` — List all components on a GameObject with type information
 - `component_get_types` — Discover available component types with filtering
 
@@ -226,7 +227,6 @@ Add to your `claude_desktop_config.json`:
 - `test_run` — Run Unity tests (EditMode/PlayMode)
 - `test_get_status` — Query test runner progress/results
 
-
 ## Requirements
 
 - **Unity**: 2020.3 LTS or newer (Unity 6 supported)
@@ -252,7 +252,7 @@ npm install -g @akiojin/unity-mcp-server
 
 ## Repository
 
-Full source code and documentation: https://github.com/akiojin/unity-mcp-server
+Full source code and documentation: <https://github.com/akiojin/unity-mcp-server>
 
 ## License
 

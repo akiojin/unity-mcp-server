@@ -834,6 +834,10 @@ namespace UnityMCPServer.Core
                         var modifyComponentResult = ComponentHandler.ModifyComponent(command.Parameters);
                         response = Response.SuccessResult(command.Id, modifyComponentResult);
                         break;
+                    case "set_component_field":
+                        var setComponentFieldResult = ComponentHandler.SetComponentField(command.Parameters);
+                        response = Response.SuccessResult(command.Id, setComponentFieldResult);
+                        break;
                     case "list_components":
                         var listComponentsResult = ComponentHandler.ListComponents(command.Parameters);
                         response = Response.SuccessResult(command.Id, listComponentsResult);
@@ -891,6 +895,21 @@ namespace UnityMCPServer.Core
                     case "analyze_asset_dependencies":
                         var assetDependencyResult = AssetDependencyHandler.HandleCommand(command.Parameters["action"]?.ToString(), command.Parameters);
                         response = Response.SuccessResult(command.Id, assetDependencyResult);
+                        break;
+                    // Addressables management commands
+                    case "addressables_manage":
+                        var addressablesManageResult = AddressablesHandler.HandleCommand(command.Parameters["action"]?.ToString(), command.Parameters);
+                        response = Response.SuccessResult(command.Id, addressablesManageResult);
+                        break;
+                    // Addressables build commands
+                    case "addressables_build":
+                        var addressablesBuildResult = AddressablesHandler.HandleCommand(command.Parameters["action"]?.ToString(), command.Parameters);
+                        response = Response.SuccessResult(command.Id, addressablesBuildResult);
+                        break;
+                    // Addressables analyze commands
+                    case "addressables_analyze":
+                        var addressablesAnalyzeResult = AddressablesHandler.HandleCommand(command.Parameters["action"]?.ToString(), command.Parameters);
+                        response = Response.SuccessResult(command.Id, addressablesAnalyzeResult);
                         break;
                     // Project Settings commands
                     case "get_project_settings":
