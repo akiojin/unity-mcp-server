@@ -39,7 +39,9 @@ RUN npm i -g \
     bun@latest \
     typescript@latest \
     eslint@latest \
-    prettier@latest
+    prettier@latest \
+    @commitlint/cli@latest \
+    @commitlint/config-conventional@latest
 
 WORKDIR /unity-mcp-server
 # Use bash to invoke entrypoint to avoid exec-bit and CRLF issues on Windows mounts
