@@ -50,12 +50,13 @@ jobs:
           HUSKY: 0
         run: |
           # semantic-releaseを実行して出力を取得
-          npx semantic-release > release-output.txt 2>&1 || true
+          npx semantic-release > release-output.txt 2>&1
+          RELEASE_EXIT_CODE=$?
           cat release-output.txt
 
-          # 新しいリリースが作成されたか確認（タグが作成されているか）
-          if git describe --exact-match HEAD >/dev/null 2>&1; then
-            VERSION=$(git describe --exact-match HEAD | sed 's/^v//')
+          # semantic-releaseの出力を解析して新しいリリースが作成されたか確認
+          if [ $RELEASE_EXIT_CODE -eq 0 ] && grep -q "Published release" release-output.txt; then
+            VERSION=$(grep -oP 'Published release \K[0-9]+\.[0-9]+\.[0-9]+' release-output.txt | head -1)
             echo "new_release_published=true" >> $GITHUB_OUTPUT
             echo "new_release_version=$VERSION" >> $GITHUB_OUTPUT
             echo "new_release_git_tag=v$VERSION" >> $GITHUB_OUTPUT
@@ -63,6 +64,9 @@ jobs:
           else
             echo "new_release_published=false" >> $GITHUB_OUTPUT
             echo "No new release published"
+            if [ $RELEASE_EXIT_CODE -ne 0 ]; then
+              exit $RELEASE_EXIT_CODE
+            fi
           fi
 
   create-release-to-main-pr:
