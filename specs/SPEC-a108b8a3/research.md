@@ -157,7 +157,7 @@
 
 ## 参考資料
 
-- **Unity Addressables 公式ドキュメント**: https://docs.unity3d.com/Packages/com.unity.addressables@2.7/manual/
-- **AddressableAssetSettings API**: https://docs.unity3d.com/Packages/com.unity.addressables@2.7/api/UnityEditor.AddressableAssets.Settings.AddressableAssetSettings.html
+- **Unity Addressables 公式ドキュメント**: <https://docs.unity3d.com/Packages/com.unity.addressables@2.7/manual/>
+- **AddressableAssetSettings API**: <https://docs.unity3d.com/Packages/com.unity.addressables@2.7/api/UnityEditor.AddressableAssets.Settings.AddressableAssetSettings.html>
 - **既存MCPハンドラー実装**: `mcp-server/src/handlers/asset/AssetDatabaseManageToolHandler.js`
 - **既存Unity Handler実装**: `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/AssetDatabaseHandler.cs`

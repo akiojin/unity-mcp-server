@@ -136,8 +136,8 @@ cd .worktrees/SPEC-0d5d84f9/
 
 **重要な注意事項**:
 
-- **mainブランチで直接SPEC作業禁止**: 必ずWorktreeを使用
-- **PR自動マージ**: GitHub Actionsで Required チェック完了後に自動マージ
+- **main/developブランチで直接SPEC作業禁止**: 必ずWorktreeを使用
+- **PR自動マージ**: GitHub Actionsで Required チェック完了後にdevelopへ自動マージ
 - **ドラフトPR**: `--draft`オプションで作成したPRは自動マージ対象外
 - **並行開発推奨**: 複数のSPECを同時に異なるWorktreeで作業可能
 - **Worktree間の独立性**: 各Worktreeは完全に独立（相互干渉なし）
@@ -435,6 +435,11 @@ cd .worktrees/SPEC-0d5d84f9/
 10. **npm publish実行**
 
 **重要**: 手動でのバージョン変更・npm publishは禁止（すべて自動化）
+
+**注意事項**:
+- developブランチへのマージ後、すぐにリリースする必要はありません
+- 複数の機能をdevelopで統合してから、まとめてmainへリリースできます
+- リリースタイミングは `/release` コマンドで制御可能
 
 #### コミット例
 
