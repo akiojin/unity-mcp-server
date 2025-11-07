@@ -428,7 +428,36 @@ This project uses [semantic-release](https://semantic-release.gitbook.io/) with 
 
 **Note**: Testing automated release workflow.
 
-#### How It Works
+#### Three-Tier Release Flow (feature → develop → main)
+
+This project implements a **three-tier release workflow** for controlled and predictable releases:
+
+1. **Feature Development** (feature branches)
+   - Create feature branch: `feature/SPEC-xxxxxxxx`
+   - Commit with Conventional Commits
+   - Run `finish-feature.sh` → auto-create PR to `develop`
+
+2. **Integration Stage** (`develop` branch)
+   - Required checks pass → auto-merge to `develop`
+   - Multiple features accumulate in `develop`
+   - No releases triggered from `develop`
+
+3. **Production Release** (`main` branch)
+   - Run `/release` command → create `develop` → `main` PR
+   - Required checks pass → auto-merge to `main`
+   - **semantic-release auto-executes**: version bump, CHANGELOG, tag creation
+   - **csharp-lsp Build**: all platforms → GitHub Release
+   - **npm Publish**: MCPサーバー → npmjs.com
+
+**Benefits**:
+- 🎯 Controlled release timing (manual `/release` trigger)
+- 🔄 Multiple features can be bundled into one release
+- 🛡️ `develop` acts as integration/staging before production
+- 📦 Single version across all components (mcp-server, Unity Package, csharp-lsp)
+
+#### How It Works (Legacy Two-Tier)
+
+The previous two-tier flow (feature → main) is deprecated:
 
 1. **Developer**: Create feature branch, commit with Conventional Commits, create PR
 2. **Auto-Merge**: Required checks pass → automatic merge to `main`
