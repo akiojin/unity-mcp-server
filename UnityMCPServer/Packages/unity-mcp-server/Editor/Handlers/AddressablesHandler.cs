@@ -421,9 +421,8 @@ namespace UnityMCPServer.Handlers
                     groups.Add(new Dictionary<string, object>
                     {
                         { "groupName", group.Name },
-                        { "buildPath", group.GetVariableValue("BuildPath")?.ToString() ?? "" },
-                        { "loadPath", group.GetVariableValue("LoadPath")?.ToString() ?? "" },
-                        { "entriesCount", group.entries.Count }
+                        { "entriesCount", group.entries.Count },
+                        { "readOnly", group.ReadOnly }
                     });
                 }
 
@@ -476,9 +475,8 @@ namespace UnityMCPServer.Handlers
                 var data = new Dictionary<string, object>
                 {
                     { "groupName", newGroup.Name },
-                    { "buildPath", newGroup.GetVariableValue("BuildPath")?.ToString() ?? "" },
-                    { "loadPath", newGroup.GetVariableValue("LoadPath")?.ToString() ?? "" },
-                    { "entriesCount", newGroup.entries.Count }
+                    { "entriesCount", newGroup.entries.Count },
+                    { "readOnly", newGroup.ReadOnly }
                 };
 
                 return CreateSuccessResponse(data);
