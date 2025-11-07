@@ -34,12 +34,7 @@ jobs:
         working-directory: ./mcp-server
 
       - name: Run Markdownlint
-        run: |
-          npx --prefix ./mcp-server markdownlint "**/*.md" \
-            --config ./.markdownlint.json \
-            --ignore "node_modules" \
-            --ignore ".worktrees" \
-            --ignore "UnityMCPServer"
+        run: npx --prefix ./mcp-server markdownlint "**/*.md" --config ./.markdownlint.json
 
       - name: Run ESLint
         working-directory: ./mcp-server
