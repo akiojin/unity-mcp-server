@@ -1,3 +1,10 @@
+# [2.27.0](https://github.com/akiojin/unity-mcp-server/compare/v2.26.1...v2.27.0) (2025-11-07)
+
+
+### Features
+
+* README.mdに自動リリース管理セクションを追加 ([c19c5c5](https://github.com/akiojin/unity-mcp-server/commit/c19c5c557a0bb5a51eafe4d3d7f0d67320e7a9a7))
+
 ## [2.26.1](https://github.com/akiojin/unity-mcp-server/compare/v2.26.0...v2.26.1) (2025-11-07)
 
 

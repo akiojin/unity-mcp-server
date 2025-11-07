@@ -1,6 +1,6 @@
 {
   "name": "@akiojin/unity-mcp-server",
-  "version": "2.26.1",
+  "version": "2.27.0",
   "description": "MCP server and Unity Editor bridge — enables AI assistants to control Unity for AI-assisted workflows",
   "type": "module",
   "main": "src/core/server.js",
