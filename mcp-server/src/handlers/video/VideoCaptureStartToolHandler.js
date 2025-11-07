@@ -11,11 +11,18 @@ export class VideoCaptureStartToolHandler extends BaseToolHandler {
       {
         type: 'object',
         properties: {
-          captureMode: { type: 'string', enum: ['game'], description: 'Capture source. Currently only "game" supported.' },
+          captureMode: {
+            type: 'string',
+            enum: ['game'],
+            description: 'Capture source. Currently only "game" supported.'
+          },
           width: { type: 'number', description: 'Output width (0 = auto/default)' },
           height: { type: 'number', description: 'Output height (0 = auto/default)' },
           fps: { type: 'number', description: 'Frames per second (e.g., 30)' },
-          maxDurationSec: { type: 'number', description: 'Auto stop after N seconds (0 = unlimited)' }
+          maxDurationSec: {
+            type: 'number',
+            description: 'Auto stop after N seconds (0 = unlimited)'
+          }
         }
       }
     );
@@ -23,10 +30,13 @@ export class VideoCaptureStartToolHandler extends BaseToolHandler {
   }
 
   /** @override */
-  async execute(params, context) {
+  async execute(params, _context) {
     const { WORKSPACE_ROOT } = await import('../../core/config.js');
-    const { outputPath, ...rest } = params || {};
-    const response = await this.unityConnection.sendCommand('capture_video_start', { ...rest, workspaceRoot: WORKSPACE_ROOT });
+    const { outputPath: _outputPath, ...rest } = params || {};
+    const response = await this.unityConnection.sendCommand('capture_video_start', {
+      ...rest,
+      workspaceRoot: WORKSPACE_ROOT
+    });
     if (response.error) {
       return { error: response.error, code: response.code || 'UNITY_ERROR' };
     }

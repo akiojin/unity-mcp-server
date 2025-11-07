@@ -1,11 +1,15 @@
+/* eslint-disable no-useless-escape */
 // Lightweight C# symbol extractor for Node-side fallback (not Roslyn-accurate)
 export function parseFileSymbols(relPath, text) {
   const lines = text.split('\n');
   const result = { path: relPath, symbols: [] };
   const nsRx = /^\s*namespace\s+([A-Za-z0-9_.]+)/;
-  const typeRx = /^\s*(?:public|internal|protected|private|abstract|sealed|static|partial|new|readonly|\s)*\s*(class|struct|interface|enum)\s+([A-Za-z0-9_]+)/;
-  const methodRx = /^\s*(?:public|internal|protected|private|static|virtual|override|async|sealed|extern|unsafe|new|readonly|\s)+[A-Za-z0-9_<>,\[\]\?\(\)\.:\s]+\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*(?:\{|=>|;)/;
-  const propRx = /^\s*(?:public|internal|protected|private|static|virtual|override|sealed|new|readonly|\s)+[A-Za-z0-9_<>,\[\]\?\.:\s]+\s+([A-Za-z0-9_]+)\s*\{/;
+  const typeRx =
+    /^\s*(?:public|internal|protected|private|abstract|sealed|static|partial|new|readonly|\s)*\s*(class|struct|interface|enum)\s+([A-Za-z0-9_]+)/;
+  const methodRx =
+    /^\s*(?:public|internal|protected|private|static|virtual|override|async|sealed|extern|unsafe|new|readonly|\s)+[A-Za-z0-9_<>,\[\]\?\(\)\.:\s]+\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*(?:\{|=>|;)/;
+  const propRx =
+    /^\s*(?:public|internal|protected|private|static|virtual|override|sealed|new|readonly|\s)+[A-Za-z0-9_<>,\[\]\?\.:\s]+\s+([A-Za-z0-9_]+)\s*\{/;
 
   const nsStack = [];
   const typeStack = [];
@@ -29,7 +33,7 @@ export function parseFileSymbols(relPath, text) {
         startLine: i + 1,
         endLine: 0,
         startColumn: 1,
-        endColumn: 1,
+        endColumn: 1
       });
     }
 
@@ -44,7 +48,7 @@ export function parseFileSymbols(relPath, text) {
         startLine: i + 1,
         endLine: i + 1,
         startColumn: 1,
-        endColumn: 1,
+        endColumn: 1
       });
     }
 
@@ -59,7 +63,7 @@ export function parseFileSymbols(relPath, text) {
         startLine: i + 1,
         endLine: i + 1,
         startColumn: 1,
-        endColumn: 1,
+        endColumn: 1
       });
     }
 
@@ -74,7 +78,10 @@ export function parseFileSymbols(relPath, text) {
       // set endLine for the last matching symbol
       for (let j = result.symbols.length - 1; j >= 0; j--) {
         const s = result.symbols[j];
-        if (s.kind === closed.kind && s.name === closed.name && s.endLine === 0) { s.endLine = i + 1; break; }
+        if (s.kind === closed.kind && s.name === closed.name && s.endLine === 0) {
+          s.endLine = i + 1;
+          break;
+        }
       }
     }
   }
@@ -85,4 +92,3 @@ export function parseFileSymbols(relPath, text) {
   }
   return result;
 }
-

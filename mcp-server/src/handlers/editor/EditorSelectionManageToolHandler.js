@@ -21,7 +21,8 @@ export class EditorSelectionManageToolHandler extends BaseToolHandler {
             items: {
               type: 'string'
             },
-            description: 'GameObject paths for set (e.g., ["/Main Camera", "/Player"]). Must start with /.'
+            description:
+              'GameObject paths for set (e.g., ["/Main Camera", "/Player"]). Must start with /.'
           },
           includeDetails: {
             type: 'boolean',
@@ -38,7 +39,7 @@ export class EditorSelectionManageToolHandler extends BaseToolHandler {
    * Validate the parameters for the selection operation
    */
   validate(params) {
-    const { action, objectPaths, includeDetails } = params;
+    const { action, objectPaths } = params;
 
     // Check action is provided
     if (!action) {
@@ -56,21 +57,21 @@ export class EditorSelectionManageToolHandler extends BaseToolHandler {
       if (!objectPaths) {
         throw new Error('objectPaths is required for set action');
       }
-      
+
       if (!Array.isArray(objectPaths)) {
         throw new Error('objectPaths must be an array');
       }
-      
+
       if (objectPaths.length === 0) {
         throw new Error('objectPaths cannot be empty');
       }
-      
+
       // Validate each path
       for (const path of objectPaths) {
         if (typeof path !== 'string') {
           throw new Error('All object paths must be strings');
         }
-        
+
         if (!path.startsWith('/')) {
           throw new Error('All object paths must start with /');
         }
@@ -89,13 +90,13 @@ export class EditorSelectionManageToolHandler extends BaseToolHandler {
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }
-    
+
     const result = await this.unityConnection.sendCommand('manage_selection', params);
-    
+
     if (result.error) {
       throw new Error(result.error);
     }
-    
+
     return result;
   }
 

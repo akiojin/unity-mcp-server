@@ -104,7 +104,7 @@ export class BaseToolHandler {
    * @param {object} params - Validated input parameters
    * @returns {Promise<object>} Tool result
    */
-  async execute(params) {
+  async execute(_params) {
     throw new Error('execute() must be implemented by subclass');
   }
 
@@ -115,20 +115,20 @@ export class BaseToolHandler {
    */
   async handle(params = {}) {
     logger.debug(`[Handler ${this.name}] Starting handle() with params:`, params);
-    
+
     try {
       // Validate parameters
       logger.debug(`[Handler ${this.name}] Validating parameters...`);
       this.validate(params);
       logger.debug(`[Handler ${this.name}] Validation passed`);
-      
+
       // Execute tool logic
       logger.debug(`[Handler ${this.name}] Executing tool logic...`);
       const startTime = Date.now();
       const result = await this.execute(params);
       const duration = Date.now() - startTime;
       logger.info(`[Handler ${this.name}] Execution completed in ${duration}ms`);
-      
+
       // Return success response in new format
       return {
         status: 'success',
@@ -139,7 +139,7 @@ export class BaseToolHandler {
       if (error.stack) {
         logger.debug(`[Handler ${this.name}] Error stack: ${error.stack}`);
       }
-      
+
       // Return error response in new format
       return {
         status: 'error',
