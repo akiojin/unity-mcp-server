@@ -87,7 +87,7 @@ export class GameObjectModifyToolHandler extends BaseToolHandler {
     
     // At least one modification must be specified
     const modifiableProps = ['name', 'position', 'rotation', 'scale', 'active', 'parentPath', 'tag', 'layer'];
-    const hasModification = modifiableProps.some(prop => params.hasOwnProperty(prop));
+    const hasModification = modifiableProps.some(prop => Object.prototype.hasOwnProperty.call(params, prop));
     
     if (!hasModification) {
       throw new Error('At least one property to modify must be specified');

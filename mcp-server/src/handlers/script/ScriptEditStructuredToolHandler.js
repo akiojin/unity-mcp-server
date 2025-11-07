@@ -77,7 +77,6 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
         const relative = idx >= 0 ? raw.substring(idx) : raw;
 
         const operation = String(params.operation);
-        const kind = (params.kind || '').toLowerCase();
         const symbolName = String(params.symbolName);
         const preview = params?.preview === true;
         const body = String(params.newText || '');
@@ -114,7 +113,7 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
      * - Caps error items and message lengths
      * - Trims large text fields (e.g., preview/diff) to a short excerpt
      */
-    _summarizeResult(res, { preview }) {
+    _summarizeResult(res, { preview: _preview }) {
         if (!res || typeof res !== 'object') return res;
 
         const MAX_ERRORS = 30;

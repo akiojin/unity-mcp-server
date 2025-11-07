@@ -299,7 +299,6 @@ describe('Enhanced Integration Tests', () => {
 
   describe('MCP Server Integration Tests', () => {
     it('should integrate with MCP server for ping tool', async () => {
-      const logger = createLogger();
       const server = new Server({
         name: 'unity-mcp-test',
         version: '1.0.0'

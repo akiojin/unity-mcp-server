@@ -76,8 +76,6 @@ export class ConsoleReadToolHandler extends BaseToolHandler {
     const {
       count,
       logTypes,
-      filterText,
-      includeStackTrace,
       format,
       sinceTimestamp,
       untilTimestamp,

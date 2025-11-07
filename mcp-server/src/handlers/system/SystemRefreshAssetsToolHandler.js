@@ -24,7 +24,7 @@ export class SystemRefreshAssetsToolHandler extends BaseToolHandler {
    * @param {object} params - Input parameters (none required)
    * @returns {Promise<object>} Refresh result
    */
-  async execute(params) {
+  async execute(_params) {
     // Ensure connected
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();

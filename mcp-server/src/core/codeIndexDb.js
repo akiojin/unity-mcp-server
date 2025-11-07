@@ -1,8 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import Database from 'better-sqlite3';
-import { logger } from './config.js';
-
 let dbCache = new Map();
 
 function getDbPath(projectRoot) {
@@ -93,4 +91,3 @@ export function isFresh(projectRoot, filePath, db) {
     return false;
   }
 }
-

@@ -52,7 +52,10 @@ export class LspProcessManager {
     await new Promise((resolve) => {
       const to = setTimeout(() => {
         try { p.kill('SIGTERM'); } catch {}
-        setTimeout(() => { try { p.kill('SIGKILL'); } catch {} ; resolve(); }, 1000);
+        setTimeout(() => {
+          try { p.kill('SIGKILL'); } catch {}
+          resolve();
+        }, 1000);
       }, Math.max(0, graceMs));
       p.on('close', () => { clearTimeout(to); resolve(); });
     });

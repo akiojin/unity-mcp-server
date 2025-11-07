@@ -38,7 +38,7 @@ export class EditorSelectionManageToolHandler extends BaseToolHandler {
    * Validate the parameters for the selection operation
    */
   validate(params) {
-    const { action, objectPaths, includeDetails } = params;
+    const { action, objectPaths } = params;
 
     // Check action is provided
     if (!action) {
