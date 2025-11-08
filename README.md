@@ -4,7 +4,7 @@ English | [日本語](README.ja.md)
 
 ## Overview
 
-Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on reliable, scriptable workflows with a simple interface and zero- or low-configuration setup.
+Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on reliable, scriptable workflows with a simple interface and zero or low-configuration setup.
 
 ### Feature Specifications
 
@@ -85,6 +85,20 @@ Run `AssetDatabase.Refresh` in Unity manually only when needed.
 Performance
 
 - The server starts and keeps a persistent LSP process by default to avoid cold starts.
+
+## Automated Release Management
+
+This project uses **semantic-release** for fully automated version management and publishing:
+
+- **Version Detection**: Automatically determines version bumps based on Conventional Commits
+  - `fix:` commits → patch version (e.g., 2.26.0 → 2.26.1)
+  - `feat:` commits → minor version (e.g., 2.26.0 → 2.27.0)
+  - `BREAKING CHANGE:` or `feat!:` → major version (e.g., 2.26.0 → 3.0.0)
+- **Release Flow**: develop → release/vX.Y.Z → main
+- **Publishing**: Automated npm, OpenUPM, and GitHub Release publication
+- **Multi-platform Builds**: Automatic csharp-lsp builds for all supported platforms
+
+See [CLAUDE.md](CLAUDE.md) for detailed release workflow documentation.
 
 ## LLM Optimization Principles
 

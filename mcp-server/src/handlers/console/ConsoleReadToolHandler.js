@@ -1,4 +1,4 @@
-import { BaseToolHandler } from '../base/BaseToolHandler.js'
+import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 /**
  * Handler for reading Unity Editor console logs with advanced filtering
@@ -62,9 +62,9 @@ export class ConsoleReadToolHandler extends BaseToolHandler {
         },
         required: []
       }
-    )
+    );
 
-    this.unityConnection = unityConnection
+    this.unityConnection = unityConnection;
   }
 
   /**
@@ -73,36 +73,26 @@ export class ConsoleReadToolHandler extends BaseToolHandler {
    * @throws {Error} If validation fails
    */
   validate(params) {
-    const {
-      count,
-      logTypes,
-      filterText,
-      includeStackTrace,
-      format,
-      sinceTimestamp,
-      untilTimestamp,
-      sortOrder,
-      groupBy
-    } = params
+    const { count, logTypes, format, sinceTimestamp, untilTimestamp, sortOrder, groupBy } = params;
 
     // Validate count
     if (count !== undefined) {
       if (typeof count !== 'number' || count < 1 || count > 1000) {
-        throw new Error('count must be between 1 and 1000')
+        throw new Error('count must be between 1 and 1000');
       }
     }
 
     // Validate log types
     if (logTypes !== undefined) {
       if (!Array.isArray(logTypes)) {
-        throw new Error('logTypes must be an array')
+        throw new Error('logTypes must be an array');
       }
 
-      const validTypes = ['Info', 'Warning', 'Error', 'All']
+      const validTypes = ['Info', 'Warning', 'Error', 'All'];
       for (const type of logTypes) {
         if (!validTypes.includes(type)) {
           // Invalid types are treated as 'All' later, so just log a warning
-          console.warn(`Invalid log type: ${type}. Will be treated as 'All'.`)
+          console.warn(`Invalid log type: ${type}. Will be treated as 'All'.`);
         }
       }
     }
@@ -110,46 +100,46 @@ export class ConsoleReadToolHandler extends BaseToolHandler {
     // Validate timestamps
     if (sinceTimestamp !== undefined) {
       if (!this.isValidISO8601(sinceTimestamp)) {
-        throw new Error('sinceTimestamp must be a valid ISO 8601 timestamp')
+        throw new Error('sinceTimestamp must be a valid ISO 8601 timestamp');
       }
     }
 
     if (untilTimestamp !== undefined) {
       if (!this.isValidISO8601(untilTimestamp)) {
-        throw new Error('untilTimestamp must be a valid ISO 8601 timestamp')
+        throw new Error('untilTimestamp must be a valid ISO 8601 timestamp');
       }
     }
 
     // Validate timestamp order
     if (sinceTimestamp && untilTimestamp) {
-      const since = new Date(sinceTimestamp)
-      const until = new Date(untilTimestamp)
+      const since = new Date(sinceTimestamp);
+      const until = new Date(untilTimestamp);
       if (until <= since) {
-        throw new Error('untilTimestamp must be after sinceTimestamp')
+        throw new Error('untilTimestamp must be after sinceTimestamp');
       }
     }
 
     // Validate format
     if (format !== undefined) {
-      const validFormats = ['detailed', 'compact', 'json', 'plain']
+      const validFormats = ['detailed', 'compact', 'json', 'plain'];
       if (!validFormats.includes(format)) {
-        throw new Error(`format must be one of: ${validFormats.join(', ')}`)
+        throw new Error(`format must be one of: ${validFormats.join(', ')}`);
       }
     }
 
     // Validate sort order
     if (sortOrder !== undefined) {
-      const validOrders = ['newest', 'oldest']
+      const validOrders = ['newest', 'oldest'];
       if (!validOrders.includes(sortOrder)) {
-        throw new Error(`sortOrder must be one of: ${validOrders.join(', ')}`)
+        throw new Error(`sortOrder must be one of: ${validOrders.join(', ')}`);
       }
     }
 
     // Validate groupBy
     if (groupBy !== undefined) {
-      const validGroups = ['none', 'type', 'file', 'time']
+      const validGroups = ['none', 'type', 'file', 'time'];
       if (!validGroups.includes(groupBy)) {
-        throw new Error(`groupBy must be one of: ${validGroups.join(', ')}`)
+        throw new Error(`groupBy must be one of: ${validGroups.join(', ')}`);
       }
     }
   }
@@ -160,13 +150,13 @@ export class ConsoleReadToolHandler extends BaseToolHandler {
    * @returns {boolean} True if valid
    */
   isValidISO8601(timestamp) {
-    const regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/
+    const regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
     if (!regex.test(timestamp)) {
-      return false
+      return false;
     }
 
-    const date = new Date(timestamp)
-    return !isNaN(date.getTime())
+    const date = new Date(timestamp);
+    return !isNaN(date.getTime());
   }
 
   /**
@@ -185,41 +175,41 @@ export class ConsoleReadToolHandler extends BaseToolHandler {
       untilTimestamp,
       sortOrder,
       groupBy
-    } = params
+    } = params;
 
     // Convert simplified log types to Unity log types
-    let expandedLogTypes = []
+    let expandedLogTypes = [];
 
     if (!logTypes || logTypes.length === 0 || logTypes.includes('All')) {
       // Default to all types
-      expandedLogTypes = ['Log', 'Warning', 'Error', 'Exception', 'Assert']
+      expandedLogTypes = ['Log', 'Warning', 'Error', 'Exception', 'Assert'];
     } else {
       // Expand each simplified type to Unity types
       logTypes.forEach(type => {
         switch (type) {
           case 'Info':
-            expandedLogTypes.push('Log')
-            break
+            expandedLogTypes.push('Log');
+            break;
           case 'Warning':
-            expandedLogTypes.push('Warning')
-            break
+            expandedLogTypes.push('Warning');
+            break;
           case 'Error':
             // Error includes all error-related types
-            expandedLogTypes.push('Error', 'Exception', 'Assert')
-            break
+            expandedLogTypes.push('Error', 'Exception', 'Assert');
+            break;
           case 'All':
-            expandedLogTypes.push('Log', 'Warning', 'Error', 'Exception', 'Assert')
-            break
+            expandedLogTypes.push('Log', 'Warning', 'Error', 'Exception', 'Assert');
+            break;
         }
-      })
+      });
 
       // Remove duplicates
-      expandedLogTypes = [...new Set(expandedLogTypes)]
+      expandedLogTypes = [...new Set(expandedLogTypes)];
     }
 
     // Ensure connection to Unity
     if (!this.unityConnection.isConnected()) {
-      await this.unityConnection.connect()
+      await this.unityConnection.connect();
     }
 
     // Prepare command parameters
@@ -230,66 +220,66 @@ export class ConsoleReadToolHandler extends BaseToolHandler {
       format,
       sortOrder,
       groupBy
-    }
+    };
 
     // Add optional parameters
     if (filterText !== undefined) {
-      commandParams.filterText = filterText
+      commandParams.filterText = filterText;
     }
     if (sinceTimestamp !== undefined) {
-      commandParams.sinceTimestamp = sinceTimestamp
+      commandParams.sinceTimestamp = sinceTimestamp;
     }
     if (untilTimestamp !== undefined) {
-      commandParams.untilTimestamp = untilTimestamp
+      commandParams.untilTimestamp = untilTimestamp;
     }
 
     // Send command to Unity
-    const response = await this.unityConnection.sendCommand('read_console', commandParams)
+    const response = await this.unityConnection.sendCommand('read_console', commandParams);
 
     // Handle Unity response
     if (response.success === false) {
-      throw new Error(response.error || 'Failed to read logs')
+      throw new Error(response.error || 'Failed to read logs');
     }
 
     // Build result object
-    const rawLogs = Array.isArray(response.logs) ? response.logs : []
+    const rawLogs = Array.isArray(response.logs) ? response.logs : [];
     const logs = rawLogs.map(log => {
-      const type = log.type ?? log.logType ?? null
+      const type = log.type ?? log.logType ?? null;
       return {
         ...log,
         type,
         logType: log.logType ?? type,
         timestamp: log.timestamp ?? log.time ?? null
-      }
-    })
+      };
+    });
 
-    const totalCaptured = response.totalCaptured ?? response.totalCount ?? logs.length
-    const returnedCount = response.count ?? logs.length
+    const totalCaptured = response.totalCaptured ?? response.totalCount ?? logs.length;
+    const returnedCount = response.count ?? logs.length;
 
     const result = {
       logs,
       count: returnedCount,
       totalCaptured,
       totalCount: totalCaptured
-    }
+    };
 
     // Include optional fields if available
     if (response.filteredCount !== undefined) {
-      result.filteredCount = response.filteredCount
+      result.filteredCount = response.filteredCount;
     }
     if (response.statistics !== undefined) {
-      result.statistics = response.statistics
+      result.statistics = response.statistics;
     }
     if (response.groupedLogs !== undefined) {
-      result.groupedLogs = response.groupedLogs
+      result.groupedLogs = response.groupedLogs;
     }
     if (response.format !== undefined) {
-      result.format = response.format
+      result.format = response.format;
     }
     if (response.groupBy !== undefined) {
-      result.groupBy = response.groupBy
+      result.groupBy = response.groupBy;
     }
 
-    return result
+    return result;
   }
 }

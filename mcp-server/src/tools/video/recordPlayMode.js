@@ -1,5 +1,4 @@
 import { UnityConnection } from '../../core/unityConnection.js';
-import { config } from '../../core/config.js';
 
 async function main() {
   const unity = new UnityConnection();
@@ -16,7 +15,9 @@ async function main() {
     // Domain reload causes disconnect. Reconnect and wait for play.
     for (let i = 0; i < 60; i++) {
       if (!unity.isConnected()) {
-        try { await unity.connect(); } catch {}
+        try {
+          await unity.connect();
+        } catch {}
       }
       try {
         const s = await unity.sendCommand('get_editor_state', {});
@@ -39,19 +40,19 @@ async function main() {
 
     // Poll status a few times
     for (let i = 0; i < 16; i++) {
-      const st = await unity.sendCommand('capture_video_status', {});
-      // console.log('[recordPlayMode] status', st);
+      await unity.sendCommand('capture_video_status', {});
       await new Promise(r => setTimeout(r, 250));
     }
 
     // Ensure stopped
     await unity.sendCommand('capture_video_stop', {});
-
   } catch (e) {
     console.error('[recordPlayMode] error:', e.message);
   } finally {
     try {
-      if (!unity.isConnected()) { await unity.connect(); }
+      if (!unity.isConnected()) {
+        await unity.connect();
+      }
       await unity.sendCommand('stop_game', {});
     } catch {}
     unity.disconnect();

@@ -16,7 +16,7 @@ export class LspProcessManager {
       const rid = this.utils.detectRid();
       const bin = await this.utils.ensureLocal(rid);
       const proc = spawn(bin, { stdio: ['pipe', 'pipe', 'pipe'] });
-      proc.on('error', (e) => logger.error(`[csharp-lsp] process error: ${e.message}`));
+      proc.on('error', e => logger.error(`[csharp-lsp] process error: ${e.message}`));
       proc.on('close', (code, sig) => {
         logger.warn(`[csharp-lsp] exited code=${code} signal=${sig || ''}`);
         this.proc = null;
@@ -29,7 +29,11 @@ export class LspProcessManager {
       logger.info(`[csharp-lsp] started (pid=${proc.pid})`);
       return proc;
     })();
-    try { return await this.starting; } finally { this.starting = null; }
+    try {
+      return await this.starting;
+    } finally {
+      this.starting = null;
+    }
   }
 
   async stop(graceMs = 3000) {
@@ -38,7 +42,7 @@ export class LspProcessManager {
     this.proc = null;
     try {
       // Send LSP shutdown/exit if possible
-      const shutdown = (obj) => {
+      const shutdown = obj => {
         try {
           const json = JSON.stringify(obj);
           const payload = `Content-Length: ${Buffer.byteLength(json, 'utf8')}\r\n\r\n${json}`;
@@ -49,12 +53,25 @@ export class LspProcessManager {
       shutdown({ jsonrpc: '2.0', method: 'exit' });
       p.stdin.end();
     } catch {}
-    await new Promise((resolve) => {
-      const to = setTimeout(() => {
-        try { p.kill('SIGTERM'); } catch {}
-        setTimeout(() => { try { p.kill('SIGKILL'); } catch {} ; resolve(); }, 1000);
-      }, Math.max(0, graceMs));
-      p.on('close', () => { clearTimeout(to); resolve(); });
+    await new Promise(resolve => {
+      const to = setTimeout(
+        () => {
+          try {
+            p.kill('SIGTERM');
+          } catch {}
+          setTimeout(() => {
+            try {
+              p.kill('SIGKILL');
+            } catch {}
+            resolve();
+          }, 1000);
+        },
+        Math.max(0, graceMs)
+      );
+      p.on('close', () => {
+        clearTimeout(to);
+        resolve();
+      });
     });
   }
 }
