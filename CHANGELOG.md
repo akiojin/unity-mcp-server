@@ -1,3 +1,15 @@
+# [2.30.0](https://github.com/akiojin/unity-mcp-server/compare/v2.29.0...v2.30.0) (2025-11-08)
+
+
+### Bug Fixes
+
+* カバレッジ生成のハング問題を解決（test:ciのみに戻す） ([188ffc8](https://github.com/akiojin/unity-mcp-server/commit/188ffc8708f77ac4f366867e6dc3db90b39cc52b))
+
+
+### Features
+
+* ユニットテストのカバレッジレポートとCodecovアップロードを再導入 ([5b7e0ed](https://github.com/akiojin/unity-mcp-server/commit/5b7e0ed374d9b5bb544f9426dcbc68fa5e2d20c9))
+
 # [2.29.0](https://github.com/akiojin/unity-mcp-server/compare/v2.28.0...v2.29.0) (2025-11-08)
 
 

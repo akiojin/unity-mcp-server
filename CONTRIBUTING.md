@@ -1,6 +1,6 @@
-# Contributing to Unity Editor MCP
+# Contributing to Unity MCP Server
 
-Thank you for your interest in contributing to Unity Editor MCP! This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing to Unity MCP Server! This document provides guidelines and instructions for contributing to the project.
 
 ## Getting Started
 

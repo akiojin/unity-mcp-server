@@ -1,4 +1,4 @@
-# Unity Editor MCP
+# Unity MCP Server
 
 AI アシスト開発のための Model Context Protocol (MCP) に対応した Unity エディタ連携パッケージです。
 

@@ -302,7 +302,7 @@ describe('UnityConnection', () => {
 
     it('should skip Unity debug logs', () => {
       assert.doesNotThrow(() => {
-        connection.handleData(Buffer.from('[Unity Editor MCP] Debug message'));
+        connection.handleData(Buffer.from('[Unity MCP Server] Debug message'));
         connection.handleData(Buffer.from('[Unity] Debug message'));
       });
     });

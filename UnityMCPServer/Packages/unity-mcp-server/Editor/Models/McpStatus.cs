@@ -1,7 +1,7 @@
 namespace UnityMCPServer.Models
 {
     /// <summary>
-    /// Represents the connection status of the Unity Editor MCP
+    /// Represents the connection status of the Unity MCP Server
     /// </summary>
     public enum McpStatus
     {
