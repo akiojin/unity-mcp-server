@@ -43,25 +43,6 @@ jobs:
           CI: true
           DISABLE_AUTO_RECONNECT: true
 
-      - name: Generate coverage report
-        run: npm run test:ci:all
-        env:
-          NODE_ENV: test
-          CI: true
-          DISABLE_AUTO_RECONNECT: true
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        continue-on-error: true
-        timeout-minutes: 2
-        with:
-          files: ./mcp-server/coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
   build:
     name: Package
     runs-on: ubuntu-latest
