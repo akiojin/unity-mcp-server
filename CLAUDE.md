@@ -477,6 +477,78 @@ git commit -m "test: Add unit tests"
 - マークダウンファイルはmarkdownlintでエラー及び警告がない状態にする
 - コミットログはcommitlintに対応する
 
+### テストカバレッジ（Codecov）
+
+本プロジェクトは **Codecov** を使用してテストカバレッジを計測・可視化しています。
+
+#### Codecovの役割
+
+Codecovは、テストがコードのどれだけをカバーしているかを計測・追跡するSaaSサービスです。TDD遵守（80%以上のカバレッジ維持）を客観的に測定し、品質保証を支えています。
+
+#### 実装詳細（GitHub Actions連携）
+
+`.github/workflows/test.yml` でカバレッジを自動計測・アップロード：
+
+```yaml
+- name: Generate coverage report
+  run: npm run test:coverage  # c8でlcov.info生成
+
+- name: Upload coverage to Codecov
+  uses: codecov/codecov-action@v4
+  with:
+    files: ./coverage/lcov.info
+    fail_ci_if_error: false  # Codecov障害時もCI通過
+```
+
+**フロー:**
+
+1. `npm run test:coverage` → c8でカバレッジレポート生成（lcov形式）
+2. `codecov-action` → レポートをCodecovにアップロード
+3. Codecov側でカバレッジ可視化・PRコメント追加・トレンドグラフ生成
+
+#### API経由での確認方法
+
+**Codecov API v2 エンドポイント:**
+
+```bash
+# リポジトリの最新カバレッジ情報
+curl "https://codecov.io/api/v2/github/akiojin/repos/unity-mcp-server"
+
+# 特定ブランチのカバレッジ
+curl "https://codecov.io/api/v2/github/akiojin/repos/unity-mcp-server/branches/main"
+
+# PRごとのカバレッジ比較
+curl "https://codecov.io/api/v2/github/akiojin/repos/unity-mcp-server/compare/?pullid=<PR番号>"
+
+# カバレッジトレンド（1日/7日/30日）
+curl "https://codecov.io/api/v2/github/akiojin/repos/unity-mcp-server/coverage-trends"
+```
+
+**認証が必要な場合（プライベートリポジトリ）:**
+
+```bash
+# Codecov.io → Settings → Access → Generate Token
+curl -H "Authorization: Bearer <CODECOV_TOKEN>" \
+  "https://codecov.io/api/v2/github/akiojin/repos/unity-mcp-server"
+```
+
+#### カバレッジバッジ
+
+README.mdにカバレッジバッジを追加する場合：
+
+```markdown
+[![codecov](https://codecov.io/gh/akiojin/unity-mcp-server/branch/main/graph/badge.svg)](https://codecov.io/gh/akiojin/unity-mcp-server)
+```
+
+#### セットアップ（パブリックリポジトリ）
+
+1. <https://codecov.io> にGitHubアカウントでログイン
+2. リポジトリを追加
+3. GitHub Actionsからのレポートを自動検出
+4. 初回ワークフロー完了後、バッジが自動表示
+
+**詳細:** `.github/workflows/README.md` を参照
+
 ## 開発ガイドライン
 
 - 既存のファイルのメンテナンスを無視して、新規ファイルばかり作成するのは禁止。既存ファイルを改修することを優先する。
