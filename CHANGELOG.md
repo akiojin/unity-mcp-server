@@ -1,3 +1,46 @@
+# [2.31.0](https://github.com/akiojin/unity-mcp-server/compare/v2.30.1...v2.31.0) (2025-11-08)
+
+
+### Features
+
+* マイナーリリーステストv2（v2.30.1 → v2.31.0） ([2033ec1](https://github.com/akiojin/unity-mcp-server/commit/2033ec16fe16cba680ad69d14b477b4f6115f659))
+
+## [2.30.1](https://github.com/akiojin/unity-mcp-server/compare/v2.30.0...v2.30.1) (2025-11-08)
+
+
+### Bug Fixes
+
+* パッチリリーステストv2（v2.30.0 → v2.30.1） ([70454f8](https://github.com/akiojin/unity-mcp-server/commit/70454f84b38b040c30ef20d2b5dfd90ce1d6929f))
+
+# [2.30.0](https://github.com/akiojin/unity-mcp-server/compare/v2.29.0...v2.30.0) (2025-11-08)
+
+
+### Bug Fixes
+
+* カバレッジ生成のハング問題を解決（test:ciのみに戻す） ([188ffc8](https://github.com/akiojin/unity-mcp-server/commit/188ffc8708f77ac4f366867e6dc3db90b39cc52b))
+
+
+### Features
+
+* ユニットテストのカバレッジレポートとCodecovアップロードを再導入 ([5b7e0ed](https://github.com/akiojin/unity-mcp-server/commit/5b7e0ed374d9b5bb544f9426dcbc68fa5e2d20c9))
+
+# [2.29.0](https://github.com/akiojin/unity-mcp-server/compare/v2.28.0...v2.29.0) (2025-11-08)
+
+
+### Bug Fixes
+
+* Codecovアップロードにタイムアウトを設定してCI高速化 ([843c1d1](https://github.com/akiojin/unity-mcp-server/commit/843c1d175a05f365122e3917506db02e59cee257))
+* Codecovアップロードにタイムアウトを設定してCI高速化 (test.yml) ([0945de6](https://github.com/akiojin/unity-mcp-server/commit/0945de6756cc2b73ceb7e2cc18429f26012bfb87))
+* test:coverageにもDISABLE_AUTO_RECONNECTを設定してハング問題を解決 ([5028c0c](https://github.com/akiojin/unity-mcp-server/commit/5028c0ca01c934ab69bce56751e41e53fe9cca14))
+* カバレッジ生成ステップを削除してCIハング問題を解決 ([44d4188](https://github.com/akiojin/unity-mcp-server/commit/44d4188df21cb741b80d9176f686087517cca61b))
+* カバレッジ生成で統合テストを除外してハング問題を解決 ([8cd589e](https://github.com/akiojin/unity-mcp-server/commit/8cd589edc21517b6ceba82b1b728a76059c1a8ab))
+* テストファイルを追加してパッチリリースをテスト ([f31c78b](https://github.com/akiojin/unity-mcp-server/commit/f31c78b76d8900a8b1adf8f0690674636fd8b07e))
+
+
+### Features
+
+* テストファイルを追加してマイナーリリースをテスト ([356f2a1](https://github.com/akiojin/unity-mcp-server/commit/356f2a176397a9a3a73979188b5bb30e7ee97eb7))
+
 # [2.28.0](https://github.com/akiojin/unity-mcp-server/compare/v2.27.2...v2.28.0) (2025-11-07)
 
 

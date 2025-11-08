@@ -1,0 +1,3 @@
+# Test file for minor release v2
+# This file is used to test minor version increment (feat: commits)
+# Expected: v2.30.1 → v2.31.0

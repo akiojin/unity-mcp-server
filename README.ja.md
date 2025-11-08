@@ -1,10 +1,10 @@
-# Unity Editor MCP
+# Unity MCP Server
 
 [English](README.md) | 日本語
 
 ## 概要
 
-Unity Editor MCP は、LLMクライアントからUnity Editorを自動化します。シンプルなインターフェースで、安全で再現性の高いエディタ操作を実現します。
+Unity MCP Server は、LLMクライアントからUnity Editorを自動化します。シンプルなインターフェースで、安全で再現性の高いエディタ操作を実現します。
 
 ### 機能仕様書
 
@@ -292,7 +292,7 @@ sequenceDiagram
 | `server.version` | string | `0.1.0` | サーバーのバージョン文字列。 | — |
 | `server.description` | string | `MCP server for Unity Editor integration` | サーバーの説明。 | — |
 | `logging.level` | string | `process.env.LOG_LEVEL` または `info` | 標準エラーへのログ出力レベル。 | `debug` / `info` / `warn` |
-| `logging.prefix` | string | `[Unity Editor MCP]` | ログのプレフィックス。 | — |
+| `logging.prefix` | string | `[Unity MCP Server]` | ログのプレフィックス。 | — |
 | `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` または `compact` | 検索の既定詳細度。`compact` は `snippets` のエイリアス。 | `compact` / `metadata` / `snippets` / `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` または `naive` | 検索エンジンの実装。 | `naive`（将来的に `treesitter` 予定） |
 
