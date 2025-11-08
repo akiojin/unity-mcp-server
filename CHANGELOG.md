@@ -1,3 +1,10 @@
+## [2.30.1](https://github.com/akiojin/unity-mcp-server/compare/v2.30.0...v2.30.1) (2025-11-08)
+
+
+### Bug Fixes
+
+* パッチリリーステストv2（v2.30.0 → v2.30.1） ([70454f8](https://github.com/akiojin/unity-mcp-server/commit/70454f84b38b040c30ef20d2b5dfd90ce1d6929f))
+
 # [2.30.0](https://github.com/akiojin/unity-mcp-server/compare/v2.29.0...v2.30.0) (2025-11-08)
 
 
