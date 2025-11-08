@@ -26,7 +26,7 @@ describe('Config', () => {
 
     it('should have correct logging settings', () => {
       assert.equal(config.logging.level, 'info');
-      assert.equal(config.logging.prefix, '[Unity Editor MCP]');
+      assert.equal(config.logging.prefix, '[Unity MCP Server]');
     });
 
     it('should load mcpHost and unityHost from external config', async () => {
@@ -312,13 +312,13 @@ describe('Config', () => {
     it('should log info messages', () => {
       logger.info('Test info message');
       assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[Unity Editor MCP\] Test info message/);
+      assert.match(errorOutput[0], /\[Unity MCP Server\] Test info message/);
     });
 
     it('should log error messages', () => {
       logger.error('Test error message');
       assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[Unity Editor MCP\] ERROR: Test error message/);
+      assert.match(errorOutput[0], /\[Unity MCP Server\] ERROR: Test error message/);
     });
 
     it('should log error with error object', () => {
@@ -341,7 +341,7 @@ describe('Config', () => {
 
       logger.debug('Debug message');
       assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[Unity Editor MCP\] DEBUG: Debug message/);
+      assert.match(errorOutput[0], /\[Unity MCP Server\] DEBUG: Debug message/);
 
       // Restore original level
       config.logging.level = originalLevel;
@@ -350,7 +350,7 @@ describe('Config', () => {
     it('should log warn messages when level is info', () => {
       logger.warn('Warning message');
       assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[Unity Editor MCP\] WARN: Warning message/);
+      assert.match(errorOutput[0], /\[Unity MCP Server\] WARN: Warning message/);
     });
 
     it('should log warn messages when level is warn', () => {
@@ -360,7 +360,7 @@ describe('Config', () => {
 
       logger.warn('Warning message');
       assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[Unity Editor MCP\] WARN: Warning message/);
+      assert.match(errorOutput[0], /\[Unity MCP Server\] WARN: Warning message/);
 
       // Restore original level
       config.logging.level = originalLevel;
@@ -381,7 +381,7 @@ describe('Config', () => {
     it('should handle multiple arguments in logger methods', () => {
       logger.info('Message', { key: 'value' }, 123);
       assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[Unity Editor MCP\] Message/);
+      assert.match(errorOutput[0], /\[Unity MCP Server\] Message/);
       // Note: The logger uses console.error(...args) which joins them with spaces
       // So the output will contain the stringified object and number
       assert(errorOutput[0].includes('[object Object]') || errorOutput[0].includes('value'));
