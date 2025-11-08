@@ -18,7 +18,7 @@ function merge(a, b) {
 }
 
 /**
- * Base configuration for Unity Editor MCP Server
+ * Base configuration for Unity MCP Server Server
  */
 const envUnityHost =
   process.env.UNITY_UNITY_HOST ||
@@ -57,7 +57,7 @@ const baseConfig = {
   // Logging settings
   logging: {
     level: process.env.LOG_LEVEL || 'info',
-    prefix: '[Unity Editor MCP]',
+    prefix: '[Unity MCP Server]',
   },
 
   // Write queue removed: all edits go through structured Roslyn tools.

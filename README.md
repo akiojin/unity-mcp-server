@@ -1,10 +1,10 @@
-# Unity Editor MCP
+# Unity MCP Server
 
 English | [日本語](README.ja.md)
 
 ## Overview
 
-Unity Editor MCP lets LLM-based clients automate the Unity Editor. It focuses on reliable, scriptable workflows with a simple interface and zero or low-configuration setup.
+Unity MCP Server lets LLM-based clients automate the Unity Editor. It focuses on reliable, scriptable workflows with a simple interface and zero or low-configuration setup.
 
 ### Feature Specifications
 
@@ -306,7 +306,7 @@ Tip: Prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.json` to make discovery e
 | `server.version` | string | `0.1.0` | Server version string. | — |
 | `server.description` | string | `MCP server for Unity Editor integration` | Human-readable description. | — |
 | `logging.level` | string | `process.env.LOG_LEVEL` or `info` | Log verbosity for stderr logging. | `debug`, `info`, `warn` |
-| `logging.prefix` | string | `[Unity Editor MCP]` | Log prefix used in stderr. | — |
+| `logging.prefix` | string | `[Unity MCP Server]` | Log prefix used in stderr. | — |
 | `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` or `compact` | Default return detail for search; `compact` maps to `snippets`. | `compact`, `metadata`, `snippets`, `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` or `naive` | Search engine implementation. | `naive` (treesitter planned) |
 

@@ -33,7 +33,7 @@ namespace UnityMCPServer.Logging
             {
                 Application.logMessageReceived += HandleLog;
                 isCapturing = true;
-                Debug.Log("[Unity Editor MCP] Log capture started");
+                Debug.Log("[Unity MCP Server] Log capture started");
             }
         }
 
