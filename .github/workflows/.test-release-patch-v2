@@ -1,0 +1,4 @@
+# Test file for patch release v2
+# This file is used to test patch version increment (fix: commits)
+# Expected: v2.30.0 → v2.30.1
+
