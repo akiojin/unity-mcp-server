@@ -43,6 +43,8 @@ jobs:
     
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
+      continue-on-error: true
+      timeout-minutes: 2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         working-directory: ./mcp-server
