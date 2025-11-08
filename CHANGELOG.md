@@ -1,3 +1,20 @@
+# [2.29.0](https://github.com/akiojin/unity-mcp-server/compare/v2.28.0...v2.29.0) (2025-11-08)
+
+
+### Bug Fixes
+
+* Codecovアップロードにタイムアウトを設定してCI高速化 ([843c1d1](https://github.com/akiojin/unity-mcp-server/commit/843c1d175a05f365122e3917506db02e59cee257))
+* Codecovアップロードにタイムアウトを設定してCI高速化 (test.yml) ([0945de6](https://github.com/akiojin/unity-mcp-server/commit/0945de6756cc2b73ceb7e2cc18429f26012bfb87))
+* test:coverageにもDISABLE_AUTO_RECONNECTを設定してハング問題を解決 ([5028c0c](https://github.com/akiojin/unity-mcp-server/commit/5028c0ca01c934ab69bce56751e41e53fe9cca14))
+* カバレッジ生成ステップを削除してCIハング問題を解決 ([44d4188](https://github.com/akiojin/unity-mcp-server/commit/44d4188df21cb741b80d9176f686087517cca61b))
+* カバレッジ生成で統合テストを除外してハング問題を解決 ([8cd589e](https://github.com/akiojin/unity-mcp-server/commit/8cd589edc21517b6ceba82b1b728a76059c1a8ab))
+* テストファイルを追加してパッチリリースをテスト ([f31c78b](https://github.com/akiojin/unity-mcp-server/commit/f31c78b76d8900a8b1adf8f0690674636fd8b07e))
+
+
+### Features
+
+* テストファイルを追加してマイナーリリースをテスト ([356f2a1](https://github.com/akiojin/unity-mcp-server/commit/356f2a176397a9a3a73979188b5bb30e7ee97eb7))
+
 # [2.28.0](https://github.com/akiojin/unity-mcp-server/compare/v2.27.2...v2.28.0) (2025-11-07)
 
 
