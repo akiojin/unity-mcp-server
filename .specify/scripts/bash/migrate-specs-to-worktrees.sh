@@ -52,6 +52,12 @@ for spec_dir in $SPEC_DIRS; do
         continue
     }
 
+    # Fetch latest tags to ensure worktree has up-to-date tag information
+    echo "  → Fetching latest tags..."
+    cd "$WORKTREE_DIR"
+    git fetch --tags origin 2>/dev/null || echo "  ⚠️  Tag fetch failed (non-fatal)"
+    cd "$REPO_ROOT"
+
     # Copy existing SPEC content to worktree
     echo "  → Copying SPEC content to worktree..."
     mkdir -p "$WORKTREE_DIR/specs/$SPEC_ID"

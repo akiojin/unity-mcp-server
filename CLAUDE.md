@@ -472,6 +472,40 @@ git commit -m "test: Add unit tests"
 - **バージョンが不正**: semantic-releaseのログを確認
 - **Unity Packageバージョン同期失敗**: sync-unity-package-version.jsのログを確認
 
+### Git操作のベストプラクティス
+
+#### タグの同期
+
+**問題**: `git pull --tags`はGit設定によって期待通りに動作しない場合があります。
+
+**推奨される正しいコマンド**:
+
+```bash
+# ❌ 非推奨（動作が不安定）
+git pull --tags origin develop
+
+# ✅ 推奨（タグのみ取得）
+git fetch --tags origin
+
+# ✅ 推奨（タグ + ブランチ更新）
+git fetch --tags origin && git pull origin develop
+
+# ✅ タグ競合時（強制上書き）
+git fetch --tags --force origin
+```
+
+**理由**:
+
+- `git pull`は`git fetch` + `git merge`だが、`--tags`フラグが無視される場合がある
+- `remote.origin.tagOpt`設定に依存し、環境によって動作が異なる
+- タグの取得は`git fetch --tags`で明示的に行うのが確実
+
+**運用ルール**:
+
+- Worktree作成後は必ず`git fetch --tags origin`を実行
+- タグに基づく操作（リリース、バージョン確認）前に必ずfetch
+- ローカルタグとリモートタグの不一致を検出したら即座に`git fetch --tags --force origin`
+
 ## コードクオリティガイドライン
 
 - マークダウンファイルはmarkdownlintでエラー及び警告がない状態にする
