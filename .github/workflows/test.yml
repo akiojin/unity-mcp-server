@@ -51,6 +51,8 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
+        continue-on-error: true
+        timeout-minutes: 2
         with:
           files: ./coverage/lcov.info
           flags: unittests
