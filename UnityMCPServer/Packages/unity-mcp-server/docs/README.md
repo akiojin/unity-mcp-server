@@ -1,4 +1,4 @@
-# Unity Editor MCP
+# Unity MCP Server
 
 Read this in Japanese: [README.ja.md](./README.ja.md)
 

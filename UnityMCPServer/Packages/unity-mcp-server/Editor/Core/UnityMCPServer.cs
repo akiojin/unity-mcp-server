@@ -20,7 +20,7 @@ using System.Linq;
 namespace UnityMCPServer.Core
 {
     /// <summary>
-    /// Main Unity Editor MCP class that handles TCP communication and command processing
+    /// Main Unity MCP Server class that handles TCP communication and command processing
     /// </summary>
     [InitializeOnLoad]
     public static class UnityMCPServer
@@ -48,7 +48,7 @@ namespace UnityMCPServer.Core
                 if (_status != value)
                 {
                     _status = value;
-                    Debug.Log($"[Unity Editor MCP] Status changed to: {value}");
+                    Debug.Log($"[Unity MCP Server] Status changed to: {value}");
                 }
             }
         }
@@ -64,7 +64,7 @@ namespace UnityMCPServer.Core
         /// </summary>
         static UnityMCPServer()
         {
-            Debug.Log("[Unity Editor MCP] Initializing...");
+            Debug.Log("[Unity MCP Server] Initializing...");
             EditorApplication.update += ProcessCommandQueue;
             EditorApplication.quitting += Shutdown;
             
@@ -144,22 +144,22 @@ namespace UnityMCPServer.Core
                             {
                                 minEditorStateIntervalMs = minMs;
                             }
-                            Debug.Log($"[Unity Editor MCP] Config loaded from {path}: bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
+                            Debug.Log($"[Unity MCP Server] Config loaded from {path}: bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
                             return;
                         }
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogWarning($"[Unity Editor MCP] Failed to load config '{path}': {ex.Message}");
+                        Debug.LogWarning($"[Unity MCP Server] Failed to load config '{path}': {ex.Message}");
                     }
                 }
 
                 // No config found; keep default
-                Debug.Log($"[Unity Editor MCP] No external config found. Using default bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
+                Debug.Log($"[Unity MCP Server] No external config found. Using default bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[Unity Editor MCP] Config load error: {ex.Message}. Using default bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
+                Debug.LogWarning($"[Unity MCP Server] Config load error: {ex.Message}. Using default bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
             }
         }
 
@@ -236,7 +236,7 @@ namespace UnityMCPServer.Core
                 tcpListener.Start();
                 
                 Status = McpStatus.Disconnected;
-                Debug.Log($"[Unity Editor MCP] TCP listener binding on {bindAddress}:{currentPort} (mcpHost={currentHost})");
+                Debug.Log($"[Unity MCP Server] TCP listener binding on {bindAddress}:{currentPort} (mcpHost={currentHost})");
                 
                 // Start accepting connections asynchronously
                 listenerTask = Task.Run(() => AcceptConnectionsAsync(cancellationTokenSource.Token));
@@ -244,17 +244,17 @@ namespace UnityMCPServer.Core
             catch (SocketException ex)
             {
                 Status = McpStatus.Error;
-                Debug.LogError($"[Unity Editor MCP] Failed to start TCP listener on port {currentPort}: {ex.Message}");
+                Debug.LogError($"[Unity MCP Server] Failed to start TCP listener on port {currentPort}: {ex.Message}");
                 
                 if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
                 {
-                    Debug.LogError($"[Unity Editor MCP] Port {currentPort} is already in use. Please ensure no other instance is running.");
+                    Debug.LogError($"[Unity MCP Server] Port {currentPort} is already in use. Please ensure no other instance is running.");
                 }
             }
             catch (Exception ex)
             {
                 Status = McpStatus.Error;
-                Debug.LogError($"[Unity Editor MCP] Unexpected error starting TCP listener: {ex}");
+                Debug.LogError($"[Unity MCP Server] Unexpected error starting TCP listener: {ex}");
             }
         }
         
@@ -274,11 +274,11 @@ namespace UnityMCPServer.Core
                 listenerTask = null;
                 
                 Status = McpStatus.Disconnected;
-                Debug.Log("[Unity Editor MCP] TCP listener stopped");
+                Debug.Log("[Unity MCP Server] TCP listener stopped");
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[Unity Editor MCP] Error stopping TCP listener: {ex}");
+                Debug.LogError($"[Unity MCP Server] Error stopping TCP listener: {ex}");
             }
         }
         
@@ -295,7 +295,7 @@ namespace UnityMCPServer.Core
                     if (tcpClient != null)
                     {
                         Status = McpStatus.Connected;
-                        Debug.Log($"[Unity Editor MCP] Client connected from {tcpClient.Client.RemoteEndPoint}");
+                        Debug.Log($"[Unity MCP Server] Client connected from {tcpClient.Client.RemoteEndPoint}");
                         
                         // Handle client in a separate task
                         _ = Task.Run(() => HandleClientAsync(tcpClient, cancellationToken));
@@ -310,7 +310,7 @@ namespace UnityMCPServer.Core
                 {
                     if (!cancellationToken.IsCancellationRequested)
                     {
-                        Debug.LogError($"[Unity Editor MCP] Error accepting connection: {ex}");
+                        Debug.LogError($"[Unity MCP Server] Error accepting connection: {ex}");
                     }
                 }
             }
@@ -428,7 +428,7 @@ namespace UnityMCPServer.Core
             {
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    Debug.LogError($"[Unity Editor MCP] Client handler error: {ex}");
+                    Debug.LogError($"[Unity MCP Server] Client handler error: {ex}");
                 }
             }
             finally
@@ -438,7 +438,7 @@ namespace UnityMCPServer.Core
                 {
                     Status = McpStatus.Disconnected;
                 }
-                Debug.Log("[Unity Editor MCP] Client disconnected");
+                Debug.Log("[Unity MCP Server] Client disconnected");
             }
         }
         
@@ -458,7 +458,7 @@ namespace UnityMCPServer.Core
             }
             catch (Exception ex)
             {
-                try { Debug.LogError($"[Unity Editor MCP] Send error: {ex}"); } catch { }
+                try { Debug.LogError($"[Unity MCP Server] Send error: {ex}"); } catch { }
                 throw;
             }
         }
@@ -982,7 +982,7 @@ namespace UnityMCPServer.Core
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[Unity Editor MCP] Error processing command {command}: {ex}");
+                Debug.LogError($"[Unity MCP Server] Error processing command {command}: {ex}");
                 
                 try
                 {
@@ -1016,7 +1016,7 @@ namespace UnityMCPServer.Core
         /// </summary>
         private static void Shutdown()
         {
-            Debug.Log("[Unity Editor MCP] Shutting down...");
+            Debug.Log("[Unity MCP Server] Shutting down...");
             StopTcpListener();
             EditorApplication.update -= ProcessCommandQueue;
             EditorApplication.quitting -= Shutdown;
@@ -1051,7 +1051,7 @@ namespace UnityMCPServer.Core
         /// </summary>
         public static void Restart()
         {
-            Debug.Log("[Unity Editor MCP] Restarting...");
+            Debug.Log("[Unity MCP Server] Restarting...");
             StopTcpListener();
             StartTcpListener();
         }
@@ -1063,7 +1063,7 @@ namespace UnityMCPServer.Core
         {
             if (newPort < 1024 || newPort > 65535)
             {
-                Debug.LogError($"[Unity Editor MCP] Invalid port number: {newPort}. Must be between 1024 and 65535.");
+                Debug.LogError($"[Unity MCP Server] Invalid port number: {newPort}. Must be between 1024 and 65535.");
                 return;
             }
             

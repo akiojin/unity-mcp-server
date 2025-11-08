@@ -3,7 +3,7 @@
   "displayName": "Unity MCP Server",
   "version": "2.28.0",
   "unity": "6000.0",
-  "description": "Unity Editor MCP bridge and tooling for AI-assisted development (screenshots, video capture, scene analysis, input automation).",
+  "description": "Unity MCP Server bridge and tooling for AI-assisted development (screenshots, video capture, scene analysis, input automation).",
   "keywords": [
     "mcp",
     "ai",

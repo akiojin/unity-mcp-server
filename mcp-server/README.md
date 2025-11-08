@@ -1,4 +1,4 @@
-# Unity Editor MCP Server
+# Unity MCP Server
 
 MCP (Model Context Protocol) server for Unity Editor integration. Enables AI assistants like Claude and Cursor to interact directly with Unity Editor for automated game development.
 
