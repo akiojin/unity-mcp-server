@@ -44,7 +44,7 @@ jobs:
           DISABLE_AUTO_RECONNECT: true
 
       - name: Generate coverage report
-        run: npm run test:coverage
+        run: npm run test:ci:all
         env:
           NODE_ENV: test
           CI: true
