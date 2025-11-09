@@ -1,3 +1,17 @@
+# [2.32.0](https://github.com/akiojin/unity-mcp-server/compare/v2.31.0...v2.32.0) (2025-11-09)
+
+
+### Bug Fixes
+
+* カバレッジ閾値エラーでCIが失敗しないように修正 ([6ac4dc9](https://github.com/akiojin/unity-mcp-server/commit/6ac4dc94fc65a72e9e82c30cf6768100355f97ee))
+* タグ同期問題の再発防止策を追加 ([10f3378](https://github.com/akiojin/unity-mcp-server/commit/10f3378085d3530b8927d3373c12ac2cc7013e3b))
+
+
+### Features
+
+* OpenUPMページでREADME表示対応を追加 ([4b3d08e](https://github.com/akiojin/unity-mcp-server/commit/4b3d08e1e5cb35ea3d855b7a3d35c0a0723bd241))
+* test:ciと同じファイルのみでカバレッジ生成してCodecov再導入 ([cfa2767](https://github.com/akiojin/unity-mcp-server/commit/cfa27674c0a4f1ac464db8273ad1c0bd38dae49b))
+
 # [2.31.0](https://github.com/akiojin/unity-mcp-server/compare/v2.30.1...v2.31.0) (2025-11-08)
 
 
