@@ -525,7 +525,7 @@ Codecovは、テストがコードのどれだけをカバーしているかを�
 
 ```yaml
 - name: Generate coverage report
-  run: npm run test:coverage  # c8でlcov.info生成
+  run: pnpm run test:coverage  # c8でlcov.info生成
 
 - name: Upload coverage to Codecov
   uses: codecov/codecov-action@v4
@@ -536,7 +536,7 @@ Codecovは、テストがコードのどれだけをカバーしているかを�
 
 **フロー:**
 
-1. `npm run test:coverage` → c8でカバレッジレポート生成（lcov形式）
+1. `pnpm run test:coverage` → c8でカバレッジレポート生成（lcov形式）
 2. `codecov-action` → レポートをCodecovにアップロード
 3. Codecov側でカバレッジ可視化・PRコメント追加・トレンドグラフ生成
 
