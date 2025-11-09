@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Claude Code PreToolUse Hook: Block git branch operations and cd to repository root
-# このスクリプトは git checkout, git switch, git branch, git worktree コマンドと
-# リポジトリルートへの cd コマンドをブロックします
+# Claude Code PreToolUse Hook: Block git branch operations
+# このスクリプトは git checkout, git switch, git branch, git worktree コマンドをブロックします
 
 # 配列内に値が含まれているかを判定
 contains_element() {
@@ -145,49 +144,6 @@ while IFS= read -r segment; do
         continue
     fi
 
-    # cdコマンドで起動ディレクトリより上への移動をチェック
-    if echo "$trimmed_segment" | grep -qE '^cd\s+'; then
-        cd_target=$(echo "$trimmed_segment" | sed -E 's/^cd[[:space:]]+//; s/^"//; s/"$//; s/^'\''//; s/'\''$//')
-
-        # 起動ディレクトリ（PWDの初期値）を取得
-        # INITIAL_PWDが設定されていない場合は現在のPWDを使用
-        initial_pwd="${INITIAL_PWD:-$PWD}"
-
-        # 絶対パスに変換してチェック（cd_targetが相対パスの場合も対応）
-        if [[ "$cd_target" == /* ]]; then
-            # 絶対パスの場合
-            resolved_target="$cd_target"
-        else
-            # 相対パスの場合は現在のディレクトリ基準で解決
-            resolved_target="$initial_pwd/$cd_target"
-        fi
-
-        # パスを正規化（..や.を解決）
-        resolved_target=$(cd "$initial_pwd" 2>/dev/null && cd "$cd_target" 2>/dev/null && pwd 2>/dev/null || echo "INVALID")
-
-        # 解決できなかった場合はスキップ（cdコマンド自体がエラーになるため）
-        if [[ "$resolved_target" == "INVALID" ]]; then
-            continue
-        fi
-
-        # 起動ディレクトリより上の階層への移動を検出
-        # resolved_targetがinitial_pwdで始まらない場合はブロック
-        if [[ "$resolved_target" != "$initial_pwd"* ]]; then
-            cat <<EOF
-{
-  "decision": "block",
-  "reason": "🚫 起動ディレクトリより上への cd は禁止されています / cd above startup directory is not allowed",
-  "stopReason": "Worktree運用では、起動ディレクトリ ($initial_pwd) より上の階層への移動は禁止されています。\n\nReason: In Worktree operation, moving above the startup directory ($initial_pwd) is not allowed.\n\nBlocked command: $command\nResolved path: $resolved_target"
-}
-EOF
-            echo "🚫 ブロック: $command" >&2
-            echo "理由: 起動ディレクトリより上への cd は禁止されています。" >&2
-            echo "起動ディレクトリ: $initial_pwd" >&2
-            echo "移動先: $resolved_target" >&2
-            exit 2  # ブロック
-        fi
-    fi
-
     # ブランチ切り替え/作成/worktreeコマンドをチェック
     if echo "$trimmed_segment" | grep -qE '^git\s+(checkout|switch|branch|worktree)\b'; then
         if echo "$trimmed_segment" | grep -qE '^git\s+branch\b'; then
@@ -200,14 +156,14 @@ EOF
         cat <<EOF
 {
   "decision": "block",
-  "reason": "🚫 ブランチ切り替え・作成・worktreeコマンドは禁止されています / Branch switching, creation, and worktree commands are not allowed",
-  "stopReason": "Worktreeは起動したブランチで作業を完結させる設計です。git checkout、git switch、git branch、git worktree 等の操作は実行できません。\n\nReason: Worktree is designed to complete work on the launched branch. Branch operations such as git checkout, git switch, git branch, and git worktree cannot be executed.\n\nBlocked command: $command"
+  "reason": "🚫 Branch switching, creation, and worktree commands are not allowed",
+  "stopReason": "Worktree is designed to complete work on the launched branch. Branch operations such as git checkout, git switch, git branch, and git worktree cannot be executed.\n\nBlocked command: $command"
 }
 EOF
 
     # stderrにもメッセージを出力
-    echo "🚫 ブロック: $command" >&2
-    echo "理由: Worktreeは起動したブランチで作業を完結させる設計です。" >&2
+    echo "🚫 Blocked: $command" >&2
+    echo "Reason: Worktree is designed to complete work on the launched branch." >&2
 
     exit 2  # ブロック
     fi
