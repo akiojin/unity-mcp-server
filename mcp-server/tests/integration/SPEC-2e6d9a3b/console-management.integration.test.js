@@ -7,7 +7,7 @@
  * - TCP接続がlocalhost:6400で待機している
  *
  * 実行方法:
- * npm run test:integration -- tests/integration/SPEC-2e6d9a3b/*.test.js
+ * pnpm run test:integration -- tests/integration/SPEC-2e6d9a3b/*.test.js
  */
 
 import { describe, it, before, after, beforeEach } from 'node:test';
@@ -88,8 +88,7 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
       const result = await readHandler.execute({});
 
       // Then: 最大100件まで
-      assert.ok(result.logs.length <= 100,
-        `Should return max 100 logs, got ${result.logs.length}`);
+      assert.ok(result.logs.length <= 100, `Should return max 100 logs, got ${result.logs.length}`);
       console.log(`  ✓ Default count limit respected: ${result.logs.length} logs`);
     });
 
@@ -98,8 +97,7 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
       const result = await readHandler.execute({ count: 10 });
 
       // Then: 最大10件まで
-      assert.ok(result.logs.length <= 10,
-        `Should return max 10 logs, got ${result.logs.length}`);
+      assert.ok(result.logs.length <= 10, `Should return max 10 logs, got ${result.logs.length}`);
       console.log(`  ✓ Count=10 limit respected: ${result.logs.length} logs`);
     });
 
@@ -108,8 +106,10 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
       const result = await readHandler.execute({ count: 1000 });
 
       // Then: 最大1000件まで
-      assert.ok(result.logs.length <= 1000,
-        `Should return max 1000 logs, got ${result.logs.length}`);
+      assert.ok(
+        result.logs.length <= 1000,
+        `Should return max 1000 logs, got ${result.logs.length}`
+      );
       console.log(`  ✓ Count=1000 limit respected: ${result.logs.length} logs`);
     });
 
@@ -117,7 +117,11 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
       // When/Then: count=0で拒否される
       const response = await readHandler.handle({ count: 0 });
       assert.equal(response.status, 'error', 'Should return error status for count < 1');
-      assert.match(response.error ?? '', /count.*1.*1000|invalid.*count/i, 'Error message should reference count range');
+      assert.match(
+        response.error ?? '',
+        /count.*1.*1000|invalid.*count/i,
+        'Error message should reference count range'
+      );
       console.log('  ✓ Count=0 rejected as expected');
     });
 
@@ -125,7 +129,11 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
       // When/Then: count=2000で拒否される
       const response = await readHandler.handle({ count: 2000 });
       assert.equal(response.status, 'error', 'Should return error status for count > 1000');
-      assert.match(response.error ?? '', /count.*1.*1000|invalid.*count/i, 'Error message should reference count range');
+      assert.match(
+        response.error ?? '',
+        /count.*1.*1000|invalid.*count/i,
+        'Error message should reference count range'
+      );
       console.log('  ✓ Count=2000 rejected as expected');
     });
   });
@@ -191,8 +199,8 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
 
       // Then: エラーまたは警告のみ返される（ログが存在する場合）
       if (result.logs.length > 0) {
-        const allErrorsOrWarnings = result.logs.every(log =>
-          log.type === 'Error' || log.type === 'Warning'
+        const allErrorsOrWarnings = result.logs.every(
+          log => log.type === 'Error' || log.type === 'Warning'
         );
         assert.ok(allErrorsOrWarnings, 'All logs should be Error or Warning type');
         console.log(`  ✓ Multi-type filter applied: ${result.logs.length} logs`);
@@ -232,8 +240,10 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
       if (result.logs.length >= 2) {
         const firstTimestamp = new Date(result.logs[0].timestamp);
         const lastTimestamp = new Date(result.logs[result.logs.length - 1].timestamp);
-        assert.ok(firstTimestamp >= lastTimestamp,
-          'First log should be newer than or equal to last log');
+        assert.ok(
+          firstTimestamp >= lastTimestamp,
+          'First log should be newer than or equal to last log'
+        );
         console.log('  ✓ Logs sorted newest first');
       } else {
         console.log('  ⚠ Not enough logs to verify sort order');
@@ -248,8 +258,10 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
       if (result.logs.length >= 2) {
         const firstTimestamp = new Date(result.logs[0].timestamp);
         const lastTimestamp = new Date(result.logs[result.logs.length - 1].timestamp);
-        assert.ok(firstTimestamp <= lastTimestamp,
-          'First log should be older than or equal to last log');
+        assert.ok(
+          firstTimestamp <= lastTimestamp,
+          'First log should be older than or equal to last log'
+        );
         console.log('  ✓ Logs sorted oldest first');
       } else {
         console.log('  ⚠ Not enough logs to verify sort order');
@@ -299,7 +311,8 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
     it('should clear console logs', async () => {
       // Given: 現在のログ数を取得
       const beforeClear = await readHandler.execute({});
-      const initialCount = beforeClear.totalCount ?? beforeClear.totalCaptured ?? beforeClear.count ?? 0;
+      const initialCount =
+        beforeClear.totalCount ?? beforeClear.totalCaptured ?? beforeClear.count ?? 0;
       console.log(`  Initial log count: ${initialCount}`);
 
       // When: クリア実行
@@ -312,8 +325,10 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
       // Then: ログ数が減少または0
       const afterClear = await readHandler.execute({});
       const finalCount = afterClear.totalCount ?? afterClear.totalCaptured ?? afterClear.count ?? 0;
-      assert.ok(finalCount <= initialCount,
-        `Log count should decrease or stay same: ${initialCount} -> ${finalCount}`);
+      assert.ok(
+        finalCount <= initialCount,
+        `Log count should decrease or stay same: ${initialCount} -> ${finalCount}`
+      );
       console.log(`  ✓ Log count after clear: ${finalCount}`);
     });
   });
@@ -334,8 +349,7 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
 
       // Then: エラーログが残っている
       const afterClear = await readHandler.execute({ logTypes: ['Error'] });
-      assert.strictEqual(afterClear.logs.length, errorCount,
-        'Error logs should be preserved');
+      assert.strictEqual(afterClear.logs.length, errorCount, 'Error logs should be preserved');
       console.log(`  ✓ ${errorCount} error logs preserved`);
     });
   });
@@ -350,8 +364,7 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
       const duration = Date.now() - startTime;
 
       // Then: 2秒以内に完了
-      assert.ok(duration < 2000,
-        `Should complete within 2000ms, took ${duration}ms`);
+      assert.ok(duration < 2000, `Should complete within 2000ms, took ${duration}ms`);
       console.log(`  ✓ Performance: ${duration}ms (< 2000ms threshold)`);
     });
 
@@ -364,8 +377,7 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
       const duration = Date.now() - startTime;
 
       // Then: 2秒以内に完了
-      assert.ok(duration < 2000,
-        `Should complete within 2000ms for 1000 logs, took ${duration}ms`);
+      assert.ok(duration < 2000, `Should complete within 2000ms for 1000 logs, took ${duration}ms`);
       console.log(`  ✓ Performance (1000 logs): ${duration}ms (< 2000ms threshold)`);
     });
   });
@@ -380,8 +392,7 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
       const duration = Date.now() - startTime;
 
       // Then: 500ms以内に完了
-      assert.ok(duration < 500,
-        `Should complete within 500ms, took ${duration}ms`);
+      assert.ok(duration < 500, `Should complete within 500ms, took ${duration}ms`);
       console.log(`  ✓ Clear performance: ${duration}ms (< 500ms threshold)`);
     });
   });
@@ -426,8 +437,11 @@ describe('SPEC-2e6d9a3b: コンソール管理機能 - Integration Tests', () =>
       // When/Then: 無効な形式で拒否される
       const response = await readHandler.handle({ format: 'invalidFormat' });
       assert.equal(response.status, 'error', 'Should return error for invalid format');
-      assert.match(response.error ?? '', /format must be one of/i,
-        'Error message should list allowed formats');
+      assert.match(
+        response.error ?? '',
+        /format must be one of/i,
+        'Error message should list allowed formats'
+      );
       console.log('  ✓ Invalid format rejected with validation error');
     });
   });

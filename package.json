@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "Workspace root for unity-mcp-server monorepo",
+  "packageManager": "pnpm@10.20.0",
   "scripts": {
     "release": "semantic-release"
   },
@@ -21,5 +22,8 @@
   },
   "workspaces": [
     "mcp-server"
-  ]
+  ],
+  "pnpm": {
+    "onlyBuiltDependencies": ["better-sqlite3"]
+  }
 }

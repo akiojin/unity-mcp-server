@@ -64,17 +64,18 @@ if (unityTests.length > 0) {
   for (const rel of unityTests) {
     console.log(`  - ${rel}`);
   }
-  console.log('[tests] These suites are executed via `npm run test:unity` when a Unity Editor is available.');
+  console.log(
+    '[tests] These suites are executed via `pnpm run test:unity` when a Unity Editor is available.'
+  );
 }
 
 const testTargets = [...curatedUnitTests, ...nonUnityTests];
 
-const child = spawn(
-  process.execPath,
-  ['--test', ...testTargets],
-  { stdio: 'inherit', cwd: repoRoot }
-);
+const child = spawn(process.execPath, ['--test', ...testTargets], {
+  stdio: 'inherit',
+  cwd: repoRoot
+});
 
-child.on('exit', (code) => {
+child.on('exit', code => {
   process.exit(code ?? 1);
 });

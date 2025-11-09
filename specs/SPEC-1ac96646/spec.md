@@ -51,7 +51,7 @@
 
 **受け入れシナリオ**:
 
-1. **前提** release/* → main マージ済み、**実行** semantic-releaseが自動実行（release/*ブランチ上）、**結果** package.json、Unity Package、CHANGELOG.mdが更新され、タグが作成される
+1. **前提** release/*→ main マージ済み、**実行** semantic-releaseが自動実行（release/*ブランチ上）、**結果** package.json、Unity Package、CHANGELOG.mdが更新され、タグが作成される
 2. **前提** semantic-release完了、**実行** GitHub Releaseが作成、**結果** MCPサーバーがnpmjs.comに自動publishされる
 3. **前提** GitHub Release作成済み、**実行** LSPサーバービルドジョブ実行、**結果** 全プラットフォーム（linux-x64, osx-x64, osx-arm64, win-x64）のバイナリがGitHub Releaseに添付される
 

@@ -48,43 +48,43 @@ tests/
 
 ```bash
 # Run all tests
-npm test
+pnpm test
 
 # Run specific test categories
-npm run test:unit
-npm run test:integration
-npm run test:e2e
-npm run test:performance
+pnpm run test:unit
+pnpm run test:integration
+pnpm run test:e2e
+pnpm run test:performance
 
 # Run with coverage
-npm run test:coverage
-npm run test:coverage:full
+pnpm run test:coverage
+pnpm run test:coverage:full
 
 # Watch mode for development
-npm run test:watch
-npm run test:watch:all
+pnpm run test:watch
+pnpm run test:watch:all
 
 # Verbose output
-npm run test:verbose
+pnpm run test:verbose
 
 # CI/CD friendly
-npm run test:ci
+pnpm run test:ci
 ```
 
 ### Environment Variables
 
 ```bash
 # Skip integration tests
-SKIP_INTEGRATION=true npm test
+SKIP_INTEGRATION=true pnpm test
 
 # Skip E2E tests
-SKIP_E2E=true npm test
+SKIP_E2E=true pnpm test
 
 # Enable verbose logging
-VERBOSE_TEST=true npm test
+VERBOSE_TEST=true pnpm test
 
 # CI mode (affects test selection)
-CI=true npm test
+CI=true pnpm test
 ```
 
 ## Test Utilities

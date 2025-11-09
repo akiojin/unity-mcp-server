@@ -50,6 +50,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .npm
+.pnpm-store/
 .yarn-integrity
 *.log
 

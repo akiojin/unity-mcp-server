@@ -184,7 +184,7 @@ sequenceDiagram
 ## Setup
 
 - Unity 2020.3 LTS or newer
-- Node.js 18.x or 20.x LTS (the server refuses to start on newer majors) and npm
+- Node.js 18.x or 20.x LTS (the server refuses to start on newer majors) and pnpm (via Corepack)
   - Prefer Node.js 20.x for the best compatibility (prebuilt `better-sqlite3` binaries are available); Node.js 18.x works, but anything ≥21 is rejected at launch.
 - Claude Desktop or another MCP-compatible client
 
@@ -207,9 +207,10 @@ Installation
 
 ### MCP Server Environment Setup
 
-You must install the MCP server's npm dependencies **on the same OS where the server runs** so that native modules such as `better-sqlite3` are built for the correct platform.
+You must install the MCP server's pnpm-managed dependencies **on the same OS where the server runs** so that native modules such as `better-sqlite3` are built for the correct platform.
 
-- **General rule**: if your `.mcp.json` uses `"command": "node"` (e.g. `node bin/unity-mcp-server serve`), run `npm install` (or `npm ci`) inside the directory where the package lives _on that machine/container_ before launching the MCP client.
+- **General rule**: if your `.mcp.json` uses `"command": "node"` (e.g. `node bin/unity-mcp-server serve`), run `pnpm install` (or `pnpm install --frozen-lockfile`) inside the directory where the package lives _on that machine/container_ before launching the MCP client.
+- **pnpm build approval**: pnpm v10+ blocks native build scripts until you approve them. Run `pnpm approve-builds better-sqlite3` once (select the package and confirm) so the SQLite binding can compile successfully.citeturn1view0
 - **`npx` launch**: the README example above (`npx @akiojin/unity-mcp-server@latest`) downloads dependencies at runtime and works on the supported Node.js versions (18.x / 20.x). Node.js 21+ is not supported; the server exits early with a version error.
 - **Avoid sharing `node_modules` across operating systems** (Windows ↔ Linux/macOS). Native binaries compiled for one platform cannot be reused on another.
 
@@ -217,24 +218,24 @@ Environment-specific notes:
 
 - **Windows (PowerShell / Command Prompt)**
   - Install Node.js 20.x LTS (or 18.x if you prefer). Newer major versions are unsupported.
-  - In your workspace: change into the installed package directory (for repo clones: `cd C:\path\to\unity-mcp-server\mcp-server`) then run `npm install`.
+  - In your workspace: change into the installed package directory (for repo clones: `cd C:\path\to\unity-mcp-server\mcp-server`) then run `pnpm install --frozen-lockfile`.
   - Point `.mcp.json` to `node` or keep using `npx` once dependencies exist.
 
 - **Windows Subsystem for Linux (WSL)**
   - Keep the repository on the Linux filesystem (e.g. `/home/<user>/unity-mcp-server`).
   - Use Node.js 20.x (or 18.x) inside WSL.
-  - Run `npm ci` inside the installed package directory (for repo clones: `/home/<user>/unity-mcp-server/mcp-server`).
+  - Run `pnpm install --frozen-lockfile` inside the installed package directory (for repo clones: `/home/<user>/unity-mcp-server/mcp-server`).
 
 - **Docker / Linux containers**
   - Base your image on Node.js 20.x (or 18.x). Images with newer Node versions are unsupported and will fail fast.
-  - During the image build run `npm ci --workspace=mcp-server` (or `npm ci` inside the package directory) so the container has platform-matched dependencies.
+  - During the image build run `pnpm install --filter mcp-server --frozen-lockfile` (or `pnpm install --frozen-lockfile` inside the package directory) so the container has platform-matched dependencies.
   - Do not bind-mount a host `node_modules` directory into the container.
 
 - **macOS**
   - Install Node.js 20.x (e.g. `brew install node@20` and add it to `PATH`). Node 18.x also works; newer majors are unsupported.
-  - Run `npm ci` wherever the package is installed (for repo clones: `cd ~/unity-mcp-server/mcp-server && npm ci`).
+  - Run `pnpm install --frozen-lockfile` wherever the package is installed (for repo clones: `cd ~/unity-mcp-server/mcp-server && pnpm install --frozen-lockfile`).
 
-After installation you can verify the server with `node mcp-server/bin/unity-mcp-server --version`. If `better-sqlite3` fails to load, reinstall the dependencies _inside the target environment_ or rebuild with `npm rebuild better-sqlite3 --build-from-source` once the toolchain is present.
+After installation you can verify the server with `node mcp-server/bin/unity-mcp-server --version`. If `better-sqlite3` fails to load, reinstall the dependencies _inside the target environment_ or rebuild with `pnpm rebuild better-sqlite3 --filter mcp-server --build-from-source` once the toolchain is present.
 
 ## Usage Workflow
 
