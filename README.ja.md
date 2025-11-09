@@ -169,14 +169,8 @@ sequenceDiagram
     end
 ```
 
-## ディレクトリ構成
-
-- `UnityMCPServer/`: Unityプロジェクト（Editorブリッジ、ツール、サンプル）
-- `mcp-server/`: Unityツールを公開する Node.js MCP サーバー
-- `scripts/`: ローカル開発向けヘルパースクリプト
-
 ## セットアップ
-- 対応バージョン: Unity 2020.3 LTS以降 / Node.js 18.x または 20.x LTS（それ以外のメジャーバージョンでは起動を拒否） / npm
+- 対応バージョン: Unity 2020.3 LTS以降 / Node.js 18.x または 20.x LTS（それ以外のメジャーバージョンでは起動を拒否） / pnpm（Corepack経由で提供）
   - 推奨は Node.js 20.x（`better-sqlite3` の prebuilt バイナリが利用可能）。Node 18.x も動作しますが、21 以上は起動時に拒否されます。
 - MCPクライアント: Claude Desktop など
 
@@ -201,7 +195,8 @@ sequenceDiagram
 
 ネイティブ拡張（`better-sqlite3` など）は **MCPサーバーを動かすOS上で依存関係をインストールしたとき** にのみ正しく構築されます。以下を必ず実施してください。
 
-- **基本ルール**: `.mcp.json` で `"command": "node"`（例: `node bin/unity-mcp-server serve`）を使う場合は、MCPサーバーを動かすマシン／コンテナ内で本パッケージが展開されているディレクトリで `npm install`（または `npm ci`）を実行してから MCP クライアントを起動します。
+- **基本ルール**: `.mcp.json` で `"command": "node"`（例: `node bin/unity-mcp-server serve`）を使う場合は、MCPサーバーを動かすマシン／コンテナ内で本パッケージが展開されているディレクトリで `pnpm install`（または `pnpm install --frozen-lockfile`）を実行してから MCP クライアントを起動します。
+- **pnpmでのビルド許可**: pnpm v10以降は依存のインストールスクリプトを許可制にしています。`better-sqlite3` がビルドできるよう、初回セットアップ時に `pnpm approve-builds better-sqlite3` を実行し、対話メニューで承認してください。citeturn1view0
 - **`npx` 実行**: README の例（`npx @akiojin/unity-mcp-server@latest`）は起動時に依存をダウンロードします。サポート対象の Node.js（18.x / 20.x）では追加作業なしで利用できます。Node.js 21 以上はサポート外であり、サーバー起動時に拒否されます。
 - **`node_modules` の共有禁止**: Windows と Linux/macOS など異なるOS間で `node_modules` を共有するとネイティブバイナリが一致せず動作しません。
 
@@ -209,28 +204,97 @@ sequenceDiagram
 
 - **Windows (PowerShell / コマンドプロンプト)**
   - Node.js 20.x LTS（または 18.x）を利用してください。新しいメジャーバージョンはサポート外です。
-  - パッケージが配置されているディレクトリ（リポジトリを clone した場合: `C:\path\to\unity-mcp-server\mcp-server`）で `npm install` を実行します。
+  - パッケージが配置されているディレクトリ（リポジトリを clone した場合: `C:\path\to\unity-mcp-server\mcp-server`）で `pnpm install --frozen-lockfile` を実行します。
   - `.mcp.json` で `node` を指す場合でも、依存を入れた後であれば `npx` に切り替えても構いません。
 
 - **Windows Subsystem for Linux (WSL)**
   - リポジトリは Linux ファイルシステム上（例: `/home/<user>/unity-mcp-server`）に配置してください。
   - Node.js 20.x（または 18.x）を WSL 内に導入します。
-  - パッケージが展開されているディレクトリ（リポジトリ clone 時: `/home/<user>/unity-mcp-server/mcp-server`）で `npm ci` を実行します。
+  - パッケージが展開されているディレクトリ（リポジトリ clone 時: `/home/<user>/unity-mcp-server/mcp-server`）で `pnpm install --frozen-lockfile` を実行します。
 
 - **Docker / Linux コンテナ**
   - Node.js 20.x（または 18.x）ベースのイメージを使用してください。新しいメジャーバージョンは起動時に拒否されます。
-  - イメージ構築時に `npm ci --workspace=mcp-server`（またはパッケージ展開ディレクトリで `npm ci`）を実行し、コンテナ内にプラットフォーム適合済みの依存を用意します。
+  - イメージ構築時に `pnpm install --filter mcp-server --frozen-lockfile`（またはパッケージ展開ディレクトリで `pnpm install --frozen-lockfile`）を実行し、コンテナ内にプラットフォーム適合済みの依存を用意します。
   - ホスト側の `node_modules` を bind mount しないでください。
 
 - **macOS**
   - `brew install node@20` などで Node.js 20.x を導入し、`PATH` に追加します（18.x も利用可）。これより新しいメジャーバージョンはサポートしません。
-  - パッケージが配置されているディレクトリ（リポジトリ clone 時: `~/unity-mcp-server/mcp-server`）で `npm ci` を実行します。
+  - パッケージが配置されているディレクトリ（リポジトリ clone 時: `~/unity-mcp-server/mcp-server`）で `pnpm install --frozen-lockfile` を実行します。
 
-セットアップ後、`node mcp-server/bin/unity-mcp-server --version` で起動確認ができます。`better-sqlite3` の読み込みエラーが出る場合は、対象環境内で依存を再インストールするか、ツールチェーンが揃った状態で `npm rebuild better-sqlite3 --build-from-source` を実行してください。
+セットアップ後、`node mcp-server/bin/unity-mcp-server --version` で起動確認ができます。`better-sqlite3` の読み込みエラーが出る場合は、対象環境内で依存を再インストールするか、ツールチェーンが揃った状態で `pnpm rebuild better-sqlite3 --filter mcp-server --build-from-source` を実行してください。
 
-1) Unity の Package Manager から本パッケージを導入（下記Git URL）
-2) Unity プロジェクトを開く（パッケージがポート6400で待受）
-3) MCPクライアントを設定して Node サーバーを起動（例は後述）
+## 使い方ワークフロー
+
+1. **Unityパッケージを導入** — 前述の Git URL から追加するか、OpenUPM を設定後に `openupm add com.akiojin.unity-mcp-server` を実行します。
+2. **必要に応じて OpenUPM のスコープを登録** — Git 直指定であれば不要ですが、OpenUPM/`openupm` CLI や MCP のレジストリツールを使う場合は [OpenUPM スコープドレジストリの追加](#openupm-スコープドレジストリの追加) を参照してください。
+3. **Node の依存関係をインストール** — リポジトリを clone した場合は `npm ci --workspace=mcp-server`（または `cd mcp-server && npm ci`）を実行します。`npx` 起動時は自動で解決されます。
+4. **MCP サーバーを起動**
+
+   ```bash
+   npm ci --workspace=mcp-server             # マシン/イメージごとに1回
+   node mcp-server/bin/unity-mcp-server      # フォアグラウンドで実行
+   # もしくは: npm --workspace=mcp-server run dev  # ファイル監視付き
+   ```
+
+5. **MCPクライアントを設定** — `claude_desktop_config.json` などに `unity-mcp-server` エントリを追加し、ツール一覧に表示されるようにします。
+6. **疎通確認** — Unity を起動した状態で `system_ping` や `package_registry_config` を呼び、Node ⇔ Unity ⇔ クライアントの往復が動くか確認します。
+
+> ヒント: `npx @akiojin/unity-mcp-server@latest` を使うと clone なしで最新リリースを起動できます。リポジトリを clone するのはソースを変更したい場合のみです。
+
+## OpenUPM スコープドレジストリの追加
+
+Unity は既定では OpenUPM を認識しません。以下のケースではスコープドレジストリを追加してください。
+
+- `com.akiojin.unity-mcp-server` やその他パッケージを OpenUPM / `openupm` CLI から取得したいとき。
+- MCP の `package_registry_config`（一部クライアントでは `UnityMCP__registry_config` と表示）でスコープ管理を自動化したいとき。
+
+`UnityMCPServer/` 以下の参照プロジェクトにはすでに設定例（`ProjectSettings/PackageManagerSettings.asset` と `Packages/manifest.json`）が入っていますが、自分のプロジェクトでは明示的に追加する必要があります。
+
+### 方法A — Project Settings / `Packages/manifest.json`
+
+1. Unity で `Edit ▸ Project Settings… ▸ Package Manager` を開きます。
+2. **Scoped Registries** セクションで **+** を押します。
+3. 次の値を入力します（必要なスコープだけを登録。最低でも `com.akiojin` または完全なパッケージIDを含めてください）。
+   - **Name**: `OpenUPM`
+   - **URL**: `https://package.openupm.com`
+   - **Scopes**: `com.akiojin`, `com.akiojin.unity-mcp-server`、必要に応じて `com.cysharp`、`com.neuecc`、`jp.keijiro` など。
+4. **Apply** をクリックすると `Packages/manifest.json` にも同じ内容が保存されるので、バージョン管理に含めてください。
+
+**記述例**
+
+```json
+"scopedRegistries": [
+  {
+    "name": "OpenUPM",
+    "url": "https://package.openupm.com",
+    "scopes": [
+      "com.akiojin",
+      "com.akiojin.unity-mcp-server",
+      "com.cysharp",
+      "com.neuecc",
+      "jp.keijiro"
+    ]
+  }
+]
+```
+
+OpenUPM CLI を使う場合はレジストリ追加後に `openupm add com.akiojin.unity-mcp-server` を実行すると、`manifest.json` が自動更新されます。
+
+### 方法B — MCP レジストリツールを利用
+
+1. Unity を起動し、Node MCP サーバーを立ち上げます。
+2. MCP クライアントから `package_registry_config` ツール（表示名 `UnityMCP__package_registry_config` / `UnityMCP__registry_config`）を呼び出します。
+3. `add_openupm` アクションと必要なスコープを指定します。
+
+```json
+{
+  "action": "add_openupm",
+  "autoAddPopular": true,
+  "scopes": ["com.akiojin"]
+}
+```
+
+ツールは `Packages/manifest.json` を更新し、存在しない場合は OpenUPM エントリを追加、既存の場合はスコープをマージします。完了後は AssetDatabase の更新が要求され、Package Manager が即座に変更を検出します。
 
 ### 設定（.unity/config.json）
 
