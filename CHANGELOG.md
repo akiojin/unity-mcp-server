@@ -1,3 +1,10 @@
+# [2.33.0](https://github.com/akiojin/unity-mcp-server/compare/v2.32.0...v2.33.0) (2025-11-09)
+
+
+### Features
+
+* **hooks:** リポジトリルートへのcd移動を禁止 ([8f229ea](https://github.com/akiojin/unity-mcp-server/commit/8f229eaae48b0063fda4ce7b52ed92ba18ab55be))
+
 # [2.32.0](https://github.com/akiojin/unity-mcp-server/compare/v2.31.0...v2.32.0) (2025-11-09)
 
 
