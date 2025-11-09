@@ -2,7 +2,7 @@
 
 **機能ID**: `SPEC-1ac96646`
 **作成日**: 2025-11-07
-**ステータス**: 下書き
+**ステータス**: 実装完了
 **入力**: ユーザー説明: "3層リリースフロー（feature → develop → main）の実装"
 
 ## ユーザーシナリオ＆テスト *(必須)*
@@ -71,6 +71,22 @@
 
 ---
 
+### ユーザーストーリー5 - OpenUPM自動配信 (優先度: P5)
+
+Unity開発者として、mainブランチへのリリース時にOpenUPMパッケージレジストリに自動配信されることで、Unity Package Manager経由で簡単にインストールできるようにしたい。また、OpenUPMのパッケージページで十分な情報（README、homepage）が表示されることで、パッケージの用途と使い方を理解したい。
+
+**この優先度の理由**: OpenUPM配信はエンドユーザー体験を向上させますが、npm publishとLSPビルドが完了した後に追加する付加価値機能のため、P5としています。
+
+**独立テスト**: mainブランチへのマージ後、OpenUPM側のビルドパイプラインが自動的にトリガーされ、パッケージがOpenUPMレジストリに公開され、パッケージページにREADMEとhomepageが正しく表示されることを確認することでテストできます。この機能により、Unity開発者はUPM経由で簡単にインストールできる価値を提供します。
+
+**受け入れシナリオ**:
+
+1. **前提** mainブランチにリリースがマージ済み、**実行** OpenUPM側がGitHubタグを検出、**結果** OpenUPMビルドパイプラインが自動実行される
+2. **前提** OpenUPMビルド完了、**実行** OpenUPMパッケージページを確認、**結果** 最新バージョンが表示され、README内容とhomepageリンクが正しく表示される
+3. **前提** OpenUPM配信完了、**実行** Unity EditorでUPM経由でインストール、**結果** パッケージが正常にインストールされる
+
+---
+
 ### エッジケース
 
 - developブランチがまだ存在しない場合、どのように作成するか？
@@ -104,13 +120,16 @@
 - **FR-010**: システムは、PR移行後もCI/CDチェックが正常に動作することを保証する必要がある
 - **FR-011**: GitHub上のデフォルトブランチはdevelopである必要がある
 - **FR-012**: CLAUDE.md、README.md、quickstart.mdは3層ブランチフローを反映した内容に更新される必要がある
+- **FR-013**: システムは、Unity Packageのpackage.jsonに`homepage`フィールドを含める必要がある（OpenUPMパッケージページでの情報表示のため）
+- **FR-014**: システムは、Unity PackageルートにREADME.mdを配置する必要がある（OpenUPMパッケージページでのREADME埋め込みのため）
 
 ### 主要エンティティ
 
 - **ブランチ**: feature, develop, mainの3層構造。featureはdevelopから派生、mainは安定版リリース専用
 - **プルリクエスト**: feature → develop（自動マージ）、develop → main（手動マージ）の2種類
-- **リリース成果物**: MCPサーバー（npm）、LSPサーバー（全プラットフォームバイナリ）、Unity Package、CHANGELOG、タグ
+- **リリース成果物**: MCPサーバー（npm）、LSPサーバー（全プラットフォームバイナリ）、Unity Package、CHANGELOG、タグ、OpenUPMパッケージ
 - **CI/CDワークフロー**: auto-merge（developのみ）、release（mainのみ）、mcp-server-publish（GitHub Release作成時）
+- **パッケージメタデータ**: package.json（homepage、version）、README.md（パッケージルート配置）
 
 ---
 
@@ -169,6 +188,7 @@
 4. **PR移行の成功率**: 既存16個のPRの100%がdevelopベースに移行され、CI/CDチェックが正常に動作する
 5. **リリース所要時間**: /releaseコマンド実行からGitHub Release作成まで、平均30分以内に完了する
 6. **ドキュメント整合性**: CLAUDE.md、README.md、quickstart.mdが3層フローを正確に反映し、開発者が迷わずフローを理解できる
+7. **OpenUPM配信の信頼性**: mainマージ後、OpenUPMビルドが自動的にトリガーされ、パッケージページでREADMEとhomepageが正しく表示される（100%のケース）
 
 **成功基準の測定方法**:
 
@@ -178,6 +198,7 @@
 4. **PR移行成功率**: 移行後のPRのCI/CDチェック成功数 ÷ 16 × 100（100%）
 5. **リリース所要時間**: /release実行タイムスタンプ 〜 GitHub Release作成タイムスタンプの差分（30分以内）
 6. **ドキュメント整合性**: レビューチェックリストで確認（100%一致）
+7. **OpenUPM配信**: OpenUPMパッケージページでREADMEとhomepageが表示されることを手動確認（各リリースで確認）
 
 ---
 
