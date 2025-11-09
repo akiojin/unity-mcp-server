@@ -62,10 +62,10 @@ jobs:
           GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
           HUSKY: 0
         run: |
-          # semantic-releaseを実行して出力を取得
-          pnpm exec semantic-release > release-output.txt 2>&1
-          RELEASE_EXIT_CODE=$?
-          cat release-output.txt
+          # semantic-releaseを実行して出力を取得（ログも表示）
+          set -o pipefail
+          pnpm exec semantic-release | tee release-output.txt
+          RELEASE_EXIT_CODE=${PIPESTATUS[0]}
 
           # semantic-releaseの出力を解析して新しいリリースが作成されたか確認
           if [ $RELEASE_EXIT_CODE -eq 0 ] && grep -q "Published release" release-output.txt; then
