@@ -1,6 +1,6 @@
 {
   "name": "@akiojin/unity-mcp-server",
-  "version": "2.31.0",
+  "version": "2.32.0",
   "description": "MCP server and Unity Editor bridge — enables AI assistants to control Unity for AI-assisted workflows",
   "type": "module",
   "main": "src/core/server.js",
@@ -21,6 +21,7 @@
     "test:watch:all": "node --watch --test tests/**/*.test.js",
     "test:performance": "node --test tests/performance/*.test.js",
     "test:ci": "CI=true NODE_ENV=test node --test tests/unit/core/codeIndex.test.js tests/unit/core/codeIndexDb.test.js tests/unit/core/config.test.js tests/unit/core/indexWatcher.test.js tests/unit/core/projectInfo.test.js tests/unit/core/server.test.js tests/unit/handlers/script/CodeIndexStatusToolHandler.test.js",
+    "test:ci:coverage": "c8 --reporter=lcov --reporter=text node --test tests/unit/core/codeIndex.test.js tests/unit/core/codeIndexDb.test.js tests/unit/core/config.test.js tests/unit/core/indexWatcher.test.js tests/unit/core/projectInfo.test.js tests/unit/core/server.test.js tests/unit/handlers/script/CodeIndexStatusToolHandler.test.js",
     "test:ci:all": "c8 --reporter=lcov node --test tests/unit/**/*.test.js",
     "simulate:code-index": "node scripts/simulate-code-index-status.mjs",
     "test:verbose": "VERBOSE_TEST=true node --test tests/**/*.test.js",
