@@ -1,4 +1,4 @@
-import { BaseToolHandler } from '../base/BaseToolHandler.js'
+import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 const VALUE_TYPE_ENUM = [
   'auto',
@@ -24,119 +24,119 @@ const VALUE_TYPE_ENUM = [
   'array',
   'json',
   'null'
-]
+];
 
 function resolveScope(params) {
   const hasSceneTarget =
-    typeof params.gameObjectPath === 'string' && params.gameObjectPath.length > 0
+    typeof params.gameObjectPath === 'string' && params.gameObjectPath.length > 0;
   const hasPrefabTarget =
-    typeof params.prefabAssetPath === 'string' && params.prefabAssetPath.length > 0
-  const rawScope = params.scope ?? 'auto'
+    typeof params.prefabAssetPath === 'string' && params.prefabAssetPath.length > 0;
+  const rawScope = params.scope ?? 'auto';
 
   if (rawScope === 'auto') {
     if (hasPrefabTarget && !hasSceneTarget) {
-      return 'prefabAsset'
+      return 'prefabAsset';
     }
-    return hasSceneTarget ? 'scene' : 'auto'
+    return hasSceneTarget ? 'scene' : 'auto';
   }
 
-  return rawScope
+  return rawScope;
 }
 
 function normalizeFieldPath(fieldPath) {
   if (!fieldPath || typeof fieldPath !== 'string') {
-    return fieldPath
+    return fieldPath;
   }
 
-  let needsNormalization = false
+  let needsNormalization = false;
   for (let i = 0; i < fieldPath.length; i += 1) {
     if (fieldPath[i] === '[') {
-      needsNormalization = true
-      break
+      needsNormalization = true;
+      break;
     }
   }
 
   if (!needsNormalization) {
-    return fieldPath
+    return fieldPath;
   }
 
-  let result = ''
-  let i = 0
+  let result = '';
+  let i = 0;
 
   while (i < fieldPath.length) {
-    const char = fieldPath[i]
+    const char = fieldPath[i];
     if (char === '[') {
-      let indexBuffer = ''
-      i += 1
+      let indexBuffer = '';
+      i += 1;
       while (i < fieldPath.length && fieldPath[i] !== ']') {
-        indexBuffer += fieldPath[i]
-        i += 1
+        indexBuffer += fieldPath[i];
+        i += 1;
       }
       // Skip closing bracket
       if (i < fieldPath.length && fieldPath[i] === ']') {
-        i += 1
+        i += 1;
       }
 
       if (indexBuffer.length > 0) {
-        result += `.Array.data[${indexBuffer}]`
+        result += `.Array.data[${indexBuffer}]`;
       } else {
-        result += '.Array.data[0]'
+        result += '.Array.data[0]';
       }
     } else {
-      result += char
-      i += 1
+      result += char;
+      i += 1;
     }
   }
 
-  return result
+  return result;
 }
 
 function inferValueType(value) {
   if (value === null) {
-    return 'null'
+    return 'null';
   }
 
-  const valueType = typeof value
+  const valueType = typeof value;
   switch (valueType) {
     case 'boolean':
-      return 'bool'
+      return 'bool';
     case 'number':
-      return Number.isInteger(value) ? 'int' : 'float'
+      return Number.isInteger(value) ? 'int' : 'float';
     case 'string':
-      return 'string'
+      return 'string';
     case 'object':
       if (Array.isArray(value)) {
-        return 'array'
+        return 'array';
       }
 
       if (['r', 'g', 'b'].every(key => Object.prototype.hasOwnProperty.call(value, key))) {
-        return Object.prototype.hasOwnProperty.call(value, 'a') ? 'color' : 'vector3'
+        return Object.prototype.hasOwnProperty.call(value, 'a') ? 'color' : 'vector3';
       }
 
       if (['x', 'y', 'z', 'w'].every(key => Object.prototype.hasOwnProperty.call(value, key))) {
-        return 'vector4'
+        return 'vector4';
       }
 
       if (['x', 'y', 'z'].every(key => Object.prototype.hasOwnProperty.call(value, key))) {
-        return 'vector3'
+        return 'vector3';
       }
 
       if (['x', 'y'].every(key => Object.prototype.hasOwnProperty.call(value, key))) {
-        return 'vector2'
+        return 'vector2';
       }
 
-      return 'json'
+      return 'json';
     default:
-      return 'auto'
+      return 'auto';
   }
 }
 
 function isPlainObject(value) {
   if (value === null || typeof value !== 'object') {
-    return false
+    return false;
   }
-  const proto = Object.getPrototypeOf(value)
-  return proto === Object.prototype || proto === null
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
 }
 
 export class ComponentFieldSetToolHandler extends BaseToolHandler {
@@ -238,143 +238,143 @@ export class ComponentFieldSetToolHandler extends BaseToolHandler {
         },
         required: ['componentType', 'fieldPath']
       }
-    )
+    );
 
-    this.unityConnection = unityConnection
+    this.unityConnection = unityConnection;
   }
 
   validate(params) {
-    super.validate(params)
+    super.validate(params);
 
-    const scope = resolveScope(params)
+    const scope = resolveScope(params);
     const hasSceneTarget =
-      typeof params.gameObjectPath === 'string' && params.gameObjectPath.length > 0
+      typeof params.gameObjectPath === 'string' && params.gameObjectPath.length > 0;
     const hasPrefabTarget =
-      typeof params.prefabAssetPath === 'string' && params.prefabAssetPath.length > 0
+      typeof params.prefabAssetPath === 'string' && params.prefabAssetPath.length > 0;
 
     if (!hasSceneTarget && !hasPrefabTarget) {
-      throw new Error('Either gameObjectPath or prefabAssetPath must be provided')
+      throw new Error('Either gameObjectPath or prefabAssetPath must be provided');
     }
 
     if (scope === 'prefabAsset' && !hasPrefabTarget) {
-      throw new Error('prefabAssetPath is required when scope is set to prefabAsset')
+      throw new Error('prefabAssetPath is required when scope is set to prefabAsset');
     }
 
     if (scope !== 'prefabAsset' && !hasSceneTarget && !params.dryRun) {
-      throw new Error('gameObjectPath is required when editing scene or prefab stage objects')
+      throw new Error('gameObjectPath is required when editing scene or prefab stage objects');
     }
 
     if (!params.dryRun && !Object.prototype.hasOwnProperty.call(params, 'value')) {
-      throw new Error('value is required unless dryRun is true')
+      throw new Error('value is required unless dryRun is true');
     }
 
     if (params.componentIndex !== undefined && !Number.isInteger(params.componentIndex)) {
-      throw new Error('componentIndex must be an integer when provided')
+      throw new Error('componentIndex must be an integer when provided');
     }
 
     if (params.objectReference !== undefined) {
       if (!isPlainObject(params.objectReference)) {
-        throw new Error('objectReference must be an object when provided')
+        throw new Error('objectReference must be an object when provided');
       }
 
-      const { assetPath, guid } = params.objectReference
+      const { assetPath, guid } = params.objectReference;
       if (!assetPath && !guid) {
-        throw new Error('objectReference requires assetPath or guid')
+        throw new Error('objectReference requires assetPath or guid');
       }
     }
 
     if (params.runtime !== undefined && typeof params.runtime !== 'boolean') {
-      throw new Error('runtime must be a boolean when provided')
+      throw new Error('runtime must be a boolean when provided');
     }
   }
 
   buildCommandParams(params) {
-    const command = {}
+    const command = {};
 
-    command.scope = resolveScope(params)
+    command.scope = resolveScope(params);
 
     if (typeof params.gameObjectPath === 'string') {
-      command.gameObjectPath = params.gameObjectPath
+      command.gameObjectPath = params.gameObjectPath;
     }
 
     if (typeof params.prefabAssetPath === 'string') {
-      command.prefabAssetPath = params.prefabAssetPath
+      command.prefabAssetPath = params.prefabAssetPath;
     }
 
     if (typeof params.prefabObjectPath === 'string') {
-      command.prefabObjectPath = params.prefabObjectPath
+      command.prefabObjectPath = params.prefabObjectPath;
     }
 
-    command.componentType = params.componentType
-    command.fieldPath = params.fieldPath
+    command.componentType = params.componentType;
+    command.fieldPath = params.fieldPath;
 
-    const normalizedPath = normalizeFieldPath(params.fieldPath)
+    const normalizedPath = normalizeFieldPath(params.fieldPath);
     if (normalizedPath && normalizedPath !== params.fieldPath) {
-      command.serializedPropertyPath = normalizedPath
+      command.serializedPropertyPath = normalizedPath;
     }
 
     if (Object.prototype.hasOwnProperty.call(params, 'componentIndex')) {
-      command.componentIndex = params.componentIndex
+      command.componentIndex = params.componentIndex;
     }
 
     if (Object.prototype.hasOwnProperty.call(params, 'value')) {
-      command.value = params.value
+      command.value = params.value;
     }
 
     if (params.valueType) {
-      command.valueType = params.valueType
+      command.valueType = params.valueType;
     } else if (Object.prototype.hasOwnProperty.call(params, 'value')) {
-      command.valueType = inferValueType(params.value)
+      command.valueType = inferValueType(params.value);
     } else {
-      command.valueType = 'auto'
+      command.valueType = 'auto';
     }
 
     if (typeof params.enumValue === 'string') {
-      command.enumValue = params.enumValue
+      command.enumValue = params.enumValue;
     }
 
     if (params.objectReference) {
-      command.objectReference = params.objectReference
+      command.objectReference = params.objectReference;
     }
 
     if (params.runtime !== undefined) {
-      command.runtime = Boolean(params.runtime)
+      command.runtime = Boolean(params.runtime);
     }
 
-    command.dryRun = Boolean(params.dryRun)
+    command.dryRun = Boolean(params.dryRun);
 
     if (params.applyPrefabChanges !== undefined) {
-      command.applyPrefabChanges = Boolean(params.applyPrefabChanges)
+      command.applyPrefabChanges = Boolean(params.applyPrefabChanges);
     }
 
     if (params.createUndo !== undefined) {
-      command.createUndo = Boolean(params.createUndo)
+      command.createUndo = Boolean(params.createUndo);
     }
 
     if (params.markSceneDirty !== undefined) {
-      command.markSceneDirty = Boolean(params.markSceneDirty)
+      command.markSceneDirty = Boolean(params.markSceneDirty);
     }
 
-    return command
+    return command;
   }
 
   async execute(params) {
     if (!this.unityConnection.isConnected()) {
-      await this.unityConnection.connect()
+      await this.unityConnection.connect();
     }
 
-    const commandParams = this.buildCommandParams(params)
-    const response = await this.unityConnection.sendCommand('set_component_field', commandParams)
+    const commandParams = this.buildCommandParams(params);
+    const response = await this.unityConnection.sendCommand('set_component_field', commandParams);
 
     if (!response || typeof response !== 'object') {
-      throw new Error('Invalid response from Unity')
+      throw new Error('Invalid response from Unity');
     }
 
     if (response.error) {
-      throw new Error(response.error)
+      throw new Error(response.error);
     }
 
-    return response
+    return response;
   }
 
   getExamples() {
@@ -414,6 +414,6 @@ export class ComponentFieldSetToolHandler extends BaseToolHandler {
           }
         }
       }
-    }
+    };
   }
 }

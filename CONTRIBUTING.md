@@ -1,6 +1,6 @@
-# Contributing to Unity Editor MCP
+# Contributing to Unity MCP Server
 
-Thank you for your interest in contributing to Unity Editor MCP! This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing to Unity MCP Server! This document provides guidelines and instructions for contributing to the project.
 
 ## Getting Started
 
@@ -29,14 +29,14 @@ End users do not need .NET. The MCP server auto-provisions a self-contained C# L
 1. Install dependencies in the mcp-server directory:
    ```bash
    cd mcp-server
-   npm install
+   pnpm install
    ```
 
 2. Install the Unity package in your Unity project (see README.md)
 
 3. Run tests:
    ```bash
-   npm test
+   pnpm test
    ```
 
 ## Code Guidelines

@@ -70,7 +70,7 @@ export class GameObjectModifyToolHandler extends BaseToolHandler {
         required: ['path']
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -81,23 +81,34 @@ export class GameObjectModifyToolHandler extends BaseToolHandler {
    */
   validate(params) {
     super.validate(params);
-    
+
     // Path is required
     validateGameObjectPath(params.path);
-    
+
     // At least one modification must be specified
-    const modifiableProps = ['name', 'position', 'rotation', 'scale', 'active', 'parentPath', 'tag', 'layer'];
-    const hasModification = modifiableProps.some(prop => params.hasOwnProperty(prop));
-    
+    const modifiableProps = [
+      'name',
+      'position',
+      'rotation',
+      'scale',
+      'active',
+      'parentPath',
+      'tag',
+      'layer'
+    ];
+    const hasModification = modifiableProps.some(prop =>
+      Object.prototype.hasOwnProperty.call(params, prop)
+    );
+
     if (!hasModification) {
       throw new Error('At least one property to modify must be specified');
     }
-    
+
     // Validate vector3 properties
     if (params.position) validateVector3(params.position, 'position');
     if (params.rotation) validateVector3(params.rotation, 'rotation');
     if (params.scale) validateVector3(params.scale, 'scale');
-    
+
     // Validate layer
     if (params.layer !== undefined) {
       validateLayer(Number(params.layer));
@@ -114,15 +125,15 @@ export class GameObjectModifyToolHandler extends BaseToolHandler {
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }
-    
+
     // Send modify_gameobject command
     const result = await this.unityConnection.sendCommand('modify_gameobject', params);
-    
+
     // Check for errors from Unity
     if (result.error) {
       throw new Error(result.error);
     }
-    
+
     return result;
   }
 }

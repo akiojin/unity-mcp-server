@@ -14,7 +14,7 @@ export class SystemGetCommandStatsToolHandler extends BaseToolHandler {
     this.unityConnection = unityConnection;
   }
 
-  async execute(params) {
+  async execute(_params) {
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }

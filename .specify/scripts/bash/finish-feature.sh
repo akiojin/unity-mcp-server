@@ -112,14 +112,45 @@ fi
 
 echo "✓ GitHub CLI is ready"
 
+# Validate tags before pushing
+echo ""
+echo "[2/5] Validating tags..."
+echo "Fetching latest tags from remote..."
+git fetch --tags origin 2>/dev/null || {
+    echo "⚠️  Warning: Failed to fetch tags (continuing anyway)"
+}
+
+# Check for mismatched tags
+MISMATCHED_TAGS=$(git tag -l | while read tag; do
+    LOCAL=$(git rev-parse "refs/tags/$tag" 2>/dev/null || echo "missing")
+    REMOTE=$(git ls-remote origin "refs/tags/$tag" 2>/dev/null | cut -f1)
+    REMOTE=${REMOTE:-missing}
+    if [ "$LOCAL" != "$REMOTE" ] && [ "$LOCAL" != "missing" ] && [ "$REMOTE" != "missing" ]; then
+        echo "$tag (local: ${LOCAL:0:8}, remote: ${REMOTE:0:8})"
+    fi
+done)
+
+if [ -n "$MISMATCHED_TAGS" ]; then
+    echo ""
+    echo "❌ ERROR: Tag mismatch detected between local and remote:"
+    echo "$MISMATCHED_TAGS"
+    echo ""
+    echo "To fix this issue, run:"
+    echo "  git fetch --tags --force origin"
+    echo ""
+    exit 1
+fi
+
+echo "✓ All tags are in sync with remote"
+
 # Push feature branch to remote
 echo ""
-echo "[2/4] Pushing feature branch to remote..."
+echo "[3/5] Pushing feature branch to remote..."
 git push -u origin "$CURRENT_BRANCH"
 
 # Get PR title from spec.md
 echo ""
-echo "[3/4] Creating Pull Request..."
+echo "[4/5] Creating Pull Request..."
 PR_TITLE="$CURRENT_BRANCH"
 
 # Check if this is a SPEC branch
@@ -208,7 +239,7 @@ fi
 PR_URL=$(gh pr view "$CURRENT_BRANCH" --json url --jq .url 2>/dev/null || echo "")
 
 echo ""
-echo "[4/4] Cleaning up..."
+echo "[5/5] Cleaning up..."
 rm -f "$REPO_ROOT/.specify/.current-feature"
 
 echo ""

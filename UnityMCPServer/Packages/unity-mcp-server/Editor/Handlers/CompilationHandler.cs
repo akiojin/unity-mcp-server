@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 namespace UnityMCPServer.Handlers
 {
     /// <summary>
-    /// Handles compilation monitoring and error detection for Unity Editor MCP
+    /// Handles compilation monitoring and error detection for Unity MCP Server
     /// </summary>
     public static class CompilationHandler
     {

@@ -1,9 +1,9 @@
 {
   "name": "com.akiojin.unity-mcp-server",
   "displayName": "Unity MCP Server",
-  "version": "2.17.0",
+  "version": "2.33.0",
   "unity": "6000.0",
-  "description": "Unity Editor MCP bridge and tooling for AI-assisted development (screenshots, video capture, scene analysis, input automation).",
+  "description": "Unity MCP Server bridge and tooling for AI-assisted development (screenshots, video capture, scene analysis, input automation).",
   "keywords": [
     "mcp",
     "ai",
@@ -26,6 +26,7 @@
     "type": "git",
     "url": "https://github.com/akiojin/unity-mcp-server.git"
   },
+  "homepage": "https://github.com/akiojin/unity-mcp-server#readme",
   "license": "MIT",
   "hideInEditor": false
 }

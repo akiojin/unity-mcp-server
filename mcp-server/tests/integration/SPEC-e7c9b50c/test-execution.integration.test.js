@@ -8,7 +8,7 @@
  * - Unity側にテストが存在する（Packages/unity-mcp-server/Tests/Editor/）
  *
  * 実行方法:
- * npm run test:integration -- tests/integration/SPEC-e7c9b50c/*.test.js
+ * pnpm run test:integration -- tests/integration/SPEC-e7c9b50c/*.test.js
  */
 
 import { describe, it, before, after, beforeEach } from 'node:test';
@@ -21,7 +21,7 @@ describe('SPEC-e7c9b50c: Unity Test Execution - Integration Tests', () => {
   let connection;
   let runTestsHandler;
   let getStatusHandler;
-  const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   async function waitForCompletion(timeoutMs = 120000, pollMs = 1000) {
     const deadline = Date.now() + timeoutMs;
@@ -49,7 +49,9 @@ describe('SPEC-e7c9b50c: Unity Test Execution - Integration Tests', () => {
       return { initial, final: initial, duration, skipped: false };
     } catch (error) {
       if (/unsaved scene changes/i.test(error?.message || '')) {
-        console.log('  ⚠ Unity reported unsaved scene changes. Skipping test execution assertions.');
+        console.log(
+          '  ⚠ Unity reported unsaved scene changes. Skipping test execution assertions.'
+        );
         return {
           initial: null,
           final: null,
@@ -120,7 +122,9 @@ describe('SPEC-e7c9b50c: Unity Test Execution - Integration Tests', () => {
         assert.ok(typeof result.totalTests === 'number', 'Should have totalTests');
         assert.ok(typeof result.passedTests === 'number', 'Should have passedTests');
         assert.ok(typeof result.failedTests === 'number', 'Should have failedTests');
-        console.log(`  ✓ Executed ${result.totalTests} tests (${result.passedTests} passed, ${result.failedTests} failed) in ${duration}ms`);
+        console.log(
+          `  ✓ Executed ${result.totalTests} tests (${result.passedTests} passed, ${result.failedTests} failed) in ${duration}ms`
+        );
       }
     });
 
@@ -146,7 +150,9 @@ describe('SPEC-e7c9b50c: Unity Test Execution - Integration Tests', () => {
       if (result.status && result.status !== 'running') {
         // テストが見つからない場合は0件、見つかった場合は1件以上
         assert.ok(result.totalTests >= 0, 'Should have valid test count');
-        console.log(`  ✓ Filter test completed: ${result.totalTests} tests found for filter "${filter}"`);
+        console.log(
+          `  ✓ Filter test completed: ${result.totalTests} tests found for filter "${filter}"`
+        );
       }
     });
   });
@@ -259,7 +265,10 @@ describe('SPEC-e7c9b50c: Unity Test Execution - Integration Tests', () => {
       }
 
       // Then: 1秒以内に開始
-      assert.ok(duration < maxStartTime, `Test should start within ${maxStartTime}ms (actual: ${duration}ms)`);
+      assert.ok(
+        duration < maxStartTime,
+        `Test should start within ${maxStartTime}ms (actual: ${duration}ms)`
+      );
       console.log(`  ✓ NFR-001 verified: Test execution started in ${duration}ms`);
     });
 
@@ -273,7 +282,10 @@ describe('SPEC-e7c9b50c: Unity Test Execution - Integration Tests', () => {
       const duration = Date.now() - startTime;
 
       // Then: 500ms以内に完了
-      assert.ok(duration < maxStatusCheckTime, `Status check should complete within ${maxStatusCheckTime}ms (actual: ${duration}ms)`);
+      assert.ok(
+        duration < maxStatusCheckTime,
+        `Status check should complete within ${maxStatusCheckTime}ms (actual: ${duration}ms)`
+      );
       assert.ok(result, 'Result should exist');
       assert.ok(result.status, 'Should have status field');
       console.log(`  ✓ Status check completed in ${duration}ms (status: ${result.status})`);
@@ -288,8 +300,10 @@ describe('SPEC-e7c9b50c: Unity Test Execution - Integration Tests', () => {
       // Then: 状態が返される（idle/running/completed/error）
       assert.ok(result, 'Result should exist');
       assert.ok(result.status, 'Should have status field');
-      assert.ok(['idle', 'running', 'completed', 'error'].includes(result.status),
-        `Status should be one of: idle, running, completed, error (actual: ${result.status})`);
+      assert.ok(
+        ['idle', 'running', 'completed', 'error'].includes(result.status),
+        `Status should be one of: idle, running, completed, error (actual: ${result.status})`
+      );
       console.log(`  ✓ Test status: ${result.status}`);
 
       // 状態に応じた追加フィールドを検証
@@ -321,7 +335,9 @@ describe('SPEC-e7c9b50c: Unity Test Execution - Integration Tests', () => {
       // Given: Unity接続が切断される可能性がある
       // When/Then: エラーハンドリングが適切に機能する
       // （このテストは実際の接続切断をシミュレートできないため、スキップ）
-      console.log(`  ⚠ Unity communication error test skipped (requires connection failure simulation)`);
+      console.log(
+        `  ⚠ Unity communication error test skipped (requires connection failure simulation)`
+      );
     });
   });
 });

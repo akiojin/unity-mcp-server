@@ -1,5 +1,4 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import fs from 'fs/promises';
 import path from 'path';
 
 /**
@@ -24,18 +23,20 @@ export class ScreenshotAnalyzeToolHandler extends BaseToolHandler {
           analysisType: {
             type: 'string',
             enum: ['basic', 'ui', 'content', 'full'],
-            
-            description: 'Type of analysis: basic (colors, dimensions), ui (UI element detection), content (scene content), full (all)'
+
+            description:
+              'Type of analysis: basic (colors, dimensions), ui (UI element detection), content (scene content), full (all)'
           },
           prompt: {
             type: 'string',
-            description: 'Optional prompt for AI-based analysis (e.g., "Find all buttons in the UI")'
+            description:
+              'Optional prompt for AI-based analysis (e.g., "Find all buttons in the UI")'
           }
         },
         required: []
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -62,7 +63,7 @@ export class ScreenshotAnalyzeToolHandler extends BaseToolHandler {
       if (!imagePath.startsWith('Assets/')) {
         throw new Error('imagePath must be within the Assets folder');
       }
-      
+
       const ext = path.extname(imagePath).toLowerCase();
       if (!['.png', '.jpg', '.jpeg'].includes(ext)) {
         throw new Error('imagePath must be a PNG or JPEG file');
@@ -159,24 +160,25 @@ export class ScreenshotAnalyzeToolHandler extends BaseToolHandler {
         result.analysis = {
           note: 'Basic analysis of base64 images requires image processing library integration',
           fileSize: fileSize,
-          estimatedFormat: fileSize > 100000 ? 'Likely PNG or high-quality JPEG' : 'Likely compressed JPEG'
+          estimatedFormat:
+            fileSize > 100000 ? 'Likely PNG or high-quality JPEG' : 'Likely compressed JPEG'
         };
         break;
-        
+
       case 'ui':
         result.uiAnalysis = {
           note: 'UI element detection requires computer vision integration',
           placeholder: 'This would detect buttons, text fields, panels, etc.'
         };
         break;
-        
+
       case 'content':
         result.contentAnalysis = {
           note: 'Content analysis requires scene understanding models',
           placeholder: 'This would identify GameObjects, lighting, materials, etc.'
         };
         break;
-        
+
       case 'full':
         result.fullAnalysis = {
           basic: { note: 'Requires image processing library' },

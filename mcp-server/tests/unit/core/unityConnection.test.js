@@ -30,9 +30,9 @@ describe('UnityConnection', () => {
 
     // Store original Socket constructor
     originalSocket = net.Socket;
-    
+
     // Mock net.Socket constructor
-    net.Socket = function() {
+    net.Socket = function () {
       return mockSocket;
     };
   });
@@ -40,25 +40,25 @@ describe('UnityConnection', () => {
   afterEach(() => {
     // Ensure connection is properly cleaned up
     connection.isDisconnecting = true;
-    
+
     // Clear any reconnect timer first
     if (connection.reconnectTimer) {
       clearTimeout(connection.reconnectTimer);
       connection.reconnectTimer = null;
     }
-    
+
     if (connection.socket) {
       connection.socket.removeAllListeners();
       connection.socket = null;
     }
     connection.connected = false;
-    
+
     // Also clear mock socket listeners
     if (mockSocket) {
       mockSocket.removeAllListeners();
       mockSocket.destroyed = true; // Prevent any further events
     }
-    
+
     // Restore original Socket constructor
     net.Socket = originalSocket;
     mock.restoreAll();
@@ -81,26 +81,26 @@ describe('UnityConnection', () => {
   describe('connect', () => {
     it('should resolve immediately if already connected', async () => {
       connection.connected = true;
-      
+
       await connection.connect();
-      
+
       // Verify no new socket was created
       assert.equal(connection.socket, null);
     });
 
     it('should create socket and attempt connection', async () => {
       const connectPromise = connection.connect();
-      
+
       // Simulate successful connection
       process.nextTick(() => {
         mockSocket.emit('connect');
       });
-      
+
       await connectPromise;
-      
+
       assert.equal(connection.connected, true);
       assert.equal(connection.socket, mockSocket);
-      
+
       // Clean up - mark as disconnecting to prevent reconnect
       connection.isDisconnecting = true;
     });
@@ -115,14 +115,14 @@ describe('UnityConnection', () => {
 
     it('should reset reconnect attempts on successful connection', async () => {
       connection.reconnectAttempts = 5;
-      
+
       const connectPromise = connection.connect();
       process.nextTick(() => {
         mockSocket.emit('connect');
       });
-      
+
       await connectPromise;
-      
+
       assert.equal(connection.reconnectAttempts, 0);
     });
   });
@@ -131,9 +131,9 @@ describe('UnityConnection', () => {
     it('should destroy socket if connected', () => {
       connection.socket = mockSocket;
       connection.connected = true;
-      
+
       connection.disconnect();
-      
+
       assert.equal(mockSocket.destroy.mock.calls.length, 1);
       assert.equal(connection.socket, null);
       assert.equal(connection.connected, false);
@@ -141,9 +141,9 @@ describe('UnityConnection', () => {
 
     it('should clear reconnect timer', () => {
       connection.reconnectTimer = setTimeout(() => {}, 10000);
-      
+
       connection.disconnect();
-      
+
       assert.equal(connection.reconnectTimer, null);
     });
   });
@@ -160,25 +160,22 @@ describe('UnityConnection', () => {
 
     it('should throw if not connected', async () => {
       connection.connected = false;
-      
-      await assert.rejects(
-        connection.sendCommand('test'),
-        /Not connected to Unity/
-      );
+
+      await assert.rejects(connection.sendCommand('test'), /Not connected to Unity/);
     });
 
     it('should send command with incrementing ID', async () => {
       const sendPromise = connection.sendCommand('system_ping', { echo: 'test' });
-      
+
       // Verify command was sent
       assert.equal(mockSocket.write.mock.calls.length, 1);
       const sentData = mockSocket.write.mock.calls[0].arguments[0];
       const command = JSON.parse(sentData);
-      
+
       assert.equal(command.id, '1');
       assert.equal(command.type, 'system_ping');
       assert.deepEqual(command.params, { echo: 'test' });
-      
+
       // Simulate response
       const response = {
         id: '1',
@@ -186,7 +183,7 @@ describe('UnityConnection', () => {
         data: { message: 'pong' }
       };
       mockSocket.emit('data', Buffer.from(JSON.stringify(response)));
-      
+
       const result = await sendPromise;
       assert.deepEqual(result, { message: 'pong' });
     });
@@ -194,29 +191,26 @@ describe('UnityConnection', () => {
     it('should handle command timeout', async () => {
       // Create a command that won't get a response
       const sendPromise = connection.sendCommand('slow-command', {});
-      
+
       // The command should be pending
       assert.equal(connection.pendingCommands.size, 1);
-      
+
       // Wait for natural timeout (config is 30s, but we'll simulate faster)
       // Clear all pending commands to simulate timeout
       for (const [id, pending] of connection.pendingCommands) {
         pending.reject(new Error('Command timeout'));
       }
       connection.pendingCommands.clear();
-      
-      await assert.rejects(
-        sendPromise,
-        /Command timeout/
-      );
-      
+
+      await assert.rejects(sendPromise, /Command timeout/);
+
       // Verify pending command was cleaned up
       assert.equal(connection.pendingCommands.size, 0);
     });
 
     it('should handle error responses', async () => {
       const sendPromise = connection.sendCommand('bad-command');
-      
+
       // Simulate error response
       const response = {
         id: '1',
@@ -224,11 +218,8 @@ describe('UnityConnection', () => {
         error: 'Unknown command'
       };
       mockSocket.emit('data', Buffer.from(JSON.stringify(response)));
-      
-      await assert.rejects(
-        sendPromise,
-        /Unknown command/
-      );
+
+      await assert.rejects(sendPromise, /Unknown command/);
     });
   });
 
@@ -244,27 +235,24 @@ describe('UnityConnection', () => {
 
     it('should send raw ping string', async () => {
       const pingPromise = connection.ping();
-      
+
       assert.equal(mockSocket.write.mock.calls.length, 1);
       assert.equal(mockSocket.write.mock.calls[0].arguments[0], 'system_ping');
-      
+
       // Simulate pong response
       const response = {
         status: 'success',
         data: { message: 'pong', timestamp: '2025-06-21T10:00:00Z' }
       };
       mockSocket.emit('data', Buffer.from(JSON.stringify(response)));
-      
+
       const result = await pingPromise;
       assert.equal(result.message, 'pong');
       assert.equal(result.timestamp, '2025-06-21T10:00:00Z');
     });
 
     it('should timeout if no pong received', async () => {
-      await assert.rejects(
-        connection.ping(),
-        /Ping timeout/
-      );
+      await assert.rejects(connection.ping(), /Ping timeout/);
     });
   });
 
@@ -286,23 +274,23 @@ describe('UnityConnection', () => {
 
     it('should emit unsolicited messages', async () => {
       const message = { type: 'notification', data: 'test' };
-      
+
       // Create promise to wait for event
-      const messagePromise = new Promise((resolve) => {
-        connection.once('message', (received) => {
+      const messagePromise = new Promise(resolve => {
+        connection.once('message', received => {
           resolve(received);
         });
       });
-      
+
       connection.handleData(Buffer.from(JSON.stringify(message)));
-      
+
       const received = await messagePromise;
       assert.deepEqual(received, message);
     });
 
     it('should skip Unity debug logs', () => {
       assert.doesNotThrow(() => {
-        connection.handleData(Buffer.from('[Unity Editor MCP] Debug message'));
+        connection.handleData(Buffer.from('[Unity MCP Server] Debug message'));
         connection.handleData(Buffer.from('[Unity] Debug message'));
       });
     });
@@ -313,7 +301,7 @@ describe('UnityConnection', () => {
       const lengthBuffer = Buffer.allocUnsafe(4);
       lengthBuffer.writeInt32BE(messageBuffer.length, 0);
       const framedMessage = Buffer.concat([lengthBuffer, messageBuffer]);
-      
+
       assert.doesNotThrow(() => {
         connection.handleData(framedMessage);
       });
@@ -323,16 +311,20 @@ describe('UnityConnection', () => {
       // Create a message with invalid length header
       const invalidLengthBuffer = Buffer.allocUnsafe(4);
       invalidLengthBuffer.writeInt32BE(2000000000, 0); // Too large
-      
+
       // Add some valid framed message after the invalid data
       const validMessage = JSON.stringify({ id: '1', status: 'success' });
       const validMessageBuffer = Buffer.from(validMessage, 'utf8');
       const validLengthBuffer = Buffer.allocUnsafe(4);
       validLengthBuffer.writeInt32BE(validMessageBuffer.length, 0);
       const validFramedMessage = Buffer.concat([validLengthBuffer, validMessageBuffer]);
-      
-      const combinedBuffer = Buffer.concat([invalidLengthBuffer, Buffer.from('junk'), validFramedMessage]);
-      
+
+      const combinedBuffer = Buffer.concat([
+        invalidLengthBuffer,
+        Buffer.from('junk'),
+        validFramedMessage
+      ]);
+
       assert.doesNotThrow(() => {
         connection.handleData(combinedBuffer);
       });
@@ -340,15 +332,17 @@ describe('UnityConnection', () => {
 
     it('should clear buffer when unable to recover from invalid frame', () => {
       // Create entirely corrupt data that can't be recovered
-      const corruptData = Buffer.from('this is completely invalid framed data that cannot be recovered');
+      const corruptData = Buffer.from(
+        'this is completely invalid framed data that cannot be recovered'
+      );
       const lengthHeader = Buffer.allocUnsafe(4);
       lengthHeader.writeInt32BE(-1, 0); // Invalid negative length
       const combinedCorruptData = Buffer.concat([lengthHeader, corruptData]);
-      
+
       assert.doesNotThrow(() => {
         connection.handleData(combinedCorruptData);
       });
-      
+
       // Buffer should be cleared after failed recovery
       assert.equal(connection.messageBuffer.length, 0);
     });
@@ -359,7 +353,7 @@ describe('UnityConnection', () => {
       const lengthBuffer = Buffer.allocUnsafe(4);
       lengthBuffer.writeInt32BE(messageBuffer.length, 0);
       const framedMessage = Buffer.concat([lengthBuffer, messageBuffer]);
-      
+
       assert.doesNotThrow(() => {
         connection.handleData(framedMessage);
       });
@@ -371,11 +365,11 @@ describe('UnityConnection', () => {
       const lengthBuffer = Buffer.allocUnsafe(4);
       lengthBuffer.writeInt32BE(messageBuffer.length, 0);
       const framedMessage = Buffer.concat([lengthBuffer, messageBuffer]);
-      
+
       // Send first half of the message
       const firstHalf = framedMessage.slice(0, framedMessage.length / 2);
       const secondHalf = framedMessage.slice(framedMessage.length / 2);
-      
+
       assert.doesNotThrow(() => {
         connection.handleData(firstHalf);
         // Message should be buffered, not processed yet
@@ -390,7 +384,7 @@ describe('UnityConnection', () => {
       const lengthBuffer = Buffer.allocUnsafe(4);
       lengthBuffer.writeInt32BE(messageBuffer.length, 0);
       const framedMessage = Buffer.concat([lengthBuffer, messageBuffer]);
-      
+
       assert.doesNotThrow(() => {
         connection.handleData(framedMessage);
       });
@@ -399,19 +393,19 @@ describe('UnityConnection', () => {
     it('should handle multiple messages in one data chunk', () => {
       const message1 = JSON.stringify({ id: '1', status: 'success' });
       const message2 = JSON.stringify({ id: '2', status: 'success' });
-      
+
       const buffer1 = Buffer.from(message1, 'utf8');
       const length1 = Buffer.allocUnsafe(4);
       length1.writeInt32BE(buffer1.length, 0);
       const framed1 = Buffer.concat([length1, buffer1]);
-      
+
       const buffer2 = Buffer.from(message2, 'utf8');
       const length2 = Buffer.allocUnsafe(4);
       length2.writeInt32BE(buffer2.length, 0);
       const framed2 = Buffer.concat([length2, buffer2]);
-      
+
       const combinedData = Buffer.concat([framed1, framed2]);
-      
+
       assert.doesNotThrow(() => {
         connection.handleData(combinedData);
       });
@@ -421,9 +415,9 @@ describe('UnityConnection', () => {
   describe('scheduleReconnect', () => {
     it('should schedule reconnection with exponential backoff', () => {
       connection.reconnectAttempts = 2;
-      
+
       connection.scheduleReconnect();
-      
+
       assert.notEqual(connection.reconnectTimer, null);
       clearTimeout(connection.reconnectTimer);
     });
@@ -431,9 +425,9 @@ describe('UnityConnection', () => {
     it('should not schedule if timer already exists', () => {
       connection.reconnectTimer = setTimeout(() => {}, 1000);
       const originalTimer = connection.reconnectTimer;
-      
+
       connection.scheduleReconnect();
-      
+
       assert.equal(connection.reconnectTimer, originalTimer);
       clearTimeout(connection.reconnectTimer);
     });
@@ -442,7 +436,7 @@ describe('UnityConnection', () => {
   describe('isConnected', () => {
     it('should return connection status', () => {
       assert.equal(connection.isConnected(), false);
-      
+
       connection.connected = true;
       assert.equal(connection.isConnected(), true);
     });

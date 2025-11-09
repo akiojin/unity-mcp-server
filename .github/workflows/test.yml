@@ -1,0 +1,102 @@
+name: Test
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Test & Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.20.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install build tools (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 make gcc g++
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run targeted CI tests
+        run: pnpm --filter mcp-server run test:ci
+        env:
+          NODE_ENV: test
+          CI: true
+          DISABLE_AUTO_RECONNECT: true
+
+      - name: Generate coverage report
+        run: pnpm --filter mcp-server run test:ci:coverage
+        continue-on-error: true
+        env:
+          NODE_ENV: test
+          CI: true
+          DISABLE_AUTO_RECONNECT: true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          files: ./mcp-server/coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  build:
+    name: Package
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.20.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install build tools (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 make gcc g++
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Pack npm artifact
+        working-directory: ./mcp-server
+        run: pnpm pack
+
+      - name: Verify package archive
+        run: |
+          ls -1 mcp-server/*.tgz

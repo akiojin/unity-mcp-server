@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { 
-  ListToolsRequestSchema, 
+import {
+  ListToolsRequestSchema,
   CallToolRequestSchema,
   ListResourcesRequestSchema,
   ListPromptsRequestSchema
@@ -12,6 +11,7 @@ import { UnityConnection } from './unityConnection.js';
 import { createHandlers } from '../handlers/index.js';
 import { config, logger } from './config.js';
 import { IndexWatcher } from './indexWatcher.js';
+import { HybridStdioServerTransport } from './transports/HybridStdioServerTransport.js';
 
 // Create Unity connection
 const unityConnection = new UnityConnection();
@@ -23,7 +23,7 @@ const handlers = createHandlers(unityConnection);
 const server = new Server(
   {
     name: config.server.name,
-    version: config.server.version,
+    version: config.server.version
   },
   {
     capabilities: {
@@ -41,20 +41,24 @@ const server = new Server(
 
 // Handle tool listing
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  const tools = Array.from(handlers.values()).map((handler, index) => {
-    try {
-      const definition = handler.getDefinition();
-      // Validate inputSchema
-      if (definition.inputSchema && definition.inputSchema.type !== 'object') {
-        logger.error(`[MCP] Tool ${handler.name} (index ${index}) has invalid inputSchema type: ${definition.inputSchema.type}`);
+  const tools = Array.from(handlers.values())
+    .map((handler, index) => {
+      try {
+        const definition = handler.getDefinition();
+        // Validate inputSchema
+        if (definition.inputSchema && definition.inputSchema.type !== 'object') {
+          logger.error(
+            `[MCP] Tool ${handler.name} (index ${index}) has invalid inputSchema type: ${definition.inputSchema.type}`
+          );
+        }
+        return definition;
+      } catch (error) {
+        logger.error(`[MCP] Failed to get definition for handler ${handler.name}:`, error);
+        return null;
       }
-      return definition;
-    } catch (error) {
-      logger.error(`[MCP] Failed to get definition for handler ${handler.name}:`, error);
-      return null;
-    }
-  }).filter(tool => tool !== null);
-  
+    })
+    .filter(tool => tool !== null);
+
   logger.info(`[MCP] Returning ${tools.length} tool definitions`);
   return { tools };
 });
@@ -74,36 +78,42 @@ server.setRequestHandler(ListPromptsRequestSchema, async () => {
 });
 
 // Handle tool execution
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async request => {
   const { name, arguments: args } = request.params;
   const requestTime = Date.now();
-  
-  logger.info(`[MCP] Received tool call request: ${name} at ${new Date(requestTime).toISOString()}`, { args });
-  
+
+  logger.info(
+    `[MCP] Received tool call request: ${name} at ${new Date(requestTime).toISOString()}`,
+    { args }
+  );
+
   const handler = handlers.get(name);
   if (!handler) {
     logger.error(`[MCP] Tool not found: ${name}`);
     throw new Error(`Tool not found: ${name}`);
   }
-  
+
   try {
     logger.info(`[MCP] Starting handler execution for: ${name} at ${new Date().toISOString()}`);
     const startTime = Date.now();
-    
+
     // Handler returns response in our format
     const result = await handler.handle(args);
-    
+
     const duration = Date.now() - startTime;
     const totalDuration = Date.now() - requestTime;
-    logger.info(`[MCP] Handler completed at ${new Date().toISOString()}: ${name}`, { 
+    logger.info(`[MCP] Handler completed at ${new Date().toISOString()}: ${name}`, {
       handlerDuration: `${duration}ms`,
       totalDuration: `${totalDuration}ms`,
-      status: result.status 
+      status: result.status
     });
-    
+
     // Convert to MCP format
     if (result.status === 'error') {
-      logger.error(`[MCP] Handler returned error: ${name}`, { error: result.error, code: result.code });
+      logger.error(`[MCP] Handler returned error: ${name}`, {
+        error: result.error,
+        code: result.code
+      });
       return {
         content: [
           {
@@ -113,22 +123,26 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         ]
       };
     }
-    
+
     // Success response
     logger.info(`[MCP] Returning success response for: ${name} at ${new Date().toISOString()}`);
-    
+
     // Handle undefined or null results from handlers
     let responseText;
     if (result.result === undefined || result.result === null) {
-      responseText = JSON.stringify({
-        status: 'success',
-        message: 'Operation completed successfully but no details were returned',
-        tool: name
-      }, null, 2);
+      responseText = JSON.stringify(
+        {
+          status: 'success',
+          message: 'Operation completed successfully but no details were returned',
+          tool: name
+        },
+        null,
+        2
+      );
     } else {
       responseText = JSON.stringify(result.result, null, 2);
     }
-    
+
     return {
       content: [
         {
@@ -139,8 +153,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     };
   } catch (error) {
     const errorTime = Date.now();
-    logger.error(`[MCP] Handler threw exception at ${new Date(errorTime).toISOString()}: ${name}`, { 
-      error: error.message, 
+    logger.error(`[MCP] Handler threw exception at ${new Date(errorTime).toISOString()}: ${name}`, {
+      error: error.message,
       stack: error.stack,
       duration: `${errorTime - requestTime}ms`
     });
@@ -164,7 +178,7 @@ unityConnection.on('disconnected', () => {
   logger.info('Unity connection lost');
 });
 
-unityConnection.on('error', (error) => {
+unityConnection.on('error', error => {
   logger.error('Unity connection error:', error.message);
 });
 
@@ -172,14 +186,14 @@ unityConnection.on('error', (error) => {
 export async function startServer() {
   try {
     // Create transport - no logging before connection
-    const transport = new StdioServerTransport();
-    
+    const transport = new HybridStdioServerTransport();
+
     // Connect to transport
     await server.connect(transport);
-    
+
     // Now safe to log after connection established
     logger.info('MCP server started successfully');
-    
+
     // Attempt to connect to Unity
     try {
       await unityConnection.connect();
@@ -189,13 +203,17 @@ export async function startServer() {
     }
 
     // Best-effort: prepare and start persistent C# LSP process (non-blocking)
-    ;(async () => {
+    (async () => {
       try {
         const { LspProcessManager } = await import('../lsp/LspProcessManager.js');
         const mgr = new LspProcessManager();
         await mgr.ensureStarted();
         // Attach graceful shutdown
-        const shutdown = async () => { try { await mgr.stop(3000); } catch {} };
+        const shutdown = async () => {
+          try {
+            await mgr.stop(3000);
+          } catch {}
+        };
         process.on('SIGINT', shutdown);
         process.on('SIGTERM', shutdown);
       } catch (e) {
@@ -206,10 +224,14 @@ export async function startServer() {
     // Start periodic index watcher (incremental)
     const watcher = new IndexWatcher(unityConnection);
     watcher.start();
-    const stopWatch = () => { try { watcher.stop(); } catch {} };
+    const stopWatch = () => {
+      try {
+        watcher.stop();
+      } catch {}
+    };
     process.on('SIGINT', stopWatch);
     process.on('SIGTERM', stopWatch);
-    
+
     // Handle shutdown
     process.on('SIGINT', async () => {
       logger.info('Shutting down...');
@@ -217,14 +239,13 @@ export async function startServer() {
       await server.close();
       process.exit(0);
     });
-    
+
     process.on('SIGTERM', async () => {
       logger.info('Shutting down...');
       unityConnection.disconnect();
       await server.close();
       process.exit(0);
     });
-    
   } catch (error) {
     console.error('Failed to start server:', error);
     console.error('Stack trace:', error.stack);
@@ -233,17 +254,17 @@ export async function startServer() {
 }
 
 // Maintain backwards compatibility for older callers that expect main()
-const main = startServer;
+export const main = startServer;
 
 // Export for testing
 export async function createServer(customConfig = config) {
   const testUnityConnection = new UnityConnection();
   const testHandlers = createHandlers(testUnityConnection);
-  
+
   const testServer = new Server(
     {
       name: customConfig.server.name,
-      version: customConfig.server.version,
+      version: customConfig.server.version
     },
     {
       capabilities: {
@@ -253,24 +274,24 @@ export async function createServer(customConfig = config) {
       }
     }
   );
-  
+
   // Register handlers for test server
   testServer.setRequestHandler(ListToolsRequestSchema, async () => {
     const tools = Array.from(testHandlers.values()).map(handler => handler.getDefinition());
     return { tools };
   });
-  
+
   testServer.setRequestHandler(ListResourcesRequestSchema, async () => {
     return { resources: [] };
   });
-  
+
   testServer.setRequestHandler(ListPromptsRequestSchema, async () => {
     return { prompts: [] };
   });
-  
-  testServer.setRequestHandler(CallToolRequestSchema, async (request) => {
+
+  testServer.setRequestHandler(CallToolRequestSchema, async request => {
     const { name, arguments: args } = request.params;
-    
+
     const handler = testHandlers.get(name);
     if (!handler) {
       return {
@@ -279,10 +300,10 @@ export async function createServer(customConfig = config) {
         code: 'TOOL_NOT_FOUND'
       };
     }
-    
+
     return await handler.handle(args);
   });
-  
+
   return {
     server: testServer,
     unityConnection: testUnityConnection
@@ -300,8 +321,10 @@ const isDirectExecution = (() => {
   }
 })();
 
-if (isDirectExecution) startServer().catch((error) => {
-  console.error('Fatal error:', error);
-  console.error('Stack trace:', error.stack);
-  process.exit(1);
-});
+if (isDirectExecution) {
+  startServer().catch(error => {
+    console.error('Fatal error:', error);
+    console.error('Stack trace:', error.stack);
+    process.exit(1);
+  });
+}

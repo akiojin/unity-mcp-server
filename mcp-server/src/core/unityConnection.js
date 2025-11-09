@@ -42,11 +42,11 @@ export class UnityConnection extends EventEmitter {
 
       const targetHost = config.unity.mcpHost || config.unity.unityHost;
       logger.info(`Connecting to Unity at ${targetHost}:${config.unity.port}...`);
-      
+
       this.socket = new net.Socket();
       let connectionTimeout = null;
       let resolved = false;
-      
+
       // Helper to clean up the connection timeout
       const clearConnectionTimeout = () => {
         if (connectionTimeout) {
@@ -54,7 +54,7 @@ export class UnityConnection extends EventEmitter {
           connectionTimeout = null;
         }
       };
-      
+
       // Set up event handlers
       this.socket.on('connect', () => {
         logger.info('Connected to Unity Editor');
@@ -66,14 +66,14 @@ export class UnityConnection extends EventEmitter {
         resolve();
       });
 
-      this.socket.on('data', (data) => {
+      this.socket.on('data', data => {
         this.handleData(data);
       });
 
-      this.socket.on('error', (error) => {
+      this.socket.on('error', error => {
         logger.error('Socket error:', error.message);
         this.emit('error', error);
-        
+
         if (!this.connected && !resolved) {
           resolved = true;
           clearConnectionTimeout();
@@ -89,29 +89,28 @@ export class UnityConnection extends EventEmitter {
       this.socket.on('close', () => {
         // Clear the connection timeout when socket closes
         clearConnectionTimeout();
-        
+
         // Check if we're already handling disconnection
         if (this.isDisconnecting || !this.socket) {
           return;
         }
-        
+
         logger.info('Disconnected from Unity Editor');
         this.connected = false;
-        const wasSocket = this.socket;
         this.socket = null;
-        
+
         // Clear message buffer
         this.messageBuffer = Buffer.alloc(0);
-        
+
         // Clear pending commands
-        for (const [id, pending] of this.pendingCommands) {
+        for (const [, pending] of this.pendingCommands) {
           pending.reject(new Error('Connection closed'));
         }
         this.pendingCommands.clear();
-        
+
         // Emit disconnected event
         this.emit('disconnected');
-        
+
         // Attempt reconnection only if not intentionally disconnecting
         if (!this.isDisconnecting && process.env.DISABLE_AUTO_RECONNECT !== 'true') {
           this.scheduleReconnect();
@@ -120,7 +119,7 @@ export class UnityConnection extends EventEmitter {
 
       // Attempt connection
       this.socket.connect(config.unity.port, targetHost);
-      
+
       // Set timeout for initial connection
       connectionTimeout = setTimeout(() => {
         if (!this.connected && !resolved && this.socket) {
@@ -139,12 +138,12 @@ export class UnityConnection extends EventEmitter {
    */
   disconnect() {
     this.isDisconnecting = true;
-    
+
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-    
+
     if (this.socket) {
       try {
         // Remove all listeners before destroying to prevent async callbacks
@@ -155,7 +154,7 @@ export class UnityConnection extends EventEmitter {
       }
       this.socket = null;
     }
-    
+
     this.connected = false;
     this.isDisconnecting = false;
   }
@@ -169,7 +168,8 @@ export class UnityConnection extends EventEmitter {
     }
 
     const delay = Math.min(
-      config.unity.reconnectDelay * Math.pow(config.unity.reconnectBackoffMultiplier, this.reconnectAttempts),
+      config.unity.reconnectDelay *
+        Math.pow(config.unity.reconnectBackoffMultiplier, this.reconnectAttempts),
       config.unity.maxReconnectDelay
     );
 
@@ -178,7 +178,7 @@ export class UnityConnection extends EventEmitter {
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       this.reconnectAttempts++;
-      this.connect().catch((error) => {
+      this.connect().catch(error => {
         logger.error('Reconnection failed:', error.message);
       });
     }, delay);
@@ -192,25 +192,26 @@ export class UnityConnection extends EventEmitter {
     // Check if this is an unframed Unity debug log
     if (data.length > 0 && !this.messageBuffer.length) {
       const dataStr = data.toString('utf8');
-      if (dataStr.startsWith('[Unity Editor MCP]') || dataStr.startsWith('[Unity]')) {
+      if (dataStr.startsWith('[Unity MCP Server]') || dataStr.startsWith('[Unity]')) {
         logger.debug(`[Unity] Received unframed debug log: ${dataStr.trim()}`);
         // Don't process unframed logs as messages
         return;
       }
     }
-    
+
     // Append new data to buffer
     this.messageBuffer = Buffer.concat([this.messageBuffer, data]);
-    
+
     // Process complete messages
     while (this.messageBuffer.length >= 4) {
       // Read message length (first 4 bytes, big-endian)
       const messageLength = this.messageBuffer.readInt32BE(0);
-      
+
       // Validate message length
-      if (messageLength < 0 || messageLength > 1024 * 1024) { // Max 1MB messages
+      if (messageLength < 0 || messageLength > 1024 * 1024) {
+        // Max 1MB messages
         logger.error(`[Unity] Invalid message length: ${messageLength}`);
-        
+
         // Try to recover by looking for valid framed message
         // Look for a reasonable length value (positive, less than 10KB for typical responses)
         let recoveryIndex = -1;
@@ -227,7 +228,7 @@ export class UnityConnection extends EventEmitter {
             }
           }
         }
-        
+
         if (recoveryIndex > 0) {
           logger.warn(`[Unity] Discarding ${recoveryIndex} bytes of invalid data`);
           this.messageBuffer = this.messageBuffer.slice(recoveryIndex);
@@ -239,40 +240,42 @@ export class UnityConnection extends EventEmitter {
           break;
         }
       }
-      
+
       // Check if we have the complete message
       if (this.messageBuffer.length >= 4 + messageLength) {
         // Extract message
         const messageData = this.messageBuffer.slice(4, 4 + messageLength);
         this.messageBuffer = this.messageBuffer.slice(4 + messageLength);
-        
+
         // Process the message
         try {
           const message = messageData.toString('utf8');
-          
+
           // Skip non-JSON messages (like debug logs)
           if (!message.trim().startsWith('{')) {
             logger.warn(`[Unity] Skipping non-JSON message: ${message.substring(0, 50)}...`);
             continue;
           }
-          
+
           logger.debug(`[Unity] Received framed message (length=${message.length})`);
-          
+
           const response = JSON.parse(message);
-          logger.debug(`[Unity] Parsed response id=${response.id || 'n/a'} status=${response.status || (response.success === false ? 'error' : 'success')}`);
-          
+          logger.debug(
+            `[Unity] Parsed response id=${response.id || 'n/a'} status=${response.status || (response.success === false ? 'error' : 'success')}`
+          );
+
           // Check if this is a response to a pending command
           if (response.id && this.pendingCommands.has(response.id)) {
             logger.info(`[Unity] Found pending command for ID ${response.id}`);
             const pending = this.pendingCommands.get(response.id);
             this.pendingCommands.delete(response.id);
-            
+
             // Handle both old and new response formats
             if (response.status === 'success' || response.success === true) {
               logger.info(`[Unity] Command ${response.id} succeeded`);
-              
+
               let result = response.result || response.data || {};
-              
+
               // If result is a string, try to parse it as JSON
               if (typeof result === 'string') {
                 try {
@@ -283,7 +286,7 @@ export class UnityConnection extends EventEmitter {
                   // Keep the original string value
                 }
               }
-              
+
               // Include version and editorState information if available
               if (response.version) {
                 result._version = response.version;
@@ -291,7 +294,7 @@ export class UnityConnection extends EventEmitter {
               if (response.editorState) {
                 result._editorState = response.editorState;
               }
-              
+
               logger.info(`[Unity] Command ${response.id} resolved successfully`);
               pending.resolve(result);
             } else if (response.status === 'error' || response.success === false) {
@@ -310,10 +313,10 @@ export class UnityConnection extends EventEmitter {
         } catch (error) {
           logger.error('[Unity] Failed to parse response:', error.message);
           logger.debug(`[Unity] Raw message: ${messageData.toString().substring(0, 200)}...`);
-          
+
           // Check if this looks like a Unity log message
           const messageStr = messageData.toString();
-          if (messageStr.includes('[Unity Editor MCP]')) {
+          if (messageStr.includes('[Unity MCP Server]')) {
             logger.debug('[Unity] Received Unity log message instead of JSON response');
             // Don't treat this as a critical error
           }
@@ -333,7 +336,7 @@ export class UnityConnection extends EventEmitter {
    */
   async sendCommand(type, params = {}) {
     logger.info(`[Unity] enqueue sendCommand: ${type}`, { connected: this.connected });
-    
+
     if (!this.connected) {
       logger.error('[Unity] Cannot send command - not connected');
       throw new Error('Not connected to Unity');
@@ -375,18 +378,22 @@ export class UnityConnection extends EventEmitter {
 
     // Store pending with wrappers to manage queue progression
     this.pendingCommands.set(id, {
-      resolve: (data) => {
+      resolve: data => {
         logger.info(`[Unity] Command ${id} resolved`);
         clearTimeout(timeout);
-        try { task.outerResolve(data); } finally {
+        try {
+          task.outerResolve(data);
+        } finally {
           this.inFlight = Math.max(0, this.inFlight - 1);
           this._pumpQueue();
         }
       },
-      reject: (error) => {
+      reject: error => {
         logger.error(`[Unity] Command ${id} rejected: ${error.message}`);
         clearTimeout(timeout);
-        try { task.outerReject(error); } finally {
+        try {
+          task.outerReject(error);
+        } finally {
           this.inFlight = Math.max(0, this.inFlight - 1);
           this._pumpQueue();
         }
@@ -394,7 +401,7 @@ export class UnityConnection extends EventEmitter {
     });
 
     // Send framed message
-    this.socket.write(framedMessage, (error) => {
+    this.socket.write(framedMessage, error => {
       if (error) {
         logger.error(`[Unity] Failed to write command ${id}: ${error.message}`);
         clearTimeout(timeout);
