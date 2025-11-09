@@ -1,9 +1,10 @@
-# 機能仕様書: 3層リリースフロー（feature → develop → main）
+# 機能仕様書: 4層リリースフロー（feature → develop → release/* → main）
 
 **機能ID**: `SPEC-1ac96646`
 **作成日**: 2025-11-07
+**最終更新**: 2025-11-09
 **ステータス**: 実装完了
-**入力**: ユーザー説明: "3層リリースフロー（feature → develop → main）の実装"
+**入力**: ユーザー説明: "4層リリースフロー（feature → develop → release/* → main）の実装"
 
 ## ユーザーシナリオ＆テスト *(必須)*
 
@@ -25,17 +26,18 @@
 
 ### ユーザーストーリー2 - /releaseコマンドによる手動リリース (優先度: P2)
 
-プロジェクトマネージャー/リリース担当者として、developブランチの変更を蓄積した後、意図的なタイミングでmainブランチへのリリースを開始したい。リリース前にリリースノートをプレビューし、内容を確認してからPRを作成することで、リリース品質を担保したい。
+プロジェクトマネージャー/リリース担当者として、developブランチの変更を蓄積した後、意図的なタイミングでリリースを開始したい。/releaseコマンドを実行すると、release/vX.Y.Zブランチが作成され、そこでsemantic-releaseが実行されてバージョン決定とCHANGELOG生成が行われる。その後、release/*ブランチからmainへ自動マージされることで、リリースプロセスを自動化したい。
 
 **この優先度の理由**: リリース頻度の削減という主要な目標を達成するための核心機能です。developブランチへの統合ができた後、次に重要なのは、意図的なタイミングでのリリース実行です。
 
-**独立テスト**: /releaseコマンドを実行し、リリースノートがプレビュー表示され、確認後にdevelop → main PRが作成されることを確認することでテストできます。この機能により、リリース担当者は適切なタイミングでリリースをコントロールできる価値を提供します。
+**独立テスト**: /releaseコマンドを実行し、release/vX.Y.Zブランチが作成され、semantic-releaseが実行され、mainへ自動マージされることを確認することでテストできます。この機能により、リリース担当者は適切なタイミングでリリースをコントロールできる価値を提供します。
 
 **受け入れシナリオ**:
 
-1. **前提** developブランチに複数のfeatureがマージ済み、**実行** /releaseコマンドを実行、**結果** リリースノート（バージョン、CHANGELOG、成果物リスト）がプレビュー表示される
-2. **前提** リリースノートプレビューを確認、**実行** リリース確認を実施、**結果** develop → main PRが作成される（auto-merge無効）
-3. **前提** develop → main PRが作成済み、**実行** PRをマージ、**結果** mainブランチに変更が反映される
+1. **前提** developブランチに複数のfeatureがマージ済み、**実行** /releaseコマンドを実行、**結果** release/vX.Y.Zブランチが作成され、developからのPRが作成される
+2. **前提** release/* PR作成済み、**実行** CI/CDチェック成功、**結果** semantic-releaseが実行され、バージョン決定とCHANGELOG生成が完了する
+3. **前提** semantic-release完了、**実行** release.ymlワークフロー実行、**結果** release/*ブランチがmainに自動マージされる
+4. **前提** mainマージ完了、**実行** バックマージワークフロー実行、**結果** mainの変更がdevelopにバックマージされる
 
 ---
 
@@ -49,7 +51,7 @@
 
 **受け入れシナリオ**:
 
-1. **前提** develop → main PRがマージ済み、**実行** semantic-releaseが自動実行、**結果** package.json、Unity Package、CHANGELOG.mdが更新され、タグが作成される
+1. **前提** release/*→ main マージ済み、**実行** semantic-releaseが自動実行（release/*ブランチ上）、**結果** package.json、Unity Package、CHANGELOG.mdが更新され、タグが作成される
 2. **前提** semantic-release完了、**実行** GitHub Releaseが作成、**結果** MCPサーバーがnpmjs.comに自動publishされる
 3. **前提** GitHub Release作成済み、**実行** LSPサーバービルドジョブ実行、**結果** 全プラットフォーム（linux-x64, osx-x64, osx-arm64, win-x64）のバイナリがGitHub Releaseに添付される
 
@@ -111,22 +113,23 @@ Unity開発者として、mainブランチへのリリース時にOpenUPMパッ�
 - **FR-001**: システムは、finish-feature.shスクリプト実行時にdevelopブランチをベースとしたPRを作成する必要がある
 - **FR-002**: システムは、developへのPRに対してCI/CDチェック成功時に自動マージを実行する必要がある
 - **FR-003**: システムは、mainへのPRに対して自動マージを実行してはならない（手動承認必須）
-- **FR-004**: システムは、/releaseコマンド実行時にsemantic-release dry-runを実行し、リリースノート（バージョン、CHANGELOG、成果物リスト）をプレビュー表示する必要がある
-- **FR-005**: システムは、ユーザー確認後にdevelop → main PRを作成する必要がある（auto-merge無効）
-- **FR-006**: システムは、mainブランチへのマージ時にsemantic-releaseを自動実行し、package.json、Unity Package、CHANGELOG.mdを更新し、タグを作成する必要がある
-- **FR-007**: システムは、GitHub Release作成時にMCPサーバーをnpmjs.comに自動publishする必要がある
-- **FR-008**: システムは、LSPサーバーを全プラットフォーム（linux-x64, osx-x64, osx-arm64, win-x64）でビルドし、GitHub Releaseに添付する必要がある
-- **FR-009**: システムは、PR移行スクリプト実行時に既存16個のfeature PRのベースブランチをdevelopに一括変更する必要がある
-- **FR-010**: システムは、PR移行後もCI/CDチェックが正常に動作することを保証する必要がある
-- **FR-011**: GitHub上のデフォルトブランチはdevelopである必要がある
-- **FR-012**: CLAUDE.md、README.md、quickstart.mdは3層ブランチフローを反映した内容に更新される必要がある
-- **FR-013**: システムは、Unity Packageのpackage.jsonに`homepage`フィールドを含める必要がある（OpenUPMパッケージページでの情報表示のため）
-- **FR-014**: システムは、Unity PackageルートにREADME.mdを配置する必要がある（OpenUPMパッケージページでのREADME埋め込みのため）
+- **FR-004**: システムは、/releaseコマンド実行時にrelease/vX.Y.Zブランチを作成し、developからのPRを作成する必要がある
+- **FR-005**: システムは、release/*ブランチ上でsemantic-releaseを自動実行し、package.json、Unity Package、CHANGELOG.mdを更新し、タグを作成する必要がある
+- **FR-006**: システムは、semantic-release完了後にrelease/*ブランチをmainに自動マージする必要がある
+- **FR-007**: システムは、mainマージ後にdevelopへバックマージする必要がある
+- **FR-008**: システムは、GitHub Release作成時にMCPサーバーをnpmjs.comに自動publishする必要がある
+- **FR-009**: システムは、LSPサーバーを全プラットフォーム（linux-x64, osx-x64, osx-arm64, win-x64）でビルドし、GitHub Releaseに添付する必要がある
+- **FR-010**: システムは、PR移行スクリプト実行時に既存16個のfeature PRのベースブランチをdevelopに一括変更する必要がある
+- **FR-011**: システムは、PR移行後もCI/CDチェックが正常に動作することを保証する必要がある
+- **FR-012**: GitHub上のデフォルトブランチはdevelopである必要がある
+- **FR-013**: CLAUDE.md、README.md、quickstart.mdは4層ブランチフロー（feature → develop → release/* → main）を反映した内容に更新される必要がある
+- **FR-014**: システムは、Unity Packageのpackage.jsonに`homepage`フィールドを含める必要がある（OpenUPMパッケージページでの情報表示のため）
+- **FR-015**: システムは、Unity PackageルートにREADME.mdを配置する必要がある（OpenUPMパッケージページでのREADME埋め込みのため）
 
 ### 主要エンティティ
 
-- **ブランチ**: feature, develop, mainの3層構造。featureはdevelopから派生、mainは安定版リリース専用
-- **プルリクエスト**: feature → develop（自動マージ）、develop → main（手動マージ）の2種類
+- **ブランチ**: feature, develop, release/*, mainの4層構造。featureはdevelopから派生、release/*はdevelopから作成され、mainは安定版リリース専用
+- **プルリクエスト**: feature → develop（自動マージ）、develop → release/*（/releaseコマンドで作成）、release/* → main（自動マージ）、main → develop（バックマージ）の4種類
 - **リリース成果物**: MCPサーバー（npm）、LSPサーバー（全プラットフォームバイナリ）、Unity Package、CHANGELOG、タグ、OpenUPMパッケージ
 - **CI/CDワークフロー**: auto-merge（developのみ）、release（mainのみ）、mcp-server-publish（GitHub Release作成時）
 - **パッケージメタデータ**: package.json（homepage、version）、README.md（パッケージルート配置）
@@ -137,7 +140,6 @@ Unity開発者として、mainブランチへのリリース時にOpenUPMパッ�
 
 以下の機能は本仕様のスコープ外とし、将来のバージョンで対応予定:
 
-- develop → mainへの自動マージ（リリースは手動トリガーのみ）
 - ホットフィックスブランチ（hotfix → main → develop）
 - ロールバック機能（リリース後に問題が発覚した場合の自動ロールバック）
 - マルチバージョンサポート（複数のメジャーバージョンの並行保守）

@@ -181,12 +181,6 @@ sequenceDiagram
     end
 ```
 
-## Directory Structure
-
-- `UnityMCPServer/`: Unity project (Editor bridge, tools, samples)
-- `mcp-server/`: Node.js MCP server that exposes Unity tools
-- `scripts/`: Helper scripts for local development
-
 ## Setup
 
 - Unity 2020.3 LTS or newer
@@ -243,9 +237,78 @@ Environment-specific notes:
 
 After installation you can verify the server with `node mcp-server/bin/unity-mcp-server --version`. If `better-sqlite3` fails to load, reinstall the dependencies _inside the target environment_ or rebuild with `pnpm rebuild better-sqlite3 --filter mcp-server --build-from-source` once the toolchain is present.
 
-Usage Flow
-- Open Unity project (TCP listener starts on port 6400)
-- Start your MCP client and call tools (e.g., ping, scene, script tools)
+## Usage Workflow
+
+1. **Install the Unity package.** Use the Git URL listed above or, once OpenUPM is configured, run `openupm add com.akiojin.unity-mcp-server` inside your project.
+2. **Register OpenUPM scopes when needed.** Installing via Git does not require extra setup, but installing from OpenUPM or letting the MCP registry tool manage packages does. See [Adding the OpenUPM scoped registry](#adding-the-openupm-scoped-registry).
+3. **Install Node dependencies.** In a local clone run `npm ci --workspace=mcp-server` (or `cd mcp-server && npm ci`). When launching with `npx`, dependencies are resolved for you.
+4. **Launch the MCP server.**
+
+   ```bash
+   npm ci --workspace=mcp-server            # once per machine/OS image
+   node mcp-server/bin/unity-mcp-server     # foreground session
+   # or: npm --workspace=mcp-server run dev # auto-restarts on file changes
+   ```
+
+5. **Point your MCP client at the server.** Update `claude_desktop_config.json` (or your client's equivalent) so `Unity MCP Server` appears in the tool list.
+6. **Smoke-test the round trip.** With Unity open, call `system_ping` or `package_registry_config` to confirm the transport, then proceed with higher-level tools (scene, script, screenshot, etc.).
+
+> Tip: `npx @akiojin/unity-mcp-server@latest` downloads and runs the latest published build without cloning this repository; only use the clone when you plan to modify the code.
+
+## Adding the OpenUPM Scoped Registry
+
+Unity does not know about OpenUPM by default. Add the scoped registry whenever:
+
+- You plan to install `com.akiojin.unity-mcp-server` (or other packages) from OpenUPM/the `openupm` CLI.
+- You want to use the MCP `package_registry_config` tool to add/remove package scopes automatically.
+
+The reference project under `UnityMCPServer/` already ships with a working example (`ProjectSettings/PackageManagerSettings.asset` and `Packages/manifest.json`), but your own Unity projects must opt in.
+
+### Option A — Project Settings / `Packages/manifest.json`
+
+1. Open Unity and navigate to `Edit ▸ Project Settings… ▸ Package Manager`.
+2. Under **Scoped Registries**, click **+**.
+3. Use the following values (add only the scopes you need; at minimum include `com.akiojin` or the full package ID):
+   - **Name**: `OpenUPM`
+   - **URL**: `https://package.openupm.com`
+   - **Scopes**: `com.akiojin`, `com.akiojin.unity-mcp-server`, plus any other vendor scopes you rely on (`com.cysharp`, `com.neuecc`, `jp.keijiro`, etc.).
+4. Click **Apply**. Unity writes the same data to `Packages/manifest.json`, so keep the file under version control.
+
+**Example snippet**
+
+```json
+"scopedRegistries": [
+  {
+    "name": "OpenUPM",
+    "url": "https://package.openupm.com",
+    "scopes": [
+      "com.akiojin",
+      "com.akiojin.unity-mcp-server",
+      "com.cysharp",
+      "com.neuecc",
+      "jp.keijiro"
+    ]
+  }
+]
+```
+
+Run `openupm add com.akiojin.unity-mcp-server` after the registry is present if you prefer the CLI; it updates `manifest.json` for you.
+
+### Option B — Use the MCP registry tool
+
+1. Launch Unity and start the Node MCP server.
+2. From your MCP client, call the `package_registry_config` tool (some clients display it as `UnityMCP__package_registry_config` / `UnityMCP__registry_config`).
+3. Supply the `add_openupm` action and any custom scopes:
+
+```json
+{
+  "action": "add_openupm",
+  "autoAddPopular": true,
+  "scopes": ["com.akiojin"]
+}
+```
+
+The tool updates `Packages/manifest.json`, ensures the registry exists (creating or merging scopes), and requests an AssetDatabase refresh so the Package Manager picks up the change.
 
 ### Configuration (.unity/config.json)
 
