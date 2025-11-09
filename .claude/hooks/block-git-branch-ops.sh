@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Claude Code PreToolUse Hook: Block git branch operations
-# このスクリプトは git checkout, git switch, git branch, git worktree コマンドをブロックします
+# Claude Code PreToolUse Hook: Block git branch operations and cd to repository root
+# このスクリプトは git checkout, git switch, git branch, git worktree コマンドと
+# リポジトリルートへの cd コマンドをブロックします
 
 # 配列内に値が含まれているかを判定
 contains_element() {
@@ -142,6 +143,25 @@ while IFS= read -r segment; do
     # 空行はスキップ
     if [ -z "$trimmed_segment" ]; then
         continue
+    fi
+
+    # cdコマンドでリポジトリルートへの移動をチェック
+    if echo "$trimmed_segment" | grep -qE '^cd\s+'; then
+        cd_target=$(echo "$trimmed_segment" | sed -E 's/^cd[[:space:]]+//; s/^"//; s/"$//; s/^'\''//; s/'\''$//')
+
+        # /unity-mcp-server への移動を検出
+        if [[ "$cd_target" == "/unity-mcp-server" ]] || [[ "$cd_target" == "/unity-mcp-server/" ]]; then
+            cat <<EOF
+{
+  "decision": "block",
+  "reason": "🚫 リポジトリルートへの cd は禁止されています / cd to repository root is not allowed",
+  "stopReason": "Worktreeは独立した作業ディレクトリです。リポジトリルート (/unity-mcp-server) への移動は禁止されています。\n\nReason: Worktree is an isolated working directory. Moving to the repository root (/unity-mcp-server) is not allowed.\n\nBlocked command: $command"
+}
+EOF
+            echo "🚫 ブロック: $command" >&2
+            echo "理由: リポジトリルートへの cd は禁止されています。" >&2
+            exit 2  # ブロック
+        fi
     fi
 
     # ブランチ切り替え/作成/worktreeコマンドをチェック
