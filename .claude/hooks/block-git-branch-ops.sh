@@ -144,6 +144,24 @@ while IFS= read -r segment; do
         continue
     fi
 
+    # インタラクティブrebase禁止 (git rebase -i origin/main)
+    if printf '%s' "$trimmed_segment" | grep -qE '^git[[:space:]]+rebase\b'; then
+        if printf '%s' "$trimmed_segment" | grep -qE '(^|[[:space:]])(-i|--interactive)([[:space:]]|$)' &&
+           printf '%s' "$trimmed_segment" | grep -qE '(^|[[:space:]])origin/main([[:space:]]|$)'; then
+            cat <<EOF
+{
+  "decision": "block",
+  "reason": "🚫 Interactive rebase against origin/main is not allowed",
+  "stopReason": "Interactive rebase against origin/main initiated by LLMs is blocked because it frequently fails and disrupts sessions.\n\nBlocked command: $command"
+}
+EOF
+
+            echo "🚫 Blocked: $command" >&2
+            echo "Reason: Interactive rebase against origin/main is not allowed in Worktree." >&2
+            exit 2
+        fi
+    fi
+
     # ブランチ切り替え/作成/worktreeコマンドをチェック
     if echo "$trimmed_segment" | grep -qE '^git\s+(checkout|switch|branch|worktree)\b'; then
         if echo "$trimmed_segment" | grep -qE '^git\s+branch\b'; then
