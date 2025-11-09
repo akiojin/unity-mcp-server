@@ -1,3 +1,10 @@
+## [2.34.0](https://github.com/akiojin/unity-mcp-server/compare/v2.33.0...v2.34.0) (2025-11-09)
+
+
+### Features
+
+* akiojin/claude-worktreeのHooksを最新版に更新 ([6a8f6f2](https://github.com/akiojin/unity-mcp-server/commit/6a8f6f2e0b0bb4e7671a43c9dd16aed0f1a8145b))
+
 # [2.33.0](https://github.com/akiojin/unity-mcp-server/compare/v2.32.0...v2.33.0) (2025-11-09)
 
 
