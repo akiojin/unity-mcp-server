@@ -26,6 +26,7 @@
     "type": "git",
     "url": "https://github.com/akiojin/unity-mcp-server.git"
   },
+  "homepage": "https://github.com/akiojin/unity-mcp-server#readme",
   "license": "MIT",
   "hideInEditor": false
 }
