@@ -76,6 +76,28 @@ mainブランチへのPRマージが完了したとき、開発者が手動で�
 
 ---
 
+### ユーザーストーリー5 - Worktree境界保護 (優先度: P2.5)
+
+開発者がWorktree内で作業中、誤ってWorktree外へのcd移動、ファイル操作、gitブランチ操作を実行しようとしたとき、システムが自動的にブロックし、適切なエラーメッセージを表示して、Worktree内での作業完結を強制する。
+
+**この優先度の理由**: Worktree境界保護は、P2（Requiredチェック監視）とP3（自動マージ実行）の間に位置する重要な安全機構です。複数のWorktreeが並行稼働する環境で、誤った操作による他Worktreeへの影響を防ぎ、開発フローの整合性を保証します。
+
+**独立テスト**: PreToolUse Hooksスクリプト（block-cd-command.sh、block-file-ops.sh、block-git-branch-ops.sh）を通じて、Worktree外への各種操作が適切にブロックされ、Worktree内の操作が許可されることを検証できます。
+
+**受け入れシナリオ**:
+
+1. **前提** 開発者がWorktree内で`cd ..`を実行、**実行** コマンド送信、**結果** Worktree外への移動がブロックされ、エラーメッセージが表示される
+2. **前提** 開発者がWorktree内で`cd src`を実行、**実行** コマンド送信、**結果** Worktree内のサブディレクトリへの移動が許可される
+3. **前提** 開発者が`mkdir /tmp/test`を実行、**実行** コマンド送信、**結果** Worktree外へのディレクトリ作成がブロックされる
+4. **前提** 開発者が`mkdir test-dir`を実行、**実行** コマンド送信、**結果** Worktree内のディレクトリ作成が許可される
+5. **前提** 開発者が`git checkout main`を実行、**実行** コマンド送信、**結果** ブランチ切り替えがブロックされ、Worktreeフロー遵守を促すメッセージが表示される
+6. **前提** 開発者が`git branch --list`を実行、**実行** コマンド送信、**結果** 読み取り専用コマンドとして許可される
+7. **前提** 開発者が`touch /tmp/test.txt`を実行、**実行** コマンド送信、**結果** Worktree外へのファイル作成がブロックされる
+8. **前提** 開発者が`rm /tmp/test.txt`を実行、**実行** コマンド送信、**結果** Worktree外へのファイル削除がブロックされる
+9. **前提** 開発者が`cp test.txt /tmp/`を実行、**実行** コマンド送信、**結果** Worktree外へのファイルコピーがブロックされる
+
+---
+
 ### エッジケース
 
 - GitHub CLIが認証されていない場合、finish-feature.shはエラーメッセージを表示し、`gh auth login`を促す
@@ -115,6 +137,12 @@ mainブランチへのPRマージが完了したとき、開発者が手動で�
 - **FR-022**: システムは csharp-lsp-manifest.json の存在を確認してから npm publish を実行する必要がある
 - **FR-023**: システムは npm レジストリへの公開前にテストを実行する必要がある
 - **FR-024**: システムは リリースプロセス中のエラーを検知し、開発者に通知する必要がある
+- **FR-025**: システムは Worktree外へのcd移動をブロックする必要がある
+- **FR-026**: システムは Worktree外へのファイル操作（mkdir/rmdir/rm/touch/cp/mv）をブロックする必要がある
+- **FR-027**: システムは gitブランチ操作（checkout/switch/branch/worktree）をブロックする必要がある
+- **FR-028**: システムは 読み取り専用コマンド（git status、git branch --list等）を許可する必要がある
+- **FR-029**: システムは Worktree内のサブディレクトリへのcd移動を許可する必要がある
+- **FR-030**: システムは Worktree内のファイル操作を許可する必要がある
 
 ### 主要エンティティ
 
@@ -127,6 +155,7 @@ mainブランチへのPRマージが完了したとき、開発者が手動で�
 - **semantic-release**: Conventional Commitsを解析して自動的にバージョニング・リリースノート生成・パッケージ公開を実行するツール
 - **CHANGELOG.md**: 各バージョンの変更履歴を記録したマークダウンファイル。semantic-releaseが自動生成
 - **csharp-lsp-manifest.json**: csharp-lspバイナリのダウンロードURLとSHA256ハッシュを記載したマニフェストファイル。npm publish前に必須
+- **PreToolUse Hook**: Claude Codeがコマンド実行前に呼び出すスクリプト。Worktree境界を越える操作を検証しブロックする。3つのHooks（block-cd-command.sh、block-file-ops.sh、block-git-branch-ops.sh）で構成
 
 ---
 
@@ -169,7 +198,7 @@ mainブランチへのPRマージが完了したとき、開発者が手動で�
 - **GitHub CLI（gh）**: PR作成・管理に使用
 - **GitHub Actions / Required Status Checks**: ブランチ保護で定義されたRequiredチェック結果を提供
 - **GitHubブランチ保護設定**: Requiredチェックと自動マージに必要なルールを定義
-- **@akiojin/claude-worktree**: 設計思想とワークフロー参考元
+- **@akiojin/claude-worktree（developブランチ）**: 設計思想とワークフロー参考元、PreToolUse Hooks実装の参考元
 
 ---
 
@@ -194,6 +223,12 @@ mainブランチへのPRマージが完了したとき、開発者が手動で�
 12. CHANGELOG.mdが前回リリースからの全コミットを含み、自動生成される
 13. csharp-lspビルド失敗時、npm publishが100%中断される（不完全リリース防止）
 14. リリースエラー発生時、10分以内に開発者へ通知される
+
+### Worktree境界保護関連
+15. Worktree外への誤操作（cd、ファイル操作、gitブランチ操作）が100%ブロックされる
+16. Worktree内の正当な操作が100%許可される
+17. PreToolUse Hooksのテストカバレッジが100%（15/15テストケース合格）
+18. ブロック時のエラーメッセージが100%適切で、代替手段が提示される
 
 ---
 

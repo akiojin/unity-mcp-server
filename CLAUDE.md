@@ -402,6 +402,185 @@ cd .worktrees/SPEC-0d5d84f9/
    - LSP診断エラーがあれば適用しない
    - 適用後は Unity Editor でコンパイルエラーを確認
 
+## コミットメッセージ規約（絶対遵守）
+
+### ⚠️ 重要性
+
+**コミットメッセージはバージョン番号とリリース内容を決定する唯一の情報源です。**
+
+本プロジェクトは**semantic-release**による完全自動リリースを採用しており、コミットメッセージの形式が不正確な場合、以下の重大な問題が発生します：
+
+- ❌ **意図しないバージョンアップ**: `feat:`を誤用すると不要なminorバージョンアップが発生
+- ❌ **リリースの欠落**: 正しい形式でないコミットはCHANGELOG.mdに記載されない
+- ❌ **破壊的変更の見逃し**: `BREAKING CHANGE:`がないとmajorバージョンアップが行われず、ユーザーに影響
+- ❌ **npm publish失敗**: 不正なバージョン決定により公開が失敗
+- ❌ **Unity Package同期失敗**: バージョン不整合により配布パッケージが破損
+
+### 必須ルール
+
+#### 1. Conventional Commits形式の厳守
+
+すべてのコミットメッセージは以下の形式に従う必要があります：
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**type（必須）**:
+- `feat`: 新機能追加 → **minor version up** (2.16.3 → 2.17.0)
+- `fix`: バグ修正 → **patch version up** (2.16.3 → 2.16.4)
+- `docs`: ドキュメント変更のみ → version up なし
+- `style`: コード意味に影響しない変更（フォーマット等） → version up なし
+- `refactor`: バグ修正も機能追加もしないコード変更 → version up なし
+- `perf`: パフォーマンス改善 → **patch version up**
+- `test`: テスト追加・修正 → version up なし
+- `chore`: ビルドプロセスやツール変更 → version up なし
+- `ci`: CI設定変更 → version up なし
+- `build`: ビルドシステム変更 → version up なし
+- `revert`: コミット取り消し → version up なし
+
+**scope（推奨）**: 変更範囲（例: `hooks`, `spec`, `mcp-server`, `unity`）
+
+**subject（必須）**: 変更内容の簡潔な説明（50文字以内、小文字で開始、末尾にピリオド不要）
+
+**body（推奨）**: 変更の詳細説明（何を・なぜ変更したか）
+
+**footer（条件付き必須）**:
+- `BREAKING CHANGE:` - 破壊的変更の場合は必須 → **major version up** (2.16.3 → 3.0.0)
+- `Closes #123` - Issue番号参照
+
+#### 2. 破壊的変更の明示
+
+APIの互換性を破る変更は必ず以下のいずれかの方法で明示：
+
+**方法1: フッターに記載**
+```bash
+git commit -m "feat: change screenshot API signature
+
+BREAKING CHANGE: captureScreenshot now requires workspaceRoot parameter"
+```
+
+**方法2: typeに`!`を付与**
+```bash
+git commit -m "feat!: remove deprecated video API"
+```
+
+#### 3. commitlintによる自動検証
+
+すべてのコミットは以下でチェックされます：
+
+- **ローカル**: git commitフックでリアルタイム検証
+- **CI**: GitHub Actionsで全コミット履歴を検証
+- **PR**: Pull Request作成時に全コミットを検証
+
+**検証失敗時の対応**:
+```bash
+# コミットメッセージを修正（最新コミットのみ）
+git commit --amend
+
+# 複数コミットを修正
+git rebase -i HEAD~3  # 直近3コミットを対話的に修正
+```
+
+#### 4. 禁止事項
+
+- ❌ **曖昧な動詞**: "Update", "Change", "Modify" → 具体的に "Add", "Remove", "Fix" を使用
+- ❌ **type省略**: 必ず `feat:`, `fix:` 等を先頭に付与
+- ❌ **日本語のみのコミット**: subject は英語で記述（body は日本語可）
+- ❌ **複数の変更を1コミット**: 1コミット1変更の原則を厳守
+- ❌ **BREAKING CHANGE の誤用**: 本当に互換性を破る場合のみ使用
+
+### 正しいコミット例
+
+```bash
+# 新機能追加（minor version up）
+git commit -m "feat(hooks): add Worktree boundary protection
+
+Implemented PreToolUse Hooks to block operations outside Worktree:
+- block-cd-command.sh: Prevents cd outside Worktree
+- block-file-ops.sh: Blocks file operations outside Worktree
+- block-git-branch-ops.sh: Restricts git branch operations
+
+All 15 test cases passed.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# バグ修正（patch version up）
+git commit -m "fix(mcp-server): resolve screenshot path resolution
+
+Fixed workspace root detection fallback logic.
+
+Closes #42"
+
+# 破壊的変更（major version up）
+git commit -m "feat(api)!: redesign Unity command interface
+
+BREAKING CHANGE: All Unity commands now require workspaceRoot parameter.
+Migration guide added to docs/MIGRATION.md"
+
+# ドキュメント変更（version up なし）
+git commit -m "docs(readme): update installation instructions"
+
+# テスト追加（version up なし）
+git commit -m "test(hooks): add edge case tests for cd command blocking"
+```
+
+### 誤ったコミット例
+
+```bash
+# ❌ type がない
+git commit -m "Update hooks"
+
+# ❌ 曖昧な動詞
+git commit -m "feat: Change some files"
+
+# ❌ 日本語のみ
+git commit -m "feat: フック機能を追加"
+
+# ❌ BREAKING CHANGE の記載漏れ
+git commit -m "feat: change API signature"  # 実際は破壊的変更
+
+# ❌ 複数の変更を1コミット
+git commit -m "feat: add hooks and fix bug and update docs"
+```
+
+### コミット前チェックリスト
+
+すべてのコミット実行前に以下を確認：
+
+- [ ] Conventional Commits形式に従っているか
+- [ ] type（feat/fix/docs等）が正しいか
+- [ ] 破壊的変更の場合、`BREAKING CHANGE:`を記載したか
+- [ ] subject が50文字以内か
+- [ ] 1コミット1変更になっているか
+- [ ] commitlintが通るか（CI失敗しないか）
+
+### semantic-releaseとの整合性
+
+コミットメッセージは以下のように自動処理されます：
+
+| コミットtype | バージョン影響 | CHANGELOG記載 | 例 |
+|-------------|-------------|-------------|-----|
+| `feat:` | minor ↑ | ✅ 記載 | 2.16.3 → 2.17.0 |
+| `fix:` | patch ↑ | ✅ 記載 | 2.16.3 → 2.16.4 |
+| `perf:` | patch ↑ | ✅ 記載 | 2.16.3 → 2.16.4 |
+| `BREAKING CHANGE:` | major ↑ | ✅ 記載 | 2.16.3 → 3.0.0 |
+| `docs:` | 変更なし | ❌ 記載なし | 2.16.3 |
+| `test:` | 変更なし | ❌ 記載なし | 2.16.3 |
+| `chore:` | 変更なし | ❌ 記載なし | 2.16.3 |
+| `style:` | 変更なし | ❌ 記載なし | 2.16.3 |
+| `refactor:` | 変更なし | ❌ 記載なし | 2.16.3 |
+
+**重要**: `feat:`と`fix:`の使い分けが最も重要です。誤用すると意図しないバージョンアップが発生します。
+
+---
+
 ## バージョン管理
 
 ### 自動リリース（semantic-release）
@@ -417,22 +596,23 @@ cd .worktrees/SPEC-0d5d84f9/
 - **`BREAKING CHANGE:`** または **`feat!:`** - 破壊的変更 → **major** version up (例: 2.16.3 → 3.0.0)
 - **`chore:`**, **`docs:`**, **`test:`** - version up なし
 
-#### リリースフロー（3層: feature → develop → main）
+#### リリースフロー（4層: feature → develop → release/* → main）
 
 1. **featureブランチで開発**（Conventional Commitsを使用）
 2. **finish-feature.sh実行** → PR作成（developベース）
 3. **Required Checks成功** → 自動マージ（developへ）
 4. **developブランチで変更を蓄積**（複数のfeatureを統合）
-5. **`/release` コマンド実行** → develop → main PR作成
-6. **Required Checks成功** → 自動マージ（mainへ）
-7. **semantic-release自動実行**:
+5. **`/release` コマンド実行** → release/vX.Y.Zブランチ作成 + develop → release/* PR作成
+6. **Required Checks成功 + semantic-release実行**:
    - コミット解析 → バージョン決定
    - package.json更新（mcp-server + Unity Package自動同期）
    - CHANGELOG.md生成
    - タグ作成（v*）
+7. **release/* → main 自動マージ**
 8. **csharp-lspビルド**（全プラットフォーム）
 9. **GitHub Release作成**
 10. **npm publish実行**
+11. **main → develop バックマージ**
 
 **重要**: 手動でのバージョン変更・npm publishは禁止（すべて自動化）
 
