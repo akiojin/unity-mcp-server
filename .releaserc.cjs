@@ -1,5 +1,7 @@
 const { parserPreset, releaseRules } = require('./configs/commit-convention.cjs')
 
+const SEMREL_PRESET = 'conventionalcommits'
+
 module.exports = {
   branches: [
     {
@@ -12,7 +14,7 @@ module.exports = {
     [
       '@semantic-release/commit-analyzer',
       {
-        preset: parserPreset.name,
+        preset: SEMREL_PRESET,
         releaseRules,
         parserOpts: parserPreset.parserOpts
       }
@@ -20,7 +22,7 @@ module.exports = {
     [
       '@semantic-release/release-notes-generator',
       {
-        preset: parserPreset.name,
+        preset: SEMREL_PRESET,
         parserOpts: parserPreset.parserOpts
       }
     ],
