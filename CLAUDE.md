@@ -417,22 +417,23 @@ cd .worktrees/SPEC-0d5d84f9/
 - **`BREAKING CHANGE:`** または **`feat!:`** - 破壊的変更 → **major** version up (例: 2.16.3 → 3.0.0)
 - **`chore:`**, **`docs:`**, **`test:`** - version up なし
 
-#### リリースフロー（3層: feature → develop → main）
+#### リリースフロー（4層: feature → develop → release/* → main）
 
 1. **featureブランチで開発**（Conventional Commitsを使用）
 2. **finish-feature.sh実行** → PR作成（developベース）
 3. **Required Checks成功** → 自動マージ（developへ）
 4. **developブランチで変更を蓄積**（複数のfeatureを統合）
-5. **`/release` コマンド実行** → develop → main PR作成
-6. **Required Checks成功** → 自動マージ（mainへ）
-7. **semantic-release自動実行**:
+5. **`/release` コマンド実行** → release/vX.Y.Zブランチ作成 + develop → release/* PR作成
+6. **Required Checks成功 + semantic-release実行**:
    - コミット解析 → バージョン決定
    - package.json更新（mcp-server + Unity Package自動同期）
    - CHANGELOG.md生成
    - タグ作成（v*）
+7. **release/* → main 自動マージ**
 8. **csharp-lspビルド**（全プラットフォーム）
 9. **GitHub Release作成**
 10. **npm publish実行**
+11. **main → develop バックマージ**
 
 **重要**: 手動でのバージョン変更・npm publishは禁止（すべて自動化）
 
