@@ -145,21 +145,45 @@ while IFS= read -r segment; do
         continue
     fi
 
-    # cdコマンドでリポジトリルートへの移動をチェック
+    # cdコマンドで起動ディレクトリより上への移動をチェック
     if echo "$trimmed_segment" | grep -qE '^cd\s+'; then
         cd_target=$(echo "$trimmed_segment" | sed -E 's/^cd[[:space:]]+//; s/^"//; s/"$//; s/^'\''//; s/'\''$//')
 
-        # /unity-mcp-server への移動を検出
-        if [[ "$cd_target" == "/unity-mcp-server" ]] || [[ "$cd_target" == "/unity-mcp-server/" ]]; then
+        # 起動ディレクトリ（PWDの初期値）を取得
+        # INITIAL_PWDが設定されていない場合は現在のPWDを使用
+        initial_pwd="${INITIAL_PWD:-$PWD}"
+
+        # 絶対パスに変換してチェック（cd_targetが相対パスの場合も対応）
+        if [[ "$cd_target" == /* ]]; then
+            # 絶対パスの場合
+            resolved_target="$cd_target"
+        else
+            # 相対パスの場合は現在のディレクトリ基準で解決
+            resolved_target="$initial_pwd/$cd_target"
+        fi
+
+        # パスを正規化（..や.を解決）
+        resolved_target=$(cd "$initial_pwd" 2>/dev/null && cd "$cd_target" 2>/dev/null && pwd 2>/dev/null || echo "INVALID")
+
+        # 解決できなかった場合はスキップ（cdコマンド自体がエラーになるため）
+        if [[ "$resolved_target" == "INVALID" ]]; then
+            continue
+        fi
+
+        # 起動ディレクトリより上の階層への移動を検出
+        # resolved_targetがinitial_pwdで始まらない場合はブロック
+        if [[ "$resolved_target" != "$initial_pwd"* ]]; then
             cat <<EOF
 {
   "decision": "block",
-  "reason": "🚫 リポジトリルートへの cd は禁止されています / cd to repository root is not allowed",
-  "stopReason": "Worktreeは独立した作業ディレクトリです。リポジトリルート (/unity-mcp-server) への移動は禁止されています。\n\nReason: Worktree is an isolated working directory. Moving to the repository root (/unity-mcp-server) is not allowed.\n\nBlocked command: $command"
+  "reason": "🚫 起動ディレクトリより上への cd は禁止されています / cd above startup directory is not allowed",
+  "stopReason": "Worktree運用では、起動ディレクトリ ($initial_pwd) より上の階層への移動は禁止されています。\n\nReason: In Worktree operation, moving above the startup directory ($initial_pwd) is not allowed.\n\nBlocked command: $command\nResolved path: $resolved_target"
 }
 EOF
             echo "🚫 ブロック: $command" >&2
-            echo "理由: リポジトリルートへの cd は禁止されています。" >&2
+            echo "理由: 起動ディレクトリより上への cd は禁止されています。" >&2
+            echo "起動ディレクトリ: $initial_pwd" >&2
+            echo "移動先: $resolved_target" >&2
             exit 2  # ブロック
         fi
     fi
