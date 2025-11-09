@@ -600,19 +600,35 @@ git commit -m "feat: add hooks and fix bug and update docs"
 
 1. **featureブランチで開発**（Conventional Commitsを使用）
 2. **finish-feature.sh実行** → PR作成（developベース）
-3. **Required Checks成功** → 自動マージ（developへ）
-4. **developブランチで変更を蓄積**（複数のfeatureを統合）
-5. **`/release` コマンド実行** → release/vX.Y.Zブランチ作成 + develop → release/* PR作成
-6. **Required Checks成功 + semantic-release実行**:
-   - コミット解析 → バージョン決定
-   - package.json更新（mcp-server + Unity Package自動同期）
-   - CHANGELOG.md生成
-   - タグ作成（v*）
-7. **release/* → main 自動マージ**
-8. **csharp-lspビルド**（全プラットフォーム）
-9. **GitHub Release作成**
-10. **npm publish実行**
-11. **main → develop バックマージ**
+3. **lint.yml + test.yml実行**（pull_request: [develop]トリガー）
+   - Markdownlint + ESLint + Prettier
+   - test:ci + coverage
+   - Package build
+4. **Required Checks成功** → 自動マージ（developへ）
+5. **developブランチで変更を蓄積**（複数のfeatureを統合）
+6. **`/release` コマンド実行** → release/vX.Y.Zブランチ作成
+   - semantic-release dry-run実行
+   - Conventional Commits検証
+   - バージョン決定
+7. **release.yml実行**（release/**ブランチpushトリガー）:
+   - **pre-release-tests**:
+     - Markdownlint
+     - ESLint
+     - Prettier
+     - test:ci
+   - **semantic-release実行**:
+     - コミット解析 → バージョン決定
+     - package.json更新（mcp-server + Unity Package自動同期）
+     - CHANGELOG.md生成
+     - タグ作成（v*）
+   - **release/* → main 自動マージ**
+   - **main → develop バックマージ**
+   - **release branch削除**
+8. **publish.yml実行**（mainブランチpushトリガー）:
+   - csharp-lspビルド（全プラットフォーム）
+   - GitHub Release作成
+   - npm publish実行
+   - OpenUPM自動検出
 
 **重要**: 手動でのバージョン変更・npm publishは禁止（すべて自動化）
 

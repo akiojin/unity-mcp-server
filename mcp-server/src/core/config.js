@@ -21,16 +21,10 @@ function merge(a, b) {
  * Base configuration for Unity MCP Server Server
  */
 const envUnityHost =
-  process.env.UNITY_UNITY_HOST ||
-  process.env.UNITY_BIND_HOST ||
-  process.env.UNITY_HOST ||
-  null;
+  process.env.UNITY_UNITY_HOST || process.env.UNITY_BIND_HOST || process.env.UNITY_HOST || null;
 
 const envMcpHost =
-  process.env.UNITY_MCP_HOST ||
-  process.env.UNITY_CLIENT_HOST ||
-  process.env.UNITY_HOST ||
-  null;
+  process.env.UNITY_MCP_HOST || process.env.UNITY_CLIENT_HOST || process.env.UNITY_HOST || null;
 
 const envBindHost = process.env.UNITY_BIND_HOST || null;
 
@@ -44,20 +38,20 @@ const baseConfig = {
     reconnectDelay: 1000,
     maxReconnectDelay: 30000,
     reconnectBackoffMultiplier: 2,
-    commandTimeout: 30000,
+    commandTimeout: 30000
   },
 
   // Server settings
   server: {
     name: 'unity-mcp-server',
     version: '0.1.0',
-    description: 'MCP server for Unity Editor integration',
+    description: 'MCP server for Unity Editor integration'
   },
 
   // Logging settings
   logging: {
     level: process.env.LOG_LEVEL || 'info',
-    prefix: '[Unity MCP Server]',
+    prefix: '[Unity MCP Server]'
   },
 
   // Write queue removed: all edits go through structured Roslyn tools.
@@ -66,12 +60,12 @@ const baseConfig = {
   search: {
     // detail alias: 'compact' maps to returnMode 'snippets'
     defaultDetail: (process.env.SEARCH_DEFAULT_DETAIL || 'compact').toLowerCase(), // compact|metadata|snippets|full
-    engine: (process.env.SEARCH_ENGINE || 'naive').toLowerCase(), // naive|treesitter (future)
+    engine: (process.env.SEARCH_ENGINE || 'naive').toLowerCase() // naive|treesitter (future)
   },
 
   // LSP client defaults
   lsp: {
-    requestTimeoutMs: Number(process.env.LSP_REQUEST_TIMEOUT_MS || 60000),
+    requestTimeoutMs: Number(process.env.LSP_REQUEST_TIMEOUT_MS || 60000)
   },
 
   // Indexing (code index) settings
@@ -83,8 +77,8 @@ const baseConfig = {
     // Build options
     concurrency: Number(process.env.INDEX_CONCURRENCY || 8),
     retry: Number(process.env.INDEX_RETRY || 2),
-    reportEvery: Number(process.env.INDEX_REPORT_EVERY || 500),
-  },
+    reportEvery: Number(process.env.INDEX_REPORT_EVERY || 500)
+  }
 };
 
 /**
@@ -110,11 +104,11 @@ function ensureDefaultProjectConfig(baseDir) {
         unity: {
           unityHost: 'localhost',
           mcpHost: 'localhost',
-          port: 6400,
+          port: 6400
         },
         project: {
-          root: inferredRoot ? inferredRoot.replace(/\\/g, '/') : '',
-        },
+          root: inferredRoot ? inferredRoot.replace(/\\/g, '/') : ''
+        }
       };
       fs.writeFileSync(file, `${JSON.stringify(defaultConfig, null, 2)}\n`, 'utf8');
     }
@@ -127,10 +121,13 @@ function ensureDefaultProjectConfig(baseDir) {
 function loadExternalConfig() {
   const explicitPath = process.env.UNITY_MCP_CONFIG;
 
-  const projectPath = findUpSync((directory) => {
-    const candidate = path.resolve(directory, '.unity', 'config.json');
-    return fs.existsSync(candidate) ? candidate : undefined;
-  }, { cwd: process.cwd() });
+  const projectPath = findUpSync(
+    directory => {
+      const candidate = path.resolve(directory, '.unity', 'config.json');
+      return fs.existsSync(candidate) ? candidate : undefined;
+    },
+    { cwd: process.cwd() }
+  );
   const homeDir = process.env.HOME || process.env.USERPROFILE || '';
   const userPath = homeDir ? path.resolve(homeDir, '.unity', 'config.json') : null;
 
@@ -201,7 +198,7 @@ let workspaceRoot = initialCwd;
 try {
   if (config.__configPath) {
     const cfgDir = path.dirname(config.__configPath); // <workspace>/.unity
-    workspaceRoot = path.dirname(cfgDir);            // <workspace>
+    workspaceRoot = path.dirname(cfgDir); // <workspace>
   }
 } catch {}
 export const WORKSPACE_ROOT = workspaceRoot;
@@ -217,17 +214,17 @@ export const logger = {
       console.error(`${config.logging.prefix} ${message}`, ...args);
     }
   },
-  
+
   warn: (message, ...args) => {
     if (['info', 'debug', 'warn'].includes(config.logging.level)) {
       console.error(`${config.logging.prefix} WARN: ${message}`, ...args);
     }
   },
-  
+
   error: (message, ...args) => {
     console.error(`${config.logging.prefix} ERROR: ${message}`, ...args);
   },
-  
+
   debug: (message, ...args) => {
     if (config.logging.level === 'debug') {
       console.error(`${config.logging.prefix} DEBUG: ${message}`, ...args);
@@ -237,6 +234,8 @@ export const logger = {
 
 // Late log if external config failed to load
 if (config.__configLoadError) {
-  console.error(`${baseConfig.logging.prefix} WARN: Failed to load external config: ${config.__configLoadError}`);
+  console.error(
+    `${baseConfig.logging.prefix} WARN: Failed to load external config: ${config.__configLoadError}`
+  );
   delete config.__configLoadError;
 }

@@ -133,4 +133,3 @@ describe('addressables_build contract tests', () => {
     })
   })
 })
-

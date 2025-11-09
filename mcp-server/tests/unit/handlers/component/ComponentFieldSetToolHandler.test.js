@@ -1,43 +1,43 @@
-import { describe, it, beforeEach, afterEach, mock } from 'node:test'
-import assert from 'node:assert/strict'
-import { ComponentFieldSetToolHandler } from '../../../../src/handlers/component/ComponentFieldSetToolHandler.js'
+import { describe, it, beforeEach, afterEach, mock } from 'node:test';
+import assert from 'node:assert/strict';
+import { ComponentFieldSetToolHandler } from '../../../../src/handlers/component/ComponentFieldSetToolHandler.js';
 
 class MockUnityConnection {
   constructor() {
-    this.connected = true
+    this.connected = true;
     this.sendCommand = mock.fn(async () => ({
       success: true,
       appliedValue: 10
-    }))
+    }));
   }
 
   isConnected() {
-    return this.connected
+    return this.connected;
   }
 
   async connect() {
-    this.connected = true
+    this.connected = true;
   }
 }
 
 describe('ComponentFieldSetToolHandler', () => {
-  let handler
-  let mockConnection
+  let handler;
+  let mockConnection;
 
   beforeEach(() => {
-    mockConnection = new MockUnityConnection()
-    handler = new ComponentFieldSetToolHandler(mockConnection)
-  })
+    mockConnection = new MockUnityConnection();
+    handler = new ComponentFieldSetToolHandler(mockConnection);
+  });
 
   afterEach(() => {
-    mock.restoreAll()
-  })
+    mock.restoreAll();
+  });
 
   it('should initialize with correct definition', () => {
-    assert.equal(handler.name, 'component_field_set')
-    assert.ok(handler.description.includes('serialized field'))
-    assert.deepEqual(handler.inputSchema.required, ['componentType', 'fieldPath'])
-  })
+    assert.equal(handler.name, 'component_field_set');
+    assert.ok(handler.description.includes('serialized field'));
+    assert.deepEqual(handler.inputSchema.required, ['componentType', 'fieldPath']);
+  });
 
   describe('validate', () => {
     it('should require a target path', () => {
@@ -49,8 +49,8 @@ describe('ComponentFieldSetToolHandler', () => {
             value: 2.0
           }),
         /Either gameObjectPath or prefabAssetPath must be provided/
-      )
-    })
+      );
+    });
 
     it('should require value unless dryRun', () => {
       assert.throws(
@@ -61,7 +61,7 @@ describe('ComponentFieldSetToolHandler', () => {
             fieldPath: '_intensity'
           }),
         /value is required/
-      )
+      );
 
       assert.doesNotThrow(() =>
         handler.validate({
@@ -70,8 +70,8 @@ describe('ComponentFieldSetToolHandler', () => {
           fieldPath: '_intensity',
           dryRun: true
         })
-      )
-    })
+      );
+    });
 
     it('should validate objectReference payloads', () => {
       assert.throws(
@@ -84,7 +84,7 @@ describe('ComponentFieldSetToolHandler', () => {
             objectReference: {}
           }),
         /objectReference requires assetPath or guid/
-      )
+      );
 
       assert.doesNotThrow(() =>
         handler.validate({
@@ -94,9 +94,9 @@ describe('ComponentFieldSetToolHandler', () => {
           value: 1,
           objectReference: { assetPath: 'Assets/Materials/Test.mat' }
         })
-      )
-    })
-  })
+      );
+    });
+  });
 
   describe('execute', () => {
     it('should send command with normalized field path and defaults', async () => {
@@ -105,21 +105,21 @@ describe('ComponentFieldSetToolHandler', () => {
         componentType: 'GunController',
         fieldPath: 'settings.burstDelays[1]',
         value: 0.35
-      }
+      };
 
-      const result = await handler.execute(params)
+      const result = await handler.execute(params);
 
-      assert.equal(result.success, true)
-      assert.equal(mockConnection.sendCommand.mock.calls.length, 1)
+      assert.equal(result.success, true);
+      assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
 
-      const [commandName, commandArgs] = mockConnection.sendCommand.mock.calls[0].arguments
-      assert.equal(commandName, 'set_component_field')
-      assert.equal(commandArgs.scope, 'scene')
-      assert.equal(commandArgs.componentType, 'GunController')
-      assert.equal(commandArgs.fieldPath, 'settings.burstDelays[1]')
-      assert.equal(commandArgs.serializedPropertyPath, 'settings.burstDelays.Array.data[1]')
-      assert.equal(commandArgs.valueType, 'float')
-    })
+      const [commandName, commandArgs] = mockConnection.sendCommand.mock.calls[0].arguments;
+      assert.equal(commandName, 'set_component_field');
+      assert.equal(commandArgs.scope, 'scene');
+      assert.equal(commandArgs.componentType, 'GunController');
+      assert.equal(commandArgs.fieldPath, 'settings.burstDelays[1]');
+      assert.equal(commandArgs.serializedPropertyPath, 'settings.burstDelays.Array.data[1]');
+      assert.equal(commandArgs.valueType, 'float');
+    });
 
     it('should pass through explicit valueType and prefab scope', async () => {
       const params = {
@@ -132,19 +132,19 @@ describe('ComponentFieldSetToolHandler', () => {
         value: 5,
         valueType: 'int',
         applyPrefabChanges: false
-      }
+      };
 
-      await handler.execute(params)
+      await handler.execute(params);
 
-      assert.equal(mockConnection.sendCommand.mock.calls.length, 1)
-      const [, commandArgs] = mockConnection.sendCommand.mock.calls[0].arguments
-      assert.equal(commandArgs.scope, 'prefabAsset')
-      assert.equal(commandArgs.prefabAssetPath, 'Assets/Prefabs/Enemy.prefab')
-      assert.equal(commandArgs.prefabObjectPath, '/Enemy')
-      assert.equal(commandArgs.componentIndex, 1)
-      assert.equal(commandArgs.valueType, 'int')
-      assert.equal(commandArgs.applyPrefabChanges, false)
-    })
+      assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
+      const [, commandArgs] = mockConnection.sendCommand.mock.calls[0].arguments;
+      assert.equal(commandArgs.scope, 'prefabAsset');
+      assert.equal(commandArgs.prefabAssetPath, 'Assets/Prefabs/Enemy.prefab');
+      assert.equal(commandArgs.prefabObjectPath, '/Enemy');
+      assert.equal(commandArgs.componentIndex, 1);
+      assert.equal(commandArgs.valueType, 'int');
+      assert.equal(commandArgs.applyPrefabChanges, false);
+    });
 
     it('should include runtime flag when provided', async () => {
       const params = {
@@ -153,18 +153,18 @@ describe('ComponentFieldSetToolHandler', () => {
         fieldPath: '_value',
         value: 10,
         runtime: true
-      }
+      };
 
-      await handler.execute(params)
+      await handler.execute(params);
 
-      const [, commandArgs] = mockConnection.sendCommand.mock.calls[0].arguments
-      assert.equal(commandArgs.runtime, true)
-    })
+      const [, commandArgs] = mockConnection.sendCommand.mock.calls[0].arguments;
+      assert.equal(commandArgs.runtime, true);
+    });
 
     it('should throw when Unity responds with error', async () => {
       mockConnection.sendCommand.mock.mockImplementation(async () => ({
         error: 'Failed to set field'
-      }))
+      }));
 
       await assert.rejects(
         handler.execute({
@@ -174,7 +174,7 @@ describe('ComponentFieldSetToolHandler', () => {
           value: 7
         }),
         /Failed to set field/
-      )
-    })
-  })
-})
+      );
+    });
+  });
+});

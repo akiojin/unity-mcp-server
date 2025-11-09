@@ -1,4 +1,4 @@
-import { BaseToolHandler } from '../base/BaseToolHandler.js'
+import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 /**
  * Addressables Management Tool Handler for Unity MCP
@@ -74,16 +74,16 @@ export default class AddressablesManageToolHandler extends BaseToolHandler {
         },
         required: ['action']
       }
-    )
-    this.unityConnection = unityConnection
+    );
+    this.unityConnection = unityConnection;
   }
 
   validate(params) {
     const { action, assetPath, address, groupName, label, newAddress, targetGroupName } =
-      params || {}
+      params || {};
 
     if (!action) {
-      throw new Error('action is required')
+      throw new Error('action is required');
     }
 
     const validActions = [
@@ -97,65 +97,65 @@ export default class AddressablesManageToolHandler extends BaseToolHandler {
       'create_group',
       'remove_group',
       'move_entry'
-    ]
+    ];
 
     if (!validActions.includes(action)) {
-      throw new Error(`Invalid action: ${action}. Must be one of: ${validActions.join(', ')}`)
+      throw new Error(`Invalid action: ${action}. Must be one of: ${validActions.join(', ')}`);
     }
 
     // Action-specific validation
     switch (action) {
       case 'add_entry':
-        if (!assetPath) throw new Error('assetPath is required for add_entry')
-        if (!address) throw new Error('address is required for add_entry')
-        if (!groupName) throw new Error('groupName is required for add_entry')
-        break
+        if (!assetPath) throw new Error('assetPath is required for add_entry');
+        if (!address) throw new Error('address is required for add_entry');
+        if (!groupName) throw new Error('groupName is required for add_entry');
+        break;
       case 'remove_entry':
       case 'add_label':
       case 'remove_label':
-        if (!assetPath) throw new Error(`assetPath is required for ${action}`)
+        if (!assetPath) throw new Error(`assetPath is required for ${action}`);
         if ((action === 'add_label' || action === 'remove_label') && !label) {
-          throw new Error(`label is required for ${action}`)
+          throw new Error(`label is required for ${action}`);
         }
-        break
+        break;
       case 'set_address':
-        if (!assetPath) throw new Error('assetPath is required for set_address')
-        if (!newAddress) throw new Error('newAddress is required for set_address')
-        break
+        if (!assetPath) throw new Error('assetPath is required for set_address');
+        if (!newAddress) throw new Error('newAddress is required for set_address');
+        break;
       case 'create_group':
       case 'remove_group':
-        if (!groupName) throw new Error(`groupName is required for ${action}`)
-        break
+        if (!groupName) throw new Error(`groupName is required for ${action}`);
+        break;
       case 'move_entry':
-        if (!assetPath) throw new Error('assetPath is required for move_entry')
-        if (!targetGroupName) throw new Error('targetGroupName is required for move_entry')
-        break
+        if (!assetPath) throw new Error('assetPath is required for move_entry');
+        if (!targetGroupName) throw new Error('targetGroupName is required for move_entry');
+        break;
     }
   }
 
   async execute(params) {
-    const { action, ...parameters } = params
+    const { action, ...parameters } = params;
 
     // Ensure connected
     if (!this.unityConnection.isConnected()) {
-      await this.unityConnection.connect()
+      await this.unityConnection.connect();
     }
 
     const result = await this.unityConnection.sendCommand('addressables_manage', {
       action,
       ...parameters
-    })
+    });
 
-    return this.formatResponse(action, result)
+    return this.formatResponse(action, result);
   }
 
   formatResponse(action, result) {
     if (result && result.error) {
-      throw new Error(result.error.message || result.error)
+      throw new Error(result.error.message || result.error);
     }
 
     if (!result || typeof result !== 'object') {
-      throw new Error('Invalid response from Unity')
+      throw new Error('Invalid response from Unity');
     }
 
     // Return formatted response
@@ -166,107 +166,106 @@ export default class AddressablesManageToolHandler extends BaseToolHandler {
           text: this.formatResultText(action, result)
         }
       ]
-    }
+    };
   }
 
   formatResultText(action, result) {
-    const lines = []
+    const lines = [];
 
     switch (action) {
       case 'add_entry':
-        lines.push('✅ Addressableエントリを追加しました')
+        lines.push('✅ Addressableエントリを追加しました');
         if (result.data) {
-          lines.push(`  📁 Asset: ${result.data.assetPath}`)
-          lines.push(`  🏷️  Address: ${result.data.address}`)
-          lines.push(`  📦 Group: ${result.data.groupName}`)
+          lines.push(`  📁 Asset: ${result.data.assetPath}`);
+          lines.push(`  🏷️  Address: ${result.data.address}`);
+          lines.push(`  📦 Group: ${result.data.groupName}`);
           if (result.data.labels && result.data.labels.length > 0) {
-            lines.push(`  🏷️  Labels: ${result.data.labels.join(', ')}`)
+            lines.push(`  🏷️  Labels: ${result.data.labels.join(', ')}`);
           }
         }
-        break
+        break;
 
       case 'remove_entry':
-        lines.push(`✅ ${result.message}`)
-        break
+        lines.push(`✅ ${result.message}`);
+        break;
 
       case 'set_address':
-        lines.push('✅ アドレスを変更しました')
+        lines.push('✅ アドレスを変更しました');
         if (result.data) {
-          lines.push(`  📁 Asset: ${result.data.assetPath}`)
-          lines.push(`  🏷️  New Address: ${result.data.address}`)
+          lines.push(`  📁 Asset: ${result.data.assetPath}`);
+          lines.push(`  🏷️  New Address: ${result.data.address}`);
         }
-        break
+        break;
 
       case 'add_label':
       case 'remove_label':
-        lines.push(`✅ ラベルを${action === 'add_label' ? '追加' : '削除'}しました`)
+        lines.push(`✅ ラベルを${action === 'add_label' ? '追加' : '削除'}しました`);
         if (result.data) {
-          lines.push(`  📁 Asset: ${result.data.assetPath}`)
-          lines.push(`  🏷️  Labels: ${result.data.labels.join(', ')}`)
+          lines.push(`  📁 Asset: ${result.data.assetPath}`);
+          lines.push(`  🏷️  Labels: ${result.data.labels.join(', ')}`);
         }
-        break
+        break;
 
       case 'list_entries':
-        lines.push('📋 Addressableエントリ一覧')
+        lines.push('📋 Addressableエントリ一覧');
         if (result.data && result.data.entries) {
-          lines.push(`  合計: ${result.pagination.total}件`)
+          lines.push(`  合計: ${result.pagination.total}件`);
           if (result.data.entries.length === 0) {
-            lines.push('  (エントリがありません)')
+            lines.push('  (エントリがありません)');
           } else {
             result.data.entries.forEach(entry => {
-              lines.push(`\n  📁 ${entry.assetPath}`)
-              lines.push(`     Address: ${entry.address}`)
-              lines.push(`     Group: ${entry.groupName}`)
+              lines.push(`\n  📁 ${entry.assetPath}`);
+              lines.push(`     Address: ${entry.address}`);
+              lines.push(`     Group: ${entry.groupName}`);
               if (entry.labels && entry.labels.length > 0) {
-                lines.push(`     Labels: ${entry.labels.join(', ')}`)
+                lines.push(`     Labels: ${entry.labels.join(', ')}`);
               }
-            })
+            });
           }
           if (result.pagination.hasMore) {
             lines.push(
               `\n  ... さらに${result.pagination.total - result.pagination.offset - result.pagination.pageSize}件あります`
-            )
+            );
           }
         }
-        break
+        break;
 
       case 'list_groups':
-        lines.push('📦 Addressablesグループ一覧')
+        lines.push('📦 Addressablesグループ一覧');
         if (result.data && result.data.groups) {
           if (result.data.groups.length === 0) {
-            lines.push('  (グループがありません)')
+            lines.push('  (グループがありません)');
           } else {
             result.data.groups.forEach(group => {
-              lines.push(`\n  📦 ${group.groupName}`)
-              lines.push(`     Entries: ${group.entriesCount}個`)
-              if (group.buildPath) lines.push(`     Build Path: ${group.buildPath}`)
-              if (group.loadPath) lines.push(`     Load Path: ${group.loadPath}`)
-            })
+              lines.push(`\n  📦 ${group.groupName}`);
+              lines.push(`     Entries: ${group.entriesCount}個`);
+              if (group.buildPath) lines.push(`     Build Path: ${group.buildPath}`);
+              if (group.loadPath) lines.push(`     Load Path: ${group.loadPath}`);
+            });
           }
         }
-        break
+        break;
 
       case 'create_group':
-        lines.push(`✅ グループを作成しました: ${result.data?.groupName}`)
-        break
+        lines.push(`✅ グループを作成しました: ${result.data?.groupName}`);
+        break;
 
       case 'remove_group':
-        lines.push(`✅ ${result.message}`)
-        break
+        lines.push(`✅ ${result.message}`);
+        break;
 
       case 'move_entry':
-        lines.push('✅ エントリを移動しました')
+        lines.push('✅ エントリを移動しました');
         if (result.data) {
-          lines.push(`  📁 Asset: ${result.data.assetPath}`)
-          lines.push(`  📦 New Group: ${result.data.groupName}`)
+          lines.push(`  📁 Asset: ${result.data.assetPath}`);
+          lines.push(`  📦 New Group: ${result.data.groupName}`);
         }
-        break
+        break;
 
       default:
-        lines.push(JSON.stringify(result, null, 2))
+        lines.push(JSON.stringify(result, null, 2));
     }
 
-    return lines.join('\n')
+    return lines.join('\n');
   }
 }
-

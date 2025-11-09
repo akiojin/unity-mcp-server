@@ -45,6 +45,13 @@ jobs:
           OUTPUT=$(pnpm exec semantic-release --dry-run --branches develop 2>&1)
           echo "$OUTPUT"
 
+          # Conventional Commits検証
+          if echo "$OUTPUT" | grep -q "not following the Conventional Commits"; then
+            echo "❌ Error: Commits not following Conventional Commits format detected"
+            echo "$OUTPUT" | grep "not following"
+            exit 1
+          fi
+
           # バージョン番号を抽出
           VERSION=$(echo "$OUTPUT" | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 
