@@ -37,10 +37,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Markdownlint
+        working-directory: ./mcp-server
         run: >
-          pnpm exec markdownlint "mcp-server/**/*.md"
-          --config ./.markdownlint.json
-          --ignore-path ./.markdownlintignore
+          pnpm exec markdownlint "./**/*.md"
+          --config ../.markdownlint.json
+          --ignore-path ../.markdownlintignore
 
       - name: Run ESLint
         working-directory: ./mcp-server
