@@ -7,24 +7,25 @@ tags: [project]
 
 developブランチから`release/vX.Y.Z`ブランチを自動作成し、リリースフローを開始します。
 
+> ℹ️ ブランチ作成処理は GitHub Actions 上で完結するため、ローカルで develop ブランチに切り替える必要はありません。任意の Worktree／ブランチから実行できます。
+
 ## 実行内容
 
-1. 現在のブランチがdevelopであることを確認
-2. developブランチを最新に更新（git pull）
-3. semantic-release dry-runを実行してバージョン番号を判定
-4. `release/vX.Y.Z`ブランチをdevelopから作成
-5. リモートにpush
-6. GitHub Actionsが以下を自動実行：
-   - **releaseブランチ**: semantic-releaseによるバージョン決定・更新、CHANGELOG.md生成、GitタグとGitHub Release作成
-   - **release → mainへ自動PR作成**: Requiredチェック成功後に自動マージ
-   - **mainブランチ**: csharp-lspビルド、npm publish、OpenUPM publish、developへの自動バックマージ
+1. GitHub CLIの認証状態を確認（`gh auth status`）。
+2. `scripts/create-release-branch.sh` が `create-release.yml` ワークフローを develop ブランチで起動。
+3. ワークフロー内で semantic-release dry-run を実行し、次のバージョン番号を確定。
+4. GitHub Actions が `release/vX.Y.Z` ブランチを **リモート develop 最新コミット** から作成して push。
+5. release ブランチが push されると `release.yml` が起動し、以下を自動実行：
+   - semantic-release によるバージョン決定、CHANGELOG.md 生成、タグ／GitHub Release 作成
+   - release → main の自動マージと csharp-lsp ビルド、npm/OpenUPM publish
+   - main → develop のバックマージ
 
 ## 前提条件
 
-- developブランチにいること
 - GitHub CLIが認証済みであること（`gh auth login`）
-- コミットがすべてConventional Commits形式であること
-- semantic-releaseがバージョンアップを判定できるコミットが存在すること
+- リリースしたい変更がすべて develop ブランチにマージ済みであること（`finish-feature.sh` 完了済み）
+- コミットがすべて Conventional Commits 形式であること
+- semantic-release がバージョンアップを判定できるコミットが存在すること
 
 ## スクリプト実行
 
@@ -35,6 +36,6 @@ scripts/create-release-branch.sh
 ```
 
 スクリプトはGitHub Actions ワークフローを起動し、リモートで以下を実行します：
-1. developブランチでsemantic-release dry-run
+1. developブランチで semantic-release dry-run
 2. バージョン番号を判定
 3. release/vX.Y.Zブランチを作成＆push
