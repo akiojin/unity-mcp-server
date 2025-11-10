@@ -1,3 +1,15 @@
+## [2.35.0](https://github.com/akiojin/unity-mcp-server/compare/v2.34.0...v2.35.0) (2025-11-10)
+
+
+### Features
+
+* **ci:** align workflows with claude-worktree structure ([57a4643](https://github.com/akiojin/unity-mcp-server/commit/57a4643bc5bea842cc6d29158e1b52c1dafb7f2e))
+
+
+### Bug Fixes
+
+* Move [skip ci] to commit message trailer for commitlint compliance ([ed2e391](https://github.com/akiojin/unity-mcp-server/commit/ed2e391ff7f887d93d93aced31f21a643d090e04))
+
 ## [2.34.0](https://github.com/akiojin/unity-mcp-server/compare/v2.33.0...v2.34.0) (2025-11-09)
 
 
