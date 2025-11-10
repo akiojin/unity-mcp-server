@@ -1,3 +1,10 @@
+## [2.35.1](https://github.com/akiojin/unity-mcp-server/compare/v2.35.0...v2.35.1) (2025-11-10)
+
+
+### Bug Fixes
+
+* add meta for package README ([2d09138](https://github.com/akiojin/unity-mcp-server/commit/2d09138e80cdfe987b4fdb6f2ed96777cc5a60fd))
+
 ## [2.35.0](https://github.com/akiojin/unity-mcp-server/compare/v2.34.0...v2.35.0) (2025-11-10)
 
 
