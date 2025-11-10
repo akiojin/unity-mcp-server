@@ -234,4 +234,3 @@ describe('addressables_manage contract tests', () => {
     })
   })
 })
-
