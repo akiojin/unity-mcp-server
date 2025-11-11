@@ -75,7 +75,7 @@ describe('TestGetStatusToolHandler', () => {
 
     mockConnection.sendCommand = mock.fn(async () => mockResponse);
 
-    const result = await handler.execute({});
+    const result = await handler.execute({ includeTestResults: true });
 
     assert.equal(result.status, 'completed');
     assert.equal(result.success, true);
@@ -85,6 +85,36 @@ describe('TestGetStatusToolHandler', () => {
     assert.equal(result.summary, '8/10 tests passed');
     assert.equal(result.failures.length, 2);
     assert.equal(result.tests.length, 3);
+  });
+
+  it('should include latest exported results when requested', async () => {
+    const mockResponse = {
+      status: 'completed',
+      success: true,
+      totalTests: 1,
+      passedTests: 1,
+      failedTests: 0,
+      skippedTests: 0,
+      inconclusiveTests: 0,
+      failures: [],
+      tests: [],
+      latestResult: {
+        status: 'available',
+        path: '/tmp/TestResults.json',
+        summary: { totalTests: 1, passed: 1 },
+        fileContent: '{"totalTests":1}'
+      }
+    };
+
+    mockConnection.sendCommand = mock.fn(async () => mockResponse);
+
+    const result = await handler.execute({ includeTestResults: true, includeFileContent: true });
+
+    assert.ok(result.latestResult);
+    assert.equal(result.latestResult.status, 'available');
+    assert.equal(result.latestResult.summary.totalTests, 1);
+    assert.ok(result.latestResult.fileContent.includes('totalTests'));
+    assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[1].includeTestResults, true);
   });
 
   it('should return completed status when all tests pass', async () => {
@@ -132,10 +162,7 @@ describe('TestGetStatusToolHandler', () => {
       error: 'Unity Editor not responding'
     }));
 
-    await assert.rejects(
-      () => handler.execute({}),
-      /Unity Editor not responding/
-    );
+    await assert.rejects(() => handler.execute({}), /Unity Editor not responding/);
   });
 
   it('should connect to Unity if not connected', async () => {

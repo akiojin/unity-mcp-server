@@ -225,7 +225,7 @@ Add to your `claude_desktop_config.json`:
 
 ### Testing & Diagnostics
 - `test_run` — Run Unity tests (EditMode/PlayMode)
-- `test_get_status` — Query test runner progress/results
+- `test_get_status` — Query test runner progress/results (set `includeTestResults=true` to attach the latest exported file summary)
 - `test_get_results` — Retrieve the latest exported test results JSON
 
 ## Requirements

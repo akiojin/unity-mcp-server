@@ -140,6 +140,9 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
+                bool includeExportedResults = parameters?["includeTestResults"]?.ToObject<bool>() ?? false;
+                bool includeFileContent = parameters?["includeFileContent"]?.ToObject<bool>() ?? false;
+
                 if (isTestRunning)
                 {
                     return new
@@ -161,22 +164,22 @@ namespace UnityMCPServer.Handlers
                 // Test execution completed - return results
                 var collector = currentCollector;
 
-                return new
+                var completed = new Dictionary<string, object>
                 {
-                    status = "completed",
-                    success = collector.FailedTests.Count == 0,
-                    totalTests = collector.TotalTests,
-                    passedTests = collector.PassedTests.Count,
-                    failedTests = collector.FailedTests.Count,
-                    skippedTests = collector.SkippedTests.Count,
-                    inconclusiveTests = collector.InconclusiveTests.Count,
-                    failures = collector.FailedTests.Select(t => new
+                    ["status"] = "completed",
+                    ["success"] = collector.FailedTests.Count == 0,
+                    ["totalTests"] = collector.TotalTests,
+                    ["passedTests"] = collector.PassedTests.Count,
+                    ["failedTests"] = collector.FailedTests.Count,
+                    ["skippedTests"] = collector.SkippedTests.Count,
+                    ["inconclusiveTests"] = collector.InconclusiveTests.Count,
+                    ["failures"] = collector.FailedTests.Select(t => new
                     {
                         testName = t.fullName,
                         message = t.message,
                         stackTrace = t.stackTrace
                     }).ToList(),
-                    tests = collector.AllResults.Select(t => new
+                    ["tests"] = collector.AllResults.Select(t => new
                     {
                         name = t.name,
                         fullName = t.fullName,
@@ -186,6 +189,13 @@ namespace UnityMCPServer.Handlers
                         output = t.output
                     }).ToList()
                 };
+
+                if (includeExportedResults)
+                {
+                    completed["latestResult"] = BuildLatestResult(includeFileContent);
+                }
+
+                return completed;
             }
             catch (Exception e)
             {
@@ -315,8 +325,42 @@ namespace UnityMCPServer.Handlers
         internal static void OnResultsExported(string exportPath, JObject summary)
         {
             lastResultPath = exportPath;
-            lastResultSummary = summary;
+            lastResultSummary = summary == null ? null : (JObject)summary.DeepClone();
             lastResultTimestampUtc = DateTime.UtcNow;
+        }
+
+        private static object BuildLatestResult(bool includeFileContent)
+        {
+            if (string.IsNullOrEmpty(lastResultPath) || !File.Exists(lastResultPath) || lastResultSummary == null)
+            {
+                return new
+                {
+                    status = "missing",
+                    message = "No exported test results are available yet. Run tests first."
+                };
+            }
+
+            string content = null;
+            if (includeFileContent)
+            {
+                try
+                {
+                    content = File.ReadAllText(lastResultPath);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[TestExecutionHandler] Failed to read test results file '{lastResultPath}': {ex.Message}");
+                }
+            }
+
+            return new
+            {
+                status = "available",
+                path = lastResultPath,
+                generatedAt = lastResultTimestampUtc?.ToString("o"),
+                summary = lastResultSummary,
+                fileContent = content
+            };
         }
 
         private class TestResultCollector : ICallbacks
