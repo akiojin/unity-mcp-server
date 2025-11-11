@@ -89,7 +89,6 @@ import { ComponentFieldSetToolHandler } from './component/ComponentFieldSetToolH
 import { CompilationGetStateToolHandler } from './compilation/CompilationGetStateToolHandler.js';
 import { TestRunToolHandler } from './test/TestRunToolHandler.js';
 import { TestGetStatusToolHandler } from './test/TestGetStatusToolHandler.js';
-import { TestGetResultsToolHandler } from './test/TestGetResultsToolHandler.js';
 import { EditorTagsManageToolHandler } from './editor/EditorTagsManageToolHandler.js';
 import { EditorLayersManageToolHandler } from './editor/EditorLayersManageToolHandler.js';
 import { EditorSelectionManageToolHandler } from './editor/EditorSelectionManageToolHandler.js';
@@ -228,7 +227,6 @@ export { CompilationGetStateToolHandler } from './compilation/CompilationGetStat
 // Test handlers
 export { TestRunToolHandler } from './test/TestRunToolHandler.js';
 export { TestGetStatusToolHandler } from './test/TestGetStatusToolHandler.js';
-export { TestGetResultsToolHandler } from './test/TestGetResultsToolHandler.js';
 
 // Editor control handlers
 export { EditorTagsManageToolHandler } from './editor/EditorTagsManageToolHandler.js';
@@ -387,7 +385,6 @@ const HANDLER_CLASSES = [
   // Test handlers
   TestRunToolHandler,
   TestGetStatusToolHandler,
-  TestGetResultsToolHandler,
 
   // Editor control handlers
   EditorTagsManageToolHandler,
