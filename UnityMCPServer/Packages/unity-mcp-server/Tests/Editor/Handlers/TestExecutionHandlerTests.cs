@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityMCPServer.Handlers;
@@ -199,6 +201,53 @@ namespace UnityMCPServer.Tests
             {
                 // Error case
                 Assert.IsNotNull(result.error);
+            }
+        }
+
+        [Test]
+        public void GetLastTestResults_ShouldReturnMissingWhenNoExports()
+        {
+            TestExecutionHandler.ResetForTesting();
+
+            var result = TestExecutionHandler.GetLastTestResults(new JObject()) as dynamic;
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("missing", (string)result.status);
+        }
+
+        [Test]
+        public void GetLastTestResults_ShouldReturnSummaryWhenExported()
+        {
+            var tempPath = Path.Combine(Path.GetTempPath(), $"unitymcp-test-results-{Guid.NewGuid():N}.json");
+            try
+            {
+                var summary = new JObject
+                {
+                    ["generatedAt"] = DateTime.UtcNow.ToString("o"),
+                    ["totalTests"] = 1,
+                    ["passed"] = 1,
+                    ["failed"] = 0,
+                    ["testMode"] = "EditMode",
+                    ["status"] = "passed"
+                };
+
+                File.WriteAllText(tempPath, summary.ToString());
+                TestExecutionHandler.OnResultsExported(tempPath, summary);
+
+                var result = TestExecutionHandler.GetLastTestResults(new JObject()) as dynamic;
+
+                Assert.IsNotNull(result);
+                Assert.AreEqual("available", (string)result.status);
+                Assert.AreEqual(tempPath, (string)result.path);
+                Assert.AreEqual(1L, (long)result.summary.totalTests);
+            }
+            finally
+            {
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+                TestExecutionHandler.ResetForTesting();
             }
         }
     }
