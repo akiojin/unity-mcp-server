@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
+using Object = UnityEngine.Object;
 using UnityEngine.TestTools;
 
 namespace UnityMCPServer.Tests.PlayMode
@@ -9,6 +11,37 @@ namespace UnityMCPServer.Tests.PlayMode
     {
         private const string RuntimeObjectName = "UnityMCPServer_PlayModeTemp";
         private const string EditObjectName = "UnityMCPServer_EditModeSeed";
+        private GameObject _cameraOwner;
+
+        [SetUp]
+        public void EnsureCamera()
+        {
+            var mainCamera = Camera.main;
+            if (mainCamera == null)
+            {
+                _cameraOwner = new GameObject("PlayModeTestCamera");
+                var camera = _cameraOwner.AddComponent<Camera>();
+                _cameraOwner.tag = "MainCamera";
+                mainCamera = camera;
+            }
+
+            AttachUniversalCameraDataIfAvailable(mainCamera);
+
+            if (_cameraOwner != null)
+            {
+                Object.DontDestroyOnLoad(_cameraOwner);
+            }
+        }
+
+        [TearDown]
+        public void CleanupCamera()
+        {
+            if (_cameraOwner != null)
+            {
+                Object.DestroyImmediate(_cameraOwner);
+                _cameraOwner = null;
+            }
+        }
 
         [UnityTest]
         public IEnumerator GameObjectSpawnedInPlayMode_IsDestroyedAfterExit()
@@ -57,6 +90,22 @@ namespace UnityMCPServer.Tests.PlayMode
         private class MarkerComponent : MonoBehaviour
         {
             public float value;
+        }
+
+        private static void AttachUniversalCameraDataIfAvailable(Camera camera)
+        {
+            if (camera == null) return;
+
+            var type = Type.GetType("UnityEngine.Rendering.Universal.UniversalAdditionalCameraData, Unity.RenderPipelines.Universal.Runtime");
+            if (type == null)
+            {
+                return;
+            }
+
+            if (camera.gameObject.GetComponent(type) == null)
+            {
+                camera.gameObject.AddComponent(type);
+            }
         }
     }
 }
