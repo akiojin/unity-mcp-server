@@ -225,7 +225,9 @@ Add to your `claude_desktop_config.json`:
 
 ### Testing & Diagnostics
 - `test_run` — Run Unity tests (EditMode/PlayMode)
-- `test_get_status` — Query test runner progress/results (set `includeTestResults=true` to attach the latest exported file summary)
+- `test_get_status` — Query Unity Test Runner progress/results. Parameters:
+  - `includeTestResults` (bool, default `false`): attaches the latest exported `.unity/test-results/*.json` summary to the response when a test run has completed.
+  - `includeFileContent` (bool, default `false`): when combined with `includeTestResults`, also returns the JSON file contents as a string so agents can parse the detailed per-test data without reading the file directly.
 
 ## Requirements
 
