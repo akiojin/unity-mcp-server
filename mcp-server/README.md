@@ -100,11 +100,13 @@ Add to your `claude_desktop_config.json`:
 ## Available Tools (Standardized Names)
 
 ### System & Core Tools
+
 - `system_ping` — Test connection to Unity Editor and verify server status
 - `system_refresh_assets` — Refresh Unity assets and trigger recompilation
 - `system_get_command_stats` — Retrieve recent MCP command usage metrics
 
 ### GameObject Management
+
 - `gameobject_create` — Create GameObjects with primitives, transforms, tags, and layers
 - `gameobject_find` — Find GameObjects by name, tag, or layer with pattern matching
 - `gameobject_modify` — Modify GameObject properties (transform, name, active state, parent)
@@ -112,6 +114,7 @@ Add to your `claude_desktop_config.json`:
 - `gameobject_get_hierarchy` — Inspect scene hierarchy with component details
 
 ### Component System
+
 - `component_add` — Add Unity components to GameObjects with initial properties
 - `component_remove` — Remove components from GameObjects with safety checks
 - `component_modify` — Modify component properties with nested support
@@ -120,6 +123,7 @@ Add to your `claude_desktop_config.json`:
 - `component_get_types` — Discover available component types with filtering
 
 ### Scene Management
+
 - `scene_create` — Create new scenes with build-settings integration
 - `scene_load` — Load scenes in Single or Additive mode
 - `scene_save` — Save the active scene (supports Save As)
@@ -127,6 +131,7 @@ Add to your `claude_desktop_config.json`:
 - `scene_info_get` — Retrieve detailed scene information including GameObject counts
 
 ### Analysis & Diagnostics
+
 - `analysis_scene_contents_analyze` — Gather scene statistics and performance metrics
 - `analysis_component_find` — Locate GameObjects by component type with scope filtering
 - `analysis_component_values_get` — Inspect component properties and values
@@ -136,6 +141,7 @@ Add to your `claude_desktop_config.json`:
 - `analysis_animator_runtime_info_get` — Retrieve runtime Animator diagnostics (Play Mode)
 
 ### Asset Management
+
 - `asset_prefab_create` — Create prefabs from GameObjects or blank templates
 - `asset_prefab_instantiate` — Instantiate prefabs with custom transforms
 - `asset_prefab_modify` — Apply property overrides to existing prefabs
@@ -149,6 +155,7 @@ Add to your `claude_desktop_config.json`:
 - `asset_dependency_analyze` — Audit asset dependencies and identify unused assets
 
 ### Script & Code Tools
+
 - `script_read` — Read script file contents with syntax-aware formatting
 - `script_search` — Search C# sources by substring/regex/glob filters
 - `script_symbols_get` — Enumerate symbols within a specific C# file
@@ -163,10 +170,12 @@ Add to your `claude_desktop_config.json`:
 - `code_index_status` — Report status of the persistent code index
 
 ### Code Index Utilities
+
 - `code_index_build` — フルスキャンでシンボルインデックスを再構築（開発時は `delayStartMs` や `throttleMs` で進捗観測用に速度調整可能）
 - `code_index_update` — 変更した C# ファイルのみ差分再インデックス
 
 ### Play Mode Controls
+
 - `playmode_play` — Enter Play Mode
 - `playmode_pause` — Pause or resume Play Mode
 - `playmode_stop` — Exit Play Mode back to Edit Mode
@@ -174,6 +183,7 @@ Add to your `claude_desktop_config.json`:
 - `playmode_wait_for_state` — Await a target play/edit state
 
 ### UI Automation
+
 - `ui_find_elements` — Locate UI elements by type, tag, or name
 - `ui_click_element` — Simulate clicking UI buttons, toggles, etc.
 - `ui_get_element_state` — Inspect UI element properties and interactability
@@ -181,6 +191,7 @@ Add to your `claude_desktop_config.json`:
 - `ui_simulate_input` — Execute complex multi-step UI interaction sequences
 
 ### Input System Utilities
+
 - `input_system_control` — Dispatch keyboard/mouse/gamepad/touch operations
 - `input_keyboard_simulate` — Simulate keyboard input with combos or text
 - `input_mouse_simulate` — Simulate mouse movement, clicks, drags, and scrolling
@@ -199,6 +210,7 @@ Add to your `claude_desktop_config.json`:
 - `input_actions_asset_analyze` — Produce structured summaries of Input Actions assets
 
 ### Editor & Console Utilities
+
 - `menu_item_execute` — Trigger Unity Editor menu items programmatically
 - `console_clear` — Clear Unity console logs with filtering options
 - `console_read` — Stream Unity console output with advanced filters
@@ -210,12 +222,14 @@ Add to your `claude_desktop_config.json`:
 - `compilation_get_state` — Inspect current compilation state and errors
 
 ### Project Settings & Packages
+
 - `settings_get` — Read Unity project settings with granular control
 - `settings_update` — Safely update project settings (requires confirmation)
 - `package_manage` — List or manage Unity packages via Package Manager
 - `package_registry_config` — Configure package registries/scopes
 
 ### Asset Visualization & Capture
+
 - `screenshot_capture` — Capture Game/Scene view screenshots
 - `screenshot_analyze` — Run image analysis on captured screenshots
 - `video_capture_start` — Begin recording the Game view to video
@@ -224,6 +238,7 @@ Add to your `claude_desktop_config.json`:
 - `video_capture_for` — Record for a fixed duration before auto-stop
 
 ### Testing & Diagnostics
+
 - `test_run` — Run Unity tests (EditMode/PlayMode)
 - `test_get_status` — Query Unity Test Runner progress/results. Parameters:
   - `includeTestResults` (bool, default `false`): attaches the latest exported `.unity/test-results/*.json` summary to the response when a test run has completed.
@@ -238,11 +253,13 @@ Add to your `claude_desktop_config.json`:
 ## Troubleshooting
 
 ### Connection Issues
+
 1. Ensure Unity Editor is running with the Unity package installed
 2. Check Unity console for connection messages
 3. Verify port 6400 is not blocked by firewall
 
 ### Installation Issues
+
 ```bash
 # Clear npm cache
 npm cache clean --force

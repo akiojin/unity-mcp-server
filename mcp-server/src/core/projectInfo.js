@@ -18,6 +18,21 @@ export class ProjectInfoProvider {
 
   async get() {
     if (this.cached) return this.cached;
+    // Env-driven project root override (primarily for tests)
+    const envRootRaw = process.env.UNITY_PROJECT_ROOT;
+    if (typeof envRootRaw === 'string' && envRootRaw.trim().length > 0) {
+      const envRoot = envRootRaw.trim();
+      const projectRoot = normalize(path.resolve(envRoot));
+      const codeIndexRoot = normalize(resolveDefaultCodeIndexRoot(projectRoot));
+      this.cached = {
+        projectRoot,
+        assetsPath: normalize(path.join(projectRoot, 'Assets')),
+        packagesPath: normalize(path.join(projectRoot, 'Packages')),
+        codeIndexRoot
+      };
+      return this.cached;
+    }
+
     // Config-driven project root (no env fallback)
     const cfgRootRaw = config?.project?.root;
     if (typeof cfgRootRaw === 'string' && cfgRootRaw.trim().length > 0) {
