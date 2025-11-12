@@ -1,4 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { resetTestResultsCache } from '../../utils/testResultsCache.js';
 
 /**
  * Handler for running Unity NUnit tests via Test Runner API
@@ -6,42 +7,39 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class TestRunToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'test_run',
-      'Run Unity NUnit tests in the current project',
-      {
-        type: 'object',
-        properties: {
-          testMode: {
-            type: 'string',
-            enum: ['EditMode', 'PlayMode', 'All'],
-            default: 'EditMode',
-            description: 'Test mode to run (EditMode: editor tests, PlayMode: runtime tests, All: both)'
-          },
-          filter: {
-            type: 'string',
-            description: 'Filter tests by class name (e.g., "PlayerControllerTests")'
-          },
-          category: {
-            type: 'string',
-            description: 'Filter tests by category attribute (e.g., "Integration")'
-          },
-          namespace: {
-            type: 'string',
-            description: 'Filter tests by namespace (e.g., "MyGame.Tests.Player")'
-          },
-          includeDetails: {
-            type: 'boolean',
-            default: false,
-            description: 'Include detailed test results for each individual test'
-          },
-          exportPath: {
-            type: 'string',
-            description: 'Export test results to NUnit XML file at specified path'
-          }
+    super('test_run', 'Run Unity NUnit tests in the current project', {
+      type: 'object',
+      properties: {
+        testMode: {
+          type: 'string',
+          enum: ['EditMode', 'PlayMode', 'All'],
+          default: 'EditMode',
+          description:
+            'Test mode to run (EditMode: editor tests, PlayMode: runtime tests, All: both)'
+        },
+        filter: {
+          type: 'string',
+          description: 'Filter tests by class name (e.g., "PlayerControllerTests")'
+        },
+        category: {
+          type: 'string',
+          description: 'Filter tests by category attribute (e.g., "Integration")'
+        },
+        namespace: {
+          type: 'string',
+          description: 'Filter tests by namespace (e.g., "MyGame.Tests.Player")'
+        },
+        includeDetails: {
+          type: 'boolean',
+          default: false,
+          description: 'Include detailed test results for each individual test'
+        },
+        exportPath: {
+          type: 'string',
+          description: 'Export test results to NUnit XML file at specified path'
         }
       }
-    );
+    });
 
     this.unityConnection = unityConnection;
   }
@@ -57,6 +55,8 @@ export class TestRunToolHandler extends BaseToolHandler {
       await this.unityConnection.connect();
     }
 
+    await resetTestResultsCache();
+
     // Send command to Unity
     const response = await this.unityConnection.sendCommand('run_tests', params);
 
@@ -69,7 +69,8 @@ export class TestRunToolHandler extends BaseToolHandler {
     if (response.status === 'running') {
       return {
         status: 'running',
-        message: response.message || 'Test execution started. Use get_test_status to check progress.'
+        message:
+          response.message || 'Test execution started. Use get_test_status to check progress.'
       };
     }
 
