@@ -24,8 +24,10 @@ namespace UnityMCPServer.Handlers
         private static TestResultCollector currentCollector;
         private static bool isTestRunning;
         internal static Func<bool> DirtySceneDetector = DetectDirtyScenes;
+        internal static Func<(bool success, string failureReason)> AutoSaveDirtyScenesExecutor = TryAutoSaveDirtyScenes;
         internal static Func<bool> PlayModeDetector = () => Application.isPlaying;
         private static readonly string DefaultResultsFolder = Path.GetFullPath(Path.Combine(Application.dataPath, "../.unity/test-results"));
+        private const string DirtySceneErrorMessage = "There are unsaved scene changes. Please save or discard your changes before running tests.";
         private static string lastResultPath;
         private static JObject lastResultSummary;
         private static DateTime? lastResultTimestampUtc;
@@ -58,6 +60,7 @@ namespace UnityMCPServer.Handlers
                 bool includeDetails = parameters["includeDetails"]?.ToObject<bool>() ?? false;
                 string exportPath = parameters["exportPath"]?.ToString();
                 string resolvedExportPath = ResolveExportPath(exportPath, testMode);
+                bool autoSaveScenes = parameters["autoSaveScenes"]?.ToObject<bool>() ?? false;
 
                 if (testMode != "EditMode" && testMode != "PlayMode" && testMode != "All")
                 {
@@ -71,7 +74,23 @@ namespace UnityMCPServer.Handlers
 
                 if (DirtySceneDetector())
                 {
-                    return new { error = "There are unsaved scene changes. Please save or discard your changes before running tests." };
+                    if (autoSaveScenes)
+                    {
+                        var autoSaveResult = AutoSaveDirtyScenesExecutor?.Invoke() ?? (false, "Auto-save handler unavailable");
+                        if (!autoSaveResult.success)
+                        {
+                            return new { error = $"Failed to auto-save scenes: {autoSaveResult.failureReason ?? "Unknown error"}" };
+                        }
+
+                        if (DirtySceneDetector())
+                        {
+                            return new { error = DirtySceneErrorMessage };
+                        }
+                    }
+                    else
+                    {
+                        return new { error = DirtySceneErrorMessage };
+                    }
                 }
 
                 // Save current scene to avoid "Save Scene" dialog after tests
@@ -306,6 +325,40 @@ namespace UnityMCPServer.Handlers
             }
         }
 
+        private static (bool success, string failureReason) TryAutoSaveDirtyScenes()
+        {
+            try
+            {
+                var encounteredDirtyScene = false;
+                for (int i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    var scene = SceneManager.GetSceneAt(i);
+                    if (!scene.IsValid() || !scene.isDirty)
+                    {
+                        continue;
+                    }
+
+                    encounteredDirtyScene = true;
+
+                    if (string.IsNullOrEmpty(scene.path))
+                    {
+                        return (false, $"Scene '{scene.name}' has not been saved yet. Use Save As to assign a path before running tests.");
+                    }
+
+                    if (!UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene))
+                    {
+                        return (false, $"Failed to save scene '{scene.path}'");
+                    }
+                }
+
+                return (true, encounteredDirtyScene ? null : "No dirty scenes detected");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
         private static bool DetectDirtyScenes()
         {
             for (int i = 0; i < SceneManager.sceneCount; i++)
@@ -323,6 +376,7 @@ namespace UnityMCPServer.Handlers
         internal static void ResetForTesting()
         {
             DirtySceneDetector = DetectDirtyScenes;
+            AutoSaveDirtyScenesExecutor = TryAutoSaveDirtyScenes;
             PlayModeDetector = () => Application.isPlaying;
             lastResultPath = null;
             lastResultSummary = null;

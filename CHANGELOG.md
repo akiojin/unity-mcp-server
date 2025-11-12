@@ -1,3 +1,10 @@
+## [2.36.1](https://github.com/akiojin/unity-mcp-server/compare/v2.36.0...v2.36.1) (2025-11-12)
+
+
+### Bug Fixes
+
+* auto-save dirty scenes before running tests ([7992990](https://github.com/akiojin/unity-mcp-server/commit/79929900e4190ad32c684c4755303b8e11dfd2c0))
+
 ## [2.36.0](https://github.com/akiojin/unity-mcp-server/compare/v2.35.1...v2.36.0) (2025-11-12)
 
 
