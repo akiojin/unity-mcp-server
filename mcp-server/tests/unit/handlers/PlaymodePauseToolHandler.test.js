@@ -26,8 +26,8 @@ describe('PlaymodePauseToolHandler', () => {
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'playmode_pause');
-      assert.equal(handler.description, 'Toggle Pause/Resume in Play Mode.');
-      assert.equal(handler.inputSchema.required, undefined);
+      assert.equal(handler.description, 'Pause or resume Unity play mode');
+      assert.deepEqual(handler.inputSchema.required ?? [], []);
     });
   });
 
@@ -40,10 +40,10 @@ describe('PlaymodePauseToolHandler', () => {
   describe('execute', () => {
     it('should pause the game successfully', async () => {
       const result = await handler.execute({});
-      
+
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
       assert.deepEqual(mockConnection.sendCommand.mock.calls[0].arguments, ['pause_game', {}]);
-      
+
       assert.ok(result);
       assert.equal(result.message, 'Game paused');
       assert.equal(result.state.isPaused, true);
@@ -64,9 +64,9 @@ describe('PlaymodePauseToolHandler', () => {
         }
       });
       handler = new PlaymodePauseToolHandler(mockConnection);
-      
+
       const result = await handler.execute({});
-      
+
       assert.equal(result.message, 'Game resumed');
       assert.equal(result.state.isPaused, false);
       assert.equal(result.state.isPlaying, true);
@@ -80,7 +80,7 @@ describe('PlaymodePauseToolHandler', () => {
         }
       });
       handler = new PlaymodePauseToolHandler(mockConnection);
-      
+
       await assert.rejects(
         async () => await handler.execute({}),
         /Cannot pause\/resume: Not in play mode/
@@ -89,18 +89,15 @@ describe('PlaymodePauseToolHandler', () => {
 
     it('should throw error if not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /Unity connection not available/
-      );
+
+      await assert.rejects(async () => await handler.execute({}), /Unity connection not available/);
     });
   });
 
   describe('integration with BaseToolHandler', () => {
     it('should handle valid pause request through handle method', async () => {
       const result = await handler.handle({});
-      
+
       assert.equal(result.status, 'success');
       assert.ok(result.result);
       assert.equal(result.result.message, 'Game paused');
@@ -114,9 +111,9 @@ describe('PlaymodePauseToolHandler', () => {
         }
       });
       handler = new PlaymodePauseToolHandler(mockConnection);
-      
+
       const result = await handler.handle({});
-      
+
       assert.equal(result.status, 'error');
       assert.match(result.error, /Not in play mode/);
     });

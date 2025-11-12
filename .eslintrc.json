@@ -24,7 +24,6 @@
     "build/",
     "coverage/",
     ".husky/",
-    "UnityMCPServer/",
-    ".worktrees/"
+    "UnityMCPServer/"
   ]
 }
