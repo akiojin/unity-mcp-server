@@ -1,3 +1,16 @@
+## [2.37.0](https://github.com/akiojin/unity-mcp-server/compare/v2.36.3...v2.37.0) (2025-11-12)
+
+
+### Features
+
+* 入力システム更新とテストシーン追加 ([2c08934](https://github.com/akiojin/unity-mcp-server/commit/2c08934a416021a1bb5f5dd6302017f7dc4110d4))
+
+
+### Bug Fixes
+
+* **playmode:** handle new response envelopes ([399f066](https://github.com/akiojin/unity-mcp-server/commit/399f066cc6d65176f6fbe99d0a0a99c48320919e))
+* **test:** preserve latestResult when caching ([142604d](https://github.com/akiojin/unity-mcp-server/commit/142604d8eb3ec56de81452678f63cd89706ec9b5))
+
 ## [2.36.3](https://github.com/akiojin/unity-mcp-server/compare/v2.36.2...v2.36.3) (2025-11-12)
 
 
