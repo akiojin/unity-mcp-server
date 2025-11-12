@@ -236,7 +236,6 @@ jobs:
           exit 1
 
       - name: Install dependencies
-        working-directory: mcp-server
         run: pnpm install --frozen-lockfile
 
       - name: Run tests
