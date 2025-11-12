@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 
 import { TestGetStatusToolHandler } from '../../../../src/handlers/test/TestGetStatusToolHandler.js';
 import { createMockUnityConnection } from '../../../utils/test-helpers.js';
-import * as testResultsCache from '../../../../src/utils/testResultsCache.js';
 
 describe('TestGetStatusToolHandler', () => {
   let handler;
@@ -12,6 +11,10 @@ describe('TestGetStatusToolHandler', () => {
   beforeEach(() => {
     mockConnection = createMockUnityConnection();
     handler = new TestGetStatusToolHandler(mockConnection);
+    handler.testResultsCache = {
+      loadCachedTestResults: async () => null,
+      persistTestResults: async () => null
+    };
   });
 
   afterEach(() => {
@@ -30,7 +33,7 @@ describe('TestGetStatusToolHandler', () => {
     };
 
     mockConnection.sendCommand = mock.fn(async () => mockResponse);
-    mock.method(testResultsCache, 'loadCachedTestResults', async () => null);
+    handler.testResultsCache.loadCachedTestResults = mock.fn(async () => null);
 
     const result = await handler.execute({});
 
@@ -49,7 +52,11 @@ describe('TestGetStatusToolHandler', () => {
       inconclusiveTests: 0,
       summary: '2/2 tests passed',
       failures: [],
-      tests: []
+      tests: [],
+      latestResult: {
+        status: 'available',
+        path: '/tmp/TestResults.json'
+      }
     };
 
     mockConnection.sendCommand = mock.fn(async () => ({
@@ -57,11 +64,13 @@ describe('TestGetStatusToolHandler', () => {
       message: 'No tests running'
     }));
 
-    mock.method(testResultsCache, 'loadCachedTestResults', async () => cachedResult);
+    const loadMock = mock.fn(async () => cachedResult);
+    handler.testResultsCache.loadCachedTestResults = loadMock;
 
     const result = await handler.execute({});
 
     assert.deepEqual(result, cachedResult);
+    assert.deepEqual(result.latestResult, cachedResult.latestResult);
   });
 
   it('should return running status during test execution', async () => {
@@ -93,7 +102,12 @@ describe('TestGetStatusToolHandler', () => {
       skippedTests: 0,
       inconclusiveTests: 0,
       failures: [{ testName: 'Foo', message: 'Failed' }],
-      tests: []
+      tests: [],
+      latestResult: {
+        status: 'available',
+        path: '/tmp/TestResults.json',
+        summary: { totalTests: 10, passed: 8 }
+      }
     };
 
     const cachedResult = {
@@ -102,23 +116,19 @@ describe('TestGetStatusToolHandler', () => {
     };
 
     mockConnection.sendCommand = mock.fn(async () => mockResponse);
-    const persistMock = mock.method(
-      testResultsCache,
-      'persistTestResults',
-      async () => '/tmp/TestResults.json'
-    );
-    const loadMock = mock.method(
-      testResultsCache,
-      'loadCachedTestResults',
-      async () => cachedResult
-    );
+    const persistMock = mock.fn(async () => '/tmp/TestResults.json');
+    const loadMock = mock.fn(async () => cachedResult);
+    handler.testResultsCache.persistTestResults = persistMock;
+    handler.testResultsCache.loadCachedTestResults = loadMock;
 
     const result = await handler.execute({});
 
     assert.deepEqual(result, cachedResult);
     assert.equal(persistMock.mock.calls.length, 1);
+    assert.deepEqual(persistMock.mock.calls[0].arguments[0].latestResult, mockResponse.latestResult);
     assert.equal(loadMock.mock.calls.length, 1);
     assert.equal(loadMock.mock.calls[0].arguments[0], '/tmp/TestResults.json');
+    assert.deepEqual(result.latestResult, mockResponse.latestResult);
   });
 
   it('should include latest exported results when requested', async () => {
@@ -184,7 +194,7 @@ describe('TestGetStatusToolHandler', () => {
       status: 'idle',
       message: 'No tests running'
     }));
-    mock.method(testResultsCache, 'loadCachedTestResults', async () => null);
+    handler.testResultsCache.loadCachedTestResults = mock.fn(async () => null);
 
     await handler.execute({});
 
@@ -210,8 +220,8 @@ describe('TestGetStatusToolHandler', () => {
     };
 
     mockConnection.sendCommand = mock.fn(async () => mockResponse);
-    mock.method(testResultsCache, 'persistTestResults', async () => '/tmp/TestResults.json');
-    mock.method(testResultsCache, 'loadCachedTestResults', async () => cachedResult);
+    handler.testResultsCache.persistTestResults = mock.fn(async () => '/tmp/TestResults.json');
+    handler.testResultsCache.loadCachedTestResults = mock.fn(async () => cachedResult);
 
     const result = await handler.execute({});
 
