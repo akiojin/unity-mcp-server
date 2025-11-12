@@ -7,7 +7,11 @@ describe('PlaymodeStopToolHandler', () => {
   let handler;
   let mockConnection;
 
-  const buildConnection = ({ stopMessage = 'Exited play mode', pollsUntilStopped = 1 } = {}) => {
+  const buildConnection = ({
+    stopMessage = 'Exited play mode',
+    pollsUntilStopped = 1,
+    responseFactory
+  } = {}) => {
     let polls = 0;
     const sendCommand = mock.fn(async type => {
       if (type === 'stop_game') {
@@ -15,9 +19,13 @@ describe('PlaymodeStopToolHandler', () => {
       }
       if (type === 'get_editor_state') {
         polls++;
+        const isPlaying = polls <= pollsUntilStopped;
+        if (typeof responseFactory === 'function') {
+          return responseFactory(isPlaying);
+        }
         return {
           status: 'success',
-          state: { isPlaying: polls <= pollsUntilStopped }
+          state: { isPlaying }
         };
       }
       throw new Error(`Unexpected command ${type}`);
@@ -47,13 +55,31 @@ describe('PlaymodeStopToolHandler', () => {
 
   describe('execute', () => {
     it('should stop play mode successfully', async () => {
-      const result = await handler.execute({ pollIntervalMs: 0 });
+      const result = await handler.execute({ pollIntervalMs: 0, maxWaitMs: 50 });
 
       assert.equal(result.message, 'Exited play mode');
       assert.equal(result.state.isPlaying, false);
       assert.ok(
         mockConnection.sendCommand.mock.calls.some(call => call.arguments[0] === 'get_editor_state')
       );
+    });
+
+    it('should parse wrapped editor state responses', async () => {
+      const responseFactory = isPlaying => ({
+        status: 'success',
+        result: {
+          status: 'success',
+          state: { isPlaying }
+        },
+        editorState: { isPlaying }
+      });
+
+      mockConnection = buildConnection({ responseFactory, pollsUntilStopped: 0 });
+      handler = new PlaymodeStopToolHandler(mockConnection);
+
+      const result = await handler.execute({ pollIntervalMs: 0 });
+
+      assert.equal(result.state.isPlaying, false);
     });
 
     it('should handle already stopped state', async () => {

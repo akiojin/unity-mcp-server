@@ -7,7 +7,11 @@ describe('PlaymodePlayToolHandler', () => {
   let handler;
   let mockConnection;
 
-  const buildConnection = ({ message = 'Entered play mode', pollsUntilPlaying = 1 } = {}) => {
+  const buildConnection = ({
+    message = 'Entered play mode',
+    pollsUntilPlaying = 1,
+    responseFactory
+  } = {}) => {
     let polls = 0;
     const sendCommand = mock.fn(async type => {
       if (type === 'play_game') {
@@ -15,9 +19,13 @@ describe('PlaymodePlayToolHandler', () => {
       }
       if (type === 'get_editor_state') {
         polls++;
+        const isPlaying = polls >= pollsUntilPlaying;
+        if (typeof responseFactory === 'function') {
+          return responseFactory(isPlaying);
+        }
         return {
           status: 'success',
-          state: { isPlaying: polls >= pollsUntilPlaying }
+          state: { isPlaying }
         };
       }
       throw new Error(`Unexpected command ${type}`);
@@ -47,13 +55,32 @@ describe('PlaymodePlayToolHandler', () => {
 
   describe('execute', () => {
     it('should start play mode successfully', async () => {
-      const result = await handler.execute({ pollIntervalMs: 0 });
+      const result = await handler.execute({ pollIntervalMs: 0, maxWaitMs: 50 });
 
       assert.equal(result.message, 'Entered play mode');
       assert.equal(result.state.isPlaying, true);
       assert.ok(
         mockConnection.sendCommand.mock.calls.some(call => call.arguments[0] === 'get_editor_state')
       );
+    });
+
+    it('should parse new response envelope format', async () => {
+      const responseFactory = isPlaying => ({
+        id: 'cmd-123',
+        status: 'success',
+        result: {
+          status: 'success',
+          state: { isPlaying }
+        },
+        editorState: { isPlaying, isPaused: false }
+      });
+
+      mockConnection = buildConnection({ responseFactory, pollsUntilPlaying: 2 });
+      handler = new PlaymodePlayToolHandler(mockConnection);
+
+      const result = await handler.execute({ pollIntervalMs: 0 });
+
+      assert.equal(result.state.isPlaying, true);
     });
 
     it('should handle already playing state', async () => {

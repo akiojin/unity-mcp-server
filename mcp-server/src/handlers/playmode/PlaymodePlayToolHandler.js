@@ -1,4 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { extractEditorState } from '../../utils/editorState.js';
 
 /**
  * Handler for the playmode_play tool
@@ -96,22 +97,6 @@ export class PlaymodePlayToolHandler extends BaseToolHandler {
       }
     }
   }
-}
-
-function extractEditorState(payload) {
-  if (!payload || typeof payload !== 'object') {
-    return null;
-  }
-  if (typeof payload.isPlaying === 'boolean') {
-    return payload;
-  }
-  if (payload.state && typeof payload.state === 'object') {
-    return payload.state;
-  }
-  if (payload._editorState && typeof payload._editorState === 'object') {
-    return payload._editorState;
-  }
-  return null;
 }
 
 function sleep(ms) {
