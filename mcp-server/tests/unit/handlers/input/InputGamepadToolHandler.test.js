@@ -1,20 +1,20 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { InputGamepadSimulateToolHandler } from '../../../../src/handlers/input/InputGamepadSimulateToolHandler.js';
+import { InputGamepadToolHandler } from '../../../../src/handlers/input/InputGamepadToolHandler.js';
 import { createMockUnityConnection } from '../../../utils/test-helpers.js';
 
-describe('InputGamepadSimulateToolHandler', () => {
+describe('InputGamepadToolHandler', () => {
   let handler;
   let mockConnection;
 
   beforeEach(() => {
     mockConnection = createMockUnityConnection({ sendCommandResult: { success: true } });
-    handler = new InputGamepadSimulateToolHandler(mockConnection);
+    handler = new InputGamepadToolHandler(mockConnection);
   });
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'input_gamepad_simulate');
+      assert.equal(handler.name, 'input_gamepad');
     });
 
     it('should have action enum with button, stick, trigger, dpad', () => {
@@ -63,12 +63,29 @@ describe('InputGamepadSimulateToolHandler', () => {
     it('should throw error when direction missing for dpad', () => {
       assert.throws(() => handler.validate({ action: 'dpad' }), /direction is required/);
     });
+
+    it('should validate batched actions array', () => {
+      assert.doesNotThrow(() => handler.validate({
+        actions: [
+          { action: 'button', button: 'a' },
+          { action: 'stick', stick: 'left', x: 0, y: 1 }
+        ]
+      }));
+    });
+
+    it('should throw when actions array empty', () => {
+      assert.throws(() => handler.validate({ actions: [] }), /actions must contain at least one entry/);
+    });
+
+    it('should throw when holdSeconds negative', () => {
+      assert.throws(() => handler.validate({ action: 'button', button: 'a', holdSeconds: -0.5 }), /holdSeconds must be zero or positive/);
+    });
   });
 
   describe('execute', () => {
     it('should execute button action', async () => {
       const result = await handler.execute({ action: 'button', button: 'a', buttonAction: 'press' });
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'simulate_gamepad_input');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_gamepad');
       assert.ok(result.success);
     });
 
@@ -89,6 +106,26 @@ describe('InputGamepadSimulateToolHandler', () => {
       await handler.execute({ action: 'dpad', direction: 'down' });
       const params = mockConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.direction, 'down');
+    });
+
+    it('should include holdSeconds when provided', async () => {
+      await handler.execute({ action: 'button', button: 'b', buttonAction: 'press', holdSeconds: 0.75 });
+      const params = mockConnection.sendCommand.mock.calls[0].arguments[1];
+      assert.equal(params.holdSeconds, 0.75);
+    });
+
+    it('should execute batched actions payload', async () => {
+      await handler.execute({
+        actions: [
+          { action: 'button', button: 'x' },
+          { action: 'stick', stick: 'left', x: 1, y: 1 },
+          { action: 'dpad', direction: 'up' }
+        ]
+      });
+
+      const [command, payload] = mockConnection.sendCommand.mock.calls[0].arguments;
+      assert.equal(command, 'input_gamepad');
+      assert.equal(payload.actions.length, 3);
     });
   });
 

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -309,22 +310,28 @@ namespace ComplexTestNamespace
         
         private void HandleUserInput()
         {
-            if (Input.GetKeyDown(KeyCode.L))
+            var keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return;
+            }
+
+            if (keyboard.lKey.wasPressedThisFrame)
             {
                 SwitchProcessingMode();
             }
             
-            if (Input.GetKeyDown(KeyCode.P))
+            if (keyboard.pKey.wasPressedThisFrame)
             {
                 ToggleProcessing();
             }
             
-            if (Input.GetKeyDown(KeyCode.R))
+            if (keyboard.rKey.wasPressedThisFrame)
             {
                 ResetAllData();
             }
             
-            if (Input.GetKeyDown(KeyCode.G))
+            if (keyboard.gKey.wasPressedThisFrame)
             {
                 GenerateRandomData();
             }

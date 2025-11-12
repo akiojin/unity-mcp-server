@@ -719,19 +719,19 @@ namespace UnityMCPServer.Core
                         break;
                     // Input System commands
                     #if ENABLE_INPUT_SYSTEM
-                    case "simulate_keyboard_input":
+                    case "input_keyboard":
                         var keyboardResult = InputSystemHandler.SimulateKeyboardInput(command.Parameters);
                         response = Response.SuccessResult(command.Id, keyboardResult);
                         break;
-                    case "simulate_mouse_input":
+                    case "input_mouse":
                         var mouseResult = InputSystemHandler.SimulateMouseInput(command.Parameters);
                         response = Response.SuccessResult(command.Id, mouseResult);
                         break;
-                    case "simulate_gamepad_input":
+                    case "input_gamepad":
                         var gamepadResult = InputSystemHandler.SimulateGamepadInput(command.Parameters);
                         response = Response.SuccessResult(command.Id, gamepadResult);
                         break;
-                    case "simulate_touch_input":
+                    case "input_touch":
                         var touchResult = InputSystemHandler.SimulateTouchInput(command.Parameters);
                         response = Response.SuccessResult(command.Id, touchResult);
                         break;

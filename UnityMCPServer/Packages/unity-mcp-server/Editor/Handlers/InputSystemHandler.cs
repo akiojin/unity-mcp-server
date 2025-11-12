@@ -25,6 +25,14 @@ namespace UnityMCPServer.Handlers
         private static List<InputEventPtr> queuedEvents = new List<InputEventPtr>();
         private static bool isSimulationActive = false;
 
+        private class ScheduledRelease
+        {
+            public double ReleaseTime;
+            public Action Callback;
+        }
+
+        private static readonly List<ScheduledRelease> scheduledReleases = new List<ScheduledRelease>();
+
         // Virtual keyboard management
         private static Keyboard virtualKeyboard;
         private static HashSet<Key> pressedKeys = new HashSet<Key>();
@@ -32,6 +40,8 @@ namespace UnityMCPServer.Handlers
         static InputSystemHandler()
         {
             InputSystem.onDeviceChange += OnDeviceChange;
+            EditorApplication.update -= ProcessScheduledReleases;
+            EditorApplication.update += ProcessScheduledReleases;
         }
 
         /// <summary>
@@ -41,38 +51,42 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                string action = parameters["action"]?.ToString(); // "press", "release", "type", "combo"
-                
-                if (string.IsNullOrEmpty(action))
-                {
-                    return new { error = "action is required (press, release, type, combo)" };
-                }
-
-                // Get or create virtual keyboard device
-                var keyboard = GetVirtualKeyboard();
-                
-                switch (action.ToLower())
-                {
-                    case "press":
-                        return SimulateKeyPress(keyboard, parameters);
-                    
-                    case "release":
-                        return SimulateKeyRelease(keyboard, parameters);
-                    
-                    case "type":
-                        return SimulateTextInput(keyboard, parameters);
-                    
-                    case "combo":
-                        return SimulateKeyCombo(keyboard, parameters);
-                    
-                    default:
-                        return new { error = $"Unknown action: {action}" };
-                }
+                return HandleBatchedActions(parameters, HandleKeyboardAction, "keyboard");
             }
             catch (Exception e)
             {
                 Debug.LogError($"[InputSystemHandler] Error in SimulateKeyboardInput: {e.Message}");
                 return new { error = $"Failed to simulate keyboard input: {e.Message}" };
+            }
+        }
+
+        private static object HandleKeyboardAction(JObject parameters)
+        {
+            string action = parameters?["action"]?.ToString();
+
+            if (string.IsNullOrEmpty(action))
+            {
+                return new { error = "action is required (press, release, type, combo)" };
+            }
+
+            var keyboard = GetVirtualKeyboard();
+
+            switch (action.ToLowerInvariant())
+            {
+                case "press":
+                    return SimulateKeyPress(keyboard, parameters);
+
+                case "release":
+                    return SimulateKeyRelease(keyboard, parameters);
+
+                case "type":
+                    return SimulateTextInput(keyboard, parameters);
+
+                case "combo":
+                    return SimulateKeyCombo(keyboard, parameters);
+
+                default:
+                    return new { error = $"Unknown action: {action}" };
             }
         }
 
@@ -83,38 +97,45 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                string action = parameters["action"]?.ToString(); // "move", "click", "drag", "scroll"
-                
-                if (string.IsNullOrEmpty(action))
-                {
-                    return new { error = "action is required (move, click, drag, scroll)" };
-                }
-
-                // Ensure mouse device exists
-                var mouse = GetOrCreateDevice<Mouse>("mouse");
-                
-                switch (action.ToLower())
-                {
-                    case "move":
-                        return SimulateMouseMove(mouse, parameters);
-                    
-                    case "click":
-                        return SimulateMouseClick(mouse, parameters);
-                    
-                    case "drag":
-                        return SimulateMouseDrag(mouse, parameters);
-                    
-                    case "scroll":
-                        return SimulateMouseScroll(mouse, parameters);
-                    
-                    default:
-                        return new { error = $"Unknown action: {action}" };
-                }
+                return HandleBatchedActions(parameters, HandleMouseAction, "mouse");
             }
             catch (Exception e)
             {
                 Debug.LogError($"[InputSystemHandler] Error in SimulateMouseInput: {e.Message}");
                 return new { error = $"Failed to simulate mouse input: {e.Message}" };
+            }
+        }
+
+        private static object HandleMouseAction(JObject parameters)
+        {
+            string action = parameters?["action"]?.ToString();
+
+            if (string.IsNullOrEmpty(action))
+            {
+                return new { error = "action is required (move, click, drag, scroll, button)" };
+            }
+
+            var mouse = GetOrCreateDevice<Mouse>("mouse");
+
+            switch (action.ToLowerInvariant())
+            {
+                case "move":
+                    return SimulateMouseMove(mouse, parameters);
+
+                case "click":
+                    return SimulateMouseClick(mouse, parameters);
+
+                case "drag":
+                    return SimulateMouseDrag(mouse, parameters);
+
+                case "scroll":
+                    return SimulateMouseScroll(mouse, parameters);
+
+                case "button":
+                    return SimulateMouseButton(mouse, parameters);
+
+                default:
+                    return new { error = $"Unknown action: {action}" };
             }
         }
 
@@ -125,38 +146,42 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                string action = parameters["action"]?.ToString(); // "button", "stick", "trigger", "dpad"
-                
-                if (string.IsNullOrEmpty(action))
-                {
-                    return new { error = "action is required (button, stick, trigger, dpad)" };
-                }
-
-                // Ensure gamepad device exists
-                var gamepad = GetOrCreateDevice<Gamepad>("gamepad");
-                
-                switch (action.ToLower())
-                {
-                    case "button":
-                        return SimulateGamepadButton(gamepad, parameters);
-                    
-                    case "stick":
-                        return SimulateGamepadStick(gamepad, parameters);
-                    
-                    case "trigger":
-                        return SimulateGamepadTrigger(gamepad, parameters);
-                    
-                    case "dpad":
-                        return SimulateGamepadDPad(gamepad, parameters);
-                    
-                    default:
-                        return new { error = $"Unknown action: {action}" };
-                }
+                return HandleBatchedActions(parameters, HandleGamepadAction, "gamepad");
             }
             catch (Exception e)
             {
                 Debug.LogError($"[InputSystemHandler] Error in SimulateGamepadInput: {e.Message}");
                 return new { error = $"Failed to simulate gamepad input: {e.Message}" };
+            }
+        }
+
+        private static object HandleGamepadAction(JObject parameters)
+        {
+            string action = parameters?["action"]?.ToString();
+
+            if (string.IsNullOrEmpty(action))
+            {
+                return new { error = "action is required (button, stick, trigger, dpad)" };
+            }
+
+            var gamepad = GetOrCreateDevice<Gamepad>("gamepad");
+
+            switch (action.ToLowerInvariant())
+            {
+                case "button":
+                    return SimulateGamepadButton(gamepad, parameters);
+
+                case "stick":
+                    return SimulateGamepadStick(gamepad, parameters);
+
+                case "trigger":
+                    return SimulateGamepadTrigger(gamepad, parameters);
+
+                case "dpad":
+                    return SimulateGamepadDPad(gamepad, parameters);
+
+                default:
+                    return new { error = $"Unknown action: {action}" };
             }
         }
 
@@ -167,38 +192,42 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                string action = parameters["action"]?.ToString(); // "tap", "swipe", "pinch", "multi"
-                
-                if (string.IsNullOrEmpty(action))
-                {
-                    return new { error = "action is required (tap, swipe, pinch, multi)" };
-                }
-
-                // Ensure touchscreen device exists
-                var touchscreen = GetOrCreateDevice<Touchscreen>("touchscreen");
-                
-                switch (action.ToLower())
-                {
-                    case "tap":
-                        return SimulateTap(touchscreen, parameters);
-                    
-                    case "swipe":
-                        return SimulateSwipe(touchscreen, parameters);
-                    
-                    case "pinch":
-                        return SimulatePinch(touchscreen, parameters);
-                    
-                    case "multi":
-                        return SimulateMultiTouch(touchscreen, parameters);
-                    
-                    default:
-                        return new { error = $"Unknown action: {action}" };
-                }
+                return HandleBatchedActions(parameters, HandleTouchAction, "touch");
             }
             catch (Exception e)
             {
                 Debug.LogError($"[InputSystemHandler] Error in SimulateTouchInput: {e.Message}");
                 return new { error = $"Failed to simulate touch input: {e.Message}" };
+            }
+        }
+
+        private static object HandleTouchAction(JObject parameters)
+        {
+            string action = parameters?["action"]?.ToString();
+
+            if (string.IsNullOrEmpty(action))
+            {
+                return new { error = "action is required (tap, swipe, pinch, multi)" };
+            }
+
+            var touchscreen = GetOrCreateDevice<Touchscreen>("touchscreen");
+
+            switch (action.ToLowerInvariant())
+            {
+                case "tap":
+                    return SimulateTap(touchscreen, parameters);
+
+                case "swipe":
+                    return SimulateSwipe(touchscreen, parameters);
+
+                case "pinch":
+                    return SimulatePinch(touchscreen, parameters);
+
+                case "multi":
+                    return SimulateMultiTouch(touchscreen, parameters);
+
+                default:
+                    return new { error = $"Unknown action: {action}" };
             }
         }
 
@@ -408,6 +437,18 @@ namespace UnityMCPServer.Handlers
                 // Queue the state event for the virtual keyboard
                 InputSystem.QueueStateEvent(keyboard, keyboardState);
                 InputSystem.Update();
+
+                if (TryGetHoldSeconds(parameters, out double holdSeconds))
+                {
+                    ScheduleRelease(holdSeconds, () =>
+                    {
+                        var releaseParams = new JObject
+                        {
+                            ["key"] = keyName
+                        };
+                        SimulateKeyRelease(keyboard, releaseParams);
+                    });
+                }
             }
             
             return new
@@ -497,19 +538,16 @@ namespace UnityMCPServer.Handlers
             
             Debug.Log($"[InputSystemHandler] Simulating key combo: {string.Join("+", keys)} ({keyboard.name})");
             
+            var normalizedKeys = new List<string>();
+
             // Press all keys
             foreach (string keyName in keys)
             {
-                var actualKeyName = keyName;
-                // Handle single character keys
-                if (keyName.Length == 1)
-                {
-                    actualKeyName = keyName.ToUpper();
-                }
-                
+                var actualKeyName = keyName.Length == 1 ? keyName.ToUpper() : keyName;
                 if (Enum.TryParse<Key>(actualKeyName, true, out Key key))
                 {
                     pressedKeys.Add(key);
+                    normalizedKeys.Add(actualKeyName);
                 }
             }
             
@@ -517,26 +555,35 @@ namespace UnityMCPServer.Handlers
             var keyboardState = CreateKeyboardState();
             InputSystem.QueueStateEvent(keyboard, keyboardState);
             InputSystem.Update();
-            
-            // Release all keys
-            foreach (string keyName in keys)
+
+            if (TryGetHoldSeconds(parameters, out double holdSeconds))
             {
-                var actualKeyName = keyName;
-                if (keyName.Length == 1)
+                ScheduleRelease(holdSeconds, () =>
                 {
-                    actualKeyName = keyName.ToUpper();
-                }
-                
-                if (Enum.TryParse<Key>(actualKeyName, true, out Key key))
-                {
-                    pressedKeys.Remove(key);
-                }
+                    foreach (string keyName in normalizedKeys)
+                    {
+                        var releaseParams = new JObject
+                        {
+                            ["key"] = keyName
+                        };
+                        SimulateKeyRelease(keyboard, releaseParams);
+                    }
+                });
             }
-            
-            // Queue state with all keys released
-            keyboardState = CreateKeyboardState();
-            InputSystem.QueueStateEvent(keyboard, keyboardState);
-            InputSystem.Update();
+            else
+            {
+                foreach (string keyName in normalizedKeys)
+                {
+                    if (Enum.TryParse<Key>(keyName, true, out Key key))
+                    {
+                        pressedKeys.Remove(key);
+                    }
+                }
+
+                keyboardState = CreateKeyboardState();
+                InputSystem.QueueStateEvent(keyboard, keyboardState);
+                InputSystem.Update();
+            }
             
             return new
             {
@@ -617,6 +664,50 @@ namespace UnityMCPServer.Handlers
                 button = button,
                 clickCount = clickCount,
                 message = $"Mouse {button} clicked {clickCount} time(s)"
+            };
+        }
+
+        private static object SimulateMouseButton(Mouse mouse, JObject parameters)
+        {
+            string button = parameters["button"]?.ToString() ?? "left";
+            string action = parameters["buttonAction"]?.ToString() ?? "press";
+
+            var buttonControl = GetMouseButton(mouse, button);
+            if (buttonControl == null)
+            {
+                return new { error = $"Invalid mouse button: {button}" };
+            }
+
+            float value = string.Equals(action, "release", StringComparison.OrdinalIgnoreCase) ? 0.0f : 1.0f;
+
+            using (StateEvent.From(mouse, out var eventPtr))
+            {
+                buttonControl.WriteValueIntoEvent(value, eventPtr);
+                InputSystem.QueueEvent(eventPtr);
+            }
+
+            InputSystem.Update();
+
+            if (!string.Equals(action, "release", StringComparison.OrdinalIgnoreCase) && TryGetHoldSeconds(parameters, out double holdSeconds))
+            {
+                ScheduleRelease(holdSeconds, () =>
+                {
+                    var releaseParams = new JObject
+                    {
+                        ["button"] = button,
+                        ["buttonAction"] = "release"
+                    };
+                    SimulateMouseButton(mouse, releaseParams);
+                });
+            }
+
+            return new
+            {
+                success = true,
+                action = action,
+                button,
+                buttonAction = action,
+                message = $"Mouse {button} {action}d"
             };
         }
 
@@ -737,6 +828,19 @@ namespace UnityMCPServer.Handlers
             }
             
             InputSystem.Update();
+
+            if (!string.Equals(action, "release", StringComparison.OrdinalIgnoreCase) && TryGetHoldSeconds(parameters, out double holdSeconds))
+            {
+                ScheduleRelease(holdSeconds, () =>
+                {
+                    var releaseParams = new JObject
+                    {
+                        ["button"] = buttonName,
+                        ["buttonAction"] = "release"
+                    };
+                    SimulateGamepadButton(gamepad, releaseParams);
+                });
+            }
             
             return new
             {
@@ -768,6 +872,21 @@ namespace UnityMCPServer.Handlers
             }
 
             InputSystem.QueueStateEvent(gamepad, state);
+            InputSystem.Update();
+
+            if (TryGetHoldSeconds(parameters, out double holdSeconds))
+            {
+                ScheduleRelease(holdSeconds, () =>
+                {
+                    var releaseParams = new JObject
+                    {
+                        ["stick"] = stick,
+                        ["x"] = 0,
+                        ["y"] = 0
+                    };
+                    SimulateGamepadStick(gamepad, releaseParams);
+                });
+            }
 
             return new
             {
@@ -840,6 +959,19 @@ namespace UnityMCPServer.Handlers
             }
             
             InputSystem.Update();
+
+            if (value > 0f && TryGetHoldSeconds(parameters, out double holdSeconds))
+            {
+                ScheduleRelease(holdSeconds, () =>
+                {
+                    var releaseParams = new JObject
+                    {
+                        ["trigger"] = trigger,
+                        ["value"] = 0f
+                    };
+                    SimulateGamepadTrigger(gamepad, releaseParams);
+                });
+            }
             
             return new
             {
@@ -889,6 +1021,18 @@ namespace UnityMCPServer.Handlers
             }
             
             InputSystem.Update();
+
+            if (!string.Equals(direction, "none", StringComparison.OrdinalIgnoreCase) && TryGetHoldSeconds(parameters, out double holdSeconds))
+            {
+                ScheduleRelease(holdSeconds, () =>
+                {
+                    var releaseParams = new JObject
+                    {
+                        ["direction"] = "none"
+                    };
+                    SimulateGamepadDPad(gamepad, releaseParams);
+                });
+            }
             
             return new
             {
@@ -1171,6 +1315,128 @@ namespace UnityMCPServer.Handlers
             }
             
             return Key.None;
+        }
+
+        private static object HandleBatchedActions(JObject parameters, Func<JObject, object> handler, string actionLabel)
+        {
+            var actionsArray = parameters?["actions"] as JArray;
+            if (actionsArray == null || actionsArray.Count == 0)
+            {
+                return handler(parameters);
+            }
+
+            var results = new List<object>();
+            foreach (var actionToken in actionsArray)
+            {
+                if (actionToken is JObject actionParams)
+                {
+                    results.Add(handler(actionParams));
+                }
+                else
+                {
+                    results.Add(new { error = $"Each {actionLabel} action entry must be an object" });
+                }
+            }
+
+            bool success = results.All(r => !ResultHasError(r));
+
+            return new
+            {
+                success,
+                totalActions = results.Count,
+                results
+            };
+        }
+
+        private static bool ResultHasError(object result)
+        {
+            if (result == null)
+            {
+                return true;
+            }
+
+            try
+            {
+                var token = JToken.FromObject(result);
+                return token?["error"] != null;
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
+        private static bool TryGetHoldSeconds(JObject parameters, out double seconds)
+        {
+            seconds = 0;
+            if (parameters == null)
+            {
+                return false;
+            }
+
+            var holdToken = parameters["holdSeconds"];
+            if (holdToken == null)
+            {
+                return false;
+            }
+
+            double parsed;
+            try
+            {
+                parsed = holdToken.ToObject<double>();
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (parsed <= 0)
+            {
+                return false;
+            }
+
+            seconds = parsed;
+            return true;
+        }
+
+        private static void ScheduleRelease(double delaySeconds, Action releaseAction)
+        {
+            if (delaySeconds <= 0 || releaseAction == null)
+            {
+                return;
+            }
+
+            scheduledReleases.Add(new ScheduledRelease
+            {
+                ReleaseTime = EditorApplication.timeSinceStartup + delaySeconds,
+                Callback = releaseAction
+            });
+        }
+
+        private static void ProcessScheduledReleases()
+        {
+            if (scheduledReleases.Count == 0)
+            {
+                return;
+            }
+
+            double now = EditorApplication.timeSinceStartup;
+            for (int i = scheduledReleases.Count - 1; i >= 0; i--)
+            {
+                if (now >= scheduledReleases[i].ReleaseTime)
+                {
+                    try
+                    {
+                        scheduledReleases[i].Callback?.Invoke();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"[InputSystemHandler] Error executing scheduled release: {e.Message}");
+                    }
+
+                    scheduledReleases.RemoveAt(i);
+                }
+            }
         }
 
         private static ButtonControl GetGamepadButton(Gamepad gamepad, string buttonName)

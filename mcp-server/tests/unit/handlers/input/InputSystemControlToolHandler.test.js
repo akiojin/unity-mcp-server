@@ -19,16 +19,25 @@ describe('InputSystemControlToolHandler', () => {
 
     it('should have operation enum with all input types', () => {
       const operation = handler.inputSchema.properties.operation;
-      assert.deepEqual(operation.enum, ['keyboard', 'mouse', 'gamepad', 'touch', 'sequence', 'get_state']);
+      assert.deepEqual(operation.enum, [
+        'keyboard',
+        'mouse',
+        'gamepad',
+        'touch',
+        'sequence',
+        'get_state'
+      ]);
     });
   });
 
   describe('validate', () => {
     it('should pass with keyboard operation', () => {
-      assert.doesNotThrow(() => handler.validate({
-        operation: 'keyboard',
-        parameters: { action: 'press', key: 'space' }
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          operation: 'keyboard',
+          parameters: { action: 'press', key: 'space' }
+        })
+      );
     });
 
     it('should pass with get_state operation without parameters', () => {
@@ -54,7 +63,7 @@ describe('InputSystemControlToolHandler', () => {
         operation: 'keyboard',
         parameters: { action: 'press', key: 'a' }
       });
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'simulate_keyboard_input');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_keyboard');
       assert.ok(result.success);
     });
 
@@ -63,7 +72,7 @@ describe('InputSystemControlToolHandler', () => {
         operation: 'mouse',
         parameters: { action: 'move', x: 100, y: 200 }
       });
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'simulate_mouse_input');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_mouse');
     });
 
     it('should execute gamepad operation', async () => {
@@ -71,7 +80,7 @@ describe('InputSystemControlToolHandler', () => {
         operation: 'gamepad',
         parameters: { action: 'button', button: 'a' }
       });
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'simulate_gamepad_input');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_gamepad');
     });
 
     it('should execute touch operation', async () => {
@@ -79,7 +88,7 @@ describe('InputSystemControlToolHandler', () => {
         operation: 'touch',
         parameters: { action: 'tap', x: 100, y: 200 }
       });
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'simulate_touch_input');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_touch');
     });
 
     it('should execute sequence operation', async () => {
@@ -92,7 +101,10 @@ describe('InputSystemControlToolHandler', () => {
 
     it('should execute get_state operation', async () => {
       await handler.execute({ operation: 'get_state' });
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'get_current_input_state');
+      assert.equal(
+        mockConnection.sendCommand.mock.calls[0].arguments[0],
+        'get_current_input_state'
+      );
     });
 
     it('should pass parameters to Unity command', async () => {
@@ -114,38 +126,48 @@ describe('InputSystemControlToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should support keyboard operations', async () => {
-      assert.ok(await handler.execute({
-        operation: 'keyboard',
-        parameters: { action: 'press', key: 'a' }
-      }));
+      assert.ok(
+        await handler.execute({
+          operation: 'keyboard',
+          parameters: { action: 'press', key: 'a' }
+        })
+      );
     });
 
     it('should support mouse operations', async () => {
-      assert.ok(await handler.execute({
-        operation: 'mouse',
-        parameters: { action: 'click' }
-      }));
+      assert.ok(
+        await handler.execute({
+          operation: 'mouse',
+          parameters: { action: 'click' }
+        })
+      );
     });
 
     it('should support gamepad operations', async () => {
-      assert.ok(await handler.execute({
-        operation: 'gamepad',
-        parameters: { action: 'button', button: 'a' }
-      }));
+      assert.ok(
+        await handler.execute({
+          operation: 'gamepad',
+          parameters: { action: 'button', button: 'a' }
+        })
+      );
     });
 
     it('should support touch operations', async () => {
-      assert.ok(await handler.execute({
-        operation: 'touch',
-        parameters: { action: 'tap', x: 0, y: 0 }
-      }));
+      assert.ok(
+        await handler.execute({
+          operation: 'touch',
+          parameters: { action: 'tap', x: 0, y: 0 }
+        })
+      );
     });
 
     it('should support sequence operations', async () => {
-      assert.ok(await handler.execute({
-        operation: 'sequence',
-        parameters: { steps: [] }
-      }));
+      assert.ok(
+        await handler.execute({
+          operation: 'sequence',
+          parameters: { steps: [] }
+        })
+      );
     });
 
     it('should support get_state operations', async () => {

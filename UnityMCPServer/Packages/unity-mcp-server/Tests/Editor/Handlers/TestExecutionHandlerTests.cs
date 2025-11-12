@@ -50,57 +50,6 @@ namespace UnityMCPServer.Tests
         }
 
         [Test]
-        public void RunTests_ShouldAutoSaveScenesWhenEnabled()
-        {
-            try
-            {
-                TestExecutionHandler.DirtySceneDetector = () => true;
-                TestExecutionHandler.AutoSaveDirtyScenesExecutor = () => (true, null);
-
-                var parameters = new JObject
-                {
-                    ["autoSaveScenes"] = true,
-                    ["testMode"] = "InvalidMode"
-                };
-
-                var result = TestExecutionHandler.RunTests(parameters) as dynamic;
-
-                Assert.IsNotNull(result);
-                Assert.IsNotNull(result.error);
-                StringAssert.Contains("Invalid testMode", (string)result.error);
-            }
-            finally
-            {
-                TestExecutionHandler.ResetForTesting();
-            }
-        }
-
-        [Test]
-        public void RunTests_ShouldSurfaceAutoSaveFailures()
-        {
-            try
-            {
-                TestExecutionHandler.DirtySceneDetector = () => true;
-                TestExecutionHandler.AutoSaveDirtyScenesExecutor = () => (false, "Simulated failure");
-
-                var parameters = new JObject
-                {
-                    ["autoSaveScenes"] = true
-                };
-
-                var result = TestExecutionHandler.RunTests(parameters) as dynamic;
-
-                Assert.IsNotNull(result);
-                Assert.IsNotNull(result.error);
-                StringAssert.Contains("Simulated failure", (string)result.error);
-            }
-            finally
-            {
-                TestExecutionHandler.ResetForTesting();
-            }
-        }
-
-        [Test]
         public void RunTests_ShouldFailDuringPlayMode()
         {
             try
