@@ -60,6 +60,11 @@
     "url": "https://github.com/akiojin/unity-mcp-server.git",
     "directory": "mcp-server"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  },
   "homepage": "https://github.com/akiojin/unity-mcp-server#readme",
   "bugs": {
     "url": "https://github.com/akiojin/unity-mcp-server/issues"
