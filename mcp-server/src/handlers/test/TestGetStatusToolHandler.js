@@ -1,4 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { loadCachedTestResults, persistTestResults } from '../../utils/testResultsCache.js';
 
 /**
  * Handler for getting Unity test execution status
@@ -45,8 +46,13 @@ export class TestGetStatusToolHandler extends BaseToolHandler {
     }
 
     // Return status directly if still running or idle
-    if (response.status === 'running' || response.status === 'idle') {
+    if (response.status === 'running') {
       return response;
+    }
+
+    if (response.status === 'idle') {
+      const cached = await loadCachedTestResults();
+      return cached || response;
     }
 
     // Format completed results
@@ -64,7 +70,10 @@ export class TestGetStatusToolHandler extends BaseToolHandler {
         tests: response.tests || []
       };
 
-      return result;
+      const artifactPath = await persistTestResults(result);
+      const cachedResult = await loadCachedTestResults(artifactPath);
+
+      return cachedResult || result;
     }
 
     // Error status
