@@ -360,6 +360,12 @@ OpenUPM CLI を使う場合はレジストリ追加後に `openupm add com.akioj
 | `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` または `compact` | 検索の既定詳細度。`compact` は `snippets` のエイリアス。 | `compact` / `metadata` / `snippets` / `full` |
 | `search.engine` | string | `process.env.SEARCH_ENGINE` または `naive` | 検索エンジンの実装。 | `naive`（将来的に `treesitter` 予定） |
 
+### テスト結果キャッシュ
+
+- `test_run` 実行時は開始前に `./.unity/TestResults.json` を初期化し、常に最新のテスト結果だけを保持します。
+- テスト完了後は Unity から返された結果をこのファイルへ書き出し、`test_get_status` もファイル内容を返すため、ドメインリロードや Unity Editor 再起動後でも結果を再取得できます。
+- CI／LLM クライアントなど外部ツールは、この JSON を読むだけで直近の結果を参照できます（`exportPath` を個別に指定する必要はありません）。
+
 ### ワークスペースディレクトリ（`.unity/`）
 - バージョン管理すべきファイルは `config.json` のみです。リポジトリと同階層に配置し、ワークスペースルートを定義します。
 - `.unity/` 配下のその他（例: `cache/`, `tools/`）は実行時に生成されるキャッシュであり、コミットしないでください。
