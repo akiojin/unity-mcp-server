@@ -102,3 +102,4 @@ CLAUDE.local.md
 
 csharp-lsp/bin/
 csharp-lsp/out/
+.pnpm-store/

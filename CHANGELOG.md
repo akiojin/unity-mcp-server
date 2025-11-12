@@ -1,3 +1,41 @@
+## [2.36.3](https://github.com/akiojin/unity-mcp-server/compare/v2.36.2...v2.36.3) (2025-11-12)
+
+
+### Bug Fixes
+
+* align publish workflow pnpm version ([430afbc](https://github.com/akiojin/unity-mcp-server/commit/430afbc3ca826a26344b967d63dd7e92bbad06d2))
+
+## [2.36.2](https://github.com/akiojin/unity-mcp-server/compare/v2.36.1...v2.36.2) (2025-11-12)
+
+
+### Bug Fixes
+
+* stabilize publish workflow install step ([1167516](https://github.com/akiojin/unity-mcp-server/commit/1167516132ea1c96df9f9076656927149ab88b34))
+
+## [2.36.1](https://github.com/akiojin/unity-mcp-server/compare/v2.36.0...v2.36.1) (2025-11-12)
+
+
+### Bug Fixes
+
+* auto-save dirty scenes before running tests ([7992990](https://github.com/akiojin/unity-mcp-server/commit/79929900e4190ad32c684c4755303b8e11dfd2c0))
+
+## [2.36.0](https://github.com/akiojin/unity-mcp-server/compare/v2.35.1...v2.36.0) (2025-11-12)
+
+
+### Features
+
+* PlayMode中の変更ツールに警告レスポンスを追加 ([7e11ecc](https://github.com/akiojin/unity-mcp-server/commit/7e11ecc4486dff4db34cfd56adb6f6c2647a1b00))
+* **test:** persist Unity test results cache ([79b605e](https://github.com/akiojin/unity-mcp-server/commit/79b605e834771e7971c40fce08c1d12d56bbcb85))
+* テストステータス取得で結果サマリーを返却 ([8a41d92](https://github.com/akiojin/unity-mcp-server/commit/8a41d921ca66e542a950a539ff0e2eba77e52b88))
+* テスト結果エクスポートと取得ツールを追加 ([ae43cf9](https://github.com/akiojin/unity-mcp-server/commit/ae43cf96d1b51f123360235d05a266638112d204))
+
+
+### Bug Fixes
+
+* **ci:** replace npm with pnpm in publish workflow ([cee12f8](https://github.com/akiojin/unity-mcp-server/commit/cee12f8919b16e3f781f32cd3bf9b22a5af4f233))
+* stabilize playmode tools and test blocking ([cf45e05](https://github.com/akiojin/unity-mcp-server/commit/cf45e0572d26f0ab09e668dd79e9b74c78e47873))
+* support node 22 and stabilize tool tests ([2f616a2](https://github.com/akiojin/unity-mcp-server/commit/2f616a2cf8b5860d94c4ac42e0d330b0fa1697a0))
+
 ## [2.35.1](https://github.com/akiojin/unity-mcp-server/compare/v2.35.0...v2.35.1) (2025-11-10)
 
 
