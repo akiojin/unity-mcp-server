@@ -1,20 +1,20 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { InputTouchSimulateToolHandler } from '../../../../src/handlers/input/InputTouchSimulateToolHandler.js';
+import { InputTouchToolHandler } from '../../../../src/handlers/input/InputTouchToolHandler.js';
 import { createMockUnityConnection } from '../../../utils/test-helpers.js';
 
-describe('InputTouchSimulateToolHandler', () => {
+describe('InputTouchToolHandler', () => {
   let handler;
   let mockConnection;
 
   beforeEach(() => {
     mockConnection = createMockUnityConnection({ sendCommandResult: { success: true } });
-    handler = new InputTouchSimulateToolHandler(mockConnection);
+    handler = new InputTouchToolHandler(mockConnection);
   });
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'input_touch_simulate');
+      assert.equal(handler.name, 'input_touch');
     });
 
     it('should have action enum with tap, swipe, pinch, multi', () => {
@@ -47,12 +47,25 @@ describe('InputTouchSimulateToolHandler', () => {
     it('should throw error when coordinates missing for swipe', () => {
       assert.throws(() => handler.validate({ action: 'swipe' }), /startX, startY, endX, and endY are required/);
     });
+
+    it('should validate batched actions array', () => {
+      assert.doesNotThrow(() => handler.validate({
+        actions: [
+          { action: 'tap', x: 10, y: 10 },
+          { action: 'swipe', startX: 0, startY: 0, endX: 5, endY: 5 }
+        ]
+      }));
+    });
+
+    it('should throw when actions array empty', () => {
+      assert.throws(() => handler.validate({ actions: [] }), /actions must contain at least one entry/);
+    });
   });
 
   describe('execute', () => {
     it('should execute tap action', async () => {
       const result = await handler.execute({ action: 'tap', x: 100, y: 200 });
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'simulate_touch_input');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_touch');
       assert.ok(result.success);
     });
 
@@ -78,6 +91,19 @@ describe('InputTouchSimulateToolHandler', () => {
       });
       const params = mockConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.touches.length, 2);
+    });
+
+    it('should execute batched actions payload', async () => {
+      await handler.execute({
+        actions: [
+          { action: 'tap', x: 1, y: 1 },
+          { action: 'tap', x: 2, y: 2 }
+        ]
+      });
+
+      const [command, payload] = mockConnection.sendCommand.mock.calls[0].arguments;
+      assert.equal(command, 'input_touch');
+      assert.equal(payload.actions.length, 2);
     });
   });
 

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -69,17 +70,23 @@ namespace TestNamespace
         
         private void HandleInput()
         {
-            if (Input.GetKeyDown(KeyCode.M))
+            var keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return;
+            }
+
+            if (keyboard.mKey.wasPressedThisFrame)
             {
                 ToggleTestBool();
             }
-            
-            if (Input.GetKeyDown(KeyCode.N))
+
+            if (keyboard.nKey.wasPressedThisFrame)
             {
                 IncrementTestInt();
             }
-            
-            if (Input.GetKeyDown(KeyCode.B))
+
+            if (keyboard.bKey.wasPressedThisFrame)
             {
                 TriggerTestEvent();
             }

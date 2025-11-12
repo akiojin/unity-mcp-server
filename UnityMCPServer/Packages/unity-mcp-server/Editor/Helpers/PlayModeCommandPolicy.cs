@@ -14,7 +14,7 @@ namespace UnityMCPServer.Helpers
             // Status/Info
             "ping", "get_editor_state", "get_compilation_state", "read_console", "clear_logs",
             // Simulation
-            "simulate_mouse", "simulate_keyboard", "simulate_touch", "simulate_gamepad",
+            "input_mouse", "input_keyboard", "input_touch", "input_gamepad",
             // UI simple interactions
             "click_ui_element", "set_ui_element_value", "simulate_ui_input",
             // Animator queries

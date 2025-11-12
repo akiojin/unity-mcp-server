@@ -193,10 +193,16 @@ Add to your `claude_desktop_config.json`:
 ### Input System Utilities
 
 - `input_system_control` — Dispatch keyboard/mouse/gamepad/touch operations
-- `input_keyboard_simulate` — Simulate keyboard input with combos or text
-- `input_mouse_simulate` — Simulate mouse movement, clicks, drags, and scrolling
-- `input_gamepad_simulate` — Simulate gamepad buttons, sticks, and triggers
-- `input_touch_simulate` — Simulate touch gestures (tap, swipe, pinch)
+- `input_keyboard` — Keyboard input with batching, combos, typing, and auto-hold durations
+- `input_mouse` — Mouse movement, clicks, drags, per-button press/hold, and batching
+- `input_gamepad` — Gamepad buttons, sticks, triggers, d-pad with batching and timed holds
+- `input_touch` — Touch gestures (tap/swipe/pinch/multi) with batched steps
+
+#### 同時押下とホールドの扱い
+
+- **単一アクションで同時押下**: キーボードは `action:"combo"`、タッチは `action:"multi"`、ゲームパッドのスティックは `action:"stick"` で X/Y を同時指定できます。
+- **`actions[]` バッチ**: 異なるボタンやデバイスを同一フレームで実行したい場合は `actions:[{...},{...}]` に並べて送信します（順番を保持）。
+- **ホールド時間**: `holdSeconds` を press/button/trigger などに付与すると、その秒数後に自動で release/state reset がスケジュールされます。省略すると押下状態が維持されるので、手動で release アクションを送ってください。
 - `input_action_add` — Add actions to an Input Action map
 - `input_action_remove` — Remove actions from an Input Action map
 - `input_action_map_create` — Create new Input Action maps

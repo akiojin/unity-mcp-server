@@ -123,10 +123,10 @@
 
 ### 実装ファイル
 - `/mnt/e/unity-mcp-server/mcp-server/src/handlers/input/InputSystemControlToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/input/InputKeyboardSimulateToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/input/InputMouseSimulateToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/input/InputGamepadSimulateToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/input/InputTouchSimulateToolHandler.js`
+- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/input/InputKeyboardToolHandler.js`
+- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/input/InputMouseToolHandler.js`
+- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/input/InputGamepadToolHandler.js`
+- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/input/InputTouchToolHandler.js`
 - `/mnt/e/unity-mcp-server/mcp-server/src/handlers/input/InputActionMapCreateToolHandler.js`
 - `/mnt/e/unity-mcp-server/mcp-server/src/handlers/input/InputActionAddToolHandler.js`
 - `/mnt/e/unity-mcp-server/mcp-server/src/handlers/input/InputBindingAddToolHandler.js`

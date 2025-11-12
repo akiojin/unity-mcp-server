@@ -44,10 +44,10 @@ import { UIGetElementStateToolHandler } from './ui/UIGetElementStateToolHandler.
 import { UISetElementValueToolHandler } from './ui/UISetElementValueToolHandler.js';
 import { UISimulateInputToolHandler } from './ui/UISimulateInputToolHandler.js';
 import { InputSystemControlToolHandler } from './input/InputSystemControlToolHandler.js';
-import { InputKeyboardSimulateToolHandler } from './input/InputKeyboardSimulateToolHandler.js';
-import { InputMouseSimulateToolHandler } from './input/InputMouseSimulateToolHandler.js';
-import { InputGamepadSimulateToolHandler } from './input/InputGamepadSimulateToolHandler.js';
-import { InputTouchSimulateToolHandler } from './input/InputTouchSimulateToolHandler.js';
+import { InputKeyboardToolHandler } from './input/InputKeyboardToolHandler.js';
+import { InputMouseToolHandler } from './input/InputMouseToolHandler.js';
+import { InputGamepadToolHandler } from './input/InputGamepadToolHandler.js';
+import { InputTouchToolHandler } from './input/InputTouchToolHandler.js';
 import { InputActionMapCreateToolHandler } from './input/InputActionMapCreateToolHandler.js';
 import { InputActionMapRemoveToolHandler } from './input/InputActionMapRemoveToolHandler.js';
 import { InputActionAddToolHandler } from './input/InputActionAddToolHandler.js';
@@ -164,10 +164,10 @@ export { UISimulateInputToolHandler } from './ui/UISimulateInputToolHandler.js';
 
 // Input System handlers
 export { InputSystemControlToolHandler } from './input/InputSystemControlToolHandler.js';
-export { InputKeyboardSimulateToolHandler } from './input/InputKeyboardSimulateToolHandler.js';
-export { InputMouseSimulateToolHandler } from './input/InputMouseSimulateToolHandler.js';
-export { InputGamepadSimulateToolHandler } from './input/InputGamepadSimulateToolHandler.js';
-export { InputTouchSimulateToolHandler } from './input/InputTouchSimulateToolHandler.js';
+export { InputKeyboardToolHandler } from './input/InputKeyboardToolHandler.js';
+export { InputMouseToolHandler } from './input/InputMouseToolHandler.js';
+export { InputGamepadToolHandler } from './input/InputGamepadToolHandler.js';
+export { InputTouchToolHandler } from './input/InputTouchToolHandler.js';
 export { InputActionMapCreateToolHandler } from './input/InputActionMapCreateToolHandler.js';
 export { InputActionMapRemoveToolHandler } from './input/InputActionMapRemoveToolHandler.js';
 export { InputActionAddToolHandler } from './input/InputActionAddToolHandler.js';
@@ -308,10 +308,10 @@ const HANDLER_CLASSES = [
 
   // Input System handlers
   InputSystemControlToolHandler,
-  InputKeyboardSimulateToolHandler,
-  InputMouseSimulateToolHandler,
-  InputGamepadSimulateToolHandler,
-  InputTouchSimulateToolHandler,
+  InputKeyboardToolHandler,
+  InputMouseToolHandler,
+  InputGamepadToolHandler,
+  InputTouchToolHandler,
   InputActionMapCreateToolHandler,
   InputActionMapRemoveToolHandler,
   InputActionAddToolHandler,
