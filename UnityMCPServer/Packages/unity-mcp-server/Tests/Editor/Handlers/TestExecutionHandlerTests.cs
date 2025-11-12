@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityMCPServer.Handlers;
@@ -40,6 +42,25 @@ namespace UnityMCPServer.Tests
                 Assert.IsNotNull(result);
                 Assert.IsNotNull(result.error);
                 StringAssert.Contains("unsaved", (string)result.error);
+            }
+            finally
+            {
+                TestExecutionHandler.ResetForTesting();
+            }
+        }
+
+        [Test]
+        public void RunTests_ShouldFailDuringPlayMode()
+        {
+            try
+            {
+                TestExecutionHandler.PlayModeDetector = () => true;
+
+                var result = TestExecutionHandler.RunTests(new JObject()) as dynamic;
+
+                Assert.IsNotNull(result);
+                Assert.IsNotNull(result.error);
+                StringAssert.Contains("Play Mode", (string)result.error);
             }
             finally
             {
@@ -199,6 +220,53 @@ namespace UnityMCPServer.Tests
             {
                 // Error case
                 Assert.IsNotNull(result.error);
+            }
+        }
+
+        [Test]
+        public void GetLastTestResults_ShouldReturnMissingWhenNoExports()
+        {
+            TestExecutionHandler.ResetForTesting();
+
+            var result = TestExecutionHandler.GetLastTestResults(new JObject()) as dynamic;
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("missing", (string)result.status);
+        }
+
+        [Test]
+        public void GetLastTestResults_ShouldReturnSummaryWhenExported()
+        {
+            var tempPath = Path.Combine(Path.GetTempPath(), $"unitymcp-test-results-{Guid.NewGuid():N}.json");
+            try
+            {
+                var summary = new JObject
+                {
+                    ["generatedAt"] = DateTime.UtcNow.ToString("o"),
+                    ["totalTests"] = 1,
+                    ["passed"] = 1,
+                    ["failed"] = 0,
+                    ["testMode"] = "EditMode",
+                    ["status"] = "passed"
+                };
+
+                File.WriteAllText(tempPath, summary.ToString());
+                TestExecutionHandler.OnResultsExported(tempPath, summary);
+
+                var result = TestExecutionHandler.GetLastTestResults(new JObject()) as dynamic;
+
+                Assert.IsNotNull(result);
+                Assert.AreEqual("available", (string)result.status);
+                Assert.AreEqual(tempPath, (string)result.path);
+                Assert.AreEqual(1L, (long)result.summary.totalTests);
+            }
+            finally
+            {
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+                TestExecutionHandler.ResetForTesting();
             }
         }
     }

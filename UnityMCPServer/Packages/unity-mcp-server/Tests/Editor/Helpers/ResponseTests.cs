@@ -135,5 +135,48 @@ namespace UnityMCPServer.Tests.Helpers
             Assert.AreEqual("hard", json["data"]["settings"]["difficulty"].Value<string>());
             Assert.AreEqual(5, json["data"]["settings"]["level"].Value<int>());
         }
+
+        [Test]
+        public void SuccessResult_ShouldIncludeWarningsWhenProvided()
+        {
+            var warnings = new List<Dictionary<string, object>>
+            {
+                new Dictionary<string, object>
+                {
+                    ["code"] = "PLAY_MODE_RUNTIME_CHANGES",
+                    ["message"] = "Changes are temporary during Play Mode",
+                    ["severity"] = "warning"
+                }
+            };
+
+            var result = Response.SuccessResult("cmd-42", new { ok = true }, warnings);
+            var json = JObject.Parse(result);
+
+            Assert.AreEqual("success", json["status"].Value<string>());
+            Assert.AreEqual(1, json["warnings"].Count());
+            Assert.AreEqual("warning", json["warnings"][0]["severity"].Value<string>());
+            Assert.AreEqual("PLAY_MODE_RUNTIME_CHANGES", json["warnings"][0]["code"].Value<string>());
+        }
+
+        [Test]
+        public void AppendWarnings_ShouldAttachToSuccessPayload()
+        {
+            var baseResponse = Response.SuccessResult("cmd-77", new { ok = true });
+            var warnings = new List<Dictionary<string, object>>
+            {
+                new Dictionary<string, object>
+                {
+                    ["code"] = "PLAY_MODE_RUNTIME_CHANGES",
+                    ["message"] = "temporary",
+                    ["severity"] = "warning"
+                }
+            };
+
+            var updated = Response.AppendWarnings(baseResponse, warnings);
+            var json = JObject.Parse(updated);
+
+            Assert.AreEqual("success", json["status"].Value<string>());
+            Assert.AreEqual(1, json["warnings"].Count());
+        }
     }
 }

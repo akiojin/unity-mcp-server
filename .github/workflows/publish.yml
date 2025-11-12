@@ -195,6 +195,11 @@ jobs:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Get latest tag
         id: tag
         run: |
@@ -232,17 +237,17 @@ jobs:
 
       - name: Install dependencies
         working-directory: mcp-server
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Run tests
         working-directory: mcp-server
-        run: npm run test:ci
+        run: pnpm run test:ci
 
       - name: Publish to npm
         working-directory: mcp-server
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+        run: pnpm publish --access public --no-git-checks
 
   openupm-publish:
     name: Publish to OpenUPM

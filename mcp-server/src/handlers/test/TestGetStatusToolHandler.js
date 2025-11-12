@@ -1,4 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { loadCachedTestResults, persistTestResults } from '../../utils/testResultsCache.js';
 
 /**
  * Handler for getting Unity test execution status
@@ -6,14 +7,21 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class TestGetStatusToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'test_get_status',
-      'Get current Unity test execution status and results',
-      {
-        type: 'object',
-        properties: {}
+    super('test_get_status', 'Get current Unity test execution status and results', {
+      type: 'object',
+      properties: {
+        includeTestResults: {
+          type: 'boolean',
+          default: false,
+          description: 'Include the summary of the latest exported test results'
+        },
+        includeFileContent: {
+          type: 'boolean',
+          default: false,
+          description: 'When includeTestResults is true, also include the JSON file contents'
+        }
       }
-    );
+    });
 
     this.unityConnection = unityConnection;
   }
@@ -30,7 +38,7 @@ export class TestGetStatusToolHandler extends BaseToolHandler {
     }
 
     // Send command to Unity
-    const response = await this.unityConnection.sendCommand('get_test_status', params);
+    const response = await this.unityConnection.sendCommand('get_test_status', params || {});
 
     // Handle Unity response
     if (response.error) {
@@ -38,8 +46,13 @@ export class TestGetStatusToolHandler extends BaseToolHandler {
     }
 
     // Return status directly if still running or idle
-    if (response.status === 'running' || response.status === 'idle') {
+    if (response.status === 'running') {
       return response;
+    }
+
+    if (response.status === 'idle') {
+      const cached = await loadCachedTestResults();
+      return cached || response;
     }
 
     // Format completed results
@@ -57,7 +70,10 @@ export class TestGetStatusToolHandler extends BaseToolHandler {
         tests: response.tests || []
       };
 
-      return result;
+      const artifactPath = await persistTestResults(result);
+      const cachedResult = await loadCachedTestResults(artifactPath);
+
+      return cachedResult || result;
     }
 
     // Error status
@@ -73,6 +89,12 @@ export class TestGetStatusToolHandler extends BaseToolHandler {
       checkStatus: {
         description: 'Check current test execution status',
         params: {}
+      },
+      checkWithResults: {
+        description: 'Check status and include last exported test results summary',
+        params: {
+          includeTestResults: true
+        }
       }
     };
   }

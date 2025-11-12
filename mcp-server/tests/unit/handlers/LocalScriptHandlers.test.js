@@ -8,6 +8,7 @@ import { ScriptReadToolHandler } from '../../../src/handlers/script/ScriptReadTo
 import { ScriptSearchToolHandler } from '../../../src/handlers/script/ScriptSearchToolHandler.js';
 import { ScriptSymbolsGetToolHandler } from '../../../src/handlers/script/ScriptSymbolsGetToolHandler.js';
 import { ScriptSymbolFindToolHandler } from '../../../src/handlers/script/ScriptSymbolFindToolHandler.js';
+import { LspProcessManager } from '../../../src/lsp/LspProcessManager.js';
 
 function setupTempUnityProject() {
   const root = mkdtempSync(path.join(os.tmpdir(), 'unityproj-'));
@@ -26,6 +27,17 @@ function setupTempUnityProject() {
   process.env.UNITY_PROJECT_ROOT = root;
   return { root, relPkg: rel };
 }
+
+const originalUnityProjectRoot = process.env.UNITY_PROJECT_ROOT;
+test.afterEach(async () => {
+  if (originalUnityProjectRoot === undefined) {
+    delete process.env.UNITY_PROJECT_ROOT;
+  } else {
+    process.env.UNITY_PROJECT_ROOT = originalUnityProjectRoot;
+  }
+  const mgr = new LspProcessManager();
+  await mgr.stop(0);
+});
 
 test('script_read (local) reads known file range', async () => {
   const env = setupTempUnityProject();
@@ -72,7 +84,12 @@ test('script_symbol_find (local) finds classes in packages', async () => {
   const env = setupTempUnityProject();
   const u = new UnityConnection();
   const handler = new ScriptSymbolFindToolHandler(u);
-  const res = await handler.execute({ name: 'Symbol', kind: 'class', scope: 'packages', exact: false });
+  const res = await handler.execute({
+    name: 'Symbol',
+    kind: 'class',
+    scope: 'packages',
+    exact: false
+  });
   assert.equal(res.success, true);
   assert.ok(res.total >= 1, 'at least one symbol found');
 });

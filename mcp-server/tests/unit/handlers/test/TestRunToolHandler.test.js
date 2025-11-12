@@ -1,5 +1,6 @@
-import { describe, it, beforeEach, mock } from 'node:test';
+import { describe, it, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
 
 import { TestRunToolHandler } from '../../../../src/handlers/test/TestRunToolHandler.js';
 import { createMockUnityConnection } from '../../../utils/test-helpers.js';
@@ -11,6 +12,10 @@ describe('TestRunToolHandler', () => {
   beforeEach(() => {
     mockConnection = createMockUnityConnection();
     handler = new TestRunToolHandler(mockConnection);
+  });
+
+  afterEach(() => {
+    mock.restoreAll();
   });
 
   it('should have correct tool name and description', () => {
@@ -27,9 +32,7 @@ describe('TestRunToolHandler', () => {
       skippedTests: 0,
       inconclusiveTests: 0,
       duration: 1.5,
-      failures: [
-        { name: 'Test1', message: 'Expected true but was false' }
-      ]
+      failures: [{ name: 'Test1', message: 'Expected true but was false' }]
     };
 
     mockConnection.sendCommand = mock.fn(async () => mockResponse);
@@ -236,10 +239,7 @@ describe('TestRunToolHandler', () => {
       error: 'No tests found'
     }));
 
-    await assert.rejects(
-      () => handler.execute({ testMode: 'EditMode' }),
-      /No tests found/
-    );
+    await assert.rejects(() => handler.execute({ testMode: 'EditMode' }), /No tests found/);
   });
 
   it('should connect to Unity if not connected', async () => {
@@ -271,5 +271,32 @@ describe('TestRunToolHandler', () => {
     assert.ok(examples.runAndExport);
     assert.ok(examples.runPlayModeTests);
     assert.ok(examples.runAllTests);
+  });
+
+  it('should reset cached test results before running tests', async () => {
+    let resetCalled = false;
+    const rmMock = mock.method(fs, 'rm', async () => {
+      resetCalled = true;
+    });
+
+    const mockResponse = {
+      success: true,
+      totalTests: 1,
+      passedTests: 1,
+      failedTests: 0,
+      skippedTests: 0,
+      inconclusiveTests: 0,
+      duration: 0.1,
+      failures: []
+    };
+
+    mockConnection.sendCommand = mock.fn(async () => {
+      assert.equal(resetCalled, true);
+      return mockResponse;
+    });
+
+    await handler.execute({ testMode: 'EditMode' });
+    assert.equal(resetCalled, true);
+    assert.equal(rmMock.mock.calls.length, 1);
   });
 });

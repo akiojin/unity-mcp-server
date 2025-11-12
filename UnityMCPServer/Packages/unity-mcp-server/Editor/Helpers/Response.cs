@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -210,7 +211,7 @@ namespace UnityMCPServer.Helpers
         /// </summary>
         /// <param name="result">The result data</param>
         /// <returns>JSON string of the response</returns>
-        public static string SuccessResult(object result)
+        public static string SuccessResult(object result, IEnumerable<Dictionary<string, object>> warnings = null)
         {
             var response = new Dictionary<string, object>
             {
@@ -218,6 +219,8 @@ namespace UnityMCPServer.Helpers
                 ["result"] = result,
                 ["editorState"] = GetCurrentEditorState()
             };
+
+            AttachWarnings(response, warnings);
             
             return JsonConvert.SerializeObject(response);
         }
@@ -228,7 +231,7 @@ namespace UnityMCPServer.Helpers
         /// <param name="id">Command ID</param>
         /// <param name="result">The result data</param>
         /// <returns>JSON string of the response</returns>
-        public static string SuccessResult(string id, object result)
+        public static string SuccessResult(string id, object result, IEnumerable<Dictionary<string, object>> warnings = null)
         {
             var response = new Dictionary<string, object>
             {
@@ -237,8 +240,67 @@ namespace UnityMCPServer.Helpers
                 ["result"] = result,
                 ["editorState"] = GetCurrentEditorState()
             };
+
+            AttachWarnings(response, warnings);
             
             return JsonConvert.SerializeObject(response);
+        }
+
+        private static void AttachWarnings(Dictionary<string, object> response, IEnumerable<Dictionary<string, object>> warnings)
+        {
+            if (warnings == null)
+            {
+                return;
+            }
+
+            var collected = new List<Dictionary<string, object>>();
+            foreach (var warning in warnings)
+            {
+                if (warning != null)
+                {
+                    collected.Add(warning);
+                }
+            }
+
+            if (collected.Count > 0)
+            {
+                response["warnings"] = collected;
+            }
+        }
+
+        /// <summary>
+        /// Appends warnings to an existing success response JSON payload.
+        /// </summary>
+        public static string AppendWarnings(string responseJson, IEnumerable<Dictionary<string, object>> warnings)
+        {
+            if (string.IsNullOrEmpty(responseJson) || warnings == null)
+            {
+                return responseJson;
+            }
+
+            var collected = new List<Dictionary<string, object>>();
+            foreach (var warning in warnings)
+            {
+                if (warning != null)
+                {
+                    collected.Add(warning);
+                }
+            }
+
+            if (collected.Count == 0)
+            {
+                return responseJson;
+            }
+
+            var token = JObject.Parse(responseJson);
+            var status = token["status"]?.Value<string>();
+            if (!string.Equals(status, "success", StringComparison.OrdinalIgnoreCase))
+            {
+                return responseJson;
+            }
+
+            token["warnings"] = JToken.FromObject(collected);
+            return token.ToString(Formatting.None);
         }
         
         /// <summary>

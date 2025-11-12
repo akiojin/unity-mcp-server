@@ -518,6 +518,8 @@ namespace UnityMCPServer.Core
                     return;
                 }
 
+                var warnings = PlayModeChangeWarningHelper.GetWarnings(command.Type, command.Parameters);
+
                 // Handle command based on type
                 switch (command.Type?.ToLower())
                 {
@@ -973,7 +975,12 @@ namespace UnityMCPServer.Core
                         );
                         break;
                 }
-                
+
+                if (warnings != null && response != null)
+                {
+                    response = Response.AppendWarnings(response, warnings);
+                }
+
                 // Send response
                 if (client.Connected)
                 {
