@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 // 小サイズテストファイル（約50行）
 public class SmallTestFile : MonoBehaviour
@@ -39,8 +40,9 @@ public class SmallTestFile : MonoBehaviour
     
     void Update()
     {
-        // Simple update logic
-        if (Input.GetKeyDown(KeyCode.S))
+        // Simple update logic (Input System)
+        var keyboard = Keyboard.current;
+        if (keyboard != null && keyboard.sKey.wasPressedThisFrame)
         {
             UnityEngine.Debug.LogFormat("Small test file key pressed");
         }

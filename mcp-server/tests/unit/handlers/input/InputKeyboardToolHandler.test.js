@@ -1,9 +1,9 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { InputKeyboardSimulateToolHandler } from '../../../../src/handlers/input/InputKeyboardSimulateToolHandler.js';
+import { InputKeyboardToolHandler } from '../../../../src/handlers/input/InputKeyboardToolHandler.js';
 import { createMockUnityConnection } from '../../../utils/test-helpers.js';
 
-describe('InputKeyboardSimulateToolHandler', () => {
+describe('InputKeyboardToolHandler', () => {
   let handler;
   let mockConnection;
 
@@ -13,21 +13,25 @@ describe('InputKeyboardSimulateToolHandler', () => {
         success: true
       }
     });
-    handler = new InputKeyboardSimulateToolHandler(mockConnection);
+    handler = new InputKeyboardToolHandler(mockConnection);
   });
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'input_keyboard_simulate');
+      assert.equal(handler.name, 'input_keyboard');
       assert.ok(handler.description);
-      assert.ok(handler.description.includes('keyboard'));
+      assert.ok(handler.description.toLowerCase().includes('keyboard'));
     });
 
     it('should have correct input schema', () => {
       const schema = handler.inputSchema;
       assert.equal(schema.type, 'object');
       assert.ok(schema.properties.action);
-      assert.deepEqual(schema.required, ['action']);
+      assert.ok(schema.properties.actions);
+      assert.ok(Array.isArray(schema.anyOf));
+      const requiredFields = schema.anyOf.flatMap(rule => rule.required);
+      assert.ok(requiredFields.includes('action'));
+      assert.ok(requiredFields.includes('actions'));
     });
 
     it('should have all expected parameters in schema', () => {
@@ -37,6 +41,8 @@ describe('InputKeyboardSimulateToolHandler', () => {
       assert.ok(props.keys);
       assert.ok(props.text);
       assert.ok(props.typingSpeed);
+      assert.ok(props.holdSeconds);
+      assert.ok(props.actions);
     });
 
     it('should have action with correct enum values', () => {
@@ -93,6 +99,23 @@ describe('InputKeyboardSimulateToolHandler', () => {
     it('should throw error when keys is empty for combo', () => {
       assert.throws(() => handler.validate({ action: 'combo', keys: [] }), /keys array is required/);
     });
+
+    it('should validate batched actions array', () => {
+      assert.doesNotThrow(() => handler.validate({
+        actions: [
+          { action: 'press', key: 'w' },
+          { action: 'release', key: 'w' }
+        ]
+      }));
+    });
+
+    it('should throw error when actions array is empty', () => {
+      assert.throws(() => handler.validate({ actions: [] }), /actions must contain at least one entry/);
+    });
+
+    it('should throw error when holdSeconds is negative', () => {
+      assert.throws(() => handler.validate({ action: 'press', key: 'a', holdSeconds: -1 }), /holdSeconds must be zero or positive/);
+    });
   });
 
   describe('execute', () => {
@@ -103,7 +126,7 @@ describe('InputKeyboardSimulateToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'simulate_keyboard_input');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_keyboard');
 
       assert.ok(result);
       assert.equal(result.success, true);
@@ -118,6 +141,24 @@ describe('InputKeyboardSimulateToolHandler', () => {
       const sentParams = mockConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(sentParams.action, 'press');
       assert.equal(sentParams.key, 'space');
+    });
+
+    it('should execute batched actions payload when provided', async () => {
+      await handler.execute({
+        actions: [
+          { action: 'press', key: 'w' },
+          { action: 'press', key: 'd' }
+        ]
+      });
+
+      const args = mockConnection.sendCommand.mock.calls[0].arguments;
+      assert.equal(args[0], 'input_keyboard');
+      assert.deepEqual(args[1], {
+        actions: [
+          { action: 'press', key: 'w' },
+          { action: 'press', key: 'd' }
+        ]
+      });
     });
 
     it('should support release action', async () => {
@@ -162,6 +203,17 @@ describe('InputKeyboardSimulateToolHandler', () => {
 
       const sentParams = mockConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(sentParams.typingSpeed, 100);
+    });
+
+    it('should accept holdSeconds for press actions', async () => {
+      await handler.execute({
+        action: 'press',
+        key: 'space',
+        holdSeconds: 0.5
+      });
+
+      const sentParams = mockConnection.sendCommand.mock.calls[0].arguments[1];
+      assert.equal(sentParams.holdSeconds, 0.5);
     });
 
     it('should support common key names', async () => {

@@ -180,6 +180,33 @@ namespace UnityMCPServer.Tests
             Assert.AreEqual("combo", resultJson["action"].ToString());
         }
 
+        [Test]
+        public void SimulateKeyboardInput_BatchedActions_Success()
+        {
+            var parameters = new JObject
+            {
+                ["actions"] = new JArray
+                {
+                    new JObject { ["action"] = "press", ["key"] = "A" },
+                    new JObject { ["action"] = "press", ["key"] = "D" }
+                }
+            };
+
+            var result = InputSystemHandler.SimulateKeyboardInput(parameters);
+            InputSystem.Update();
+
+            Assert.NotNull(result);
+            var resultJson = JObject.FromObject(result);
+            Assert.IsTrue(resultJson["success"].ToObject<bool>());
+            Assert.AreEqual(2, resultJson["totalActions"].ToObject<int>());
+            Assert.IsTrue(keyboard.aKey.isPressed);
+            Assert.IsTrue(keyboard.dKey.isPressed);
+
+            InputSystemHandler.SimulateKeyboardInput(new JObject { ["action"] = "release", ["key"] = "A" });
+            InputSystemHandler.SimulateKeyboardInput(new JObject { ["action"] = "release", ["key"] = "D" });
+            InputSystem.Update();
+        }
+
         #endregion
 
         #region Mouse Tests
@@ -276,6 +303,30 @@ namespace UnityMCPServer.Tests
             Assert.AreEqual("scroll", resultJson["action"].ToString());
         }
 
+        [Test]
+        public void SimulateMouseInput_ButtonAction_Success()
+        {
+            var parameters = new JObject
+            {
+                ["action"] = "button",
+                ["button"] = "left",
+                ["buttonAction"] = "press"
+            };
+
+            var result = InputSystemHandler.SimulateMouseInput(parameters);
+            Assert.NotNull(result);
+            Assert.IsTrue(mouse.leftButton.isPressed);
+
+            InputSystemHandler.SimulateMouseInput(new JObject
+            {
+                ["action"] = "button",
+                ["button"] = "left",
+                ["buttonAction"] = "release"
+            });
+            InputSystem.Update();
+            Assert.IsFalse(mouse.leftButton.isPressed);
+        }
+
         #endregion
 
         #region Gamepad Tests
@@ -367,6 +418,31 @@ namespace UnityMCPServer.Tests
             var resultJson = JObject.FromObject(result);
             Assert.IsTrue(resultJson["success"].ToObject<bool>());
             Assert.AreEqual(Vector2.up, gamepad.dpad.ReadValue());
+        }
+
+        [UnityTest]
+        public IEnumerator SimulateGamepadInput_ButtonHoldSeconds_Releases()
+        {
+            var parameters = new JObject
+            {
+                ["action"] = "button",
+                ["button"] = "a",
+                ["buttonAction"] = "press",
+                ["holdSeconds"] = 0.05
+            };
+
+            InputSystemHandler.SimulateGamepadInput(parameters);
+            InputSystem.Update();
+            Assert.IsTrue(gamepad.buttonSouth.isPressed);
+
+            double start = EditorApplication.timeSinceStartup;
+            while (EditorApplication.timeSinceStartup - start < 0.1f)
+            {
+                yield return null;
+            }
+
+            InputSystem.Update();
+            Assert.IsFalse(gamepad.buttonSouth.isPressed);
         }
 
         #endregion
