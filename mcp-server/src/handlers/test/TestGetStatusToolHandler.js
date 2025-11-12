@@ -1,5 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { loadCachedTestResults, persistTestResults } from '../../utils/testResultsCache.js';
+import * as testResultsCache from '../../utils/testResultsCache.js';
 
 /**
  * Handler for getting Unity test execution status
@@ -24,6 +24,7 @@ export class TestGetStatusToolHandler extends BaseToolHandler {
     });
 
     this.unityConnection = unityConnection;
+    this.testResultsCache = testResultsCache;
   }
 
   /**
@@ -51,7 +52,7 @@ export class TestGetStatusToolHandler extends BaseToolHandler {
     }
 
     if (response.status === 'idle') {
-      const cached = await loadCachedTestResults();
+      const cached = await this.testResultsCache.loadCachedTestResults();
       return cached || response;
     }
 
@@ -70,8 +71,12 @@ export class TestGetStatusToolHandler extends BaseToolHandler {
         tests: response.tests || []
       };
 
-      const artifactPath = await persistTestResults(result);
-      const cachedResult = await loadCachedTestResults(artifactPath);
+      if (response.latestResult) {
+        result.latestResult = response.latestResult;
+      }
+
+      const artifactPath = await this.testResultsCache.persistTestResults(result);
+      const cachedResult = await this.testResultsCache.loadCachedTestResults(artifactPath);
 
       return cachedResult || result;
     }
