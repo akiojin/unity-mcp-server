@@ -1,3 +1,10 @@
+## [2.36.3](https://github.com/akiojin/unity-mcp-server/compare/v2.36.2...v2.36.3) (2025-11-12)
+
+
+### Bug Fixes
+
+* align publish workflow pnpm version ([430afbc](https://github.com/akiojin/unity-mcp-server/commit/430afbc3ca826a26344b967d63dd7e92bbad06d2))
+
 ## [2.36.2](https://github.com/akiojin/unity-mcp-server/compare/v2.36.1...v2.36.2) (2025-11-12)
 
 
