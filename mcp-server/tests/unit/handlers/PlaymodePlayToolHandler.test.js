@@ -7,26 +7,34 @@ describe('PlaymodePlayToolHandler', () => {
   let handler;
   let mockConnection;
 
-  beforeEach(() => {
-    mockConnection = createMockUnityConnection({
-      sendCommandResult: {
-        status: 'success',
-        message: 'Entered play mode',
-        state: {
-          isPlaying: true,
-          isPaused: false,
-          isCompiling: false,
-          timeSinceStartup: 0.0
-        }
+  const buildConnection = ({ message = 'Entered play mode', pollsUntilPlaying = 1 } = {}) => {
+    let polls = 0;
+    const sendCommand = mock.fn(async type => {
+      if (type === 'play_game') {
+        return { status: 'success', message };
       }
+      if (type === 'get_editor_state') {
+        polls++;
+        return {
+          status: 'success',
+          state: { isPlaying: polls >= pollsUntilPlaying }
+        };
+      }
+      throw new Error(`Unexpected command ${type}`);
     });
+
+    return createMockUnityConnection({ sendCommand });
+  };
+
+  beforeEach(() => {
+    mockConnection = buildConnection({ pollsUntilPlaying: 1 });
     handler = new PlaymodePlayToolHandler(mockConnection);
   });
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'playmode_play');
-      assert.equal(handler.description, 'Start Unity play mode to test the game');
+      assert.equal(handler.description, 'Enter Play Mode.');
       assert.equal(handler.inputSchema.required, undefined);
     });
   });
@@ -39,62 +47,47 @@ describe('PlaymodePlayToolHandler', () => {
 
   describe('execute', () => {
     it('should start play mode successfully', async () => {
-      const result = await handler.execute({});
-      
-      assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.deepEqual(mockConnection.sendCommand.mock.calls[0].arguments, ['play_game', {}]);
-      
-      assert.ok(result);
+      const result = await handler.execute({ pollIntervalMs: 0 });
+
       assert.equal(result.message, 'Entered play mode');
-      assert.deepEqual(result.state, {
-        isPlaying: true,
-        isPaused: false,
-        isCompiling: false,
-        timeSinceStartup: 0.0
-      });
+      assert.equal(result.state.isPlaying, true);
+      assert.ok(
+        mockConnection.sendCommand.mock.calls.some(call => call.arguments[0] === 'get_editor_state')
+      );
     });
 
     it('should handle already playing state', async () => {
-      mockConnection = createMockUnityConnection({
-        sendCommandResult: {
-          status: 'success',
-          message: 'Already in play mode',
-          state: {
-            isPlaying: true,
-            isPaused: false,
-            isCompiling: false,
-            timeSinceStartup: 5.5
-          }
-        }
-      });
+      mockConnection = buildConnection({ message: 'Already in play mode', pollsUntilPlaying: 0 });
       handler = new PlaymodePlayToolHandler(mockConnection);
-      
-      const result = await handler.execute({});
-      
+
+      const result = await handler.execute({ pollIntervalMs: 0 });
+
       assert.equal(result.message, 'Already in play mode');
       assert.equal(result.state.isPlaying, true);
     });
 
-    it('should throw error if not connected', async () => {
+    it('should throw error if connect fails', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /Unity connection not available/
-      );
+      mockConnection.connect.mock.mockImplementation(async () => {
+        throw new Error('Connection unavailable');
+      });
+
+      await assert.rejects(async () => handler.execute({}), /Connection unavailable/);
     });
 
     it('should handle Unity errors', async () => {
       mockConnection = createMockUnityConnection({
-        sendCommandResult: {
-          status: 'error',
-          error: 'Cannot enter play mode: Compilation errors exist'
-        }
+        sendCommand: mock.fn(async type => {
+          if (type === 'play_game') {
+            return { status: 'error', error: 'Cannot enter play mode: Compilation errors exist' };
+          }
+          throw new Error('unexpected');
+        })
       });
       handler = new PlaymodePlayToolHandler(mockConnection);
-      
+
       await assert.rejects(
-        async () => await handler.execute({}),
+        async () => handler.execute({}),
         /Cannot enter play mode: Compilation errors exist/
       );
     });
@@ -102,8 +95,8 @@ describe('PlaymodePlayToolHandler', () => {
 
   describe('integration with BaseToolHandler', () => {
     it('should handle valid request through handle method', async () => {
-      const result = await handler.handle({});
-      
+      const result = await handler.handle({ pollIntervalMs: 0 });
+
       assert.equal(result.status, 'success');
       assert.ok(result.result);
       assert.equal(result.result.message, 'Entered play mode');
@@ -111,15 +104,17 @@ describe('PlaymodePlayToolHandler', () => {
 
     it('should return error for Unity errors', async () => {
       mockConnection = createMockUnityConnection({
-        sendCommandResult: {
-          status: 'error',
-          error: 'Compilation errors prevent play mode'
-        }
+        sendCommand: mock.fn(async type => {
+          if (type === 'play_game') {
+            return { status: 'error', error: 'Compilation errors prevent play mode' };
+          }
+          throw new Error('unexpected');
+        })
       });
       handler = new PlaymodePlayToolHandler(mockConnection);
-      
+
       const result = await handler.handle({});
-      
+
       assert.equal(result.status, 'error');
       assert.match(result.error, /Compilation errors prevent play mode/);
     });

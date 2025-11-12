@@ -5,15 +5,11 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class PlaymodeStopToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'playmode_stop',
-      'Exit Play Mode and return to Edit Mode.',
-      {
-        type: 'object',
-        properties: {},
-        required: []
-      }
-    );
+    super('playmode_stop', 'Exit Play Mode and return to Edit Mode.', {
+      type: 'object',
+      properties: {},
+      required: []
+    });
     this.unityConnection = unityConnection;
   }
 
@@ -23,7 +19,8 @@ export class PlaymodeStopToolHandler extends BaseToolHandler {
    * @returns {Promise<object>} Play mode state
    */
   async execute(params) {
-    const reconnectIntervalMs = typeof params?.reconnectIntervalMs === 'number' ? params.reconnectIntervalMs : 500;
+    const reconnectIntervalMs =
+      typeof params?.reconnectIntervalMs === 'number' ? params.reconnectIntervalMs : 500;
     const pollIntervalMs = typeof params?.pollIntervalMs === 'number' ? params.pollIntervalMs : 500;
     const maxWaitMs = typeof params?.maxWaitMs === 'number' ? params.maxWaitMs : null; // null = unlimited
 
@@ -37,33 +34,44 @@ export class PlaymodeStopToolHandler extends BaseToolHandler {
         error.code = 'UNITY_ERROR';
         throw error;
       }
+      const message = result?.message || 'Exited play mode';
       const startOk = Date.now();
       for (;;) {
         try {
-          const state = await this.unityConnection.sendCommand('playmode_get_state', {});
-          if (state && !state.isPlaying) {
-            return { status: 'success', message: 'Exited play mode', state };
+          const state = await this.unityConnection.sendCommand('get_editor_state', {});
+          const editorState = extractEditorState(state);
+          if (editorState && !editorState.isPlaying) {
+            return { status: 'success', message, state: editorState };
           }
         } catch {}
-        await sleep(pollIntervalMs);
+        await sleep(Math.max(0, pollIntervalMs));
         if (maxWaitMs != null && Date.now() - startOk > maxWaitMs) return result;
       }
     } catch (err) {
-      const transient = /(Connection closed|timeout|ECONNRESET|EPIPE|socket|Not connected)/i.test(err?.message || '');
+      const transient = /(Connection closed|timeout|ECONNRESET|EPIPE|socket|Not connected)/i.test(
+        err?.message || ''
+      );
       if (!transient) throw err;
       const start = Date.now();
       for (;;) {
         if (!this.unityConnection.isConnected()) {
-          try { await this.unityConnection.connect(); } catch {}
-          await sleep(reconnectIntervalMs);
+          try {
+            await this.unityConnection.connect();
+          } catch {}
+          await sleep(Math.max(0, reconnectIntervalMs));
         }
         try {
           const state = await this.unityConnection.sendCommand('get_editor_state', {});
-          if (state && !state.isPlaying) {
-            return { status: 'success', message: 'Exited play mode (reconnected after reload)', state };
+          const editorState = extractEditorState(state);
+          if (editorState && !editorState.isPlaying) {
+            return {
+              status: 'success',
+              message: 'Exited play mode (reconnected after reload)',
+              state: editorState
+            };
           }
         } catch {}
-        await sleep(pollIntervalMs);
+        await sleep(Math.max(0, pollIntervalMs));
         if (maxWaitMs != null && Date.now() - start > maxWaitMs) {
           const e = new Error('Timed out waiting for stop');
           e.code = 'PLAY_WAIT_TIMEOUT';
@@ -74,4 +82,22 @@ export class PlaymodeStopToolHandler extends BaseToolHandler {
   }
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function extractEditorState(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+  if (typeof payload.isPlaying === 'boolean') {
+    return payload;
+  }
+  if (payload.state && typeof payload.state === 'object') {
+    return payload.state;
+  }
+  if (payload._editorState && typeof payload._editorState === 'object') {
+    return payload._editorState;
+  }
+  return null;
+}
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, Math.max(0, ms || 0)));
+}
