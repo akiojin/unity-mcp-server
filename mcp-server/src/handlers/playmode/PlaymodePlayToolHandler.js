@@ -5,15 +5,11 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class PlaymodePlayToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'playmode_play',
-      'Enter Play Mode.',
-      {
-        type: 'object',
-        properties: {},
-        required: []
-      }
-    );
+    super('playmode_play', 'Enter Play Mode.', {
+      type: 'object',
+      properties: {},
+      required: []
+    });
     this.unityConnection = unityConnection;
   }
 
@@ -23,11 +19,14 @@ export class PlaymodePlayToolHandler extends BaseToolHandler {
    * @returns {Promise<object>} Play mode state
    */
   async execute(params) {
-    const initialDelayMs = typeof params?.initialDelayMs === 'number' ? params.initialDelayMs : 3000;
-    const reconnectIntervalMs = typeof params?.reconnectIntervalMs === 'number' ? params.reconnectIntervalMs : 500;
+    const initialDelayMs =
+      typeof params?.initialDelayMs === 'number' ? params.initialDelayMs : 3000;
+    const reconnectIntervalMs =
+      typeof params?.reconnectIntervalMs === 'number' ? params.reconnectIntervalMs : 500;
     const pollIntervalMs = typeof params?.pollIntervalMs === 'number' ? params.pollIntervalMs : 800;
     const maxWaitMs = typeof params?.maxWaitMs === 'number' ? params.maxWaitMs : null; // null = unlimited
 
+    let lastPlayMessage = 'Entered play mode';
     try {
       if (!this.unityConnection.isConnected()) {
         await this.unityConnection.connect();
@@ -38,31 +37,37 @@ export class PlaymodePlayToolHandler extends BaseToolHandler {
         error.code = 'UNITY_ERROR';
         throw error;
       }
+      lastPlayMessage = result?.message || lastPlayMessage;
       const startOk = Date.now();
       for (;;) {
         try {
-          const state = await this.unityConnection.sendCommand('playmode_get_state', {});
-          if (state && state.isPlaying) {
-            return { status: 'success', message: 'Entered play mode', state };
+          const state = await this.unityConnection.sendCommand('get_editor_state', {});
+          const editorState = extractEditorState(state);
+          if (editorState?.isPlaying) {
+            return { status: 'success', message: lastPlayMessage, state: editorState };
           }
         } catch {}
-        await sleep(pollIntervalMs);
+        await sleep(Math.max(0, pollIntervalMs));
         if (maxWaitMs != null && Date.now() - startOk > maxWaitMs) {
           return result;
         }
       }
     } catch (err) {
       const msg = err?.message || '';
-      const transient = /(Connection closed|timeout|ECONNRESET|EPIPE|socket|Not connected)/i.test(msg);
+      const transient = /(Connection closed|timeout|ECONNRESET|EPIPE|socket|Not connected)/i.test(
+        msg
+      );
       if (!transient) throw err;
 
       const start = Date.now();
-      await sleep(initialDelayMs);
+      await sleep(Math.max(0, initialDelayMs));
       // Reconnect until connected (unlimited unless maxWaitMs specified)
       for (;;) {
         if (this.unityConnection.isConnected()) break;
-        try { await this.unityConnection.connect(); } catch {}
-        await sleep(reconnectIntervalMs);
+        try {
+          await this.unityConnection.connect();
+        } catch {}
+        await sleep(Math.max(0, reconnectIntervalMs));
         if (maxWaitMs != null && Date.now() - start > maxWaitMs) {
           const e = new Error('Timed out waiting to reconnect after Play start');
           e.code = 'RECONNECT_TIMEOUT';
@@ -73,11 +78,16 @@ export class PlaymodePlayToolHandler extends BaseToolHandler {
       for (;;) {
         try {
           const state = await this.unityConnection.sendCommand('get_editor_state', {});
-          if (state && state.isPlaying) {
-            return { status: 'success', message: 'Entered play mode (reconnected after reload)', state };
+          const editorState = extractEditorState(state);
+          if (editorState?.isPlaying) {
+            return {
+              status: 'success',
+              message: `${lastPlayMessage} (reconnected after reload)`,
+              state: editorState
+            };
           }
         } catch {}
-        await sleep(pollIntervalMs);
+        await sleep(Math.max(0, pollIntervalMs));
         if (maxWaitMs != null && Date.now() - start > maxWaitMs) {
           const e = new Error('Timed out waiting for Play mode after reconnect');
           e.code = 'PLAY_WAIT_TIMEOUT';
@@ -88,4 +98,22 @@ export class PlaymodePlayToolHandler extends BaseToolHandler {
   }
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function extractEditorState(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+  if (typeof payload.isPlaying === 'boolean') {
+    return payload;
+  }
+  if (payload.state && typeof payload.state === 'object') {
+    return payload.state;
+  }
+  if (payload._editorState && typeof payload._editorState === 'object') {
+    return payload._editorState;
+  }
+  return null;
+}
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, Math.max(0, ms || 0)));
+}

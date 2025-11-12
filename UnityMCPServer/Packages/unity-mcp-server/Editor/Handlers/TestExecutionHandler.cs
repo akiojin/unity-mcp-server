@@ -24,6 +24,7 @@ namespace UnityMCPServer.Handlers
         private static TestResultCollector currentCollector;
         private static bool isTestRunning;
         internal static Func<bool> DirtySceneDetector = DetectDirtyScenes;
+        internal static Func<bool> PlayModeDetector = () => Application.isPlaying;
         private static readonly string DefaultResultsFolder = Path.GetFullPath(Path.Combine(Application.dataPath, "../.unity/test-results"));
         private static string lastResultPath;
         private static JObject lastResultSummary;
@@ -61,6 +62,11 @@ namespace UnityMCPServer.Handlers
                 if (testMode != "EditMode" && testMode != "PlayMode" && testMode != "All")
                 {
                     return new { error = "Invalid testMode. Must be EditMode, PlayMode, or All" };
+                }
+
+                if (PlayModeDetector?.Invoke() ?? Application.isPlaying)
+                {
+                    return new { error = "Cannot run tests while Play Mode is active. Exit Play Mode before running tests." };
                 }
 
                 if (DirtySceneDetector())
@@ -317,6 +323,7 @@ namespace UnityMCPServer.Handlers
         internal static void ResetForTesting()
         {
             DirtySceneDetector = DetectDirtyScenes;
+            PlayModeDetector = () => Application.isPlaying;
             lastResultPath = null;
             lastResultSummary = null;
             lastResultTimestampUtc = null;

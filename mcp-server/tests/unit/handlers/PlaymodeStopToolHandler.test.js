@@ -7,26 +7,34 @@ describe('PlaymodeStopToolHandler', () => {
   let handler;
   let mockConnection;
 
-  beforeEach(() => {
-    mockConnection = createMockUnityConnection({
-      sendCommandResult: {
-        status: 'success',
-        message: 'Exited play mode',
-        state: {
-          isPlaying: false,
-          isPaused: false,
-          isCompiling: false,
-          timeSinceStartup: 20.0
-        }
+  const buildConnection = ({ stopMessage = 'Exited play mode', pollsUntilStopped = 1 } = {}) => {
+    let polls = 0;
+    const sendCommand = mock.fn(async type => {
+      if (type === 'stop_game') {
+        return { status: 'success', message: stopMessage };
       }
+      if (type === 'get_editor_state') {
+        polls++;
+        return {
+          status: 'success',
+          state: { isPlaying: polls <= pollsUntilStopped }
+        };
+      }
+      throw new Error(`Unexpected command ${type}`);
     });
+
+    return createMockUnityConnection({ sendCommand });
+  };
+
+  beforeEach(() => {
+    mockConnection = buildConnection({ pollsUntilStopped: 0 });
     handler = new PlaymodeStopToolHandler(mockConnection);
   });
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'playmode_stop');
-      assert.equal(handler.description, 'Stop Unity play mode and return to edit mode');
+      assert.equal(handler.description, 'Exit Play Mode and return to Edit Mode.');
       assert.equal(handler.inputSchema.required, undefined);
     });
   });
@@ -39,58 +47,47 @@ describe('PlaymodeStopToolHandler', () => {
 
   describe('execute', () => {
     it('should stop play mode successfully', async () => {
-      const result = await handler.execute({});
-      
-      assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.deepEqual(mockConnection.sendCommand.mock.calls[0].arguments, ['stop_game', {}]);
-      
-      assert.ok(result);
+      const result = await handler.execute({ pollIntervalMs: 0 });
+
       assert.equal(result.message, 'Exited play mode');
       assert.equal(result.state.isPlaying, false);
-      assert.equal(result.state.isPaused, false);
+      assert.ok(
+        mockConnection.sendCommand.mock.calls.some(call => call.arguments[0] === 'get_editor_state')
+      );
     });
 
     it('should handle already stopped state', async () => {
-      mockConnection = createMockUnityConnection({
-        sendCommandResult: {
-          status: 'success',
-          message: 'Already stopped (not in play mode)',
-          state: {
-            isPlaying: false,
-            isPaused: false,
-            isCompiling: false,
-            timeSinceStartup: 25.0
-          }
-        }
-      });
+      mockConnection = buildConnection({ stopMessage: 'Already stopped', pollsUntilStopped: -1 });
       handler = new PlaymodeStopToolHandler(mockConnection);
-      
-      const result = await handler.execute({});
-      
-      assert.equal(result.message, 'Already stopped (not in play mode)');
+
+      const result = await handler.execute({ pollIntervalMs: 0 });
+
+      assert.equal(result.message, 'Already stopped');
       assert.equal(result.state.isPlaying, false);
     });
 
-    it('should throw error if not connected', async () => {
+    it('should throw error if connect fails', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /Unity connection not available/
-      );
+      mockConnection.connect.mock.mockImplementation(async () => {
+        throw new Error('Connection refused');
+      });
+
+      await assert.rejects(async () => handler.execute({}), /Connection refused/);
     });
 
     it('should handle Unity errors', async () => {
       mockConnection = createMockUnityConnection({
-        sendCommandResult: {
-          status: 'error',
-          error: 'Error stopping play mode: Internal error'
-        }
+        sendCommand: mock.fn(async type => {
+          if (type === 'stop_game') {
+            return { status: 'error', error: 'Error stopping play mode: Internal error' };
+          }
+          throw new Error('should not reach');
+        })
       });
       handler = new PlaymodeStopToolHandler(mockConnection);
-      
+
       await assert.rejects(
-        async () => await handler.execute({}),
+        async () => handler.execute({}),
         /Error stopping play mode: Internal error/
       );
     });
@@ -98,8 +95,8 @@ describe('PlaymodeStopToolHandler', () => {
 
   describe('integration with BaseToolHandler', () => {
     it('should handle valid stop request through handle method', async () => {
-      const result = await handler.handle({});
-      
+      const result = await handler.handle({ pollIntervalMs: 0 });
+
       assert.equal(result.status, 'success');
       assert.ok(result.result);
       assert.equal(result.result.message, 'Exited play mode');
@@ -107,15 +104,17 @@ describe('PlaymodeStopToolHandler', () => {
 
     it('should return error for Unity errors', async () => {
       mockConnection = createMockUnityConnection({
-        sendCommandResult: {
-          status: 'error',
-          error: 'Failed to stop play mode'
-        }
+        sendCommand: mock.fn(async type => {
+          if (type === 'stop_game') {
+            return { status: 'error', error: 'Failed to stop play mode' };
+          }
+          throw new Error('should not reach');
+        })
       });
       handler = new PlaymodeStopToolHandler(mockConnection);
-      
+
       const result = await handler.handle({});
-      
+
       assert.equal(result.status, 'error');
       assert.match(result.error, /Failed to stop play mode/);
     });
