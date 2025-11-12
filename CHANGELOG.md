@@ -1,3 +1,10 @@
+## [2.36.2](https://github.com/akiojin/unity-mcp-server/compare/v2.36.1...v2.36.2) (2025-11-12)
+
+
+### Bug Fixes
+
+* stabilize publish workflow install step ([1167516](https://github.com/akiojin/unity-mcp-server/commit/1167516132ea1c96df9f9076656927149ab88b34))
+
 ## [2.36.1](https://github.com/akiojin/unity-mcp-server/compare/v2.36.0...v2.36.1) (2025-11-12)
 
 
