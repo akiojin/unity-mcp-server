@@ -1,3 +1,10 @@
+## [2.37.2](https://github.com/akiojin/unity-mcp-server/compare/v2.37.1...v2.37.2) (2025-11-14)
+
+
+### Bug Fixes
+
+* **mcp-server:** remove anyOf from input tool schemas ([8f7ad48](https://github.com/akiojin/unity-mcp-server/commit/8f7ad48ab701bbfb1e7d5b2d42519a13986c72ae))
+
 ## [2.37.1](https://github.com/akiojin/unity-mcp-server/compare/v2.37.0...v2.37.1) (2025-11-14)
 
 
