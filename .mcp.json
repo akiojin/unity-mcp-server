@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "UnityMCP": {
+    "unity-mcp-server": {
       "command": "node",
       "args": [
         "mcp-server/bin/unity-mcp-server"
