@@ -39,27 +39,25 @@
     "createUndo": { "type": "boolean" },
     "markSceneDirty": { "type": "boolean" }
   },
-  "allOf": [
-    {
-      "if": {
-        "properties": { "scope": { "const": "prefabAsset" } }
-      },
-      "then": {
-        "required": ["prefabAssetPath"]
+  "if": {
+    "properties": { "scope": { "const": "prefabAsset" } },
+    "required": ["scope"]
+  },
+  "then": {
+    "required": ["prefabAssetPath"]
+  },
+  "else": {
+    "if": {
+      "not": {
+        "anyOf": [
+          { "required": ["gameObjectPath"] },
+          { "required": ["prefabAssetPath"] }
+        ]
       }
     },
-    {
-      "if": {
-        "not": {
-          "anyOf": [
-            { "required": ["gameObjectPath"] },
-            { "required": ["prefabAssetPath"] }
-          ]
-        }
-      },
-      "then": {
-        "errorMessage": "Either gameObjectPath or prefabAssetPath is required"
-      }
+    "then": {
+      "errorMessage": "Either gameObjectPath or prefabAssetPath is required",
+      "required": ["gameObjectPath"]
     }
-  ]
+  }
 }
