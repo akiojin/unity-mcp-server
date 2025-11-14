@@ -1,3 +1,10 @@
+## [2.37.1](https://github.com/akiojin/unity-mcp-server/compare/v2.37.0...v2.37.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* enforce prefab path requirement in component_field_set schema ([b04fa68](https://github.com/akiojin/unity-mcp-server/commit/b04fa6875776bd4e68956015c5a53483133e3770))
+
 ## [2.37.0](https://github.com/akiojin/unity-mcp-server/compare/v2.36.3...v2.37.0) (2025-11-12)
 
 
