@@ -123,15 +123,24 @@ export class InputGamepadToolHandler extends BaseToolHandler {
               required: ['action']
             }
           }
-        },
-        anyOf: [{ required: ['action'] }, { required: ['actions'] }]
+        }
       }
     );
     this.unityConnection = unityConnection;
   }
 
   validate(params) {
-    const { actions } = params;
+    const { action, actions } = params;
+
+    // Either 'action' or 'actions' must be provided
+    if (!action && !actions) {
+      throw new Error('Either "action" or "actions" parameter is required');
+    }
+
+    // But not both
+    if (action && actions) {
+      throw new Error('Cannot specify both "action" and "actions" parameters');
+    }
 
     if (Array.isArray(actions)) {
       if (actions.length === 0) {
