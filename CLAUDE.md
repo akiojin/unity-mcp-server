@@ -230,6 +230,68 @@ cd .worktrees/SPEC-0d5d84f9/
 - 禁止: unity-mcp-server 実装本体（ランタイム/エディタ拡張の主要コード）を置かない。UPM配布の対象にも含めない。
 - 編集: 必要最小限に留める。C#編集は外部CLIで行い、Assets側は参照/設定のみで成立させる。
 
+### C#スクリプト編集（絶対厳守）
+
+**⚠️ Unity関連のC#コード（*.cs）編集には、必ずunity-mcp-serverのコードインデックス機能を使用してください**
+
+- **禁止事項**: serena MCPや他のMCPサーバーを使用したC#編集
+- **必須**: 以下のunity-mcp-serverツールを使用
+  - `script_symbols_get`: ファイル内のシンボル（クラス、メソッド、フィールド等）を取得
+  - `script_symbol_find`: シンボルを名前で検索
+  - `script_refs_find`: シンボルの参照箇所を検索
+  - `script_edit_structured`: 構造化編集（メソッド本体置換、クラスメンバー追加）
+  - `script_edit_snippet`: 軽量スニペット編集（1〜2行、80文字以内）
+  - `script_read`: C#ファイルの読み取り
+  - `script_search`: C#コード内の検索
+
+**理由**: unity-mcp-serverはUnityプロジェクト専用に最適化されたコードインデックスを持ち、Unityエディタとのリアルタイム連携、コンパイルエラー検出、LSP診断など、Unity開発に不可欠な機能を提供します。serena MCPは汎用的なコードエディタであり、Unity固有の機能をサポートしていません。
+
+#### コードインデックスの活用
+
+**編集前の必須ステップ**:
+
+1. **`script_symbols_get`**: 編集対象ファイルのシンボル構造を把握
+   - クラス、メソッド、フィールド、プロパティの一覧を取得
+   - 各シンボルの位置（行・列）を確認
+   - namePath（例: `Outer/Nested/Member`）を特定
+
+2. **`script_symbol_find`**: シンボルを名前で検索
+   - プロジェクト全体から特定のクラス/メソッドを検索
+   - 部分一致検索も可能（`substring_matching=true`）
+   - スコープ指定（Assets/Packages）で絞り込み
+
+3. **`script_refs_find`**: 影響範囲の確認
+   - 編集対象シンボルが参照されている箇所を全検索
+   - 破壊的変更の影響範囲を事前に把握
+   - リファクタリング時の必須チェック
+
+**編集実行**:
+
+4. **`script_edit_structured`**: 構造化編集
+   - メソッド本体の完全置換
+   - クラスメンバーの追加
+   - namePath指定で対象を一意に特定
+
+5. **`script_edit_snippet`**: 軽量スニペット編集
+   - 1〜2行の小さな変更
+   - アンカー文字列で編集位置を厳密に指定
+
+**検証**:
+
+6. **`code_index_status`**: インデックス状態の確認
+   - カバレッジ率を確認
+   - インデックスが古い場合は`code_index_update`で更新
+
+**ワークフロー例**:
+
+```
+1. script_symbols_get → クラス構造を把握
+2. script_refs_find → 影響範囲を確認
+3. script_edit_structured → メソッド本体を置換
+4. code_index_update → インデックスを更新
+5. script_refs_find → 変更後の参照箇所を再確認
+```
+
 ### C#スクリプト編集ツールの使い分け
 
 #### `script_edit_snippet`: 軽量スニペット編集（1〜2行、80文字以内）
