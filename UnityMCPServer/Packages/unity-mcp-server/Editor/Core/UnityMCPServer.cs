@@ -823,6 +823,23 @@ namespace UnityMCPServer.Core
                         var vStatus = VideoCaptureHandler.Status(command.Parameters);
                         response = Response.SuccessResult(command.Id, vStatus);
                         break;
+                    // Profiler commands
+                    case "profiler_start":
+                        var profilerStart = ProfilerHandler.Start(command.Parameters);
+                        response = Response.SuccessResult(command.Id, profilerStart);
+                        break;
+                    case "profiler_stop":
+                        var profilerStop = ProfilerHandler.Stop(command.Parameters);
+                        response = Response.SuccessResult(command.Id, profilerStop);
+                        break;
+                    case "profiler_status":
+                        var profilerStatus = ProfilerHandler.GetStatus(command.Parameters);
+                        response = Response.SuccessResult(command.Id, profilerStatus);
+                        break;
+                    case "profiler_get_metrics":
+                        var profilerMetrics = ProfilerHandler.GetAvailableMetrics(command.Parameters);
+                        response = Response.SuccessResult(command.Id, profilerMetrics);
+                        break;
                     // Component commands
                     case "add_component":
                         var addComponentResult = ComponentHandler.AddComponent(command.Parameters);
