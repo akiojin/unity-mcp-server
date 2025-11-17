@@ -394,8 +394,6 @@ const HANDLER_CLASSES = [
   EditorWindowsManageToolHandler,
   EditorToolsManageToolHandler,
   EditorQuitToolHandler,
-  EditorQuitToolHandler,
-  EditorQuitToolHandler,
 
   // Settings handlers
   SettingsGetToolHandler,
