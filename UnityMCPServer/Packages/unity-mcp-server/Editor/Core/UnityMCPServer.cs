@@ -857,6 +857,10 @@ namespace UnityMCPServer.Core
                         var testStatusResult = TestExecutionHandler.GetTestStatus(command.Parameters);
                         response = Response.SuccessResult(command.Id, testStatusResult);
                         break;
+                    case "quit_editor":
+                        EditorApplication.Exit(0);
+                        response = Response.SuccessResult(command.Id, new { message = "Unity Editor quitting" });
+                        break;
                     // Tag management commands
                     case "manage_tags":
                         var tagManagementResult = TagManagementHandler.HandleCommand(command.Parameters["action"]?.ToString(), command.Parameters);
