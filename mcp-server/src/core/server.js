@@ -41,23 +41,26 @@ const server = new Server(
 
 // Handle tool listing
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  // Return only search_tools to reduce token consumption by 96.2%
-  // All other tools are discoverable via search_tools
-  const searchHandler = handlers.get('search_tools');
+  const tools = Array.from(handlers.values())
+    .map((handler, index) => {
+      try {
+        const definition = handler.getDefinition();
+        // Validate inputSchema
+        if (definition.inputSchema && definition.inputSchema.type !== 'object') {
+          logger.error(
+            `[MCP] Tool ${handler.name} (index ${index}) has invalid inputSchema type: ${definition.inputSchema.type}`
+          );
+        }
+        return definition;
+      } catch (error) {
+        logger.error(`[MCP] Failed to get definition for handler ${handler.name}:`, error);
+        return null;
+      }
+    })
+    .filter(tool => tool !== null);
 
-  if (!searchHandler) {
-    logger.error('[MCP] search_tools handler not found, falling back to empty list');
-    return { tools: [] };
-  }
-
-  try {
-    const definition = searchHandler.getDefinition();
-    logger.info('[MCP] Returning search_tools only (96.2% token reduction: ~2k vs ~97.2k tokens)');
-    return { tools: [definition] };
-  } catch (error) {
-    logger.error('[MCP] Failed to get search_tools definition:', error);
-    return { tools: [] };
-  }
+  logger.info(`[MCP] Returning ${tools.length} tool definitions`);
+  return { tools };
 });
 
 // Handle resources listing
