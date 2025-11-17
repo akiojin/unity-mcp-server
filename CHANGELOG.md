@@ -22,6 +22,30 @@
 * **profiler:** fix Unity.Profiling API usage for ProfilerRecorder ([dc54711](https://github.com/akiojin/unity-mcp-server/commit/dc54711271039ba5759d0e6a3ed3cae721c430d7))
 * **script:** normalize line endings in script_edit_snippet for Issue [#97](https://github.com/akiojin/unity-mcp-server/issues/97) ([27f4650](https://github.com/akiojin/unity-mcp-server/commit/27f465070ca55e53df7b5845b9990d19d58e63da))
 
+## [2.39.0](https://github.com/akiojin/unity-mcp-server/compare/v2.38.1...v2.39.0) (2025-11-17)
+
+
+### Features
+
+* **claude-md:** enforce unity-mcp-server for C# editing ([8af1c81](https://github.com/akiojin/unity-mcp-server/commit/8af1c8133586af6b0c18d0b727d4f9c51013baaf))
+* **hooks:** add Unity C# editing protection Hook ([fcf2d69](https://github.com/akiojin/unity-mcp-server/commit/fcf2d69e5d18966333af4f545439ab2afdb45d56))
+* **hooks:** AppBrew記事準拠のCLAUDE.md自動改善システムを実装 ([36f2050](https://github.com/akiojin/unity-mcp-server/commit/36f2050df4a407993a60453847415514a0530883))
+* **mcp-server:** add search_tools meta-tool for 96.2% token reduction ([d63270b](https://github.com/akiojin/unity-mcp-server/commit/d63270b5b8e11195af4fc9269374ad5ef00fb7ad))
+* **mcp-server:** implement actual 96.2% token reduction via ListTools restriction ([64b794c](https://github.com/akiojin/unity-mcp-server/commit/64b794c57185e1a38e004af585c8747a8bbc1cc6))
+* **profiler:** add structured logging to ProfilerHandler (T027) ([9302c56](https://github.com/akiojin/unity-mcp-server/commit/9302c56d3ead1355998dd0a7695b6f735d71f626))
+* **profiler:** enhance error handling with parameter validation (T026) ([e66d6e1](https://github.com/akiojin/unity-mcp-server/commit/e66d6e1ce1f2c6d583ac2338bc37f7074825b0d5))
+* **profiler:** implement profiler handlers (T013-T020) ([74d405f](https://github.com/akiojin/unity-mcp-server/commit/74d405fd7962da85756915610e872b304d4cd170))
+* **profiler:** setup profiler handlers and contracts (T001-T007) ([bb4801d](https://github.com/akiojin/unity-mcp-server/commit/bb4801d99fba85a61227f87ebd1da2751831c7b8))
+
+
+### Bug Fixes
+
+* **ci:** enable merge-to-main even when semantic-release is skipped ([98976c0](https://github.com/akiojin/unity-mcp-server/commit/98976c060d3e85a5d72dbf60e2cc2e78164576df))
+* **mcp-server:** revert ListTools restriction - return all tools for MCP protocol compliance ([54a6f2d](https://github.com/akiojin/unity-mcp-server/commit/54a6f2d5df6a497fd32677ef87e2c37af76cfa5d))
+* **profiler:** fix string interpolation syntax error in ProfilerHandler.cs ([2d07072](https://github.com/akiojin/unity-mcp-server/commit/2d07072269d1df4dfc316b879c395484603f4f94))
+* **profiler:** fix Unity.Profiling API usage for ProfilerRecorder ([dc54711](https://github.com/akiojin/unity-mcp-server/commit/dc54711271039ba5759d0e6a3ed3cae721c430d7))
+* **script:** normalize line endings in script_edit_snippet for Issue [#97](https://github.com/akiojin/unity-mcp-server/issues/97) ([27f4650](https://github.com/akiojin/unity-mcp-server/commit/27f465070ca55e53df7b5845b9990d19d58e63da))
+
 ## [2.38.1](https://github.com/akiojin/unity-mcp-server/compare/v2.38.0...v2.38.1) (2025-11-17)
 
 
