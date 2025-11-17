@@ -929,9 +929,11 @@ Claude CodeはHook機能により、特定のイベント（セッション終�
 
 #### 1. PreToolUse Hook（ツール実行前の検証）
 
-**対象ツール**: `Bash`
+**対象ツール**: `Bash`, `Edit`, `Write`, `Read`, `mcp__serena__*`
 
 **実装スクリプト**:
+
+a) **Worktree運用保護**:
 - `.claude/hooks/block-git-branch-ops.sh`: Gitブランチ操作のブロック
 - `.claude/hooks/block-cd-command.sh`: Worktree外へのディレクトリ移動をブロック
 - `.claude/hooks/block-file-ops.sh`: Worktree外でのファイル操作をブロック（※未登録）
@@ -940,6 +942,42 @@ Claude CodeはHook機能により、特定のイベント（セッション終�
 - `git checkout/switch/branch`等のブランチ切り替えを禁止
 - Worktree外への`cd`コマンドを禁止
 - Worktree外でのファイル作成・削除・移動を禁止
+
+b) **Unity C#編集保護**:
+- `.claude/hooks/block-cs-edit-tools.sh`: Unity C#ファイル編集の保護（**NEW!**）
+
+**目的**: Unity C#ファイル（*.cs）の編集をunity-mcp-server以外のツールでブロック
+
+**ブロック対象**:
+- `Edit` ツールでのUnity C#ファイル編集
+- `Write` ツールでのUnity C#ファイル作成
+- `mcp__serena__*` ツールでのUnity C#ファイル編集
+
+**警告のみ（ブロックしない）**:
+- `Read` ツールでのUnity C#ファイル読み取り（代わりに`mcp__unity-mcp-server__script_read`を推奨）
+
+**Unity C#ファイルの判定基準**:
+- ファイル拡張子が`.cs`
+- かつ以下のディレクトリ配下:
+  - `Assets/`
+  - `Packages/`
+  - `Library/`
+  - `UnityMCPServer/`
+
+**許可されるツール**:
+- `mcp__unity-mcp-server__script_edit_structured`
+- `mcp__unity-mcp-server__script_edit_snippet`
+- `mcp__unity-mcp-server__script_symbols_get`
+- `mcp__unity-mcp-server__script_symbol_find`
+- `mcp__unity-mcp-server__script_refs_find`
+- `mcp__unity-mcp-server__script_read`
+- `mcp__unity-mcp-server__script_search`
+
+**テスト**:
+```bash
+# 全10個のテストケースを実行
+.claude/hooks/test-cs-edit-blocking.sh
+```
 
 **動作仕様**:
 - Hookは標準入力からJSON（`tool_name`, `tool_input`）を受け取る
