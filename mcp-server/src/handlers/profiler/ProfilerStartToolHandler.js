@@ -75,12 +75,7 @@ export class ProfilerStartToolHandler extends BaseToolHandler {
       };
     }
 
-    const command = {
-      command: 'profiler_start',
-      parameters: params
-    };
-
-    const result = await this.unityConnection.sendCommand(command);
+    const result = await this.unityConnection.sendCommand('profiler_start', params || {});
     return result;
   }
 }

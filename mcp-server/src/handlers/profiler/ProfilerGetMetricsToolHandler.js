@@ -46,12 +46,7 @@ export class ProfilerGetMetricsToolHandler extends BaseToolHandler {
       };
     }
 
-    const command = {
-      command: 'profiler_get_metrics',
-      parameters: params || {}
-    };
-
-    const result = await this.unityConnection.sendCommand(command);
+    const result = await this.unityConnection.sendCommand('profiler_get_metrics', params || {});
     return result;
   }
 }

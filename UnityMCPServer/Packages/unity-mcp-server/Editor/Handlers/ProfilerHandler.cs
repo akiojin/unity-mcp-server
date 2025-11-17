@@ -41,6 +41,7 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
+                Debug.LogError("[PROFILER TEST] Start() called - LATEST CODE");
                 var mode = parameters["mode"]?.ToString() ?? "normal";
                 var recordToFile = parameters["recordToFile"]?.ToObject<bool>() ?? true;
                 var metricsCount = parameters["metrics"]?.ToObject<string[]>()?.Length ?? 0;

@@ -18,12 +18,7 @@ export class ProfilerStatusToolHandler extends BaseToolHandler {
 
   /** @override */
   async execute(params, _context) {
-    const command = {
-      command: 'profiler_status',
-      parameters: params || {}
-    };
-
-    const result = await this.unityConnection.sendCommand(command);
+    const result = await this.unityConnection.sendCommand('profiler_status', params || {});
     return result;
   }
 }
