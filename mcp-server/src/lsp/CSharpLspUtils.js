@@ -134,17 +134,38 @@ export class CSharpLspUtils {
     if (!desired) throw new Error('mcp-server version not found; cannot resolve LSP tag');
     const current = this.readLocalVersion(rid);
     if (fs.existsSync(p) && current === desired) return p;
-    await this.autoDownload(rid, desired);
+    const resolved = await this.autoDownload(rid, desired);
     if (!fs.existsSync(p)) throw new Error('csharp-lsp binary not found after download');
-    this.writeLocalVersion(rid, desired);
+    this.writeLocalVersion(rid, resolved || desired);
     return p;
   }
 
   async autoDownload(rid, version) {
     const repo = process.env.GITHUB_REPOSITORY || 'akiojin/unity-mcp-server';
-    const tag = `v${version}`;
-    const manifestUrl = `https://github.com/${repo}/releases/download/${tag}/csharp-lsp-manifest.json`;
-    const manifest = await this.fetchJson(manifestUrl);
+
+    const fetchManifest = async ver => {
+      const tag = `v${ver}`;
+      const manifestUrl = `https://github.com/${repo}/releases/download/${tag}/csharp-lsp-manifest.json`;
+      const manifest = await this.fetchJson(manifestUrl);
+      return { manifest, tag };
+    };
+
+    let targetVersion = version;
+    let manifest;
+    try {
+      ({ manifest } = await fetchManifest(targetVersion));
+    } catch (e) {
+      // Gracefully fall back to the latest release when the requested manifest is missing (404).
+      if (String(e?.message || '').includes('HTTP 404')) {
+        const latest = await this.fetchLatestReleaseVersion(repo);
+        if (!latest) throw e;
+        targetVersion = latest;
+        ({ manifest } = await fetchManifest(targetVersion));
+      } else {
+        throw e;
+      }
+    }
+
     const entry = manifest?.assets?.[rid];
     if (!entry?.url || !entry?.sha256) throw new Error(`manifest missing entry for ${rid}`);
 
@@ -154,17 +175,35 @@ export class CSharpLspUtils {
     await this.downloadTo(entry.url, tmp);
     const actual = await this.sha256File(tmp);
     if (String(actual).toLowerCase() !== String(entry.sha256).toLowerCase()) {
-      try { fs.unlinkSync(tmp); } catch {}
+      try {
+        fs.unlinkSync(tmp);
+      } catch {}
       throw new Error('checksum mismatch for csharp-lsp asset');
     }
     // atomic replace
-    try { fs.renameSync(tmp, dest); } catch (e) {
+    try {
+      fs.renameSync(tmp, dest);
+    } catch (e) {
       // Windows may need removal before rename
-      try { fs.unlinkSync(dest); } catch {}
+      try {
+        fs.unlinkSync(dest);
+      } catch {}
       fs.renameSync(tmp, dest);
     }
-    try { if (process.platform !== 'win32') fs.chmodSync(dest, 0o755); } catch {}
+    try {
+      if (process.platform !== 'win32') fs.chmodSync(dest, 0o755);
+    } catch {}
     logger.info(`[csharp-lsp] downloaded: ${path.basename(dest)} @ ${path.dirname(dest)}`);
+    return targetVersion;
+  }
+
+  async fetchLatestReleaseVersion(repo) {
+    const url = `https://api.github.com/repos/${repo}/releases/latest`;
+    const json = await this.fetchJson(url);
+    const tag = json?.tag_name || '';
+    const version = tag.replace(/^v/, '');
+    if (!version) throw new Error('latest release version not found');
+    return version;
   }
 
   async fetchJson(url) {
