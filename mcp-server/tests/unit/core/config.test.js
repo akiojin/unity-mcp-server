@@ -1,6 +1,7 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import fsSync from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { config, logger } from '../../../src/core/config.js';
@@ -20,7 +21,10 @@ describe('Config', () => {
 
     it('should have correct server settings', () => {
       assert.equal(config.server.name, 'unity-mcp-server');
-      assert.equal(config.server.version, '0.1.0');
+      const pkgVersion = JSON.parse(
+        fsSync.readFileSync(new URL('../../../package.json', import.meta.url), 'utf8')
+      ).version;
+      assert.equal(config.server.version, pkgVersion);
       assert.equal(config.server.description, 'MCP server for Unity Editor integration');
     });
 

@@ -1,10 +1,10 @@
 <Project>
   <PropertyGroup>
     <!-- publish.sh により mcp-server の version と同期更新されます -->
-    <Version>2.14.17</Version>
-    <AssemblyVersion>2.14.17.0</AssemblyVersion>
-    <FileVersion>2.14.17.0</FileVersion>
-    <AssemblyInformationalVersion>2.14.17</AssemblyInformationalVersion>
+    <Version>2.38.1</Version>
+    <AssemblyVersion>2.38.1.0</AssemblyVersion>
+    <FileVersion>2.38.1.0</FileVersion>
+    <AssemblyInformationalVersion>2.38.1</AssemblyInformationalVersion>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -14,4 +14,3 @@
     <SelfContained>true</SelfContained>
   </PropertyGroup>
 </Project>
-

@@ -1,3 +1,10 @@
+## [2.38.1](https://github.com/akiojin/unity-mcp-server/compare/v2.38.0...v2.38.1) (2025-11-17)
+
+
+### Bug Fixes
+
+* align lsp manifest version and prep 2.38.1 ([b740c41](https://github.com/akiojin/unity-mcp-server/commit/b740c41e039a8ff80d7224979417292606257aaa))
+
 ## [2.38.0](https://github.com/akiojin/unity-mcp-server/compare/v2.37.2...v2.38.0) (2025-11-17)
 
 
