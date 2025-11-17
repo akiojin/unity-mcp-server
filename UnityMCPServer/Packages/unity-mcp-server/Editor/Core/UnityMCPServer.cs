@@ -520,6 +520,8 @@ namespace UnityMCPServer.Core
 
                 var warnings = PlayModeChangeWarningHelper.GetWarnings(command.Type, command.Parameters);
 
+                Debug.LogError($"[UNITY MCP TEST] ProcessCommand received: {command.Type}");
+
                 // Handle command based on type
                 switch (command.Type?.ToLower())
                 {

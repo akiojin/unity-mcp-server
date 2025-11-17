@@ -4,7 +4,7 @@ MCP (Model Context Protocol) server for Unity Editor integration. Enables AI ass
 
 ## Features
 
-- **103 comprehensive tools** across 15+ categories for Unity Editor automation
+- **106 comprehensive tools** across 16+ categories for Unity Editor automation
 - **Tool discovery** - Efficient `search_tools` meta-tool for discovering relevant tools (96.2% token reduction)
 - **GameObject management** - Create, find, modify, delete GameObjects with full hierarchy control
 - **Component system** - Add, remove, modify components with property control
@@ -14,8 +14,9 @@ MCP (Model Context Protocol) server for Unity Editor integration. Enables AI ass
 - **UI automation** - Find, click, and interact with UI elements programmatically
 - **Input simulation** - Simulate keyboard, mouse, gamepad, and touch input
 - **Play mode controls** - Start, pause, stop Unity play mode for testing
+- **Performance profiling** - Record profiling sessions, collect metrics, save .data files for analysis
 - **Project settings** - Read and update Unity project settings safely
-- **Editor operations** - Console logs, screenshots, compilation monitoring
+- **Editor operations** - Console logs, screenshots, video capture, compilation monitoring
 - **Editor control** - Manage tags, layers, selection, windows, and tools
 
 ## Tool Discovery
