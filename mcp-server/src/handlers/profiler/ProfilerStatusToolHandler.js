@@ -17,8 +17,13 @@ export class ProfilerStatusToolHandler extends BaseToolHandler {
   }
 
   /** @override */
-  async execute(_params, _context) {
-    // TODO: Implement in T019
-    return { error: 'Not implemented', code: 'E_NOT_IMPLEMENTED' };
+  async execute(params, _context) {
+    const command = {
+      command: 'profiler_status',
+      parameters: params || {}
+    };
+
+    const result = await this.unityConnection.sendCommand(command);
+    return result;
   }
 }

@@ -23,8 +23,13 @@ export class ProfilerStopToolHandler extends BaseToolHandler {
   }
 
   /** @override */
-  async execute(_params, _context) {
-    // TODO: Implement in T018
-    return { error: 'Not implemented', code: 'E_NOT_IMPLEMENTED' };
+  async execute(params, _context) {
+    const command = {
+      command: 'profiler_stop',
+      parameters: params || {}
+    };
+
+    const result = await this.unityConnection.sendCommand(command);
+    return result;
   }
 }
