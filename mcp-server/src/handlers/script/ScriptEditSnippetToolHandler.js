@@ -9,7 +9,7 @@ const MAX_INSTRUCTIONS = 10;
 const MAX_DIFF_CHARS = 80;
 const PREVIEW_MAX = 1000;
 
-const normalizeSlashes = (p) => p.replace(/\\/g, '/');
+const normalizeSlashes = p => p.replace(/\\/g, '/');
 
 export class ScriptEditSnippetToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
@@ -21,11 +21,13 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
         properties: {
           path: {
             type: 'string',
-            description: 'Project-relative C# path starting with Assets/ or Packages/ (e.g., Assets/Scripts/Foo.cs).'
+            description:
+              'Project-relative C# path starting with Assets/ or Packages/ (e.g., Assets/Scripts/Foo.cs).'
           },
           preview: {
             type: 'boolean',
-            description: 'If true, run validation and return preview text without writing to disk. Default=false.'
+            description:
+              'If true, run validation and return preview text without writing to disk. Default=false.'
           },
           instructions: {
             type: 'array',
@@ -42,14 +44,19 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
                 },
                 anchor: {
                   type: 'object',
-                  description: 'Positioning info. Currently supports type=text with exact target snippet.',
+                  description:
+                    'Positioning info. Currently supports type=text with exact target snippet.',
                   properties: {
                     type: { type: 'string', enum: ['text'], default: 'text' },
-                    target: { type: 'string', description: 'Exact snippet to locate (including whitespace).' },
+                    target: {
+                      type: 'string',
+                      description: 'Exact snippet to locate (including whitespace).'
+                    },
                     position: {
                       type: 'string',
                       enum: ['before', 'after'],
-                      description: 'For insert operations, whether to insert before or after the anchor text (default=after).'
+                      description:
+                        'For insert operations, whether to insert before or after the anchor text (default=after).'
                     }
                   },
                   required: ['type', 'target']
@@ -150,9 +157,12 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     const normalized = normalizeSlashes(String(rawPath));
     const idxAssets = normalized.indexOf('Assets/');
     const idxPackages = normalized.indexOf('Packages/');
-    const idx = (idxAssets >= 0 && idxPackages >= 0)
-      ? Math.min(idxAssets, idxPackages)
-      : (idxAssets >= 0 ? idxAssets : idxPackages);
+    const idx =
+      idxAssets >= 0 && idxPackages >= 0
+        ? Math.min(idxAssets, idxPackages)
+        : idxAssets >= 0
+          ? idxAssets
+          : idxPackages;
     const relative = idx >= 0 ? normalized.substring(idx) : normalized;
 
     if (!relative.startsWith('Assets/') && !relative.startsWith('Packages/')) {
@@ -167,20 +177,27 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
   #applyInstruction(text, instruction, index) {
     const anchor = instruction.anchor;
     const target = anchor.target;
+
+    // Normalize line endings to LF for consistent matching
+    const normalizedText = text.replace(/\r\n/g, '\n');
+    const normalizedTarget = target.replace(/\r\n/g, '\n');
+
     const occurrences = [];
-    let pos = text.indexOf(target);
+    let pos = normalizedText.indexOf(normalizedTarget);
     while (pos !== -1) {
       occurrences.push(pos);
-      pos = text.indexOf(target, pos + 1);
+      pos = normalizedText.indexOf(normalizedTarget, pos + 1);
     }
     if (occurrences.length === 0) {
       throw new Error(`anchor_not_found: instructions[${index}]`);
     }
     if (occurrences.length > 1) {
-      throw new Error(`anchor_not_unique: instructions[${index}] matches ${occurrences.length} locations`);
+      throw new Error(
+        `anchor_not_unique: instructions[${index}] matches ${occurrences.length} locations`
+      );
     }
     const start = occurrences[0];
-    const end = start + target.length;
+    const end = start + normalizedTarget.length;
 
     let replacement = '';
     if (instruction.operation === 'delete') {
@@ -190,14 +207,30 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     } else if (instruction.operation === 'insert') {
       const position = (instruction.anchor.position || 'after').toLowerCase();
       if (position === 'before') {
-        return this.#replaceRange(text, start, start, instruction.newText, target, index);
+        return this.#replaceRange(
+          normalizedText,
+          start,
+          start,
+          instruction.newText,
+          normalizedTarget,
+          index
+        );
       }
       if (position !== 'after') {
-        throw new Error(`Unsupported anchor.position "${instruction.anchor.position}" at instructions[${index}]`);
+        throw new Error(
+          `Unsupported anchor.position "${instruction.anchor.position}" at instructions[${index}]`
+        );
       }
-      return this.#replaceRange(text, end, end, instruction.newText, target, index);
+      return this.#replaceRange(
+        normalizedText,
+        end,
+        end,
+        instruction.newText,
+        normalizedTarget,
+        index
+      );
     }
-    return this.#replaceRange(text, start, end, replacement, target, index);
+    return this.#replaceRange(normalizedText, start, end, replacement, normalizedTarget, index);
   }
 
   #replaceRange(text, start, end, newText, anchorTarget, index) {
@@ -253,11 +286,14 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
 
   #clipSnippet(s) {
     if (!s) return '';
-    return s.length > 120 ? (s.slice(0, 117) + '…') : s;
+    return s.length > 120 ? s.slice(0, 117) + '…' : s;
   }
 
   #hash(content) {
-    return crypto.createHash('sha256').update(content ?? '', 'utf8').digest('hex');
+    return crypto
+      .createHash('sha256')
+      .update(content ?? '', 'utf8')
+      .digest('hex');
   }
 
   #severityIsError(severity) {

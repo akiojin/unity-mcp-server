@@ -7,7 +7,7 @@ import fs from 'node:fs/promises';
 import { ScriptEditSnippetToolHandler } from '../../../../src/handlers/script/ScriptEditSnippetToolHandler.js';
 import { createMockUnityConnection } from '../../../utils/test-helpers.js';
 
-const normalize = (p) => p.replace(/\\/g, '/');
+const normalize = p => p.replace(/\\/g, '/');
 
 describe('ScriptEditSnippetToolHandler (RED phase)', () => {
   let handler;
@@ -87,7 +87,10 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     assert.equal(result.applied, false);
     assert.equal(Array.isArray(result.results), true);
     assert.equal(result.results.length, 2);
-    assert.deepEqual(result.results.map(r => r.status), ['applied', 'applied']);
+    assert.deepEqual(
+      result.results.map(r => r.status),
+      ['applied', 'applied']
+    );
     assert.equal(typeof result.preview, 'string');
     assert.ok(result.preview.includes('DoSomething(first);'));
     assert.equal(validateText.mock.calls.length, 1);
@@ -100,7 +103,8 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
   it('should reject instructions exceeding the 80 character diff limit', async () => {
     const relPath = 'Assets/Scripts/SnippetTarget.cs';
     const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
-    const longGuard = '        if (thisIsAVeryLongVariableNameThatKeepsGoingMoreThanEightyCharacters == null) return;\n';
+    const longGuard =
+      '        if (thisIsAVeryLongVariableNameThatKeepsGoingMoreThanEightyCharacters == null) return;\n';
     await fs.writeFile(absPath, `class C{\n${longGuard}    DoIt();\n}\n`, 'utf8');
 
     const instructions = [
@@ -147,9 +151,7 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
       }
     ];
 
-    const validateText = mock.fn(async () => ([
-      { severity: 'error', message: 'Expected }' }
-    ]));
+    const validateText = mock.fn(async () => [{ severity: 'error', message: 'Expected }' }]);
     handler.lsp = { validateText };
 
     await assert.rejects(
@@ -264,7 +266,9 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     const result = await handler.execute({ path: relPath, instructions, preview: true });
 
     assert.equal(result.results[0].status, 'applied');
-    assert.ok(result.preview.includes('Initialize();\n        Log("Starting");\n        Process()'));
+    assert.ok(
+      result.preview.includes('Initialize();\n        Log("Starting");\n        Process()')
+    );
   });
 
   it('should support insert operation with position=before', async () => {
@@ -351,7 +355,10 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     const result = await handler.execute({ path: relPath, instructions, preview: true });
 
     assert.equal(result.results.length, 3);
-    assert.deepEqual(result.results.map(r => r.status), ['applied', 'applied', 'applied']);
+    assert.deepEqual(
+      result.results.map(r => r.status),
+      ['applied', 'applied', 'applied']
+    );
     assert.ok(!result.preview.includes('if (a == null)'));
     assert.ok(!result.preview.includes('if (b == null)'));
     assert.ok(result.preview.includes('if (c > 20)'));
@@ -391,5 +398,89 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     const afterContent = await fs.readFile(absPath, 'utf8');
     assert.ok(!afterContent.includes('if (debug == null)'));
     assert.ok(afterContent.includes('Execute();'));
+  });
+
+  it('should handle CRLF line endings in file content', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    // File content with CRLF line endings (Windows style)
+    const originalWithCRLF =
+      'public class Example\r\n{\r\n    public void Run()\r\n    {\r\n        if (value == null) return;\r\n        Process();\r\n    }\r\n}\r\n';
+    await fs.writeFile(absPath, originalWithCRLF, 'utf8');
+
+    // Anchor with LF line ending (Unix style) - this should still match after normalization
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (value == null) return;\n'
+        }
+      }
+    ];
+
+    handler.lsp = { validateText: mock.fn(async () => []) };
+
+    const result = await handler.execute({ path: relPath, instructions, preview: true });
+
+    assert.equal(result.results[0].status, 'applied');
+    assert.ok(!result.preview.includes('if (value == null)'));
+    assert.ok(result.preview.includes('Process();'));
+  });
+
+  it('should handle LF anchor when file has CRLF (Issue #97)', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    // File with CRLF
+    const fileContent =
+      'class Foo\r\n{\r\n    void Bar()\r\n    {\r\n        if (x == null) return;\r\n        DoWork();\r\n    }\r\n}\r\n';
+    await fs.writeFile(absPath, fileContent, 'utf8');
+
+    // User provides LF anchor (copied from Read tool which normalizes to LF)
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (x == null) return;\n'
+        }
+      }
+    ];
+
+    handler.lsp = { validateText: mock.fn(async () => []) };
+
+    // This should succeed after normalization
+    const result = await handler.execute({ path: relPath, instructions, preview: true });
+
+    assert.equal(result.results[0].status, 'applied');
+    assert.ok(!result.preview.includes('if (x == null)'));
+  });
+
+  it('should handle CRLF anchor when file has LF', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    // File with LF
+    const fileContent =
+      'class Foo\n{\n    void Bar()\n    {\n        if (x == null) return;\n        DoWork();\n    }\n}\n';
+    await fs.writeFile(absPath, fileContent, 'utf8');
+
+    // User provides CRLF anchor
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (x == null) return;\r\n'
+        }
+      }
+    ];
+
+    handler.lsp = { validateText: mock.fn(async () => []) };
+
+    // This should succeed after normalization
+    const result = await handler.execute({ path: relPath, instructions, preview: true });
+
+    assert.equal(result.results[0].status, 'applied');
+    assert.ok(!result.preview.includes('if (x == null)'));
   });
 });
