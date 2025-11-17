@@ -18,11 +18,9 @@ MCP (Model Context Protocol) server for Unity Editor integration. Enables AI ass
 - **Editor operations** - Console logs, screenshots, compilation monitoring
 - **Editor control** - Manage tags, layers, selection, windows, and tools
 
-## Tool Discovery (Token Optimization)
+## Tool Discovery
 
-Unity MCP Server implements **intelligent tool loading** to drastically reduce initial token consumption. Instead of loading all 103 tools at startup, only the `search_tools` meta-tool is exposed via `ListTools`, achieving a **96.2% token reduction** (from ~97.2k tokens to ~2k tokens).
-
-All 103 tools remain fully accessible - they're discovered on-demand through `search_tools` rather than pre-loaded into the LLM's context.
+Unity MCP Server provides a **`search_tools`** meta-tool for efficient tool discovery, helping you find relevant tools quickly.
 
 ### Usage Examples
 
@@ -70,11 +68,10 @@ All 103 tools remain fully accessible - they're discovered on-demand through `se
 
 ### Benefits
 
-- **96.2% token reduction** - Only ~2k tokens instead of ~97.2k tokens at startup (Claude Desktop `/context`)
 - **Smart filtering** - Search by keywords, categories, tags, or scope (read/write/execute)
 - **Relevance scoring** - Results sorted by relevance to your query
 - **On-demand schemas** - Full inputSchema only when explicitly requested
-- **Fully compatible** - All 103 tools remain accessible via `CallTool` requests
+- **Easy discovery** - Find the right tool without browsing all 103 tools manually
 
 ## Quick Start
 
