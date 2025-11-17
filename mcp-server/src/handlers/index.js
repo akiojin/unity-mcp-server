@@ -80,6 +80,10 @@ import { VideoCaptureStartToolHandler } from './video/VideoCaptureStartToolHandl
 import { VideoCaptureStopToolHandler } from './video/VideoCaptureStopToolHandler.js';
 import { VideoCaptureStatusToolHandler } from './video/VideoCaptureStatusToolHandler.js';
 import { VideoCaptureForToolHandler } from './video/VideoCaptureForToolHandler.js';
+import { ProfilerStartToolHandler } from './profiler/ProfilerStartToolHandler.js';
+import { ProfilerStopToolHandler } from './profiler/ProfilerStopToolHandler.js';
+import { ProfilerStatusToolHandler } from './profiler/ProfilerStatusToolHandler.js';
+import { ProfilerGetMetricsToolHandler } from './profiler/ProfilerGetMetricsToolHandler.js';
 import { ComponentAddToolHandler } from './component/ComponentAddToolHandler.js';
 import { ComponentRemoveToolHandler } from './component/ComponentRemoveToolHandler.js';
 import { ComponentModifyToolHandler } from './component/ComponentModifyToolHandler.js';
@@ -113,7 +117,9 @@ import { ScriptCreateClassToolHandler } from './script/ScriptCreateClassToolHand
 import { ScriptRemoveSymbolToolHandler } from './script/ScriptRemoveSymbolToolHandler.js';
 import { CodeIndexUpdateToolHandler } from './script/CodeIndexUpdateToolHandler.js';
 import { CodeIndexBuildToolHandler } from './script/CodeIndexBuildToolHandler.js';
+import { SearchToolsHandler } from './search/SearchToolsHandler.js';
 export { BaseToolHandler } from './base/BaseToolHandler.js';
+export { SearchToolsHandler } from './search/SearchToolsHandler.js';
 
 // System handlers
 export { SystemPingToolHandler } from './system/SystemPingToolHandler.js';
@@ -213,6 +219,12 @@ export { VideoCaptureStartToolHandler } from './video/VideoCaptureStartToolHandl
 export { VideoCaptureStopToolHandler } from './video/VideoCaptureStopToolHandler.js';
 export { VideoCaptureStatusToolHandler } from './video/VideoCaptureStatusToolHandler.js';
 export { VideoCaptureForToolHandler } from './video/VideoCaptureForToolHandler.js';
+
+// Profiler handlers
+export { ProfilerStartToolHandler } from './profiler/ProfilerStartToolHandler.js';
+export { ProfilerStopToolHandler } from './profiler/ProfilerStopToolHandler.js';
+export { ProfilerStatusToolHandler } from './profiler/ProfilerStatusToolHandler.js';
+export { ProfilerGetMetricsToolHandler } from './profiler/ProfilerGetMetricsToolHandler.js';
 
 // Component handlers
 export { ComponentAddToolHandler } from './component/ComponentAddToolHandler.js';
@@ -356,6 +368,11 @@ const HANDLER_CLASSES = [
   VideoCaptureStopToolHandler,
   VideoCaptureStatusToolHandler,
   VideoCaptureForToolHandler,
+  // Profiler handlers
+  ProfilerStartToolHandler,
+  ProfilerStopToolHandler,
+  ProfilerStatusToolHandler,
+  ProfilerGetMetricsToolHandler,
   // Script handlers
   ScriptPackagesListToolHandler,
   ScriptReadToolHandler,
@@ -425,6 +442,15 @@ export function createHandlers(unityConnection) {
     }
   }
 
+  // Add SearchToolsHandler with reference to all handlers
+  try {
+    const searchHandler = new SearchToolsHandler(unityConnection, handlers);
+    handlers.set(searchHandler.name, searchHandler);
+  } catch (error) {
+    failedHandlers.push('SearchToolsHandler');
+    console.error(`[MCP] Failed to create SearchToolsHandler:`, error.message);
+  }
+
   if (failedHandlers.length > 0) {
     console.error(
       `[MCP] Failed to initialize ${failedHandlers.length} handlers: ${failedHandlers.join(', ')}`
@@ -432,7 +458,7 @@ export function createHandlers(unityConnection) {
   }
 
   console.error(
-    `[MCP] Successfully initialized ${handlers.size}/${HANDLER_CLASSES.length} handlers`
+    `[MCP] Successfully initialized ${handlers.size}/${HANDLER_CLASSES.length + 1} handlers (including search_tools)`
   );
 
   return handlers;

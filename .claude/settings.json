@@ -1,26 +1,113 @@
 {
   "permissions": {
     "allow": [
-      "mcp__textlint__lintFile",
-      "mcp__serena__get_current_config",
-      "mcp__serena__activate_project",
-      "mcp__serena__initial_instructions",
-      "mcp__serena__check_onboarding_performed",
-      "mcp__serena__read_memory",
-      "mcp__serena__find_file",
-      "mcp__serena__get_symbols_overview",
-      "mcp__serena__find_symbol",
-      "mcp__serena__think_about_collected_information",
-      "mcp__serena__list_dir",
-      "mcp__serena__search_for_pattern",
-      "mcp__serena__replace_regex",
-      "mcp__serena__think_about_whether_you_are_done",
-      "mcp__serena__summarize_changes",
-      "mcp__serena__replace_symbol_body",
-      "mcp__serena__find_referencing_symbols",
-      "mcp__serena__insert_after_symbol",
-      "mcp__serena__restart_language_server",
-      "mcp__serena__insert_before_symbol"
+      "mcp__unity-mcp-server__system_ping",
+      "mcp__unity-mcp-server__system_refresh_assets",
+      "mcp__unity-mcp-server__system_get_command_stats",
+      "mcp__unity-mcp-server__gameobject_create",
+      "mcp__unity-mcp-server__gameobject_find",
+      "mcp__unity-mcp-server__gameobject_modify",
+      "mcp__unity-mcp-server__gameobject_delete",
+      "mcp__unity-mcp-server__gameobject_get_hierarchy",
+      "mcp__unity-mcp-server__scene_create",
+      "mcp__unity-mcp-server__scene_load",
+      "mcp__unity-mcp-server__scene_save",
+      "mcp__unity-mcp-server__scene_list",
+      "mcp__unity-mcp-server__scene_info_get",
+      "mcp__unity-mcp-server__analysis_gameobject_details_get",
+      "mcp__unity-mcp-server__analysis_scene_contents_analyze",
+      "mcp__unity-mcp-server__analysis_component_values_get",
+      "mcp__unity-mcp-server__analysis_component_find",
+      "mcp__unity-mcp-server__analysis_object_references_get",
+      "mcp__unity-mcp-server__analysis_animator_state_get",
+      "mcp__unity-mcp-server__analysis_animator_runtime_info_get",
+      "mcp__unity-mcp-server__input_actions_state_get",
+      "mcp__unity-mcp-server__input_actions_asset_analyze",
+      "mcp__unity-mcp-server__playmode_play",
+      "mcp__unity-mcp-server__playmode_pause",
+      "mcp__unity-mcp-server__playmode_stop",
+      "mcp__unity-mcp-server__playmode_get_state",
+      "mcp__unity-mcp-server__playmode_wait_for_state",
+      "mcp__unity-mcp-server__ui_find_elements",
+      "mcp__unity-mcp-server__ui_click_element",
+      "mcp__unity-mcp-server__ui_get_element_state",
+      "mcp__unity-mcp-server__ui_set_element_value",
+      "mcp__unity-mcp-server__ui_simulate_input",
+      "mcp__unity-mcp-server__input_system_control",
+      "mcp__unity-mcp-server__input_keyboard",
+      "mcp__unity-mcp-server__input_mouse",
+      "mcp__unity-mcp-server__input_gamepad",
+      "mcp__unity-mcp-server__input_touch",
+      "mcp__unity-mcp-server__input_action_map_create",
+      "mcp__unity-mcp-server__input_action_map_remove",
+      "mcp__unity-mcp-server__input_action_add",
+      "mcp__unity-mcp-server__input_action_remove",
+      "mcp__unity-mcp-server__input_binding_add",
+      "mcp__unity-mcp-server__input_binding_remove",
+      "mcp__unity-mcp-server__input_binding_remove_all",
+      "mcp__unity-mcp-server__input_binding_composite_create",
+      "mcp__unity-mcp-server__input_control_schemes_manage",
+      "mcp__unity-mcp-server__asset_prefab_create",
+      "mcp__unity-mcp-server__asset_prefab_modify",
+      "mcp__unity-mcp-server__asset_prefab_instantiate",
+      "mcp__unity-mcp-server__asset_material_create",
+      "mcp__unity-mcp-server__asset_material_modify",
+      "mcp__unity-mcp-server__asset_prefab_open",
+      "mcp__unity-mcp-server__asset_prefab_exit_mode",
+      "mcp__unity-mcp-server__asset_prefab_save",
+      "mcp__unity-mcp-server__asset_import_settings_manage",
+      "mcp__unity-mcp-server__asset_database_manage",
+      "mcp__unity-mcp-server__asset_dependency_analyze",
+      "mcp__unity-mcp-server__addressables_manage",
+      "mcp__unity-mcp-server__addressables_build",
+      "mcp__unity-mcp-server__addressables_analyze",
+      "mcp__unity-mcp-server__menu_item_execute",
+      "mcp__unity-mcp-server__console_clear",
+      "mcp__unity-mcp-server__console_read",
+      "mcp__unity-mcp-server__screenshot_capture",
+      "mcp__unity-mcp-server__screenshot_analyze",
+      "mcp__unity-mcp-server__video_capture_start",
+      "mcp__unity-mcp-server__video_capture_stop",
+      "mcp__unity-mcp-server__video_capture_status",
+      "mcp__unity-mcp-server__video_capture_for",
+      "mcp__unity-mcp-server__profiler_start",
+      "mcp__unity-mcp-server__profiler_stop",
+      "mcp__unity-mcp-server__profiler_status",
+      "mcp__unity-mcp-server__profiler_get_metrics",
+      "mcp__unity-mcp-server__script_packages_list",
+      "mcp__unity-mcp-server__script_read",
+      "mcp__unity-mcp-server__script_search",
+      "mcp__unity-mcp-server__script_edit_structured",
+      "mcp__unity-mcp-server__script_edit_snippet",
+      "mcp__unity-mcp-server__script_refs_find",
+      "mcp__unity-mcp-server__script_symbol_find",
+      "mcp__unity-mcp-server__script_symbols_get",
+      "mcp__unity-mcp-server__code_index_status",
+      "mcp__unity-mcp-server__code_index_update",
+      "mcp__unity-mcp-server__code_index_build",
+      "mcp__unity-mcp-server__script_refactor_rename",
+      "mcp__unity-mcp-server__script_create_class",
+      "mcp__unity-mcp-server__script_remove_symbol",
+      "mcp__unity-mcp-server__component_add",
+      "mcp__unity-mcp-server__component_remove",
+      "mcp__unity-mcp-server__component_modify",
+      "mcp__unity-mcp-server__component_list",
+      "mcp__unity-mcp-server__component_get_types",
+      "mcp__unity-mcp-server__component_field_set",
+      "mcp__unity-mcp-server__compilation_get_state",
+      "mcp__unity-mcp-server__test_run",
+      "mcp__unity-mcp-server__test_get_status",
+      "mcp__unity-mcp-server__editor_tags_manage",
+      "mcp__unity-mcp-server__editor_layers_manage",
+      "mcp__unity-mcp-server__editor_selection_manage",
+      "mcp__unity-mcp-server__editor_windows_manage",
+      "mcp__unity-mcp-server__editor_tools_manage",
+      "mcp__unity-mcp-server__editor_quit",
+      "mcp__unity-mcp-server__settings_get",
+      "mcp__unity-mcp-server__settings_update",
+      "mcp__unity-mcp-server__package_manage",
+      "mcp__unity-mcp-server__package_registry_config",
+      "mcp__unity-mcp-server__search_tools"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -28,8 +115,7 @@
     "context7",
     "google-search",
     "markitdown",
-    "textlint",
-    "serena"
+    "unity-mcp-server"
   ],
   "hooks": {
     "PreToolUse": [
@@ -43,6 +129,62 @@
           {
             "type": "command",
             "command": ".claude/hooks/block-cd-command.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/block-cs-edit-tools.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/block-cs-edit-tools.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/block-cs-edit-tools.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__serena__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/block-cs-edit-tools.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "scripts/auto-suggest-claude-md-hook.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "scripts/auto-suggest-claude-md-hook.sh"
           }
         ]
       }

@@ -230,6 +230,68 @@ cd .worktrees/SPEC-0d5d84f9/
 - 禁止: unity-mcp-server 実装本体（ランタイム/エディタ拡張の主要コード）を置かない。UPM配布の対象にも含めない。
 - 編集: 必要最小限に留める。C#編集は外部CLIで行い、Assets側は参照/設定のみで成立させる。
 
+### C#スクリプト編集（絶対厳守）
+
+**⚠️ Unity関連のC#コード（*.cs）編集には、必ずunity-mcp-serverのコードインデックス機能を使用してください**
+
+- **禁止事項**: serena MCPや他のMCPサーバーを使用したC#編集
+- **必須**: 以下のunity-mcp-serverツールを使用
+  - `script_symbols_get`: ファイル内のシンボル（クラス、メソッド、フィールド等）を取得
+  - `script_symbol_find`: シンボルを名前で検索
+  - `script_refs_find`: シンボルの参照箇所を検索
+  - `script_edit_structured`: 構造化編集（メソッド本体置換、クラスメンバー追加）
+  - `script_edit_snippet`: 軽量スニペット編集（1〜2行、80文字以内）
+  - `script_read`: C#ファイルの読み取り
+  - `script_search`: C#コード内の検索
+
+**理由**: unity-mcp-serverはUnityプロジェクト専用に最適化されたコードインデックスを持ち、Unityエディタとのリアルタイム連携、コンパイルエラー検出、LSP診断など、Unity開発に不可欠な機能を提供します。serena MCPは汎用的なコードエディタであり、Unity固有の機能をサポートしていません。
+
+#### コードインデックスの活用
+
+**編集前の必須ステップ**:
+
+1. **`script_symbols_get`**: 編集対象ファイルのシンボル構造を把握
+   - クラス、メソッド、フィールド、プロパティの一覧を取得
+   - 各シンボルの位置（行・列）を確認
+   - namePath（例: `Outer/Nested/Member`）を特定
+
+2. **`script_symbol_find`**: シンボルを名前で検索
+   - プロジェクト全体から特定のクラス/メソッドを検索
+   - 部分一致検索も可能（`substring_matching=true`）
+   - スコープ指定（Assets/Packages）で絞り込み
+
+3. **`script_refs_find`**: 影響範囲の確認
+   - 編集対象シンボルが参照されている箇所を全検索
+   - 破壊的変更の影響範囲を事前に把握
+   - リファクタリング時の必須チェック
+
+**編集実行**:
+
+4. **`script_edit_structured`**: 構造化編集
+   - メソッド本体の完全置換
+   - クラスメンバーの追加
+   - namePath指定で対象を一意に特定
+
+5. **`script_edit_snippet`**: 軽量スニペット編集
+   - 1〜2行の小さな変更
+   - アンカー文字列で編集位置を厳密に指定
+
+**検証**:
+
+6. **`code_index_status`**: インデックス状態の確認
+   - カバレッジ率を確認
+   - インデックスが古い場合は`code_index_update`で更新
+
+**ワークフロー例**:
+
+```
+1. script_symbols_get → クラス構造を把握
+2. script_refs_find → 影響範囲を確認
+3. script_edit_structured → メソッド本体を置換
+4. code_index_update → インデックスを更新
+5. script_refs_find → 変更後の参照箇所を再確認
+```
+
 ### C#スクリプト編集ツールの使い分け
 
 #### `script_edit_snippet`: 軽量スニペット編集（1〜2行、80文字以内）
@@ -849,3 +911,250 @@ README.mdにカバレッジバッジを追加する場合：
 - **カオス試験**: ソケット遮断や遅延を注入し、再接続戦略・ジョブキューの耐障害性を検証。CIのナイトリービルドで実施しログを蓄積。
 - **テレメトリ＆リプレイ**: MCP Companion ToolkitなどでJSON-RPCログを収集し、問題再現時にローカルでリプレイ。実装の可観測性を高める。
 - **ドキュメント整備**: 上記フローと対応手順をREADMEや運用Runbookに反映し、新規開発者が同じ手順を踏めるようにする。
+
+---
+
+## Hook機能による自動化（Claude Code）
+
+このプロジェクトでは、Claude CodeのHook機能を活用して以下の自動化を実現しています。
+
+### 概要
+
+Claude CodeはHook機能により、特定のイベント（セッション終了、コンテキスト圧縮、ツール実行前後など）をトリガーとして、シェルスクリプトやLLMプロンプトを自動実行できます。このプロジェクトでは、以下の2つの目的でHookを活用しています：
+
+1. **Worktree運用の保護**: 誤操作防止のためのPreToolUse Hook
+2. **CLAUDE.md自動改善**: 会話履歴分析によるドキュメント改善提案
+
+### 実装済みHook一覧
+
+#### 1. PreToolUse Hook（ツール実行前の検証）
+
+**対象ツール**: `Bash`, `Edit`, `Write`, `Read`, `mcp__serena__*`
+
+**実装スクリプト**:
+
+a) **Worktree運用保護**:
+- `.claude/hooks/block-git-branch-ops.sh`: Gitブランチ操作のブロック
+- `.claude/hooks/block-cd-command.sh`: Worktree外へのディレクトリ移動をブロック
+- `.claude/hooks/block-file-ops.sh`: Worktree外でのファイル操作をブロック（※未登録）
+
+**目的**: Worktree運用フローの保護
+- `git checkout/switch/branch`等のブランチ切り替えを禁止
+- Worktree外への`cd`コマンドを禁止
+- Worktree外でのファイル作成・削除・移動を禁止
+
+b) **Unity C#編集保護**:
+- `.claude/hooks/block-cs-edit-tools.sh`: Unity C#ファイル編集の保護（**NEW!**）
+
+**目的**: Unity C#ファイル（*.cs）の編集をunity-mcp-server以外のツールでブロック
+
+**ブロック対象**:
+- `Edit` ツールでのUnity C#ファイル編集
+- `Write` ツールでのUnity C#ファイル作成
+- `mcp__serena__*` ツールでのUnity C#ファイル編集
+
+**警告のみ（ブロックしない）**:
+- `Read` ツールでのUnity C#ファイル読み取り（代わりに`mcp__unity-mcp-server__script_read`を推奨）
+
+**Unity C#ファイルの判定基準**:
+- ファイル拡張子が`.cs`
+- かつ以下のディレクトリ配下:
+  - `Assets/`
+  - `Packages/`
+  - `Library/`
+  - `UnityMCPServer/`
+
+**許可されるツール**:
+- `mcp__unity-mcp-server__script_edit_structured`
+- `mcp__unity-mcp-server__script_edit_snippet`
+- `mcp__unity-mcp-server__script_symbols_get`
+- `mcp__unity-mcp-server__script_symbol_find`
+- `mcp__unity-mcp-server__script_refs_find`
+- `mcp__unity-mcp-server__script_read`
+- `mcp__unity-mcp-server__script_search`
+
+**テスト**:
+```bash
+# 全10個のテストケースを実行
+.claude/hooks/test-cs-edit-blocking.sh
+```
+
+**動作仕様**:
+- Hookは標準入力からJSON（`tool_name`, `tool_input`）を受け取る
+- ブロックする場合はexit code 2を返す
+- JSON応答で`decision: "block"`とブロック理由を返す
+
+#### 2. SessionEnd Hook（セッション終了時の自動実行）
+
+**実装スクリプト**: `scripts/auto-suggest-claude-md-hook.sh`
+
+**目的**: セッション終了時に会話履歴を自動分析し、CLAUDE.md改善提案を生成
+
+**動作仕様**:
+- セッション終了時に自動実行
+- 会話履歴を分析してCLAUDE.mdへの追記候補を提案
+- バックグラウンドで実行（メインセッションをブロックしない）
+- 無限ループ防止機構を実装（5分クールダウン）
+
+#### 3. PreCompact Hook（コンテキスト圧縮前の自動実行）
+
+**実装スクリプト**: `scripts/auto-suggest-claude-md-hook.sh`
+
+**目的**: コンテキストウィンドウが満杯になる前に会話履歴を分析
+
+**動作仕様**:
+- SessionEnd Hookと同じスクリプトを使用
+- コンテキスト圧縮前に自動実行
+- 長時間の会話セッションでも定期的に分析を実行
+
+### `/suggest-claude-md` スラッシュコマンド
+
+手動でCLAUDE.md改善提案を生成するコマンドです。
+
+**使い方**:
+```
+/suggest-claude-md
+```
+
+**実行内容**:
+1. 会話履歴を取得（`~/.claude/projects/<project-name>/`から最新のJSONLファイル）
+2. 会話履歴を分析（3つの観点）:
+   - **プロジェクト独自のルール**: 標準実装ではなく、プロジェクト特有の方法
+   - **繰り返し指摘される内容**: 同じ指摘が複数回出現したパターン
+   - **複数箇所で統一すべき実装**: 関連箇所で実装を揃えるべきパターン
+3. CLAUDE.mdへの追記候補を提案
+
+**適用方法**:
+提案内容を確認後、以下のように指示してください：
+```
+この提案をCLAUDE.mdに追記してください
+```
+
+### 無限ループ防止メカニズム
+
+SessionEnd/PreCompact Hookは会話終了時に毎回発火するため、無限ループを防ぐ仕組みが必要です。このプロジェクトでは以下の3つの防止策を実装しています：
+
+#### 1. 環境変数フラグ
+
+```bash
+if [ "${SUGGEST_CLAUDE_MD_RUNNING:-}" = "1" ]; then
+    exit 0
+fi
+export SUGGEST_CLAUDE_MD_RUNNING=1
+```
+
+- 環境変数`SUGGEST_CLAUDE_MD_RUNNING`で実行フラグを管理
+- 既に実行中の場合はスキップ
+
+#### 2. タイムスタンプベース（5分クールダウン）
+
+```bash
+LAST_SUGGEST=".claude/.last-suggest-timestamp"
+CURRENT=$(date +%s)
+if [ -f "$LAST_SUGGEST" ]; then
+  DIFF=$((CURRENT - $(cat "$LAST_SUGGEST")))
+  [ $DIFF -lt 300 ] && exit 0
+fi
+echo "$CURRENT" > "$LAST_SUGGEST"
+```
+
+- 前回実行から5分以内の場合はスキップ
+- タイムスタンプファイル：`.claude/.last-suggest-timestamp`
+
+#### 3. セッションID重複チェック
+
+```bash
+SESSION_ID=$(echo "$json_input" | jq -r '.sessionId')
+LAST_SESSION=".claude/.last-session-id"
+[ -f "$LAST_SESSION" ] && [ "$(cat "$LAST_SESSION")" = "$SESSION_ID" ] && exit 0
+echo "$SESSION_ID" > "$LAST_SESSION"
+```
+
+- 同一セッションでの重複実行を防止
+- セッションIDファイル：`.claude/.last-session-id`
+
+### Hook追加・カスタマイズガイドライン
+
+新しいHookを追加する場合は、以下のガイドラインに従ってください：
+
+#### JSON応答形式の標準
+
+PreToolUse Hookは以下の形式でJSON応答を返す必要があります：
+
+**許可する場合**:
+```json
+{
+  "decision": "allow"
+}
+```
+
+**ブロックする場合**:
+```json
+{
+  "decision": "block",
+  "reason": "ブロック理由の説明"
+}
+```
+
+**exit code**:
+- 0: 許可
+- 2: ブロック
+
+#### エラーメッセージのベストプラクティス
+
+- ユーザーにわかりやすい日本語で説明
+- ブロック理由を明確に記載
+- 代替手段を提示（可能な場合）
+
+例：
+```
+❌ Worktree外へのディレクトリ移動は禁止されています。
+
+理由: このプロジェクトではWorktree運用フローを採用しており、
+      各featureブランチは独立したWorktreeで作業します。
+
+代替手段: 別のSPECで作業したい場合は、以下を実行してください：
+  cd .worktrees/SPEC-xxx/
+```
+
+#### テスト駆動開発の推奨
+
+新しいHookを追加する場合は、TDDアプローチを推奨します：
+
+1. **RED**: テストを書く（`.claude/hooks/test-hooks.sh`）
+2. **GREEN**: 最小限の実装でテスト合格
+3. **REFACTOR**: コードをクリーンアップ
+
+参考: `.claude/hooks/test-hooks.sh`（15個のテストケースを実装）
+
+### Git管理
+
+以下のファイルは`.gitignore`に登録されています：
+
+```gitignore
+# Hook実行時の一時ファイル
+.claude/.last-suggest-timestamp
+.claude/.last-session-id
+```
+
+### 参考資料
+
+このプロジェクトのHook機能は、AppBrewのたっくん氏による以下の記事を参考に実装しています：
+
+- [Claude CodeのHook機能でCLAUDE.mdの自動更新提案を実現する](https://zenn.dev/appbrew/articles/e2f38677f6a0ce)
+- [CLAUDE.mdに書くべきルールを判断する仕組み](https://zenn.dev/appbrew/articles/7eb12fff5738f4)
+
+### トラブルシューティング
+
+**Q: SessionEnd Hookが実行されない**
+- A: `.claude/settings.json`の`hooks.SessionEnd`設定を確認してください
+
+**Q: Hook実行時にエラーが出る**
+- A: スクリプトに実行権限が付与されているか確認してください（`chmod +x`）
+
+**Q: 無限ループが発生した**
+- A: `.claude/.last-suggest-timestamp`を削除して、タイムスタンプをリセットしてください
+
+**Q: 会話履歴が見つからない**
+- A: `~/.claude/projects/`配下にプロジェクトディレクトリが存在するか確認してください
+

@@ -142,7 +142,10 @@ jobs:
     name: Merge to main
     needs: semantic-release
     runs-on: ubuntu-latest
-    if: needs.semantic-release.outputs.new_release_published == 'true'
+    if: |
+      always() &&
+      (needs.semantic-release.outputs.new_release_published == 'true' ||
+       startsWith(github.event.head_commit.message, 'chore(release):'))
 
     steps:
       - name: Checkout
@@ -157,10 +160,22 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Extract version from commit or output
+        id: version
+        run: |
+          if [ "${{ needs.semantic-release.outputs.new_release_version }}" != "" ]; then
+            VERSION="${{ needs.semantic-release.outputs.new_release_version }}"
+          else
+            # Extract version from chore(release): X.Y.Z commit message
+            VERSION=$(echo "${{ github.event.head_commit.message }}" | grep -oP 'chore\(release\):\s*\K[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
       - name: Merge release branch to main
         run: |
           RELEASE_BRANCH="${GITHUB_REF#refs/heads/}"
-          VERSION="${{ needs.semantic-release.outputs.new_release_version }}"
+          VERSION="${{ steps.version.outputs.version }}"
 
           echo "Merging $RELEASE_BRANCH to main (version: $VERSION)..."
           git fetch origin "$RELEASE_BRANCH"
