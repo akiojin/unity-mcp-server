@@ -179,7 +179,7 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                Debug.Log($"[ProfilerHandler.Stop] Stopping profiling session: sessionId={s_SessionId ?? \"none\"}");
+                Debug.Log($"[ProfilerHandler.Stop] Stopping profiling session: sessionId={s_SessionId ?? "none"}");
 
                 // 1. Check if profiling is running
                 if (!s_IsRecording)
