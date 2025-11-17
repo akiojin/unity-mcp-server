@@ -44,6 +44,37 @@ export class ProfilerStartToolHandler extends BaseToolHandler {
 
   /** @override */
   async execute(params, _context) {
+    // Validate mode parameter
+    if (params?.mode && !['normal', 'deep'].includes(params.mode)) {
+      return {
+        error: `Invalid mode '${params.mode}'. Must be 'normal' or 'deep'.`,
+        code: 'E_INVALID_MODE'
+      };
+    }
+
+    // Validate maxDurationSec parameter
+    if (params?.maxDurationSec !== undefined && params.maxDurationSec < 0) {
+      return {
+        error: `Invalid maxDurationSec '${params.maxDurationSec}'. Must be >= 0.`,
+        code: 'E_INVALID_PARAMETER'
+      };
+    }
+
+    // Validate metrics parameter
+    if (params?.metrics !== undefined && !Array.isArray(params.metrics)) {
+      return {
+        error: 'Invalid metrics parameter. Must be an array of strings.',
+        code: 'E_INVALID_PARAMETER'
+      };
+    }
+
+    if (Array.isArray(params?.metrics) && params.metrics.some(m => typeof m !== 'string')) {
+      return {
+        error: 'Invalid metrics parameter. All elements must be strings.',
+        code: 'E_INVALID_PARAMETER'
+      };
+    }
+
     const command = {
       command: 'profiler_start',
       parameters: params

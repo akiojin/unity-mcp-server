@@ -24,6 +24,22 @@ export class ProfilerStopToolHandler extends BaseToolHandler {
 
   /** @override */
   async execute(params, _context) {
+    // Validate sessionId format (32 hex characters, no hyphens)
+    if (params?.sessionId) {
+      if (typeof params.sessionId !== 'string') {
+        return {
+          error: 'Invalid sessionId parameter. Must be a string.',
+          code: 'E_INVALID_PARAMETER'
+        };
+      }
+      if (!/^[0-9a-f]{32}$/.test(params.sessionId)) {
+        return {
+          error: `Invalid sessionId format '${params.sessionId}'. Must be 32 hex characters without hyphens.`,
+          code: 'E_INVALID_PARAMETER'
+        };
+      }
+    }
+
     const command = {
       command: 'profiler_stop',
       parameters: params || {}

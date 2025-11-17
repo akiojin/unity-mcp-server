@@ -31,6 +31,21 @@ export class ProfilerGetMetricsToolHandler extends BaseToolHandler {
 
   /** @override */
   async execute(params, _context) {
+    // Validate metrics parameter
+    if (params?.metrics !== undefined && !Array.isArray(params.metrics)) {
+      return {
+        error: 'Invalid metrics parameter. Must be an array of strings.',
+        code: 'E_INVALID_PARAMETER'
+      };
+    }
+
+    if (Array.isArray(params?.metrics) && params.metrics.some(m => typeof m !== 'string')) {
+      return {
+        error: 'Invalid metrics parameter. All elements must be strings.',
+        code: 'E_INVALID_PARAMETER'
+      };
+    }
+
     const command = {
       command: 'profiler_get_metrics',
       parameters: params || {}
