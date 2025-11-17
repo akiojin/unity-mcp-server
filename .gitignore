@@ -103,3 +103,7 @@ CLAUDE.local.md
 csharp-lsp/bin/
 csharp-lsp/out/
 .pnpm-store/
+
+# Claude Code Hook temporary files
+.claude/.last-suggest-timestamp
+.claude/.last-session-id
