@@ -74,11 +74,19 @@ function sanitizeSchema(schema) {
 }
 
 export class BaseToolHandler {
-  constructor(name, description, inputSchema = {}) {
+  constructor(name, description, inputSchema = {}, metadata = {}) {
     this.name = name;
     this.description = description;
     const clonedSchema = cloneSchema(inputSchema) || {};
     this.inputSchema = sanitizeSchema(clonedSchema);
+
+    // Metadata for search_tools optimization
+    this.metadata = {
+      category: metadata.category || 'general',
+      scope: metadata.scope || 'read',
+      keywords: metadata.keywords || [],
+      tags: metadata.tags || []
+    };
   }
 
   /**
@@ -191,13 +199,20 @@ export class BaseToolHandler {
 
   /**
    * Returns the tool definition for MCP
+   * @param {boolean} includeMetadata - Include metadata in the definition
    * @returns {object} Tool definition
    */
-  getDefinition() {
-    return {
+  getDefinition(includeMetadata = false) {
+    const definition = {
       name: this.name,
       description: this.description,
       inputSchema: this.inputSchema
     };
+
+    if (includeMetadata) {
+      definition.metadata = this.metadata;
+    }
+
+    return definition;
   }
 }
