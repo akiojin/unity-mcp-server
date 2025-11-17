@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { resetTestResultsCache } from '../../utils/testResultsCache.js';
+import * as testRunState from '../../utils/testRunState.js';
 
 /**
  * Handler for running Unity NUnit tests via Test Runner API
@@ -67,10 +68,14 @@ export class TestRunToolHandler extends BaseToolHandler {
 
     // Handle new non-blocking response format (status: "running")
     if (response.status === 'running') {
+      const runState = testRunState.startRun(response.testMode || params.testMode, response.runId);
       return {
         status: 'running',
         message:
-          response.message || 'Test execution started. Use get_test_status to check progress.'
+          response.message || 'Test execution started. Use get_test_status to check progress.',
+        testMode: runState.testMode || response.testMode,
+        runId: runState.runId || response.runId,
+        startedAt: runState.startedAt
       };
     }
 

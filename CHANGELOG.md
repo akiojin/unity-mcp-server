@@ -1,3 +1,18 @@
+## [2.38.0](https://github.com/akiojin/unity-mcp-server/compare/v2.37.2...v2.38.0) (2025-11-17)
+
+
+### Features
+
+* add editor_quit tool ([b8908b5](https://github.com/akiojin/unity-mcp-server/commit/b8908b5e90f953c77a9de17c978a97df64e166cc))
+* add quit_editor command for editor_quit tool ([5495b74](https://github.com/akiojin/unity-mcp-server/commit/5495b7455e77a7f5bfe8cd78b30a843d53dfaa4e))
+* **test:** persist run state and add watchdog coverage ([278e024](https://github.com/akiojin/unity-mcp-server/commit/278e02499a3defa5224fb1a5027c4b62563eabb8))
+
+
+### Bug Fixes
+
+* dedupe editor_quit handler registration ([5701c7f](https://github.com/akiojin/unity-mcp-server/commit/5701c7ffe561da69101a843e3bbebef663700deb))
+* delay quit_editor until response is sent ([49f3b4a](https://github.com/akiojin/unity-mcp-server/commit/49f3b4a8408d42ba3767d9c3be6d3ee90ef0a995))
+
 ## [2.37.2](https://github.com/akiojin/unity-mcp-server/compare/v2.37.1...v2.37.2) (2025-11-14)
 
 

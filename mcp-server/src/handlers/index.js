@@ -94,6 +94,7 @@ import { EditorLayersManageToolHandler } from './editor/EditorLayersManageToolHa
 import { EditorSelectionManageToolHandler } from './editor/EditorSelectionManageToolHandler.js';
 import { EditorWindowsManageToolHandler } from './editor/EditorWindowsManageToolHandler.js';
 import { EditorToolsManageToolHandler } from './editor/EditorToolsManageToolHandler.js';
+import { EditorQuitToolHandler } from './editor/EditorQuitToolHandler.js';
 import { SettingsGetToolHandler } from './settings/SettingsGetToolHandler.js';
 import { SettingsUpdateToolHandler } from './settings/SettingsUpdateToolHandler.js';
 import PackageManagerToolHandler from './package/PackageManagerToolHandler.js';
@@ -392,6 +393,7 @@ const HANDLER_CLASSES = [
   EditorSelectionManageToolHandler,
   EditorWindowsManageToolHandler,
   EditorToolsManageToolHandler,
+  EditorQuitToolHandler,
 
   // Settings handlers
   SettingsGetToolHandler,

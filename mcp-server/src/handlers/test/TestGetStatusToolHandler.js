@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import * as testResultsCache from '../../utils/testResultsCache.js';
+import * as testRunState from '../../utils/testRunState.js';
 
 /**
  * Handler for getting Unity test execution status
@@ -33,13 +34,32 @@ export class TestGetStatusToolHandler extends BaseToolHandler {
    * @returns {Promise<Object>} Test execution status and results
    */
   async execute(params) {
-    // Ensure connection to Unity
-    if (!this.unityConnection.isConnected()) {
-      await this.unityConnection.connect();
-    }
+    let response;
+    try {
+      // Ensure connection to Unity
+      if (!this.unityConnection.isConnected()) {
+        await this.unityConnection.connect();
+      }
 
-    // Send command to Unity
-    const response = await this.unityConnection.sendCommand('get_test_status', params || {});
+      // Send command to Unity
+      response = await this.unityConnection.sendCommand('get_test_status', params || {});
+    } catch (error) {
+      // 一度リトライしてみる（ドメインリロード直後を考慮）
+      try {
+        await this.unityConnection.connect();
+        response = await this.unityConnection.sendCommand('get_test_status', params || {});
+      } catch (retryError) {
+        // Connection or transport error persists: fall back to cached run state so callers
+        // can still distinguish "テスト起因のPlayMode" かどうか。
+        const cached = testRunState.getState();
+        return {
+          ...cached,
+          status: cached.status || 'error',
+          error: retryError.message,
+          connectionState: 'disconnected'
+        };
+      }
+    }
 
     // Handle Unity response
     if (response.error) {
@@ -48,12 +68,14 @@ export class TestGetStatusToolHandler extends BaseToolHandler {
 
     // Return status directly if still running or idle
     if (response.status === 'running') {
-      return response;
+      const merged = { ...testRunState.updateFromStatus(response), ...response };
+      return merged;
     }
 
     if (response.status === 'idle') {
+      testRunState.markIdle();
       const cached = await this.testResultsCache.loadCachedTestResults();
-      return cached || response;
+      return cached || testRunState.getState() || response;
     }
 
     // Format completed results
@@ -68,13 +90,16 @@ export class TestGetStatusToolHandler extends BaseToolHandler {
         inconclusiveTests: response.inconclusiveTests,
         summary: `${response.passedTests}/${response.totalTests} tests passed`,
         failures: response.failures || [],
-        tests: response.tests || []
+        tests: response.tests || [],
+        testMode: response.testMode || testRunState.getState().testMode,
+        runId: testRunState.getState().runId
       };
 
       if (response.latestResult) {
         result.latestResult = response.latestResult;
       }
 
+      testRunState.updateFromStatus({ ...result, status: 'completed' });
       const artifactPath = await this.testResultsCache.persistTestResults(result);
       const cachedResult = await this.testResultsCache.loadCachedTestResults(artifactPath);
 
