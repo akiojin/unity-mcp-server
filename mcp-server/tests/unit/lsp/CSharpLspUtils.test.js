@@ -17,7 +17,9 @@ describe('CSharpLspUtils', () => {
     mock.reset();
     while (tmpDirs.length > 0) {
       const dir = tmpDirs.pop();
-      try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+      try {
+        fs.rmSync(dir, { recursive: true, force: true });
+      } catch {}
     }
   });
 
@@ -91,6 +93,18 @@ describe('CSharpLspUtils', () => {
     });
   });
 
+  describe('fetchLatestReleaseVersion', () => {
+    it('returns version string from latest release tag', async () => {
+      mock.method(global, 'fetch', async () => ({
+        ok: true,
+        json: async () => ({ tag_name: 'v9.9.9' })
+      }));
+
+      const version = await utils.fetchLatestReleaseVersion('owner/repo');
+      assert.equal(version, '9.9.9');
+    });
+  });
+
   describe('writeLocalVersion method', () => {
     it('should have writeLocalVersion method', () => {
       assert.ok(utils.writeLocalVersion);
@@ -129,7 +143,7 @@ describe('CSharpLspUtils', () => {
   describe('tool root resolution', () => {
     const rid = 'linux-x64';
 
-    const makeTmp = (prefix) => {
+    const makeTmp = prefix => {
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
       tmpDirs.push(dir);
       return dir;

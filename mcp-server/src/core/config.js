@@ -17,6 +17,32 @@ function merge(a, b) {
   return out;
 }
 
+function resolvePackageVersion() {
+  const candidates = [];
+
+  // Resolve relative to this module (always inside mcp-server/src/core)
+  try {
+    const moduleDir = path.dirname(new URL(import.meta.url).pathname);
+    candidates.push(path.resolve(moduleDir, '../../package.json'));
+  } catch {}
+
+  // When executed from workspace root (monorepo) or inside mcp-server package
+  try {
+    const here = findUpSync('package.json', { cwd: process.cwd() });
+    if (here) candidates.push(here);
+  } catch {}
+
+  for (const candidate of candidates) {
+    try {
+      if (!candidate || !fs.existsSync(candidate)) continue;
+      const pkg = JSON.parse(fs.readFileSync(candidate, 'utf8'));
+      if (pkg?.version) return pkg.version;
+    } catch {}
+  }
+
+  return '0.1.0';
+}
+
 /**
  * Base configuration for Unity MCP Server Server
  */
@@ -44,7 +70,7 @@ const baseConfig = {
   // Server settings
   server: {
     name: 'unity-mcp-server',
-    version: '0.1.0',
+    version: resolvePackageVersion(),
     description: 'MCP server for Unity Editor integration'
   },
 
