@@ -5,7 +5,7 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEngine.TestTools;
 
-namespace UnityMCPServer.Tests.PlayMode
+namespace UnityMCPServer.Tests.Editor
 {
     public class RuntimeChangePersistenceTests
     {

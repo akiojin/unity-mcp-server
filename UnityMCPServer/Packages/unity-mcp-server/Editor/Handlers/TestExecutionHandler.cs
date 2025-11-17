@@ -23,6 +23,14 @@ namespace UnityMCPServer.Handlers
         private static TestRunnerApi testRunnerApi;
         private static TestResultCollector currentCollector;
         private static bool isTestRunning;
+        private static string currentTestMode;
+        private static string currentRunId;
+        private static DateTime? runStartedAtUtc;
+        private static DateTime? runLastUpdateUtc;
+        private static string RunStatePath => Path.GetFullPath(Path.Combine(GetWorkspaceRoot(), ".unity/tests/test-run-state.json"));
+        private static bool playModeOptionsPatched;
+        private static bool prevEnterPlayModeOptionsEnabled;
+        private static EnterPlayModeOptions prevEnterPlayModeOptions;
         internal static Func<bool> DirtySceneDetector = DetectDirtyScenes;
         internal static Func<bool> PlayModeDetector = () => Application.isPlaying;
         private static readonly string DefaultResultsFolder = Path.GetFullPath(Path.Combine(Application.dataPath, "../.unity/test-results"));
@@ -62,6 +70,34 @@ namespace UnityMCPServer.Handlers
                 if (testMode != "EditMode" && testMode != "PlayMode" && testMode != "All")
                 {
                     return new { error = "Invalid testMode. Must be EditMode, PlayMode, or All" };
+                }
+
+                // Block test run while compiling or when compile errors exist
+                var compResultObj = CompilationHandler.GetCompilationState(new JObject { ["includeMessages"] = false });
+                var compResult = compResultObj != null ? JObject.FromObject(compResultObj) : null;
+                bool isCompiling = compResult?["isCompiling"]?.ToObject<bool>() ?? false;
+                int errorCount = compResult?["errorCount"]?.ToObject<int>() ?? 0;
+                string lastCompilationTime = compResult?["lastCompilationTime"]?.ToString();
+
+                if (isCompiling)
+                {
+                    return new
+                    {
+                        error = "Cannot run tests while compilation is in progress.",
+                        code = "COMPILING",
+                        lastCompilationTime
+                    };
+                }
+
+                if (errorCount > 0)
+                {
+                    return new
+                    {
+                        error = $"Cannot run tests because the last compilation has {errorCount} error(s).",
+                        code = "COMPILATION_ERRORS",
+                        errorCount,
+                        lastCompilationTime
+                    };
                 }
 
                 if (PlayModeDetector?.Invoke() ?? Application.isPlaying)
@@ -116,8 +152,19 @@ namespace UnityMCPServer.Handlers
                     filterSettings.assemblyNames = new[] { namespaceFilter };
                 }
 
+                // Reduce domain reload impact during PlayMode tests
+                if (testMode != "EditMode")
+                {
+                    ApplyEnterPlayModeOptionsPatch();
+                }
+
                 currentCollector = new TestResultCollector(resolvedExportPath, includeDetails, testMode);
                 var collector = currentCollector;
+                currentTestMode = testMode;
+                currentRunId = Guid.NewGuid().ToString();
+                runStartedAtUtc = DateTime.UtcNow;
+                runLastUpdateUtc = runStartedAtUtc;
+                SaveRunState("running");
                 testRunnerApi.RegisterCallbacks(collector);
 
                 isTestRunning = true;
@@ -128,6 +175,7 @@ namespace UnityMCPServer.Handlers
                 return new
                 {
                     status = "running",
+                    runId = currentRunId,
                     message = "Test execution started. Use get_test_status to check progress."
                 };
             }
@@ -151,19 +199,63 @@ namespace UnityMCPServer.Handlers
 
                 if (isTestRunning)
                 {
+                    // Watchdog: if Play Mode already exited and no updates for >10s, abort
+                    var elapsedSinceLast = runLastUpdateUtc.HasValue
+                        ? (DateTime.UtcNow - runLastUpdateUtc.Value).TotalSeconds
+                        : 0;
+                    if (!(Application.isPlaying) && elapsedSinceLast > 10)
+                    {
+                        isTestRunning = false;
+                        currentCollector = null;
+                        SaveRunState("error", "RUNNER_TIMEOUT");
+                        return new
+                        {
+                            status = "error",
+                            code = "RUNNER_TIMEOUT",
+                            message = "PlayMode ended but test runner did not finish within watchdog window.",
+                            testMode = currentTestMode,
+                            runId = currentRunId,
+                            elapsedSeconds = (runStartedAtUtc.HasValue ? (DateTime.UtcNow - runStartedAtUtc.Value).TotalSeconds : (double?)null),
+                            watchdogSeconds = elapsedSinceLast
+                        };
+                    }
+
+                    SaveRunState("running");
+
                     return new
                     {
                         status = "running",
-                        message = "Test execution in progress"
+                        message = "Test execution in progress",
+                        testMode = currentTestMode,
+                        runId = currentRunId,
+                        source = "test_run",
+                        elapsedSeconds = runStartedAtUtc.HasValue ? (DateTime.UtcNow - runStartedAtUtc.Value).TotalSeconds : (double?)null
                     };
                 }
 
                 if (currentCollector == null)
                 {
+                    var persisted = LoadRunState();
+                    if (persisted != null && persisted.status == "running")
+                    {
+                        return new
+                        {
+                            status = "running",
+                            message = "Test execution in progress (persisted state)",
+                            testMode = persisted.testMode,
+                            runId = persisted.runId,
+                            source = "test_run",
+                            persisted = true,
+                            elapsedSeconds = persisted.runStartedAt.HasValue ? (DateTime.UtcNow - persisted.runStartedAt.Value).TotalSeconds : (double?)null
+                        };
+                    }
+
                     return new
                     {
                         status = "idle",
-                        message = "No test execution in progress or completed"
+                        message = "No test execution in progress or completed",
+                        runId = currentRunId,
+                        testMode = currentTestMode
                     };
                 }
 
@@ -179,6 +271,8 @@ namespace UnityMCPServer.Handlers
                     ["failedTests"] = collector.FailedTests.Count,
                     ["skippedTests"] = collector.SkippedTests.Count,
                     ["inconclusiveTests"] = collector.InconclusiveTests.Count,
+                    ["runId"] = currentRunId,
+                    ["testMode"] = currentTestMode,
                     ["failures"] = collector.FailedTests.Select(t => new
                     {
                         testName = t.fullName,
@@ -201,6 +295,7 @@ namespace UnityMCPServer.Handlers
                     completed["latestResult"] = BuildLatestResult(includeFileContent);
                 }
 
+                ClearRunState();
                 return completed;
             }
             catch (Exception e)
@@ -336,6 +431,26 @@ namespace UnityMCPServer.Handlers
             lastResultTimestampUtc = DateTime.UtcNow;
         }
 
+        private static void ApplyEnterPlayModeOptionsPatch()
+        {
+            if (playModeOptionsPatched) return;
+            prevEnterPlayModeOptionsEnabled = EditorSettings.enterPlayModeOptionsEnabled;
+            prevEnterPlayModeOptions = EditorSettings.enterPlayModeOptions;
+
+            // Enable Enter Play Mode Options and disable domain reload to keep callbacks alive during tests
+            EditorSettings.enterPlayModeOptionsEnabled = true;
+            EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload;
+            playModeOptionsPatched = true;
+        }
+
+        private static void RestoreEnterPlayModeOptions()
+        {
+            if (!playModeOptionsPatched) return;
+            EditorSettings.enterPlayModeOptionsEnabled = prevEnterPlayModeOptionsEnabled;
+            EditorSettings.enterPlayModeOptions = prevEnterPlayModeOptions;
+            playModeOptionsPatched = false;
+        }
+
         private static object BuildLatestResult(bool includeFileContent)
         {
             if (string.IsNullOrEmpty(lastResultPath) || !File.Exists(lastResultPath) || lastResultSummary == null)
@@ -370,6 +485,94 @@ namespace UnityMCPServer.Handlers
             };
         }
 
+        private class PersistedRunState
+        {
+            public string runId;
+            public string testMode;
+            public string status;
+            public DateTime? runStartedAt;
+            public DateTime? lastUpdate;
+            public string code;
+        }
+
+        private static void SaveRunState(string status, string code = null)
+        {
+            try
+            {
+                var path = RunStatePath;
+                var state = new PersistedRunState
+                {
+                    runId = currentRunId,
+                    testMode = currentTestMode,
+                    status = status,
+                    runStartedAt = runStartedAtUtc,
+                    lastUpdate = runLastUpdateUtc,
+                    code = code
+                };
+                var json = JsonConvert.SerializeObject(state, Formatting.Indented);
+                var dir = Path.GetDirectoryName(path);
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+                File.WriteAllText(path, json);
+                Debug.Log($"[TestExecutionHandler] Persisted run state to {path} (status={status})");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[TestExecutionHandler] Failed to persist run state: {ex.Message}");
+            }
+        }
+
+        private static PersistedRunState LoadRunState()
+        {
+            try
+            {
+                var path = RunStatePath;
+                if (!File.Exists(path)) return null;
+                var json = File.ReadAllText(path);
+                var state = JsonConvert.DeserializeObject<PersistedRunState>(json);
+                Debug.Log($"[TestExecutionHandler] Loaded persisted run state from {path}: {state?.status} runId={state?.runId}");
+                return state;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[TestExecutionHandler] Failed to load run state: {ex.Message}");
+                return null;
+            }
+        }
+
+        private static void ClearRunState()
+        {
+            try
+            {
+                var path = RunStatePath;
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                    Debug.Log($"[TestExecutionHandler] Cleared persisted run state at {path}");
+                }
+            }
+            catch { }
+        }
+
+        private static string ResolveRunStatePath()
+        {
+            return RunStatePath;
+        }
+
+        private static string GetWorkspaceRoot()
+        {
+            try
+            {
+                return Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+            }
+            catch
+            {
+                return Environment.CurrentDirectory;
+            }
+        }
+
         private class TestResultCollector : ICallbacks
         {
             private readonly string exportPath;
@@ -394,6 +597,7 @@ namespace UnityMCPServer.Handlers
             public void RunStarted(ITestAdaptor testsToRun)
             {
                 runStartedAtUtc = DateTime.UtcNow;
+                runLastUpdateUtc = runStartedAtUtc;
                 TotalTests = CountTests(testsToRun);
                 Debug.Log($"[TestExecutionHandler] Starting test run with {TotalTests} tests");
             }
@@ -401,8 +605,10 @@ namespace UnityMCPServer.Handlers
             public void RunFinished(ITestResultAdaptor result)
             {
                 isTestRunning = false;
+                runLastUpdateUtc = DateTime.UtcNow;
                 Debug.Log($"[TestExecutionHandler] Test run finished. Passed: {PassedTests.Count}, Failed: {FailedTests.Count}");
                 ExportResults(result);
+                RestoreEnterPlayModeOptions();
             }
 
             public void TestStarted(ITestAdaptor test)
@@ -413,6 +619,7 @@ namespace UnityMCPServer.Handlers
             public void TestFinished(ITestResultAdaptor result)
             {
                 Debug.Log($"[TestExecutionHandler] Test finished: {result.Test.FullName} [{result.TestStatus}]");
+                runLastUpdateUtc = DateTime.UtcNow;
 
                 var testResult = new TestResultData
                 {
@@ -508,6 +715,7 @@ namespace UnityMCPServer.Handlers
                     Debug.LogError($"[TestExecutionHandler] Failed to export test results to '{exportPath}': {ex.Message}");
                 }
             }
+
         }
 #else
         /// <summary>
