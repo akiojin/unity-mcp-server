@@ -1,8 +1,8 @@
 import { describe, it, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from '../../../src/core/server.js';
-import { 
-  ListToolsRequestSchema, 
+import {
+  ListToolsRequestSchema,
   CallToolRequestSchema,
   ListResourcesRequestSchema,
   ListPromptsRequestSchema
@@ -22,11 +22,11 @@ describe('Server', () => {
         version: '1.0.0'
       }
     };
-    
+
     testSetup = await createServer(mockConfig);
     server = testSetup.server;
     unityConnection = testSetup.unityConnection;
-    
+
     // Track request handlers
     requestHandlers = new Map();
     const originalSetRequestHandler = server.setRequestHandler.bind(server);
@@ -34,7 +34,7 @@ describe('Server', () => {
       requestHandlers.set(schema.method, handler);
       return originalSetRequestHandler(schema, handler);
     });
-    
+
     // Mock Unity connection
     unityConnection.isConnected = mock.fn(() => true);
     unityConnection.sendCommand = mock.fn(async () => ({
@@ -67,7 +67,7 @@ describe('Server', () => {
   describe('Tool functionality', () => {
     it('should execute ping tool successfully', async () => {
       // Mock the Unity response
-      unityConnection.sendCommand.mock.mockImplementation(async (command) => {
+      unityConnection.sendCommand.mock.mockImplementation(async command => {
         if (command === 'ping') {
           return {
             message: 'pong',
@@ -78,7 +78,9 @@ describe('Server', () => {
       });
 
       // Import and test the handler directly
-      const { SystemPingToolHandler } = await import('../../../src/handlers/system/SystemPingToolHandler.js');
+      const { SystemPingToolHandler } = await import(
+        '../../../src/handlers/system/SystemPingToolHandler.js'
+      );
       const pingHandler = new SystemPingToolHandler(unityConnection);
 
       const result = await pingHandler.handle({ message: 'test' });
@@ -88,17 +90,19 @@ describe('Server', () => {
     });
 
     it('should handle gameobject_create with validation', async () => {
-      const { GameObjectCreateToolHandler } = await import('../../../src/handlers/gameobject/GameObjectCreateToolHandler.js');
+      const { GameObjectCreateToolHandler } = await import(
+        '../../../src/handlers/gameobject/GameObjectCreateToolHandler.js'
+      );
       const handler = new GameObjectCreateToolHandler(unityConnection);
-      
+
       // Test validation error
       const errorResult = await handler.handle({
         primitiveType: 'invalid_type'
       });
-      
+
       assert.equal(errorResult.status, 'error');
       assert.ok(errorResult.error.includes('primitiveType must be one of'));
-      
+
       // Test success
       unityConnection.sendCommand.mock.mockImplementation(async () => ({
         id: -1000,
@@ -111,12 +115,12 @@ describe('Server', () => {
         layer: 0,
         isActive: true
       }));
-      
+
       const successResult = await handler.handle({
         name: 'TestCube',
         primitiveType: 'cube'
       });
-      
+
       assert.equal(successResult.status, 'success');
       assert.equal(successResult.result.name, 'TestCube');
     });
@@ -127,10 +131,10 @@ describe('Server', () => {
       // Import createHandlers to test it directly
       const { createHandlers } = await import('../../../src/handlers/index.js');
       const handlers = createHandlers(unityConnection);
-      
+
       assert.ok(handlers instanceof Map);
       assert.ok(handlers.size >= 96);
-      
+
       // Check for some key handlers
       assert.ok(handlers.has('system_ping'));
       assert.ok(handlers.has('gameobject_create'));
@@ -145,7 +149,7 @@ describe('Server', () => {
       // Check for UI handlers
       assert.ok(handlers.has('ui_find_elements'));
       assert.ok(handlers.has('ui_click_element'));
-      
+
       // Check for component handlers
       assert.ok(handlers.has('component_add'));
       assert.ok(handlers.has('component_remove'));
@@ -164,12 +168,14 @@ describe('Server', () => {
       assert.ok(handlers.has('asset_import_settings_manage'));
       assert.ok(handlers.has('asset_database_manage'));
       assert.ok(handlers.has('asset_dependency_analyze'));
+      // Check for search_tools meta-tool
+      assert.ok(handlers.has('search_tools'));
     });
 
     it('should have handlers with correct structure', async () => {
       const { createHandlers } = await import('../../../src/handlers/index.js');
       const handlers = createHandlers(unityConnection);
-      
+
       for (const [name, handler] of handlers) {
         assert.equal(handler.name, name);
         assert.ok(handler.description);
@@ -184,15 +190,17 @@ describe('Server', () => {
 
   describe('Unity connection handling', () => {
     it('should handle Unity connection errors gracefully', async () => {
-      const { SystemPingToolHandler } = await import('../../../src/handlers/system/SystemPingToolHandler.js');
+      const { SystemPingToolHandler } = await import(
+        '../../../src/handlers/system/SystemPingToolHandler.js'
+      );
       const handler = new SystemPingToolHandler(unityConnection);
-      
+
       unityConnection.sendCommand.mock.mockImplementation(async () => {
         throw new Error('Unity not responding');
       });
-      
+
       const result = await handler.handle({});
-      
+
       assert.equal(result.status, 'error');
       assert.equal(result.error, 'Unity not responding');
       assert.equal(result.code, 'TOOL_ERROR');
@@ -201,16 +209,18 @@ describe('Server', () => {
     it('should connect to Unity if not connected', async () => {
       unityConnection.isConnected.mock.mockImplementation(() => false);
       unityConnection.connect = mock.fn(async () => {});
-      
-      const { SystemPingToolHandler } = await import('../../../src/handlers/system/SystemPingToolHandler.js');
+
+      const { SystemPingToolHandler } = await import(
+        '../../../src/handlers/system/SystemPingToolHandler.js'
+      );
       const handler = new SystemPingToolHandler(unityConnection);
-      
+
       unityConnection.sendCommand.mock.mockImplementation(async () => ({
         message: 'pong'
       }));
-      
+
       await handler.execute({});
-      
+
       assert.equal(unityConnection.connect.mock.calls.length, 1);
     });
   });
@@ -218,7 +228,7 @@ describe('Server', () => {
   describe('Error handling', () => {
     it('should handle handler exceptions', async () => {
       const { BaseToolHandler } = await import('../../../src/handlers/base/BaseToolHandler.js');
-      
+
       class ErrorHandler extends BaseToolHandler {
         constructor() {
           super('error_test', 'Test error handling');
@@ -227,10 +237,10 @@ describe('Server', () => {
           throw new Error('Test error');
         }
       }
-      
+
       const handler = new ErrorHandler();
       const result = await handler.handle({});
-      
+
       assert.equal(result.status, 'error');
       assert.equal(result.error, 'Test error');
       assert.equal(result.details.tool, 'error_test');
@@ -238,7 +248,7 @@ describe('Server', () => {
 
     it('should include error codes when available', async () => {
       const { BaseToolHandler } = await import('../../../src/handlers/base/BaseToolHandler.js');
-      
+
       class CodedErrorHandler extends BaseToolHandler {
         constructor() {
           super('coded_error_test', 'Test coded error');
@@ -249,10 +259,10 @@ describe('Server', () => {
           throw error;
         }
       }
-      
+
       const handler = new CodedErrorHandler();
       const result = await handler.handle({});
-      
+
       assert.equal(result.status, 'error');
       assert.equal(result.code, 'CUSTOM_ERROR_CODE');
     });
