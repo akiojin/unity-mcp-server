@@ -4,7 +4,8 @@ MCP (Model Context Protocol) server for Unity Editor integration. Enables AI ass
 
 ## Features
 
-- **70 comprehensive tools** across 13 categories for Unity Editor automation
+- **103 comprehensive tools** across 15+ categories for Unity Editor automation
+- **Tool discovery** - Efficient `search_tools` meta-tool for discovering relevant tools (96.2% token reduction)
 - **GameObject management** - Create, find, modify, delete GameObjects with full hierarchy control
 - **Component system** - Add, remove, modify components with property control
 - **Scene management** - Create, load, save, list scenes with build settings integration
@@ -16,6 +17,62 @@ MCP (Model Context Protocol) server for Unity Editor integration. Enables AI ass
 - **Project settings** - Read and update Unity project settings safely
 - **Editor operations** - Console logs, screenshots, compilation monitoring
 - **Editor control** - Manage tags, layers, selection, windows, and tools
+
+## Tool Discovery (Token Optimization)
+
+Unity MCP Server provides a **`search_tools`** meta-tool for efficient tool discovery, reducing initial token consumption by **96.2%** (from 21,892 tokens to 833 tokens).
+
+### Usage Examples
+
+```javascript
+// Find tools for GameObject manipulation
+{
+  "tool": "search_tools",
+  "params": {
+    "query": "gameobject",
+    "limit": 10
+  }
+}
+// Returns: gameobject_create, gameobject_find, gameobject_modify, ...
+
+// Filter by category
+{
+  "tool": "search_tools",
+  "params": {
+    "category": "scene",
+    "limit": 10
+  }
+}
+// Returns: scene_create, scene_load, scene_save, scene_list, scene_info_get
+
+// Filter by tags
+{
+  "tool": "search_tools",
+  "params": {
+    "tags": ["create", "asset"],
+    "limit": 5
+  }
+}
+// Returns tools that create assets
+
+// Include full input schemas (when needed)
+{
+  "tool": "search_tools",
+  "params": {
+    "query": "screenshot",
+    "includeSchemas": true
+  }
+}
+// Returns full tool definitions with inputSchema
+```
+
+### Benefits
+
+- **96.2% token reduction** - Only 833 tokens instead of 21,892 tokens for initial tool listing
+- **Smart filtering** - Search by keywords, categories, tags, or scope (read/write/execute)
+- **Relevance scoring** - Results sorted by relevance to your query
+- **On-demand schemas** - Full inputSchema only when explicitly requested
+- **Backward compatible** - All 103 tools still accessible via traditional ListTools
 
 ## Quick Start
 

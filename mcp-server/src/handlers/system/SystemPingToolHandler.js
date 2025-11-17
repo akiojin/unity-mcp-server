@@ -1,4 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
+import { CATEGORIES, SCOPES } from '../base/categories.js';
 
 /**
  * Handler for the system_ping tool
@@ -18,9 +19,15 @@ export class SystemPingToolHandler extends BaseToolHandler {
           }
         },
         required: []
+      },
+      {
+        category: CATEGORIES.SYSTEM,
+        scope: SCOPES.READ,
+        keywords: ['ping', 'test', 'connection', 'health', 'status'],
+        tags: ['system', 'diagnostic', 'health-check']
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -34,12 +41,12 @@ export class SystemPingToolHandler extends BaseToolHandler {
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }
-    
+
     // Send ping command with optional message
     const result = await this.unityConnection.sendCommand('ping', {
       message: params.message || 'ping'
     });
-    
+
     // Format the result for the response
     return {
       message: result.message,
