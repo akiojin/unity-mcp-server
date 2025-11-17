@@ -11,6 +11,11 @@ export class ConsoleReadToolHandler extends BaseToolHandler {
       {
         type: 'object',
         properties: {
+          raw: {
+            type: 'boolean',
+            description:
+              'When true, do not expand/validate logTypes and pass them directly to Unity. Use with caution.'
+          },
           count: {
             type: 'number',
             description: 'Number of logs to retrieve (1-1000, default: 100)',
@@ -19,10 +24,11 @@ export class ConsoleReadToolHandler extends BaseToolHandler {
           },
           logTypes: {
             type: 'array',
-            description: 'Filter by log types (default: ["All"])',
+            description:
+              'Filter by log types. Allowed: Log, Warning, Error. Error expands to include Exception/Assert internally. Default: all three.',
             items: {
               type: 'string',
-              enum: ['Info', 'Warning', 'Error', 'All']
+              enum: ['Log', 'Warning', 'Error']
             }
           },
           filterText: {
@@ -88,11 +94,10 @@ export class ConsoleReadToolHandler extends BaseToolHandler {
         throw new Error('logTypes must be an array');
       }
 
-      const validTypes = ['Info', 'Warning', 'Error', 'All'];
+      const validTypes = ['Log', 'Warning', 'Error'];
       for (const type of logTypes) {
         if (!validTypes.includes(type)) {
-          // Invalid types are treated as 'All' later, so just log a warning
-          console.warn(`Invalid log type: ${type}. Will be treated as 'All'.`);
+          throw new Error(`logTypes must be one of: ${validTypes.join(', ')}`);
         }
       }
     }
@@ -177,34 +182,31 @@ export class ConsoleReadToolHandler extends BaseToolHandler {
       groupBy
     } = params;
 
-    // Convert simplified log types to Unity log types
+    // Allowed: Log / Warning / Error. Error expands to include Exception/Assert.
     let expandedLogTypes = [];
-
-    if (!logTypes || logTypes.length === 0 || logTypes.includes('All')) {
-      // Default to all types
+    if (!logTypes || logTypes.length === 0) {
       expandedLogTypes = ['Log', 'Warning', 'Error', 'Exception', 'Assert'];
     } else {
-      // Expand each simplified type to Unity types
       logTypes.forEach(type => {
         switch (type) {
-          case 'Info':
+          case 'Log':
             expandedLogTypes.push('Log');
             break;
           case 'Warning':
             expandedLogTypes.push('Warning');
             break;
           case 'Error':
-            // Error includes all error-related types
             expandedLogTypes.push('Error', 'Exception', 'Assert');
             break;
-          case 'All':
-            expandedLogTypes.push('Log', 'Warning', 'Error', 'Exception', 'Assert');
+          default:
+            // ignore (validate already enforces)
             break;
         }
       });
-
-      // Remove duplicates
       expandedLogTypes = [...new Set(expandedLogTypes)];
+      if (expandedLogTypes.length === 0) {
+        expandedLogTypes = ['Log', 'Warning', 'Error', 'Exception', 'Assert'];
+      }
     }
 
     // Ensure connection to Unity

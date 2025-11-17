@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
@@ -12,7 +14,6 @@ namespace UnityMCPServer.Handlers
     /// </summary>
     public static class CompilationHandler
     {
-
         /// <summary>
         /// Compilation message structure
         /// </summary>
@@ -40,8 +41,11 @@ namespace UnityMCPServer.Handlers
                 // Get current compilation state
                 bool isCompiling = EditorApplication.isCompiling;
                 bool isUpdating = EditorApplication.isUpdating;
-                
-                // 監視機構は廃止。現在のコンソールからのスナップショットのみを返す。
+
+                // Always get current console counts via LogEntries (internal API)
+                var (errCount, warnCount, logCount) = GetConsoleCounts();
+
+                // Snapshot console for error details (optional)
                 var uniqueMessages = SnapshotConsoleMessages(maxMessages)
                     .GroupBy(m => $"{m.file}:{m.line}:{m.message}")
                     .Select(g => g.First())
@@ -55,10 +59,10 @@ namespace UnityMCPServer.Handlers
                     isCompiling = isCompiling,
                     isUpdating = isUpdating,
                     isMonitoring = false,
-                    lastCompilationTime = (string)null,
+                    lastCompilationTime = GetLastAssemblyWriteTime(),
                     messageCount = uniqueMessages.Count,
-                    errorCount = uniqueMessages.Count(m => m.type == "Error"),
-                    warningCount = uniqueMessages.Count(m => m.type == "Warning")
+                    errorCount = errCount,
+                    warningCount = warnCount
                 };
 
                 if (includeMessages)
@@ -143,6 +147,48 @@ namespace UnityMCPServer.Handlers
                 return input;
             
             return char.ToUpper(input[0]) + input.Substring(1).ToLower();
+        }
+
+        private static (int error, int warning, int log) GetConsoleCounts()
+        {
+            int err = 0, warn = 0, log = 0;
+            try
+            {
+                var logEntriesType = Type.GetType("UnityEditor.LogEntries, UnityEditor");
+                var method = logEntriesType?.GetMethod("GetCountsByType", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                if (method != null)
+                {
+                    object[] args = { err, warn, log };
+                    method.Invoke(null, args);
+                    err = (int)args[0];
+                    warn = (int)args[1];
+                    log = (int)args[2];
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[CompilationHandler] GetConsoleCounts failed: {ex.Message}");
+            }
+            return (err, warn, log);
+        }
+
+        private static string GetLastAssemblyWriteTime()
+        {
+            try
+            {
+                var dir = Path.GetFullPath(Path.Combine(Application.dataPath, "../Library/ScriptAssemblies"));
+                if (!Directory.Exists(dir)) return null;
+                var latest = Directory.GetFiles(dir, "*.dll", SearchOption.TopDirectoryOnly)
+                    .Select(f => File.GetLastWriteTimeUtc(f))
+                    .DefaultIfEmpty(DateTime.MinValue)
+                    .Max();
+                return latest == DateTime.MinValue ? null : latest.ToString("o");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[CompilationHandler] GetLastAssemblyWriteTime failed: {ex.Message}");
+                return null;
+            }
         }
     }
 }
