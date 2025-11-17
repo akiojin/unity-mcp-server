@@ -416,6 +416,50 @@ sequenceDiagram
 - Capabilities: simulate keyboard, mouse, gamepad, and touch input for playmode testing and UI interaction.
 - Tip: Ensure your project uses Input System; otherwise simulated input will not affect gameplay.
 
+## Profiler Performance Measurement
+
+Unity Profiler integration via MCP tools for performance analysis and optimization.
+
+### Available Tools
+
+- **`profiler_start`**: Start profiling session with configurable modes (normal/deep)
+- **`profiler_stop`**: Stop profiling and save `.data` file
+- **`profiler_status`**: Get current profiling session status
+- **`profiler_get_metrics`**: Query available metrics or current metric values
+
+### Features
+
+- **Recording Modes**: Normal (standard profiling) and Deep (detailed analysis with higher overhead)
+- **File Output**: Save profiling data to `.data` files in `.unity/capture/` for analysis in Unity Profiler Window
+- **Real-time Metrics**: Query current performance metrics without file output
+- **Auto-stop**: Automatically stop profiling after specified duration
+- **Selective Metrics**: Record specific metrics (e.g., 'System Used Memory', 'Draw Calls Count')
+
+### Example Usage
+
+```javascript
+// Start profiling session (normal mode, save to file)
+await client.callTool('profiler_start', {
+  mode: 'normal',
+  recordToFile: true,
+  maxDurationSec: 60  // Auto-stop after 60 seconds
+});
+
+// Get current status
+const status = await client.callTool('profiler_status', {});
+// Returns: { isRecording: true, sessionId, startedAt, elapsedSec, remainingSec }
+
+// Stop profiling
+const result = await client.callTool('profiler_stop', {});
+// Returns: { sessionId, outputPath, duration, frameCount, metrics }
+```
+
+### Output
+
+- **File Location**: `.unity/capture/profiler_{sessionId}_{timestamp}.data`
+- **Format**: Unity Profiler binary format (`.data`)
+- **Analysis**: Open `.data` files in Unity Editor → Window → Analysis → Profiler
+
 ## C# Language Server (LSP)
 
 The project bundles a self-contained C# Language Server (LSP). The MCP server auto-downloads and manages its lifecycle. `script_*` tools talk to the LSP under the hood:
