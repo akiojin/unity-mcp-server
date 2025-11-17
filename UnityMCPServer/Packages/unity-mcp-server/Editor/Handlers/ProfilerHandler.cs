@@ -16,6 +16,12 @@ namespace UnityMCPServer.Handlers
     /// </summary>
     public static class ProfilerHandler
     {
+        private class MetricRecorder
+        {
+            public string Name { get; set; }
+            public ProfilerRecorder Recorder { get; set; }
+        }
+
         // Session state (static fields)
         private static bool s_IsRecording;
         private static string s_SessionId;
@@ -25,8 +31,8 @@ namespace UnityMCPServer.Handlers
         private static string s_Mode;
         private static bool s_RecordToFile;
         private static string[] s_Metrics;
-        private static List<ProfilerRecorder> s_ProfilerRecorders;
-        private static System.Action s_AutoStopCallback;
+        private static List<MetricRecorder> s_ProfilerRecorders;
+        private static EditorApplication.CallbackFunction s_AutoStopCallback;
 
         /// <summary>
         /// Start profiling session.
@@ -67,24 +73,8 @@ namespace UnityMCPServer.Handlers
                 }
 
                 // 4. Validate metrics (if specified)
-                if (metrics != null && metrics.Length > 0)
-                {
-                    var availableHandles = ProfilerRecorderHandle.GetAvailable();
-                    var availableNames = new HashSet<string>(
-                        availableHandles.Select(h => h.Name)
-                    );
-
-                    var invalidMetrics = metrics.Where(m => !availableNames.Contains(m)).ToArray();
-                    if (invalidMetrics.Length > 0)
-                    {
-                        return new
-                        {
-                            error = $"Invalid metrics: {string.Join(", ", invalidMetrics)}",
-                            code = "E_INVALID_METRICS",
-                            invalidMetrics
-                        };
-                    }
-                }
+                // Note: ProfilerRecorder.StartNew() will validate metric names at runtime
+                // We skip pre-validation as ProfilerRecorderHandle.GetAvailable() is not available in Unity.Profiling namespace
 
                 // 5. Generate session ID (GUID without hyphens)
                 s_SessionId = Guid.NewGuid().ToString("N");
@@ -114,7 +104,7 @@ namespace UnityMCPServer.Handlers
                 ProfilerDriver.deepProfiling = (mode == "deep");
 
                 // 10. Initialize ProfilerRecorders for specified metrics
-                s_ProfilerRecorders = new List<ProfilerRecorder>();
+                s_ProfilerRecorders = new List<MetricRecorder>();
                 if (metrics != null && metrics.Length > 0)
                 {
                     foreach (var metricName in metrics)
@@ -125,7 +115,11 @@ namespace UnityMCPServer.Handlers
                             1,
                             ProfilerRecorderOptions.Default
                         );
-                        s_ProfilerRecorders.Add(recorder);
+                        s_ProfilerRecorders.Add(new MetricRecorder
+                        {
+                            Name = metricName,
+                            Recorder = recorder
+                        });
                     }
                 }
 
@@ -211,16 +205,16 @@ namespace UnityMCPServer.Handlers
                 if (!s_RecordToFile && s_ProfilerRecorders != null)
                 {
                     var metricsList = new List<object>();
-                    foreach (var recorder in s_ProfilerRecorders)
+                    foreach (var metricRecorder in s_ProfilerRecorders)
                     {
-                        if (recorder.Valid && recorder.Count > 0)
+                        if (metricRecorder.Recorder.Valid && metricRecorder.Recorder.Count > 0)
                         {
-                            var sample = recorder.LastValue;
+                            var sample = metricRecorder.Recorder.LastValue;
                             metricsList.Add(new
                             {
-                                name = recorder.Name,
+                                name = metricRecorder.Name,
                                 value = sample,
-                                unit = GetMetricUnit(recorder.Name)
+                                unit = GetMetricUnit(metricRecorder.Name)
                             });
                         }
                     }
@@ -260,9 +254,9 @@ namespace UnityMCPServer.Handlers
                 // 8. Dispose all ProfilerRecorders
                 if (s_ProfilerRecorders != null)
                 {
-                    foreach (var recorder in s_ProfilerRecorders)
+                    foreach (var metricRecorder in s_ProfilerRecorders)
                     {
-                        recorder.Dispose();
+                        metricRecorder.Recorder.Dispose();
                     }
                     s_ProfilerRecorders = null;
                 }
@@ -361,57 +355,59 @@ namespace UnityMCPServer.Handlers
 
                 if (listAvailable)
                 {
-                    // Return available metrics grouped by category
-                    var availableHandles = ProfilerRecorderHandle.GetAvailable();
-                    var categoriesDict = new Dictionary<string, List<string>>();
-
-                    foreach (var handle in availableHandles)
+                    // Return common metrics grouped by category
+                    // Note: ProfilerRecorderHandle.GetAvailable() is not available in Unity.Profiling
+                    // We provide a curated list of commonly used metrics
+                    var categories = new Dictionary<string, object>
                     {
-                        var categoryName = handle.Category.ToString();
-                        if (!categoriesDict.ContainsKey(categoryName))
+                        ["Memory"] = new[]
                         {
-                            categoriesDict[categoryName] = new List<string>();
+                            "System Used Memory",
+                            "GC Allocated In Frame",
+                            "GC Reserved Memory",
+                            "Total Reserved Memory",
+                            "Total Used Memory"
+                        },
+                        ["Rendering"] = new[]
+                        {
+                            "Draw Calls Count",
+                            "Triangles Count",
+                            "Vertices Count",
+                            "SetPass Calls Count",
+                            "Batches Count"
+                        },
+                        ["Scripts"] = new[]
+                        {
+                            "Scripts Update Time",
+                            "Scripts LateUpdate Time",
+                            "Scripts FixedUpdate Time"
+                        },
+                        ["Physics"] = new[]
+                        {
+                            "Physics Simulation Time",
+                            "Active Rigidbodies Count",
+                            "Active Colliders Count"
                         }
-                        categoriesDict[categoryName].Add(handle.Name);
-                    }
-
-                    // Convert to response format
-                    var categories = new Dictionary<string, object>();
-                    foreach (var kvp in categoriesDict)
-                    {
-                        categories[kvp.Key] = kvp.Value.ToArray();
-                    }
+                    };
 
                     return new { categories };
                 }
                 else
                 {
                     // Return current metric values
-                    List<ProfilerRecorder> tempRecorders = null;
+                    List<MetricRecorder> tempRecorders = null;
                     try
                     {
-                        tempRecorders = new List<ProfilerRecorder>();
+                        tempRecorders = new List<MetricRecorder>();
                         var metricsToQuery = metrics ?? new string[0];
 
-                        // If no specific metrics requested, get all available
+                        // If no specific metrics requested, return error
                         if (metricsToQuery.Length == 0)
-                        {
-                            var availableHandles = ProfilerRecorderHandle.GetAvailable();
-                            metricsToQuery = availableHandles.Select(h => h.Name).ToArray();
-                        }
-
-                        // Validate metrics
-                        var availableNames = new HashSet<string>(
-                            ProfilerRecorderHandle.GetAvailable().Select(h => h.Name)
-                        );
-                        var invalidMetrics = metricsToQuery.Where(m => !availableNames.Contains(m)).ToArray();
-                        if (invalidMetrics.Length > 0)
                         {
                             return new
                             {
-                                error = $"Invalid metrics: {string.Join(", ", invalidMetrics)}",
-                                code = "E_INVALID_METRICS",
-                                invalidMetrics
+                                error = "No metrics specified. Provide metrics parameter or use listAvailable=true",
+                                code = "E_INVALID_PARAMETER"
                             };
                         }
 
@@ -424,7 +420,11 @@ namespace UnityMCPServer.Handlers
                                 metricName,
                                 1
                             );
-                            tempRecorders.Add(recorder);
+                            tempRecorders.Add(new MetricRecorder
+                            {
+                                Name = metricName,
+                                Recorder = recorder
+                            });
 
                             if (recorder.Valid && recorder.Count > 0)
                             {
@@ -444,9 +444,9 @@ namespace UnityMCPServer.Handlers
                         // Dispose temporary recorders
                         if (tempRecorders != null)
                         {
-                            foreach (var recorder in tempRecorders)
+                            foreach (var metricRecorder in tempRecorders)
                             {
-                                recorder.Dispose();
+                                metricRecorder.Recorder.Dispose();
                             }
                         }
                     }
