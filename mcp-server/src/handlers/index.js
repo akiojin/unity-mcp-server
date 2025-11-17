@@ -80,6 +80,10 @@ import { VideoCaptureStartToolHandler } from './video/VideoCaptureStartToolHandl
 import { VideoCaptureStopToolHandler } from './video/VideoCaptureStopToolHandler.js';
 import { VideoCaptureStatusToolHandler } from './video/VideoCaptureStatusToolHandler.js';
 import { VideoCaptureForToolHandler } from './video/VideoCaptureForToolHandler.js';
+import { ProfilerStartToolHandler } from './profiler/ProfilerStartToolHandler.js';
+import { ProfilerStopToolHandler } from './profiler/ProfilerStopToolHandler.js';
+import { ProfilerStatusToolHandler } from './profiler/ProfilerStatusToolHandler.js';
+import { ProfilerGetMetricsToolHandler } from './profiler/ProfilerGetMetricsToolHandler.js';
 import { ComponentAddToolHandler } from './component/ComponentAddToolHandler.js';
 import { ComponentRemoveToolHandler } from './component/ComponentRemoveToolHandler.js';
 import { ComponentModifyToolHandler } from './component/ComponentModifyToolHandler.js';
@@ -215,6 +219,12 @@ export { VideoCaptureStartToolHandler } from './video/VideoCaptureStartToolHandl
 export { VideoCaptureStopToolHandler } from './video/VideoCaptureStopToolHandler.js';
 export { VideoCaptureStatusToolHandler } from './video/VideoCaptureStatusToolHandler.js';
 export { VideoCaptureForToolHandler } from './video/VideoCaptureForToolHandler.js';
+
+// Profiler handlers
+export { ProfilerStartToolHandler } from './profiler/ProfilerStartToolHandler.js';
+export { ProfilerStopToolHandler } from './profiler/ProfilerStopToolHandler.js';
+export { ProfilerStatusToolHandler } from './profiler/ProfilerStatusToolHandler.js';
+export { ProfilerGetMetricsToolHandler } from './profiler/ProfilerGetMetricsToolHandler.js';
 
 // Component handlers
 export { ComponentAddToolHandler } from './component/ComponentAddToolHandler.js';
@@ -358,6 +368,11 @@ const HANDLER_CLASSES = [
   VideoCaptureStopToolHandler,
   VideoCaptureStatusToolHandler,
   VideoCaptureForToolHandler,
+  // Profiler handlers
+  ProfilerStartToolHandler,
+  ProfilerStopToolHandler,
+  ProfilerStatusToolHandler,
+  ProfilerGetMetricsToolHandler,
   // Script handlers
   ScriptPackagesListToolHandler,
   ScriptReadToolHandler,

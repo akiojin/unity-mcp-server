@@ -1,0 +1,57 @@
+/**
+ * Handler for getting Unity Profiler metrics (via MCP)
+ */
+import { BaseToolHandler } from '../base/BaseToolHandler.js';
+
+export class ProfilerGetMetricsToolHandler extends BaseToolHandler {
+  constructor(unityConnection) {
+    super(
+      'profiler_get_metrics',
+      'Get available profiler metrics or current metric values. Can list all available metrics by category, or query current values of specific metrics.',
+      {
+        type: 'object',
+        properties: {
+          listAvailable: {
+            type: 'boolean',
+            default: false,
+            description:
+              'If true, return list of all available metrics grouped by category. If false, return current values of specified metrics.'
+          },
+          metrics: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              "Specific metrics to query (only used when listAvailable=false). Leave empty to get all current metric values. Examples: 'System Used Memory', 'Draw Calls Count'"
+          }
+        }
+      }
+    );
+    this.unityConnection = unityConnection;
+  }
+
+  /** @override */
+  async execute(params, _context) {
+    // Validate metrics parameter
+    if (params?.metrics !== undefined && !Array.isArray(params.metrics)) {
+      return {
+        error: 'Invalid metrics parameter. Must be an array of strings.',
+        code: 'E_INVALID_PARAMETER'
+      };
+    }
+
+    if (Array.isArray(params?.metrics) && params.metrics.some(m => typeof m !== 'string')) {
+      return {
+        error: 'Invalid metrics parameter. All elements must be strings.',
+        code: 'E_INVALID_PARAMETER'
+      };
+    }
+
+    const command = {
+      command: 'profiler_get_metrics',
+      parameters: params || {}
+    };
+
+    const result = await this.unityConnection.sendCommand(command);
+    return result;
+  }
+}
