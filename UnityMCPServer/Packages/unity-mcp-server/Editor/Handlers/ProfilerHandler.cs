@@ -35,6 +35,13 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
+                var mode = parameters["mode"]?.ToString() ?? "normal";
+                var recordToFile = parameters["recordToFile"]?.ToObject<bool>() ?? true;
+                var metricsCount = parameters["metrics"]?.ToObject<string[]>()?.Length ?? 0;
+                var maxDurationSec = parameters["maxDurationSec"]?.ToObject<double>() ?? 0;
+
+                Debug.Log($"[ProfilerHandler.Start] Starting profiling session: mode={mode}, recordToFile={recordToFile}, metrics={metricsCount}, maxDuration={maxDurationSec}s");
+
                 // 1. Check if already recording
                 if (s_IsRecording)
                 {
@@ -47,10 +54,7 @@ namespace UnityMCPServer.Handlers
                 }
 
                 // 2. Parse parameters
-                var mode = parameters["mode"]?.ToString() ?? "normal";
-                var recordToFile = parameters["recordToFile"]?.ToObject<bool>() ?? true;
                 var metrics = parameters["metrics"]?.ToObject<string[]>();
-                var maxDurationSec = parameters["maxDurationSec"]?.ToObject<double>() ?? 0;
 
                 // 3. Validate mode
                 if (mode != "normal" && mode != "deep")
@@ -146,6 +150,8 @@ namespace UnityMCPServer.Handlers
                 s_RecordToFile = recordToFile;
                 s_Metrics = metrics;
 
+                Debug.Log($"[ProfilerHandler.Start] Profiling session started successfully: sessionId={s_SessionId}, outputPath={s_OutputPath}");
+
                 // 13. Return response
                 return new
                 {
@@ -173,6 +179,8 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
+                Debug.Log($"[ProfilerHandler.Stop] Stopping profiling session: sessionId={s_SessionId ?? \"none\"}");
+
                 // 1. Check if profiling is running
                 if (!s_IsRecording)
                 {
@@ -269,6 +277,8 @@ namespace UnityMCPServer.Handlers
                 s_Mode = null;
                 s_RecordToFile = false;
                 s_Metrics = null;
+
+                Debug.Log($"[ProfilerHandler.Stop] Profiling session stopped successfully: sessionId={sessionId}, duration={duration:F2}s, frameCount={frameCount}");
 
                 // 10. Return response
                 return new
