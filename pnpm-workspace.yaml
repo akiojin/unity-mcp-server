@@ -1,5 +1,0 @@
-packages:
-  - mcp-server
-
-onlyBuiltDependencies:
-  - better-sqlite3

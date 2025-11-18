@@ -27,18 +27,11 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.20.0
-          run_install: false
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
+          cache: 'npm'
 
       - name: Install build tools (Linux)
         if: runner.os == 'Linux'
@@ -47,26 +40,26 @@ jobs:
           sudo apt-get install -y build-essential python3 make gcc g++
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Run Markdownlint
         working-directory: ./mcp-server
         run: >
-          pnpm exec markdownlint "./**/*.md"
+          npx markdownlint "./**/*.md"
           --config ../.markdownlint.json
           --ignore-path ../.markdownlintignore
 
       - name: Run ESLint
         working-directory: ./mcp-server
-        run: pnpm exec eslint src tests --ext .js --max-warnings=0
+        run: npx eslint src tests --ext .js --max-warnings=0
 
       - name: Check formatting
         working-directory: ./mcp-server
-        run: pnpm exec prettier --check .
+        run: npx prettier --check .
         continue-on-error: true
 
       - name: Run tests
-        run: pnpm --filter mcp-server run test:ci
+        run: npm run test:ci --workspace=mcp-server
         env:
           NODE_ENV: test
           CI: true
@@ -97,21 +90,14 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.20.0
-          run_install: false
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Run semantic-release
         id: semantic
@@ -126,7 +112,7 @@ jobs:
         run: |
           # semantic-releaseを実行して出力を取得（ログも表示）
           set -o pipefail
-          pnpm exec semantic-release | tee release-output.txt
+          npx semantic-release | tee release-output.txt
           RELEASE_EXIT_CODE=${PIPESTATUS[0]}
 
           # semantic-releaseの出力を解析して新しいリリースが作成されたか確認
