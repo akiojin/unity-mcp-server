@@ -97,7 +97,7 @@ const baseConfig = {
   // Indexing (code index) settings
   indexing: {
     // Enable periodic incremental index updates (polling watcher)
-    watch: (process.env.INDEX_WATCH || 'false').toLowerCase() === 'true',
+    watch: true,
     // Polling interval (ms)
     intervalMs: Number(process.env.INDEX_WATCH_INTERVAL_MS || 15000),
     // Build options
