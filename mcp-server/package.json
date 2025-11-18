@@ -1,6 +1,6 @@
 {
   "name": "@akiojin/unity-mcp-server",
-  "version": "2.40.1",
+  "version": "2.40.2",
   "description": "MCP server and Unity Editor bridge — enables AI assistants to control Unity for AI-assisted workflows",
   "type": "module",
   "main": "src/core/server.js",
@@ -26,11 +26,11 @@
     "simulate:code-index": "node scripts/simulate-code-index-status.mjs",
     "test:verbose": "VERBOSE_TEST=true node --test tests/**/*.test.js",
     "prepare": "cd .. && husky || true",
-    "prepublishOnly": "pnpm run test:ci",
+    "prepublishOnly": "npm run test:ci",
     "postinstall": "chmod +x bin/unity-mcp-server || true",
     "test:ci:unity": "timeout 60 node --test tests/unit/core/codeIndex.test.js tests/unit/core/codeIndexDb.test.js tests/unit/core/config.test.js tests/unit/core/indexWatcher.test.js tests/unit/core/projectInfo.test.js tests/unit/core/server.test.js || exit 0",
     "test:unity": "node tests/run-unity-integration.mjs",
-    "test:nounity": "pnpm run test:integration",
+    "test:nounity": "npm run test:integration",
     "test:ci:integration": "CI=true NODE_ENV=test node --test tests/integration/code-index-background.test.js"
   },
   "keywords": [
@@ -59,11 +59,6 @@
     "type": "git",
     "url": "https://github.com/akiojin/unity-mcp-server.git",
     "directory": "mcp-server"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "better-sqlite3"
-    ]
   },
   "homepage": "https://github.com/akiojin/unity-mcp-server#readme",
   "bugs": {
