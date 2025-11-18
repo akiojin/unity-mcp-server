@@ -332,6 +332,42 @@ npm uninstall -g @akiojin/unity-mcp-server
 npm install -g @akiojin/unity-mcp-server
 ```
 
+### "Capabilities: none" or No Tools Registered
+
+If your MCP client (e.g., Claude Code) shows "Capabilities: none" or doesn't list any tools:
+
+**Symptoms:**
+
+- Server connects successfully but shows no capabilities
+- ListTools returns empty array
+- All tools are unavailable despite connection
+
+**Solution:**
+
+**Update to latest version** (v2.40.3 or later):
+
+```bash
+# Force update to latest version
+npm cache clean --force
+npx @akiojin/unity-mcp-server@latest
+```
+
+**Verify Unity Editor connection**:
+
+- Ensure Unity Editor is running
+- Check Unity console for "[MCP] Initialized" message
+- Verify port 6400 is accessible
+
+**Check MCP client compatibility**:
+
+- Some MCP clients may cache server capabilities
+- Restart the MCP client after updating the server
+- Check client logs for capability negotiation errors
+
+**Why this happens:**
+
+Versions prior to v2.40.3 incorrectly declared empty `resources: {}` and `prompts: {}` capabilities, which some MCP clients interpreted as "no capabilities available". This has been fixed in v2.40.3.
+
 ## Repository
 
 Full source code and documentation: <https://github.com/akiojin/unity-mcp-server>
