@@ -14,10 +14,16 @@ export class ScriptRemoveSymbolToolHandler extends BaseToolHandler {
           path: { type: 'string', description: 'Project-relative C# file path' },
           namePath: { type: 'string', description: 'Symbol path like Outer/Nested/Member' },
           apply: { type: 'boolean', description: 'Apply changes immediately (default: false)' },
-          failOnReferences: { type: 'boolean', description: 'Fail if symbol has references (default: true)' },
-          removeEmptyFile: { type: 'boolean', description: 'Remove file if it becomes empty (default: false)' }
+          failOnReferences: {
+            type: 'boolean',
+            description: 'Fail if symbol has references (default: true)'
+          },
+          removeEmptyFile: {
+            type: 'boolean',
+            description: 'Remove file if it becomes empty (default: false)'
+          }
         },
-        required: ['path','namePath']
+        required: ['path', 'namePath']
       }
     );
     this.projectInfo = new ProjectInfoProvider(unityConnection);
@@ -25,7 +31,13 @@ export class ScriptRemoveSymbolToolHandler extends BaseToolHandler {
   }
 
   async execute(params) {
-    const { path, namePath, apply = false, failOnReferences = true, removeEmptyFile = false } = params;
+    const {
+      path,
+      namePath,
+      apply = false,
+      failOnReferences = true,
+      removeEmptyFile = false
+    } = params;
     const info = await this.projectInfo.get();
     if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
     const resp = await this.lsp.request('mcp/removeSymbol', {
@@ -56,7 +68,9 @@ export class ScriptRemoveSymbolToolHandler extends BaseToolHandler {
           if ('file' in e) o.file = String(e.file).slice(0, 260);
           if ('line' in e) o.line = e.line;
           if ('column' in e) o.column = e.column;
-        } else { o.message = String(e).slice(0, MAX_MSG_LEN); }
+        } else {
+          o.message = String(e).slice(0, MAX_MSG_LEN);
+        }
         return o;
       });
       out.errorCount = trimmed.length;
@@ -65,13 +79,13 @@ export class ScriptRemoveSymbolToolHandler extends BaseToolHandler {
     }
     // workspace情報は返さない（厳格: .sln必須のため）
 
-    for (const k of ['preview','diff','text','content']) {
+    for (const k of ['preview', 'diff', 'text', 'content']) {
       if (typeof res[k] === 'string' && res[k].length > 0) {
         out[k] = res[k].slice(0, MAX_TEXT_LEN);
         if (res[k].length > MAX_TEXT_LEN) out[`${k}Truncated`] = true;
       }
     }
-    for (const k of ['operation','path','relative','symbolName']) {
+    for (const k of ['operation', 'path', 'relative', 'symbolName']) {
       if (res[k] !== undefined) out[k] = res[k];
     }
     return Object.keys(out).length ? out : res;

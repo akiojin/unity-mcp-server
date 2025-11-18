@@ -8,19 +8,19 @@ class MockUnityConnection {
     this.connected = true;
     this.mockResponses = new Map();
   }
-  
+
   isConnected() {
     return this.connected;
   }
-  
+
   async connect() {
     this.connected = true;
   }
-  
+
   setMockResponse(command, response) {
     this.mockResponses.set(command, response);
   }
-  
+
   async sendCommand(command, params) {
     const response = this.mockResponses.get(command);
     if (response) {
@@ -49,32 +49,34 @@ describe('ComponentRemoveToolHandler', () => {
 
   describe('validate', () => {
     it('should fail without gameObjectPath', () => {
-      assert.throws(
-        () => handler.validate({ componentType: 'Rigidbody' }),
-        { message: 'Missing required parameter: gameObjectPath' }
-      );
+      assert.throws(() => handler.validate({ componentType: 'Rigidbody' }), {
+        message: 'Missing required parameter: gameObjectPath'
+      });
     });
 
     it('should fail without componentType', () => {
-      assert.throws(
-        () => handler.validate({ gameObjectPath: '/TestObject' }),
-        { message: 'Missing required parameter: componentType' }
-      );
+      assert.throws(() => handler.validate({ gameObjectPath: '/TestObject' }), {
+        message: 'Missing required parameter: componentType'
+      });
     });
 
     it('should pass with valid parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        gameObjectPath: '/TestObject',
-        componentType: 'Rigidbody'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          gameObjectPath: '/TestObject',
+          componentType: 'Rigidbody'
+        })
+      );
     });
 
     it('should pass with componentIndex', () => {
-      assert.doesNotThrow(() => handler.validate({
-        gameObjectPath: '/TestObject',
-        componentType: 'BoxCollider',
-        componentIndex: 1
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          gameObjectPath: '/TestObject',
+          componentType: 'BoxCollider',
+          componentIndex: 1
+        })
+      );
     });
   });
 
@@ -119,10 +121,11 @@ describe('ComponentRemoveToolHandler', () => {
       });
 
       await assert.rejects(
-        async () => await handler.execute({
-          gameObjectPath: '/TestObject',
-          componentType: 'Transform'
-        }),
+        async () =>
+          await handler.execute({
+            gameObjectPath: '/TestObject',
+            componentType: 'Transform'
+          }),
         { message: 'Cannot remove Transform component' }
       );
     });

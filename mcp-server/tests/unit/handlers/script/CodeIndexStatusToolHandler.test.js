@@ -262,8 +262,16 @@ describe('CodeIndexStatusToolHandler', () => {
         };
 
         assert.equal(mockResult.index.buildJob.status, 'running');
-        assert.equal(mockResult.index.buildJob.completedAt, undefined, 'completedAt should not exist for running job');
-        assert.equal(mockResult.index.buildJob.result, undefined, 'result should not exist for running job');
+        assert.equal(
+          mockResult.index.buildJob.completedAt,
+          undefined,
+          'completedAt should not exist for running job'
+        );
+        assert.equal(
+          mockResult.index.buildJob.result,
+          undefined,
+          'result should not exist for running job'
+        );
       });
     });
 
@@ -341,7 +349,11 @@ describe('CodeIndexStatusToolHandler', () => {
         assert.equal(mockResult.index.buildJob.status, 'failed');
         assert.ok(mockResult.index.buildJob.error, 'error should exist');
         assert.ok(mockResult.index.buildJob.failedAt, 'failedAt should exist');
-        assert.equal(mockResult.index.buildJob.result, undefined, 'result should not exist for failed job');
+        assert.equal(
+          mockResult.index.buildJob.result,
+          undefined,
+          'result should not exist for failed job'
+        );
       });
     });
 
@@ -393,7 +405,12 @@ describe('CodeIndexStatusToolHandler', () => {
               progress: { processed: 1500, total: 1500, rate: 15.2 },
               startedAt: '2025-10-29T10:00:00Z',
               completedAt: '2025-10-29T10:05:00Z',
-              result: { updatedFiles: 50, removedFiles: 0, totalIndexedSymbols: 15500, lastIndexedAt: '2025-10-29T10:05:00Z' }
+              result: {
+                updatedFiles: 50,
+                removedFiles: 0,
+                totalIndexedSymbols: 15500,
+                lastIndexedAt: '2025-10-29T10:05:00Z'
+              }
             }
           }
         };

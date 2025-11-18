@@ -28,7 +28,10 @@ describe('PlaymodeGetStateToolHandler', () => {
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'playmode_get_state');
-      assert.equal(handler.description, 'Get current Unity editor state including play mode status');
+      assert.equal(
+        handler.description,
+        'Get current Unity editor state including play mode status'
+      );
       assert.equal(handler.inputSchema.required, undefined);
     });
   });
@@ -42,10 +45,13 @@ describe('PlaymodeGetStateToolHandler', () => {
   describe('execute', () => {
     it('should get editor state in edit mode', async () => {
       const result = await handler.execute({});
-      
+
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.deepEqual(mockConnection.sendCommand.mock.calls[0].arguments, ['get_editor_state', {}]);
-      
+      assert.deepEqual(mockConnection.sendCommand.mock.calls[0].arguments, [
+        'get_editor_state',
+        {}
+      ]);
+
       assert.ok(result);
       assert.ok(result.state);
       assert.equal(result.state.isPlaying, false);
@@ -72,9 +78,9 @@ describe('PlaymodeGetStateToolHandler', () => {
         }
       });
       handler = new PlaymodeGetStateToolHandler(mockConnection);
-      
+
       const result = await handler.execute({});
-      
+
       assert.equal(result.state.isPlaying, true);
       assert.equal(result.state.isPaused, false);
     });
@@ -95,9 +101,9 @@ describe('PlaymodeGetStateToolHandler', () => {
         }
       });
       handler = new PlaymodeGetStateToolHandler(mockConnection);
-      
+
       const result = await handler.execute({});
-      
+
       assert.equal(result.state.isPlaying, true);
       assert.equal(result.state.isPaused, true);
     });
@@ -118,9 +124,9 @@ describe('PlaymodeGetStateToolHandler', () => {
         }
       });
       handler = new PlaymodeGetStateToolHandler(mockConnection);
-      
+
       const result = await handler.execute({});
-      
+
       assert.equal(result.state.isCompiling, true);
       assert.equal(result.state.isPlaying, false);
     });
@@ -128,20 +134,19 @@ describe('PlaymodeGetStateToolHandler', () => {
     it('should throw error if not connected', async () => {
       mockConnection = createMockUnityConnection();
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      mockConnection.connect.mock.mockImplementation(async () => { throw new Error('Connection refused'); });
+      mockConnection.connect.mock.mockImplementation(async () => {
+        throw new Error('Connection refused');
+      });
       handler = new PlaymodeGetStateToolHandler(mockConnection);
 
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /Connection refused/
-      );
+      await assert.rejects(async () => await handler.execute({}), /Connection refused/);
     });
   });
 
   describe('integration with BaseToolHandler', () => {
     it('should handle valid request through handle method', async () => {
       const result = await handler.handle({});
-      
+
       assert.equal(result.status, 'success');
       assert.ok(result.result);
       assert.ok(result.result.state);
@@ -156,9 +161,9 @@ describe('PlaymodeGetStateToolHandler', () => {
         }
       });
       handler = new PlaymodeGetStateToolHandler(mockConnection);
-      
+
       const result = await handler.handle({});
-      
+
       assert.equal(result.status, 'error');
       assert.match(result.error, /Failed to get editor state/);
     });

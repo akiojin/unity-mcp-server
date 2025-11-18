@@ -36,11 +36,13 @@ describe('ScriptReadToolHandler', () => {
     });
 
     it('should pass with line range', () => {
-      assert.doesNotThrow(() => handler.validate({
-        path: 'Assets/Scripts/Example.cs',
-        startLine: 10,
-        endLine: 50
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          path: 'Assets/Scripts/Example.cs',
+          startLine: 10,
+          endLine: 50
+        })
+      );
     });
 
     it('should throw error when path is empty', () => {
@@ -48,18 +50,26 @@ describe('ScriptReadToolHandler', () => {
     });
 
     it('should throw error when startLine is less than 1', () => {
-      assert.throws(() => handler.validate({
-        path: 'Assets/Scripts/Example.cs',
-        startLine: 0
-      }), /startLine must be at least 1/);
+      assert.throws(
+        () =>
+          handler.validate({
+            path: 'Assets/Scripts/Example.cs',
+            startLine: 0
+          }),
+        /startLine must be at least 1/
+      );
     });
 
     it('should throw error when endLine is less than startLine', () => {
-      assert.throws(() => handler.validate({
-        path: 'Assets/Scripts/Example.cs',
-        startLine: 50,
-        endLine: 10
-      }), /endLine cannot be less than startLine/);
+      assert.throws(
+        () =>
+          handler.validate({
+            path: 'Assets/Scripts/Example.cs',
+            startLine: 50,
+            endLine: 10
+          }),
+        /endLine cannot be less than startLine/
+      );
     });
   });
 

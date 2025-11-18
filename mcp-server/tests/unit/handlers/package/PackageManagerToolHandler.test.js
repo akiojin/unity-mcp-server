@@ -27,7 +27,14 @@ describe('PackageManagerToolHandler', () => {
       const schema = handler.inputSchema;
       assert.equal(schema.type, 'object');
       assert.ok(schema.properties.action);
-      assert.deepEqual(schema.properties.action.enum, ['search', 'list', 'install', 'remove', 'info', 'recommend']);
+      assert.deepEqual(schema.properties.action.enum, [
+        'search',
+        'list',
+        'install',
+        'remove',
+        'info',
+        'recommend'
+      ]);
       assert.deepEqual(schema.required, ['action']);
     });
   });
@@ -38,45 +45,42 @@ describe('PackageManagerToolHandler', () => {
     });
 
     it('should pass with search action and keyword', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'search',
-        keyword: 'timeline'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'search',
+          keyword: 'timeline'
+        })
+      );
     });
 
     it('should throw error for search without keyword', () => {
-      assert.throws(
-        () => handler.validate({ action: 'search' }),
-        /keyword is required/
-      );
+      assert.throws(() => handler.validate({ action: 'search' }), /keyword is required/);
     });
 
     it('should pass with install action and packageId', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'install',
-        packageId: 'com.unity.textmeshpro'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'install',
+          packageId: 'com.unity.textmeshpro'
+        })
+      );
     });
 
     it('should throw error for install without packageId', () => {
-      assert.throws(
-        () => handler.validate({ action: 'install' }),
-        /Package ID is required/
-      );
+      assert.throws(() => handler.validate({ action: 'install' }), /Package ID is required/);
     });
 
     it('should pass with remove action and packageName', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'remove',
-        packageName: 'com.unity.timeline'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'remove',
+          packageName: 'com.unity.timeline'
+        })
+      );
     });
 
     it('should throw error for remove without packageName', () => {
-      assert.throws(
-        () => handler.validate({ action: 'remove' }),
-        /Package name is required/
-      );
+      assert.throws(() => handler.validate({ action: 'remove' }), /Package name is required/);
     });
   });
 
@@ -256,9 +260,7 @@ describe('PackageManagerToolHandler', () => {
         sendCommandResult: {
           success: true,
           category: 'essential',
-          packages: [
-            { packageId: 'com.unity.textmeshpro', recommended: true }
-          ]
+          packages: [{ packageId: 'com.unity.textmeshpro', recommended: true }]
         }
       });
       handler = new PackageManagerToolHandler(mockConnection);

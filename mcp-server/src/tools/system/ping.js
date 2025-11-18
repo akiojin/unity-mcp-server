@@ -1,7 +1,4 @@
-import { 
-  ListToolsRequestSchema, 
-  CallToolRequestSchema 
-} from '@modelcontextprotocol/sdk/types.js';
+import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
 /**
  * Ping tool for testing Unity connection
@@ -22,30 +19,30 @@ export function registerPingTool(server, unityConnection) {
       required: []
     }
   };
-  
+
   // Register list tools handler
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
       tools: [pingTool]
     };
   });
-  
+
   // Register call tool handler
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.setRequestHandler(CallToolRequestSchema, async request => {
     const { name, arguments: args } = request.params;
-    
+
     if (name === 'system_ping') {
       try {
         // Ensure connected
         if (!unityConnection.isConnected()) {
           await unityConnection.connect();
         }
-        
+
         // Send ping with optional message
         const result = await unityConnection.sendCommand('system_ping', {
           message: args?.message || 'system_ping'
         });
-        
+
         return {
           content: [
             {
@@ -66,7 +63,7 @@ export function registerPingTool(server, unityConnection) {
         };
       }
     }
-    
+
     throw new Error(`Tool not found: ${name}`);
   });
 }

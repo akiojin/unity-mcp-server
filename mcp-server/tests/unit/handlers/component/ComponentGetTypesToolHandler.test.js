@@ -8,19 +8,19 @@ class MockUnityConnection {
     this.connected = true;
     this.mockResponses = new Map();
   }
-  
+
   isConnected() {
     return this.connected;
   }
-  
+
   async connect() {
     this.connected = true;
   }
-  
+
   setMockResponse(command, response) {
     this.mockResponses.set(command, response);
   }
-  
+
   async sendCommand(command, params) {
     const response = this.mockResponses.get(command);
     if (response) {
@@ -177,7 +177,10 @@ describe('ComponentGetTypesToolHandler', () => {
       const result = await handler.execute({ onlyAddable: true });
 
       assert.equal(result.onlyAddable, true);
-      assert.equal(result.componentTypes.every(c => c.canAdd), true);
+      assert.equal(
+        result.componentTypes.every(c => c.canAdd),
+        true
+      );
     });
 
     it('should handle error from Unity', async () => {
@@ -185,10 +188,9 @@ describe('ComponentGetTypesToolHandler', () => {
         error: 'Failed to retrieve component types'
       });
 
-      await assert.rejects(
-        async () => await handler.execute({}),
-        { message: 'Failed to retrieve component types' }
-      );
+      await assert.rejects(async () => await handler.execute({}), {
+        message: 'Failed to retrieve component types'
+      });
     });
   });
 });

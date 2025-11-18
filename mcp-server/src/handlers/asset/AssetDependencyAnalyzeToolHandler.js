@@ -13,7 +13,14 @@ export class AssetDependencyAnalyzeToolHandler extends BaseToolHandler {
         properties: {
           action: {
             type: 'string',
-            enum: ['get_dependencies', 'get_dependents', 'analyze_circular', 'find_unused', 'analyze_size_impact', 'validate_references'],
+            enum: [
+              'get_dependencies',
+              'get_dependents',
+              'analyze_circular',
+              'find_unused',
+              'analyze_size_impact',
+              'validate_references'
+            ],
             description: 'The analysis action to perform'
           },
           assetPath: {
@@ -40,7 +47,14 @@ export class AssetDependencyAnalyzeToolHandler extends BaseToolHandler {
       throw new Error('action is required');
     }
 
-    const validActions = ['get_dependencies', 'get_dependents', 'analyze_circular', 'find_unused', 'analyze_size_impact', 'validate_references'];
+    const validActions = [
+      'get_dependencies',
+      'get_dependents',
+      'analyze_circular',
+      'find_unused',
+      'analyze_size_impact',
+      'validate_references'
+    ];
     if (!validActions.includes(params.action)) {
       throw new Error(`action must be one of: ${validActions.join(', ')}`);
     }
@@ -51,11 +65,11 @@ export class AssetDependencyAnalyzeToolHandler extends BaseToolHandler {
       if (params.assetPath === undefined || params.assetPath === null) {
         throw new Error(`assetPath is required for ${params.action} action`);
       }
-      
+
       if (params.assetPath === '') {
         throw new Error('assetPath cannot be empty');
       }
-      
+
       // Validate assetPath starts with "Assets/"
       if (!params.assetPath.startsWith('Assets/')) {
         throw new Error('assetPath must start with "Assets/"');
@@ -65,7 +79,7 @@ export class AssetDependencyAnalyzeToolHandler extends BaseToolHandler {
 
   async execute(params) {
     this.validate(params);
-    
+
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }
@@ -124,11 +138,7 @@ export class AssetDependencyAnalyzeToolHandler extends BaseToolHandler {
           action: 'analyze_circular',
           circularDependencies: [
             {
-              cycle: [
-                'Assets/Scripts/A.cs',
-                'Assets/Scripts/B.cs',
-                'Assets/Scripts/A.cs'
-              ],
+              cycle: ['Assets/Scripts/A.cs', 'Assets/Scripts/B.cs', 'Assets/Scripts/A.cs'],
               length: 3,
               severity: 'warning'
             }

@@ -101,7 +101,10 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
 
         // Progress information
         assert.ok(buildJob.progress, 'Should have progress object');
-        assert.ok(typeof buildJob.progress.processed === 'number', 'progress.processed should be number');
+        assert.ok(
+          typeof buildJob.progress.processed === 'number',
+          'progress.processed should be number'
+        );
         assert.ok(typeof buildJob.progress.total === 'number', 'progress.total should be number');
         assert.ok(typeof buildJob.progress.rate === 'number', 'progress.rate should be number');
 
@@ -109,7 +112,11 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
         assert.ok(buildJob.startedAt, 'Should have startedAt timestamp');
 
         // Should NOT have completedAt/result for running job
-        assert.equal(buildJob.completedAt, undefined, 'completedAt should not exist for running job');
+        assert.equal(
+          buildJob.completedAt,
+          undefined,
+          'completedAt should not exist for running job'
+        );
         assert.equal(buildJob.result, undefined, 'result should not exist for running job');
       } catch (error) {
         // Expected in RED phase
@@ -138,9 +145,18 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
 
           // Should have result
           assert.ok(buildJob.result, 'Should have result object');
-          assert.ok(typeof buildJob.result.updatedFiles === 'number', 'result.updatedFiles should be number');
-          assert.ok(typeof buildJob.result.removedFiles === 'number', 'result.removedFiles should be number');
-          assert.ok(typeof buildJob.result.totalIndexedSymbols === 'number', 'result.totalIndexedSymbols should be number');
+          assert.ok(
+            typeof buildJob.result.updatedFiles === 'number',
+            'result.updatedFiles should be number'
+          );
+          assert.ok(
+            typeof buildJob.result.removedFiles === 'number',
+            'result.removedFiles should be number'
+          );
+          assert.ok(
+            typeof buildJob.result.totalIndexedSymbols === 'number',
+            'result.totalIndexedSymbols should be number'
+          );
           assert.ok(buildJob.result.lastIndexedAt, 'result.lastIndexedAt should exist');
 
           // Should NOT have error for completed job
@@ -223,11 +239,17 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
 
         // Expected: error response with existing jobId
         assert.equal(secondResult.success, false, 'Second build should fail');
-        assert.equal(secondResult.error, 'build_already_running', 'Should return build_already_running error');
+        assert.equal(
+          secondResult.error,
+          'build_already_running',
+          'Should return build_already_running error'
+        );
         assert.ok(secondResult.message, 'Should include error message');
-        assert.ok(secondResult.message.includes('already running') ||
-                  secondResult.message.includes('実行中'),
-                  'Error message should mention build is running');
+        assert.ok(
+          secondResult.message.includes('already running') ||
+            secondResult.message.includes('実行中'),
+          'Error message should mention build is running'
+        );
         assert.equal(secondResult.jobId, firstJobId, 'Should return existing jobId');
       } catch (error) {
         // Expected in RED phase
@@ -246,15 +268,21 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
 
         // Check if first build completed
         const statusResult = await statusHandler.execute({});
-        if (statusResult.index.buildJob &&
-            statusResult.index.buildJob.status === 'completed') {
-
+        if (statusResult.index.buildJob && statusResult.index.buildJob.status === 'completed') {
           // Now second build should succeed
           const secondResult = await buildHandler.execute({});
 
-          assert.equal(secondResult.success, true, 'Second build should succeed after first completes');
+          assert.equal(
+            secondResult.success,
+            true,
+            'Second build should succeed after first completes'
+          );
           assert.ok(secondResult.jobId, 'Second build should return new jobId');
-          assert.notEqual(secondResult.jobId, firstJobId, 'Second jobId should be different from first');
+          assert.notEqual(
+            secondResult.jobId,
+            firstJobId,
+            'Second jobId should be different from first'
+          );
         }
       } catch (error) {
         // Expected in RED phase
@@ -273,15 +301,17 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
 
         // Check if first build failed
         const statusResult = await statusHandler.execute({});
-        if (statusResult.index.buildJob &&
-            statusResult.index.buildJob.status === 'failed') {
-
+        if (statusResult.index.buildJob && statusResult.index.buildJob.status === 'failed') {
           // Now second build should succeed
           const secondResult = await buildHandler.execute({});
 
           assert.equal(secondResult.success, true, 'Second build should succeed after first fails');
           assert.ok(secondResult.jobId, 'Second build should return new jobId');
-          assert.notEqual(secondResult.jobId, firstJobId, 'Second jobId should be different from first');
+          assert.notEqual(
+            secondResult.jobId,
+            firstJobId,
+            'Second jobId should be different from first'
+          );
         }
       } catch (error) {
         // Expected in RED phase
@@ -374,7 +404,10 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
       } catch (error) {
         // May fail if index not built, but duration should still be fast
         const duration = Date.now() - startTime;
-        assert.ok(duration < 1500, `Even with error, should respond within 1500ms, took ${duration}ms`);
+        assert.ok(
+          duration < 1500,
+          `Even with error, should respond within 1500ms, took ${duration}ms`
+        );
       }
     });
   });
@@ -401,7 +434,11 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
         // If manual build is still running, no watcher jobs should be created
         const manualJob = watcher.jobManager.get(buildResult.jobId);
         if (manualJob && manualJob.status === 'running') {
-          assert.equal(watcherJobs.length, 0, 'No watcher jobs should be created while manual build runs');
+          assert.equal(
+            watcherJobs.length,
+            0,
+            'No watcher jobs should be created while manual build runs'
+          );
         }
       } catch (error) {
         // Expected in test environment without real file system/LSP
@@ -431,12 +468,15 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
 
           // Verify watcher job was created
           const allJobs = watcher.jobManager.getAllJobs();
-          const watcherJobs = allJobs.filter(job =>
-            job.id.startsWith('watcher-') && job.status === 'running'
+          const watcherJobs = allJobs.filter(
+            job => job.id.startsWith('watcher-') && job.status === 'running'
           );
 
           // After manual build completes, watcher should be able to create job
-          assert.ok(watcherJobs.length >= 0, 'Watcher can create jobs after manual build completes');
+          assert.ok(
+            watcherJobs.length >= 0,
+            'Watcher can create jobs after manual build completes'
+          );
         }
       } catch (error) {
         // Expected in test environment
@@ -458,14 +498,21 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
           await watcher.tick();
 
           // Should still be the same job ID
-          assert.equal(watcher.currentWatcherJobId, firstJobId, 'Should not create new watcher job while previous is running');
+          assert.equal(
+            watcher.currentWatcherJobId,
+            firstJobId,
+            'Should not create new watcher job while previous is running'
+          );
 
           // Verify only one watcher job exists
           const allJobs = watcher.jobManager.getAllJobs();
-          const runningWatcherJobs = allJobs.filter(job =>
-            job.id.startsWith('watcher-') && job.status === 'running'
+          const runningWatcherJobs = allJobs.filter(
+            job => job.id.startsWith('watcher-') && job.status === 'running'
           );
-          assert.ok(runningWatcherJobs.length <= 1, 'Only one watcher job should be running at a time');
+          assert.ok(
+            runningWatcherJobs.length <= 1,
+            'Only one watcher job should be running at a time'
+          );
         }
       } catch (error) {
         // Expected in test environment
@@ -480,7 +527,11 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
         const watcher = new IndexWatcher(mockConnection);
 
         // Watcher should use singleton JobManager
-        assert.equal(watcher.jobManager, JobManager.getInstance(), 'Watcher should use singleton JobManager');
+        assert.equal(
+          watcher.jobManager,
+          JobManager.getInstance(),
+          'Watcher should use singleton JobManager'
+        );
 
         // Trigger tick
         await watcher.tick();
@@ -489,7 +540,10 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
         if (watcher.currentWatcherJobId) {
           const watcherJob = JobManager.getInstance().get(watcher.currentWatcherJobId);
           assert.ok(watcherJob, 'Watcher job should be tracked in JobManager');
-          assert.ok(watcherJob.id.startsWith('watcher-'), 'Watcher job ID should start with "watcher-"');
+          assert.ok(
+            watcherJob.id.startsWith('watcher-'),
+            'Watcher job ID should start with "watcher-"'
+          );
         }
       } catch (error) {
         // Expected in test environment

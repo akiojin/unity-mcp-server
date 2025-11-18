@@ -13,7 +13,8 @@ export class CompilationGetStateToolHandler extends BaseToolHandler {
         properties: {
           includeMessages: {
             type: 'boolean',
-            description: 'Include detailed compilation messages. Unity default: false. Set to true for debugging compilation issues'
+            description:
+              'Include detailed compilation messages. Unity default: false. Set to true for debugging compilation issues'
           },
           maxMessages: {
             type: 'number',
@@ -22,7 +23,7 @@ export class CompilationGetStateToolHandler extends BaseToolHandler {
         }
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 

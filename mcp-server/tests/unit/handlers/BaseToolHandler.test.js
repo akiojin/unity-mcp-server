@@ -59,10 +59,7 @@ describe('BaseToolHandler', () => {
     });
 
     it('should fail validation when required parameter is missing', () => {
-      assert.throws(
-        () => handler.validate({}),
-        /Missing required parameter: requiredParam/
-      );
+      assert.throws(() => handler.validate({}), /Missing required parameter: requiredParam/);
     });
 
     it('should fail validation when required parameter is null', () => {
@@ -110,7 +107,7 @@ describe('BaseToolHandler', () => {
   describe('handle', () => {
     it('should successfully handle valid request', async () => {
       const result = await handler.handle({ requiredParam: 'test' });
-      
+
       assert.equal(result.status, 'success');
       assert.deepEqual(result.result, { result: 'test success' });
       assert.equal(mockExecute.mock.calls.length, 1);
@@ -119,14 +116,14 @@ describe('BaseToolHandler', () => {
     it('should handle request with no parameters when none required', async () => {
       const noRequiredHandler = new TestToolHandler();
       noRequiredHandler.inputSchema.required = undefined;
-      
+
       const result = await noRequiredHandler.handle();
       assert.equal(result.status, 'success');
     });
 
     it('should return error response for validation failure', async () => {
       const result = await handler.handle({});
-      
+
       assert.equal(result.status, 'error');
       assert.equal(result.error, 'Missing required parameter: requiredParam');
       assert.equal(result.code, 'TOOL_ERROR');
@@ -138,9 +135,9 @@ describe('BaseToolHandler', () => {
       const errorHandler = new TestToolHandler(() => {
         throw new Error('Execution failed');
       });
-      
+
       const result = await errorHandler.handle({ requiredParam: 'test' });
-      
+
       assert.equal(result.status, 'error');
       assert.equal(result.error, 'Execution failed');
       assert.equal(result.code, 'TOOL_ERROR');
@@ -152,9 +149,9 @@ describe('BaseToolHandler', () => {
         error.code = 'CUSTOM_ERROR';
         throw error;
       });
-      
+
       const result = await errorHandler.handle({ requiredParam: 'test' });
-      
+
       assert.equal(result.status, 'error');
       assert.equal(result.code, 'CUSTOM_ERROR');
     });
@@ -162,33 +159,33 @@ describe('BaseToolHandler', () => {
     it('should include stack trace in development mode', async () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
-      
+
       const errorHandler = new TestToolHandler(() => {
         throw new Error('Dev error');
       });
-      
+
       const result = await errorHandler.handle({ requiredParam: 'test' });
-      
+
       assert.equal(result.status, 'error');
       assert.ok(result.details.stack);
       assert.ok(result.details.stack.includes('Dev error'));
-      
+
       process.env.NODE_ENV = originalEnv;
     });
 
     it('should not include stack trace in production mode', async () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
-      
+
       const errorHandler = new TestToolHandler(() => {
         throw new Error('Prod error');
       });
-      
+
       const result = await errorHandler.handle({ requiredParam: 'test' });
-      
+
       assert.equal(result.status, 'error');
       assert.equal(result.details.stack, undefined);
-      
+
       process.env.NODE_ENV = originalEnv;
     });
   });
@@ -219,14 +216,17 @@ describe('BaseToolHandler', () => {
         null: null,
         undefined: undefined
       });
-      
-      assert.equal(summary, 'string: "test", number: 123, boolean: true, null: null, undefined: undefined');
+
+      assert.equal(
+        summary,
+        'string: "test", number: 123, boolean: true, null: null, undefined: undefined'
+      );
     });
 
     it('should truncate long strings', () => {
       const longString = 'a'.repeat(60);
       const summary = handler.summarizeParams({ long: longString });
-      
+
       assert.ok(summary.includes('"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..."'));
       assert.ok(summary.length < 100);
     });
@@ -237,8 +237,11 @@ describe('BaseToolHandler', () => {
         smallArray: [1, 2, 3],
         largeArray: new Array(100)
       });
-      
-      assert.equal(summary, 'emptyArray: [Array(0)], smallArray: [Array(3)], largeArray: [Array(100)]');
+
+      assert.equal(
+        summary,
+        'emptyArray: [Array(0)], smallArray: [Array(3)], largeArray: [Array(100)]'
+      );
     });
 
     it('should handle objects', () => {
@@ -247,7 +250,7 @@ describe('BaseToolHandler', () => {
         date: new Date(),
         regex: /test/
       });
-      
+
       assert.ok(summary.includes('obj: [Object]'));
       assert.ok(summary.includes('date: [Object]'));
       assert.ok(summary.includes('regex: [Object]'));
@@ -257,7 +260,7 @@ describe('BaseToolHandler', () => {
   describe('getDefinition', () => {
     it('should return tool definition', () => {
       const definition = handler.getDefinition();
-      
+
       assert.equal(definition.name, 'test_tool');
       assert.equal(definition.description, 'Test tool description');
       assert.deepEqual(definition.inputSchema, handler.inputSchema);
@@ -266,7 +269,7 @@ describe('BaseToolHandler', () => {
     it('should return minimal definition for minimal handler', () => {
       const minimalHandler = new BaseToolHandler('minimal', 'Minimal');
       const definition = minimalHandler.getDefinition();
-      
+
       assert.equal(definition.name, 'minimal');
       assert.equal(definition.description, 'Minimal');
       assert.deepEqual(definition.inputSchema, {});

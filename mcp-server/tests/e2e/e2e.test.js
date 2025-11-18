@@ -14,22 +14,22 @@ describe('End-to-End Tests', () => {
 
   before(async () => {
     // Step 1: Create mock Unity server
-    mockUnityServer = net.createServer((socket) => {
+    mockUnityServer = net.createServer(socket => {
       console.log('[Mock Unity] Client connected');
-      
+
       let buffer = '';
-      socket.on('data', (data) => {
+      socket.on('data', data => {
         buffer += data.toString();
         const lines = buffer.split('\n');
         buffer = lines.pop(); // Keep incomplete line in buffer
-        
+
         lines.forEach(line => {
           if (!line.trim()) return;
-          
+
           try {
             const command = JSON.parse(line);
             console.log('[Mock Unity] Received command:', command);
-            
+
             // Process command based on type
             let response = {
               id: command.id,
@@ -46,7 +46,7 @@ describe('End-to-End Tests', () => {
                   unityVersion: '2020.3.0f1'
                 };
                 break;
-              
+
               case 'gameobject_create':
                 response.data = {
                   gameObjectId: `GameObject_${Date.now()}`,
@@ -54,7 +54,7 @@ describe('End-to-End Tests', () => {
                   position: command.params?.position || { x: 0, y: 0, z: 0 }
                 };
                 break;
-              
+
               case 'scene_info_get':
                 response.data = {
                   sceneName: 'TestScene',
@@ -62,7 +62,7 @@ describe('End-to-End Tests', () => {
                   isPlaying: false
                 };
                 break;
-              
+
               default:
                 response.success = false;
                 response.error = `Unknown command type: ${command.type}`;
@@ -82,18 +82,18 @@ describe('End-to-End Tests', () => {
           }
         });
       });
-      
-      socket.on('error', (err) => {
+
+      socket.on('error', err => {
         console.error('[Mock Unity] Socket error:', err);
       });
-      
+
       socket.on('close', () => {
         console.log('[Mock Unity] Client disconnected');
       });
     });
 
     // Start Unity mock server
-    await new Promise((resolve) => {
+    await new Promise(resolve => {
       mockUnityServer.listen(6400, 'localhost', () => {
         unityServerPort = mockUnityServer.address().port;
         console.log(`[Mock Unity] Server listening on port ${unityServerPort}`);
@@ -114,20 +114,23 @@ describe('End-to-End Tests', () => {
         reject(new Error('MCP server startup timeout'));
       }, 10000);
 
-      mcpServerProcess.stdout.on('data', (data) => {
+      mcpServerProcess.stdout.on('data', data => {
         const output = data.toString();
         console.log('[MCP Server]', output);
-        if (output.includes('MCP server running') || output.includes('Unity connection established')) {
+        if (
+          output.includes('MCP server running') ||
+          output.includes('Unity connection established')
+        ) {
           clearTimeout(timeout);
           resolve();
         }
       });
 
-      mcpServerProcess.stderr.on('data', (data) => {
+      mcpServerProcess.stderr.on('data', data => {
         console.error('[MCP Server Error]', data.toString());
       });
 
-      mcpServerProcess.on('error', (err) => {
+      mcpServerProcess.on('error', err => {
         clearTimeout(timeout);
         reject(err);
       });
@@ -142,12 +145,15 @@ describe('End-to-End Tests', () => {
       env: { ...process.env, NODE_ENV: 'test' }
     });
 
-    mcpClient = new Client({
-      name: 'e2e-test-client',
-      version: '1.0.0'
-    }, {
-      capabilities: {}
-    });
+    mcpClient = new Client(
+      {
+        name: 'e2e-test-client',
+        version: '1.0.0'
+      },
+      {
+        capabilities: {}
+      }
+    );
 
     await mcpClient.connect(transport);
     console.log('[Test] MCP client connected');
@@ -158,7 +164,7 @@ describe('End-to-End Tests', () => {
     if (mcpClient) {
       await mcpClient.close();
     }
-    
+
     if (mcpServerProcess) {
       mcpServerProcess.kill();
       await new Promise(resolve => {
@@ -166,7 +172,7 @@ describe('End-to-End Tests', () => {
         setTimeout(resolve, 1000); // Fallback timeout
       });
     }
-    
+
     if (mockUnityServer) {
       mockUnityServer.close();
     }
@@ -175,18 +181,18 @@ describe('End-to-End Tests', () => {
   describe('Full End-to-End Flow', () => {
     it('should complete ping flow from MCP client to Unity and back', async () => {
       console.log('[Test] Calling ping tool...');
-      
+
       // Call the ping tool through MCP
       const result = await mcpClient.callTool('system_ping', {
         message: 'Hello from E2E test'
       });
 
       console.log('[Test] Ping result:', result);
-      
+
       // Verify the result
       assert(result.content, 'Result should have content');
       assert(result.content.length > 0, 'Content should not be empty');
-      
+
       const content = result.content[0];
       assert.equal(content.type, 'text');
       assert(content.text.includes('pong'), 'Response should contain pong');
@@ -195,10 +201,10 @@ describe('End-to-End Tests', () => {
 
     it('should list available tools', async () => {
       const tools = await mcpClient.listTools();
-      
+
       assert(Array.isArray(tools.tools), 'Should return array of tools');
       assert(tools.tools.length > 0, 'Should have at least one tool');
-      
+
       const pingTool = tools.tools.find(t => t.name === 'system_ping');
       assert(pingTool, 'Should have ping tool');
       assert.equal(pingTool.description, 'Ping Unity to test connection');
@@ -207,7 +213,7 @@ describe('End-to-End Tests', () => {
 
     it('should handle multiple concurrent requests', async () => {
       const requests = [];
-      
+
       // Send 5 concurrent ping requests
       for (let i = 0; i < 5; i++) {
         requests.push(
@@ -216,9 +222,9 @@ describe('End-to-End Tests', () => {
           })
         );
       }
-      
+
       const results = await Promise.all(requests);
-      
+
       // Verify all requests succeeded
       results.forEach((result, index) => {
         assert(result.content[0].text.includes('pong'));
@@ -230,15 +236,17 @@ describe('End-to-End Tests', () => {
       // First, verify connection works
       const validResult = await mcpClient.callTool('system_ping', { message: 'test' });
       assert(validResult.content[0].text.includes('pong'));
-      
+
       // Try to call non-existent tool (should error)
       await assert.rejects(
         async () => await mcpClient.callTool('nonexistent', {}),
         /Tool not found/
       );
-      
+
       // Verify connection still works after error
-      const afterErrorResult = await mcpClient.callTool('system_ping', { message: 'still working' });
+      const afterErrorResult = await mcpClient.callTool('system_ping', {
+        message: 'still working'
+      });
       assert(afterErrorResult.content[0].text.includes('pong'));
       assert(afterErrorResult.content[0].text.includes('still working'));
     });
@@ -248,37 +256,47 @@ describe('End-to-End Tests', () => {
     it('should handle rapid sequential requests', async () => {
       const startTime = Date.now();
       const requestCount = 20;
-      
+
       for (let i = 0; i < requestCount; i++) {
         const result = await mcpClient.callTool('system_ping', {
           message: `Sequential ${i}`
         });
         assert(result.content[0].text.includes('pong'));
       }
-      
+
       const totalTime = Date.now() - startTime;
       const avgTime = totalTime / requestCount;
-      
-      console.log(`[Performance] ${requestCount} sequential requests in ${totalTime}ms (avg: ${avgTime.toFixed(2)}ms)`);
-      assert(avgTime < 100, `Average request time should be under 100ms, was ${avgTime.toFixed(2)}ms`);
+
+      console.log(
+        `[Performance] ${requestCount} sequential requests in ${totalTime}ms (avg: ${avgTime.toFixed(2)}ms)`
+      );
+      assert(
+        avgTime < 100,
+        `Average request time should be under 100ms, was ${avgTime.toFixed(2)}ms`
+      );
     });
 
     it('should measure round-trip latency', async () => {
       const latencies = [];
-      
+
       for (let i = 0; i < 10; i++) {
         const start = Date.now();
         await mcpClient.callTool('system_ping', { message: `latency-${i}` });
         const latency = Date.now() - start;
         latencies.push(latency);
       }
-      
+
       const avgLatency = latencies.reduce((a, b) => a + b, 0) / latencies.length;
       const minLatency = Math.min(...latencies);
       const maxLatency = Math.max(...latencies);
-      
-      console.log(`[Performance] Latency - Min: ${minLatency}ms, Max: ${maxLatency}ms, Avg: ${avgLatency.toFixed(2)}ms`);
-      assert(avgLatency < 50, `Average latency should be under 50ms, was ${avgLatency.toFixed(2)}ms`);
+
+      console.log(
+        `[Performance] Latency - Min: ${minLatency}ms, Max: ${maxLatency}ms, Avg: ${avgLatency.toFixed(2)}ms`
+      );
+      assert(
+        avgLatency < 50,
+        `Average latency should be under 50ms, was ${avgLatency.toFixed(2)}ms`
+      );
     });
   });
 });
@@ -291,12 +309,12 @@ describe('Simplified E2E Tests', () => {
 
   before(async () => {
     // Create mock Unity server
-    mockUnityServer = net.createServer((socket) => {
-      socket.on('data', (data) => {
+    mockUnityServer = net.createServer(socket => {
+      socket.on('data', data => {
         const lines = data.toString().split('\n');
         lines.forEach(line => {
           if (!line.trim()) return;
-          
+
           try {
             const command = JSON.parse(line);
             const response = {
@@ -316,7 +334,7 @@ describe('Simplified E2E Tests', () => {
       });
     });
 
-    await new Promise((resolve) => {
+    await new Promise(resolve => {
       mockUnityServer.listen(6401, 'localhost', resolve);
     });
 
@@ -329,7 +347,7 @@ describe('Simplified E2E Tests', () => {
       commandTimeout: 5000,
       logLevel: 'info'
     };
-    
+
     const result = await createServer(config);
     server = result.server;
     unityConnection = result.unityConnection;

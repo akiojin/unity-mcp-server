@@ -28,8 +28,8 @@ describe('GetAnimatorStateToolHandler', () => {
           }
         ],
         parameters: {
-          'Speed': { type: 'Float', value: 0.0, defaultValue: 0.0 },
-          'Jump': { type: 'Trigger', value: false }
+          Speed: { type: 'Float', value: 0.0, defaultValue: 0.0 },
+          Jump: { type: 'Trigger', value: false }
         }
       }
     });
@@ -63,18 +63,22 @@ describe('GetAnimatorStateToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with gameObjectName', () => {
-      assert.doesNotThrow(() => handler.validate({
-        gameObjectName: 'Player'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          gameObjectName: 'Player'
+        })
+      );
     });
 
     it('should pass with optional parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        gameObjectName: 'Player',
-        includeParameters: true,
-        includeStates: true,
-        layerIndex: 0
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          gameObjectName: 'Player',
+          includeParameters: true,
+          includeStates: true,
+          layerIndex: 0
+        })
+      );
     });
   });
 
@@ -85,7 +89,10 @@ describe('GetAnimatorStateToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'analysis_animator_state_get');
+      assert.equal(
+        mockConnection.sendCommand.mock.calls[0].arguments[0],
+        'analysis_animator_state_get'
+      );
 
       assert.ok(result);
       assert.ok(result.content);

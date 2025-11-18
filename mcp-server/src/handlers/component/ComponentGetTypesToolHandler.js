@@ -5,28 +5,24 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class ComponentGetTypesToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'component_get_types',
-      'Get available component types in Unity',
-      {
-        type: 'object',
-        properties: {
-          category: {
-            type: 'string',
-            description: 'Filter by category (e.g., "Physics", "Rendering", "UI")'
-          },
-          search: {
-            type: 'string',
-            description: 'Search for component types by name'
-          },
-          onlyAddable: {
-            type: 'boolean',
-            description: 'Return only components that can be added to GameObjects (default: false)'
-          }
+    super('component_get_types', 'Get available component types in Unity', {
+      type: 'object',
+      properties: {
+        category: {
+          type: 'string',
+          description: 'Filter by category (e.g., "Physics", "Rendering", "UI")'
+        },
+        search: {
+          type: 'string',
+          description: 'Search for component types by name'
+        },
+        onlyAddable: {
+          type: 'boolean',
+          description: 'Return only components that can be added to GameObjects (default: false)'
         }
       }
-    );
-    
+    });
+
     this.unityConnection = unityConnection;
   }
 

@@ -7,50 +7,46 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 export default class PackageManagerToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'package_manage',
-      'Manage Unity packages - search, install, remove, and list packages',
-      {
-        type: 'object',
-        properties: {
-          action: {
-            type: 'string',
-            enum: ['search', 'list', 'install', 'remove', 'info', 'recommend'],
-            description: 'The package operation to perform'
-          },
-          keyword: {
-            type: 'string',
-            description: 'Search keyword (for search action)'
-          },
-          packageId: {
-            type: 'string',
-            description: 'Package ID to install (e.g., com.unity.textmeshpro)'
-          },
-          packageName: {
-            type: 'string',
-            description: 'Package name to remove or get info'
-          },
-          version: {
-            type: 'string',
-            description: 'Specific version to install (optional)'
-          },
-          category: {
-            type: 'string',
-            enum: ['essential', 'rendering', 'tools', 'networking', 'mobile'],
-            description: 'Category for recommendations'
-          },
-          includeBuiltIn: {
-            type: 'boolean',
-            description: 'Include built-in packages in list (default: false)'
-          },
-          limit: {
-            type: 'number',
-            description: 'Maximum number of search results (default: 20)'
-          }
+    super('package_manage', 'Manage Unity packages - search, install, remove, and list packages', {
+      type: 'object',
+      properties: {
+        action: {
+          type: 'string',
+          enum: ['search', 'list', 'install', 'remove', 'info', 'recommend'],
+          description: 'The package operation to perform'
         },
-        required: ['action']
-      }
-    );
+        keyword: {
+          type: 'string',
+          description: 'Search keyword (for search action)'
+        },
+        packageId: {
+          type: 'string',
+          description: 'Package ID to install (e.g., com.unity.textmeshpro)'
+        },
+        packageName: {
+          type: 'string',
+          description: 'Package name to remove or get info'
+        },
+        version: {
+          type: 'string',
+          description: 'Specific version to install (optional)'
+        },
+        category: {
+          type: 'string',
+          enum: ['essential', 'rendering', 'tools', 'networking', 'mobile'],
+          description: 'Category for recommendations'
+        },
+        includeBuiltIn: {
+          type: 'boolean',
+          description: 'Include built-in packages in list (default: false)'
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum number of search results (default: 20)'
+        }
+      },
+      required: ['action']
+    });
     this.unityConnection = unityConnection;
   }
 
@@ -180,7 +176,8 @@ export default class PackageManagerToolHandler extends BaseToolHandler {
           packages: result.packages,
           allPackages: result.allPackages,
           message: result.message || 'Package recommendations retrieved'
-        };    }
+        };
+    }
   }
 
   truncateDescription(description) {

@@ -41,9 +41,11 @@ describe('VideoCaptureStopToolHandler', () => {
     });
 
     it('should pass with recording ID', () => {
-      assert.doesNotThrow(() => handler.validate({
-        recordingId: 'rec-12345'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          recordingId: 'rec-12345'
+        })
+      );
     });
   });
 
@@ -90,10 +92,7 @@ describe('VideoCaptureStopToolHandler', () => {
       });
       handler = new VideoCaptureStopToolHandler(mockConnection);
 
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /No active recording/
-      );
+      await assert.rejects(async () => await handler.execute({}), /No active recording/);
     });
   });
 
@@ -111,8 +110,10 @@ describe('VideoCaptureStopToolHandler', () => {
 
       assert.ok(result.result.content);
       assert.ok(Array.isArray(result.result.content));
-      assert.ok(result.result.content[0].text.includes('stopped') ||
-                result.result.content[0].text.includes('Recording'));
+      assert.ok(
+        result.result.content[0].text.includes('stopped') ||
+          result.result.content[0].text.includes('Recording')
+      );
     });
   });
 });

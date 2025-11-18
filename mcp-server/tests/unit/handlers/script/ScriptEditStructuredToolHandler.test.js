@@ -39,62 +39,84 @@ describe('ScriptEditStructuredToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with valid replace_body operation', () => {
-      assert.doesNotThrow(() => handler.validate({
-        operation: 'replace_body',
-        path: 'Assets/Scripts/Example.cs',
-        symbolName: 'MyMethod'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          operation: 'replace_body',
+          path: 'Assets/Scripts/Example.cs',
+          symbolName: 'MyMethod'
+        })
+      );
     });
 
     it('should pass with insert_before operation', () => {
-      assert.doesNotThrow(() => handler.validate({
-        operation: 'insert_before',
-        path: 'Assets/Scripts/Example.cs',
-        symbolName: 'MyClass',
-        kind: 'class'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          operation: 'insert_before',
+          path: 'Assets/Scripts/Example.cs',
+          symbolName: 'MyClass',
+          kind: 'class'
+        })
+      );
     });
 
     it('should pass with insert_after operation', () => {
-      assert.doesNotThrow(() => handler.validate({
-        operation: 'insert_after',
-        path: 'Assets/Scripts/Example.cs',
-        symbolName: 'MyClass',
-        kind: 'class'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          operation: 'insert_after',
+          path: 'Assets/Scripts/Example.cs',
+          symbolName: 'MyClass',
+          kind: 'class'
+        })
+      );
     });
 
     it('should throw error when operation is invalid', () => {
-      assert.throws(() => handler.validate({
-        operation: 'delete',
-        path: 'Assets/Scripts/Example.cs',
-        symbolName: 'MyMethod'
-      }), /Invalid operation/);
+      assert.throws(
+        () =>
+          handler.validate({
+            operation: 'delete',
+            path: 'Assets/Scripts/Example.cs',
+            symbolName: 'MyMethod'
+          }),
+        /Invalid operation/
+      );
     });
 
     it('should throw error when path is empty', () => {
-      assert.throws(() => handler.validate({
-        operation: 'replace_body',
-        path: '',
-        symbolName: 'MyMethod'
-      }), /path cannot be empty/);
+      assert.throws(
+        () =>
+          handler.validate({
+            operation: 'replace_body',
+            path: '',
+            symbolName: 'MyMethod'
+          }),
+        /path cannot be empty/
+      );
     });
 
     it('should throw error when symbolName is empty', () => {
-      assert.throws(() => handler.validate({
-        operation: 'replace_body',
-        path: 'Assets/Scripts/Example.cs',
-        symbolName: ''
-      }), /symbolName cannot be empty/);
+      assert.throws(
+        () =>
+          handler.validate({
+            operation: 'replace_body',
+            path: 'Assets/Scripts/Example.cs',
+            symbolName: ''
+          }),
+        /symbolName cannot be empty/
+      );
     });
 
     it('should throw error when inserting into method scope', () => {
-      assert.throws(() => handler.validate({
-        operation: 'insert_before',
-        path: 'Assets/Scripts/Example.cs',
-        symbolName: 'MyMethod',
-        kind: 'method'
-      }), /Insert operations must target class\/namespace/);
+      assert.throws(
+        () =>
+          handler.validate({
+            operation: 'insert_before',
+            path: 'Assets/Scripts/Example.cs',
+            symbolName: 'MyMethod',
+            kind: 'method'
+          }),
+        /Insert operations must target class\/namespace/
+      );
     });
   });
 
@@ -118,7 +140,10 @@ describe('ScriptEditStructuredToolHandler', () => {
 
     it('should trim long error messages', () => {
       const longMessage = 'A'.repeat(300);
-      const result = handler._summarizeResult({ errors: [{ message: longMessage }] }, { preview: false });
+      const result = handler._summarizeResult(
+        { errors: [{ message: longMessage }] },
+        { preview: false }
+      );
       assert.ok(result.errors[0].message.length <= 201); // 200 + '…'
     });
 
@@ -130,11 +155,14 @@ describe('ScriptEditStructuredToolHandler', () => {
     });
 
     it('should preserve operation and path identifiers', () => {
-      const result = handler._summarizeResult({
-        operation: 'replace_body',
-        path: 'Assets/Scripts/Example.cs',
-        symbolName: 'MyMethod'
-      }, { preview: false });
+      const result = handler._summarizeResult(
+        {
+          operation: 'replace_body',
+          path: 'Assets/Scripts/Example.cs',
+          symbolName: 'MyMethod'
+        },
+        { preview: false }
+      );
       assert.equal(result.operation, 'replace_body');
       assert.equal(result.path, 'Assets/Scripts/Example.cs');
       assert.equal(result.symbolName, 'MyMethod');
@@ -148,28 +176,34 @@ describe('ScriptEditStructuredToolHandler', () => {
     });
 
     it('should support insert_before operation', async () => {
-      assert.doesNotThrow(() => handler.validate({
-        operation: 'insert_before',
-        path: 'Assets/Scripts/Example.cs',
-        symbolName: 'MyClass'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          operation: 'insert_before',
+          path: 'Assets/Scripts/Example.cs',
+          symbolName: 'MyClass'
+        })
+      );
     });
 
     it('should support insert_after operation', async () => {
-      assert.doesNotThrow(() => handler.validate({
-        operation: 'insert_after',
-        path: 'Assets/Scripts/Example.cs',
-        symbolName: 'MyClass'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          operation: 'insert_after',
+          path: 'Assets/Scripts/Example.cs',
+          symbolName: 'MyClass'
+        })
+      );
     });
 
     it('should support preview mode', async () => {
-      assert.doesNotThrow(() => handler.validate({
-        operation: 'replace_body',
-        path: 'Assets/Scripts/Example.cs',
-        symbolName: 'MyMethod',
-        preview: true
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          operation: 'replace_body',
+          path: 'Assets/Scripts/Example.cs',
+          symbolName: 'MyMethod',
+          preview: true
+        })
+      );
     });
   });
 });

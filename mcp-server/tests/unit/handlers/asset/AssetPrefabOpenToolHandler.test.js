@@ -8,19 +8,19 @@ class MockUnityConnection {
     this.connected = true;
     this.mockResponses = new Map();
   }
-  
+
   isConnected() {
     return this.connected;
   }
-  
+
   async connect() {
     this.connected = true;
   }
-  
+
   setMockResponse(command, response) {
     this.mockResponses.set(command, response);
   }
-  
+
   async sendCommand(command, params) {
     const response = this.mockResponses.get(command);
     if (response) {
@@ -49,45 +49,45 @@ describe('AssetPrefabOpenToolHandler', () => {
 
   describe('validate', () => {
     it('should fail without prefabPath', () => {
-      assert.throws(
-        () => handler.validate({}),
-        { message: 'Missing required parameter: prefabPath' }
-      );
+      assert.throws(() => handler.validate({}), {
+        message: 'Missing required parameter: prefabPath'
+      });
     });
 
     it('should fail with empty prefabPath', () => {
-      assert.throws(
-        () => handler.validate({ prefabPath: '' }),
-        { message: 'prefabPath cannot be empty' }
-      );
+      assert.throws(() => handler.validate({ prefabPath: '' }), {
+        message: 'prefabPath cannot be empty'
+      });
     });
 
     it('should fail if prefabPath does not start with Assets/', () => {
-      assert.throws(
-        () => handler.validate({ prefabPath: 'Prefabs/MyPrefab.prefab' }),
-        { message: 'prefabPath must start with Assets/ and end with .prefab' }
-      );
+      assert.throws(() => handler.validate({ prefabPath: 'Prefabs/MyPrefab.prefab' }), {
+        message: 'prefabPath must start with Assets/ and end with .prefab'
+      });
     });
 
     it('should fail if prefabPath does not end with .prefab', () => {
-      assert.throws(
-        () => handler.validate({ prefabPath: 'Assets/Prefabs/MyPrefab' }),
-        { message: 'prefabPath must start with Assets/ and end with .prefab' }
-      );
+      assert.throws(() => handler.validate({ prefabPath: 'Assets/Prefabs/MyPrefab' }), {
+        message: 'prefabPath must start with Assets/ and end with .prefab'
+      });
     });
 
     it('should pass with valid prefabPath', () => {
-      assert.doesNotThrow(() => handler.validate({
-        prefabPath: 'Assets/Prefabs/MyPrefab.prefab'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          prefabPath: 'Assets/Prefabs/MyPrefab.prefab'
+        })
+      );
     });
 
     it('should pass with optional parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        prefabPath: 'Assets/Prefabs/MyPrefab.prefab',
-        focusObject: '/Root/Child',
-        isolateObject: true
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          prefabPath: 'Assets/Prefabs/MyPrefab.prefab',
+          focusObject: '/Root/Child',
+          isolateObject: true
+        })
+      );
     });
   });
 
@@ -116,9 +116,10 @@ describe('AssetPrefabOpenToolHandler', () => {
       });
 
       await assert.rejects(
-        async () => await handler.execute({
-          prefabPath: 'Assets/Prefabs/NonExistent.prefab'
-        }),
+        async () =>
+          await handler.execute({
+            prefabPath: 'Assets/Prefabs/NonExistent.prefab'
+          }),
         { message: 'Prefab asset not found at path: Assets/Prefabs/NonExistent.prefab' }
       );
     });
@@ -129,9 +130,10 @@ describe('AssetPrefabOpenToolHandler', () => {
       });
 
       await assert.rejects(
-        async () => await handler.execute({
-          prefabPath: 'Assets/Materials/MyMaterial.mat'
-        }),
+        async () =>
+          await handler.execute({
+            prefabPath: 'Assets/Materials/MyMaterial.mat'
+          }),
         { message: 'Asset at path is not a prefab: Assets/Materials/MyMaterial.mat' }
       );
     });

@@ -10,9 +10,9 @@ describe('SystemRefreshAssetsToolHandler', () => {
   beforeEach(() => {
     mockConnection = createMockUnityConnection({
       sendCommandResult: {
-        "success": true,
-        "message": "Assets refreshed successfully",
-        "compilationStatus": "Success"
+        success: true,
+        message: 'Assets refreshed successfully',
+        compilationStatus: 'Success'
       }
     });
     handler = new SystemRefreshAssetsToolHandler(mockConnection);
@@ -30,24 +30,23 @@ describe('SystemRefreshAssetsToolHandler', () => {
     it('should pass with valid parameters', () => {
       assert.doesNotThrow(() => handler.validate({}));
     });
-
   });
 
   describe('execute', () => {
     it('should execute successfully with valid params', async () => {
       const result = await handler.execute({});
-      
+
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.ok(result);  // Handler returns the raw Unity response
+      assert.ok(result); // Handler returns the raw Unity response
       // Message is added by handler if present in Unity response
     });
 
     it('should connect if not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
       mockConnection.connect = mock.fn(async () => {});
-      
+
       await handler.execute({});
-      
+
       assert.equal(mockConnection.connect.mock.calls.length, 1);
     });
   });
@@ -55,10 +54,9 @@ describe('SystemRefreshAssetsToolHandler', () => {
   describe('integration with BaseToolHandler', () => {
     it('should handle valid request through handle method', async () => {
       const result = await handler.handle({});
-      
+
       assert.equal(result.status, 'success');
       assert.ok(result.result);
     });
-
   });
 });

@@ -51,29 +51,35 @@ describe('InputBindingRemoveToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with required parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap',
-        actionName: 'Jump'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap',
+          actionName: 'Jump'
+        })
+      );
     });
 
     it('should pass with bindingIndex', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap',
-        actionName: 'Jump',
-        bindingIndex: 0
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap',
+          actionName: 'Jump',
+          bindingIndex: 0
+        })
+      );
     });
 
     it('should pass with bindingPath', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap',
-        actionName: 'Jump',
-        bindingPath: '<Keyboard>/space'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap',
+          actionName: 'Jump',
+          bindingPath: '<Keyboard>/space'
+        })
+      );
     });
   });
 

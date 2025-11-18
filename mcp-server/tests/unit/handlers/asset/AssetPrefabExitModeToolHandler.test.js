@@ -8,19 +8,19 @@ class MockUnityConnection {
     this.connected = true;
     this.mockResponses = new Map();
   }
-  
+
   isConnected() {
     return this.connected;
   }
-  
+
   async connect() {
     this.connected = true;
   }
-  
+
   setMockResponse(command, response) {
     this.mockResponses.set(command, response);
   }
-  
+
   async sendCommand(command, params) {
     const response = this.mockResponses.get(command);
     if (response) {
@@ -113,10 +113,9 @@ describe('AssetPrefabExitModeToolHandler', () => {
         error: 'Failed to save prefab changes: Prefab is read-only'
       });
 
-      await assert.rejects(
-        async () => await handler.execute({ saveChanges: true }),
-        { message: 'Failed to save prefab changes: Prefab is read-only' }
-      );
+      await assert.rejects(async () => await handler.execute({ saveChanges: true }), {
+        message: 'Failed to save prefab changes: Prefab is read-only'
+      });
     });
   });
 });

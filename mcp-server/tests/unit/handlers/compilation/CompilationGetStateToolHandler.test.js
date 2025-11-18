@@ -8,19 +8,19 @@ class MockUnityConnection {
     this.connected = true;
     this.mockResponses = new Map();
   }
-  
+
   isConnected() {
     return this.connected;
   }
-  
+
   async connect() {
     this.connected = true;
   }
-  
+
   setMockResponse(command, response) {
     this.mockResponses.set(command, response);
   }
-  
+
   async sendCommand(command, params) {
     const response = this.mockResponses.get(command);
     if (response) {
@@ -42,7 +42,10 @@ describe('CompilationGetStateToolHandler', () => {
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'compilation_get_state');
-      assert.equal(handler.description, 'Get current Unity compilation state, errors, and warnings with enhanced detection');
+      assert.equal(
+        handler.description,
+        'Get current Unity compilation state, errors, and warnings with enhanced detection'
+      );
       assert.equal(handler.inputSchema.required, undefined);
     });
   });
@@ -143,10 +146,9 @@ describe('CompilationGetStateToolHandler', () => {
         error: 'Failed to read compilation logs'
       });
 
-      await assert.rejects(
-        async () => await handler.execute({}),
-        { message: 'Failed to read compilation logs' }
-      );
+      await assert.rejects(async () => await handler.execute({}), {
+        message: 'Failed to read compilation logs'
+      });
     });
   });
 });

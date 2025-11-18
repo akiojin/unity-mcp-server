@@ -12,12 +12,19 @@ export class VideoCaptureForToolHandler extends BaseToolHandler {
       {
         type: 'object',
         properties: {
-          captureMode: { type: 'string', enum: ['game'], description: 'Capture source. Currently only "game" supported.' },
+          captureMode: {
+            type: 'string',
+            enum: ['game'],
+            description: 'Capture source. Currently only "game" supported.'
+          },
           width: { type: 'number', description: 'Output width (0 = default 1280)' },
           height: { type: 'number', description: 'Output height (0 = default 720)' },
           fps: { type: 'number', description: 'Frames per second (default 30)' },
           durationSec: { type: 'number', description: 'Duration to record in seconds' },
-          play: { type: 'boolean', description: 'Enter Play Mode before recording (default true if not already playing)' }
+          play: {
+            type: 'boolean',
+            description: 'Enter Play Mode before recording (default true if not already playing)'
+          }
         },
         required: ['durationSec']
       }
@@ -36,13 +43,18 @@ export class VideoCaptureForToolHandler extends BaseToolHandler {
         try {
           const s0 = await this.unityConnection.sendCommand('playmode_get_state', {});
           needPlay = !(s0 && s0.isPlaying);
-        } catch { needPlay = true; }
+        } catch {
+          needPlay = true;
+        }
       }
       if (needPlay) {
         await this.unityConnection.sendCommand('playmode_play', {});
         for (let i = 0; i < 60; i++) {
           const s = await this.unityConnection.sendCommand('get_editor_state', {});
-          if (s && s.isPlaying) { enteredPlay = true; break; }
+          if (s && s.isPlaying) {
+            enteredPlay = true;
+            break;
+          }
           await sleep(250);
         }
       }
@@ -62,7 +74,8 @@ export class VideoCaptureForToolHandler extends BaseToolHandler {
       }
 
       // Wait until stopped (status reports isRecording=false)
-      const deadline = Date.now() + Math.max(0, Math.floor((params.durationSec || 0) * 1000)) + 1500; // small buffer
+      const deadline =
+        Date.now() + Math.max(0, Math.floor((params.durationSec || 0) * 1000)) + 1500; // small buffer
       let lastStatus = null;
       while (Date.now() < deadline) {
         lastStatus = await this.unityConnection.sendCommand('video_capture_status', {});
@@ -88,9 +101,13 @@ export class VideoCaptureForToolHandler extends BaseToolHandler {
       return { error: e.message, code: 'CLIENT_ERROR' };
     } finally {
       // If we entered play, attempt to leave play (best-effort)
-      try { if (enteredPlay) await this.unityConnection.sendCommand('playmode_stop', {}); } catch {}
+      try {
+        if (enteredPlay) await this.unityConnection.sendCommand('playmode_stop', {});
+      } catch {}
     }
   }
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}

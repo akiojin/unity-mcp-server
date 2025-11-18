@@ -32,7 +32,7 @@ export class ComponentModifyToolHandler extends BaseToolHandler {
         required: ['gameObjectPath', 'componentType', 'properties']
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -43,7 +43,7 @@ export class ComponentModifyToolHandler extends BaseToolHandler {
    */
   validate(params) {
     super.validate(params); // Check required fields
-    
+
     const { properties } = params;
 
     // Validate properties is not empty

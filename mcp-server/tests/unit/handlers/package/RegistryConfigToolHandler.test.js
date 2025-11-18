@@ -27,7 +27,14 @@ describe('RegistryConfigToolHandler', () => {
       const schema = handler.inputSchema;
       assert.equal(schema.type, 'object');
       assert.ok(schema.properties.action);
-      assert.deepEqual(schema.properties.action.enum, ['list', 'add_openupm', 'add_nuget', 'remove', 'add_scope', 'recommend']);
+      assert.deepEqual(schema.properties.action.enum, [
+        'list',
+        'add_openupm',
+        'add_nuget',
+        'remove',
+        'add_scope',
+        'recommend'
+      ]);
       assert.deepEqual(schema.required, ['action']);
     });
   });
@@ -42,17 +49,16 @@ describe('RegistryConfigToolHandler', () => {
     });
 
     it('should throw error for remove without registryName', () => {
-      assert.throws(
-        () => handler.validate({ action: 'remove' }),
-        /Registry name is required/
-      );
+      assert.throws(() => handler.validate({ action: 'remove' }), /Registry name is required/);
     });
 
     it('should pass with remove action and registryName', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'remove',
-        registryName: 'OpenUPM'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'remove',
+          registryName: 'OpenUPM'
+        })
+      );
     });
 
     it('should throw error for add_scope without registryName or scope', () => {
@@ -63,11 +69,13 @@ describe('RegistryConfigToolHandler', () => {
     });
 
     it('should pass with add_scope action and parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'add_scope',
-        registryName: 'OpenUPM',
-        scope: 'com.unity'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'add_scope',
+          registryName: 'OpenUPM',
+          scope: 'com.unity'
+        })
+      );
     });
   });
 

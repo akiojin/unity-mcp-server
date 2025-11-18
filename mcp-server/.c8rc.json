@@ -1,18 +1,7 @@
 {
-  "include": [
-    "src/**/*.js"
-  ],
-  "exclude": [
-    "src/**/*.test.js",
-    "tests/**/*",
-    "node_modules/**/*",
-    "coverage/**/*"
-  ],
-  "reporter": [
-    "text",
-    "html",
-    "lcov"
-  ],
+  "include": ["src/**/*.js"],
+  "exclude": ["src/**/*.test.js", "tests/**/*", "node_modules/**/*", "coverage/**/*"],
+  "reporter": ["text", "html", "lcov"],
   "reportDir": "coverage",
   "tempDirectory": ".c8_temp",
   "checkCoverage": true,
