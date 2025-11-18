@@ -63,24 +63,30 @@ describe('ScreenshotCaptureToolHandler', () => {
     });
 
     it('should pass with window mode and windowName', () => {
-      assert.doesNotThrow(() => handler.validate({
-        captureMode: 'window',
-        windowName: 'Inspector'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          captureMode: 'window',
+          windowName: 'Inspector'
+        })
+      );
     });
 
     it('should pass with custom dimensions', () => {
-      assert.doesNotThrow(() => handler.validate({
-        captureMode: 'game',
-        width: 1280,
-        height: 720
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          captureMode: 'game',
+          width: 1280,
+          height: 720
+        })
+      );
     });
 
     it('should pass with base64 encoding', () => {
-      assert.doesNotThrow(() => handler.validate({
-        encodeAsBase64: true
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          encodeAsBase64: true
+        })
+      );
     });
   });
 
@@ -140,7 +146,8 @@ describe('ScreenshotCaptureToolHandler', () => {
         sendCommandResult: {
           success: true,
           path: '.unity/capture/screenshot.png',
-          base64Data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+          base64Data:
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
         }
       });
       handler = new ScreenshotCaptureToolHandler(mockConnection);
@@ -159,19 +166,13 @@ describe('ScreenshotCaptureToolHandler', () => {
       });
       handler = new ScreenshotCaptureToolHandler(mockConnection);
 
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /Window not found/
-      );
+      await assert.rejects(async () => await handler.execute({}), /Window not found/);
     });
 
     it('should throw error if not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
 
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /Unity connection not available/
-      );
+      await assert.rejects(async () => await handler.execute({}), /Unity connection not available/);
     });
 
     it('should connect if not already connected', async () => {

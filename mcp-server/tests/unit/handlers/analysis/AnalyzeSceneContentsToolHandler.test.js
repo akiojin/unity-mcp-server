@@ -25,10 +25,7 @@ describe('AnalyzeSceneContentsToolHandler', () => {
   describe('execute', () => {
     it('should throw error when Unity not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /Unity connection not available/
-      );
+      await assert.rejects(async () => await handler.execute({}), /Unity connection not available/);
     });
 
     it('should execute when Unity connected', async () => {

@@ -5,23 +5,19 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class PlaymodeGetStateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'playmode_get_state',
-      'Get current Unity editor state including play mode status',
-      {
-        type: 'object',
-        properties: {
-          waitFor: {
-            type: 'object',
-            properties: { isPlaying: { type: 'boolean' } },
-            required: ['isPlaying']
-          },
-          timeoutMs: { type: 'number' },
-          pollMs: { type: 'number' }
+    super('playmode_get_state', 'Get current Unity editor state including play mode status', {
+      type: 'object',
+      properties: {
+        waitFor: {
+          type: 'object',
+          properties: { isPlaying: { type: 'boolean' } },
+          required: ['isPlaying']
         },
-        required: []
-      }
-    );
+        timeoutMs: { type: 'number' },
+        pollMs: { type: 'number' }
+      },
+      required: []
+    });
     this.unityConnection = unityConnection;
     // 軽量なソフトキャッシュ（単発取得時のみ使用）
     this._last = { t: 0, state: null };

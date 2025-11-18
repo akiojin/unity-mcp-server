@@ -23,11 +23,11 @@ export class MockUnityConnection extends EventEmitter {
     if (this.shouldFail) {
       throw new Error('Connection refused');
     }
-    
+
     if (this.delay > 0) {
       await new Promise(resolve => setTimeout(resolve, this.delay));
     }
-    
+
     this.connected = true;
     this.emit('connected');
     return this;
@@ -40,7 +40,7 @@ export class MockUnityConnection extends EventEmitter {
 
   async sendCommand(type, params = {}) {
     this.commandCount++;
-    
+
     if (this.failAfter && this.commandCount > this.failAfter) {
       throw new Error('Mock connection failed after command limit');
     }
@@ -87,7 +87,7 @@ export class TestAssertions {
   static assertGameObjectStructure(gameObject) {
     const requiredKeys = ['id', 'name', 'path', 'position', 'rotation', 'scale'];
     TestAssertions.assertValidResponse(gameObject, requiredKeys);
-    
+
     // Validate position structure
     TestAssertions.assertValidResponse(gameObject.position, ['x', 'y', 'z']);
     TestAssertions.assertValidResponse(gameObject.rotation, ['x', 'y', 'z']);
@@ -98,16 +98,20 @@ export class TestAssertions {
     if (!error) {
       throw new Error('Expected error but none was thrown');
     }
-    
+
     if (expectedMessage && !error.message.includes(expectedMessage)) {
-      throw new Error(`Expected error message to contain '${expectedMessage}', got: ${error.message}`);
+      throw new Error(
+        `Expected error message to contain '${expectedMessage}', got: ${error.message}`
+      );
     }
   }
 
   static assertTimingWithinRange(actualMs, expectedMs, toleranceMs = 100) {
     const diff = Math.abs(actualMs - expectedMs);
     if (diff > toleranceMs) {
-      throw new Error(`Timing outside acceptable range. Expected: ${expectedMs}ms ±${toleranceMs}ms, got: ${actualMs}ms`);
+      throw new Error(
+        `Timing outside acceptable range. Expected: ${expectedMs}ms ±${toleranceMs}ms, got: ${actualMs}ms`
+      );
     }
   }
 }
@@ -133,7 +137,7 @@ export class TestDataFactory {
   }
 
   static createBatchCommands(count = 5, type = 'system_ping') {
-    return Array.from({ length: count }, (_, i) => 
+    return Array.from({ length: count }, (_, i) =>
       TestDataFactory.createCommand(type, { index: i })
     );
   }
@@ -156,11 +160,11 @@ export class PerformanceTracker {
     if (!measurement) {
       throw new Error(`No measurement started for label: ${label}`);
     }
-    
+
     const end = process.hrtime.bigint();
     const durationNs = end - measurement.start;
     const durationMs = Number(durationNs) / 1_000_000;
-    
+
     measurement.duration = durationMs;
     return durationMs;
   }
@@ -191,10 +195,10 @@ export class PerformanceTracker {
 export class TestEnvironment {
   static shouldSkipTest(reason) {
     const reasons = {
-      'integration': TEST_CONFIG.FLAGS.SKIP_INTEGRATION,
-      'e2e': TEST_CONFIG.FLAGS.SKIP_E2E,
-      'ci': TEST_CONFIG.FLAGS.CI_MODE,
-      'unity': !TestEnvironment.isUnityRunning()
+      integration: TEST_CONFIG.FLAGS.SKIP_INTEGRATION,
+      e2e: TEST_CONFIG.FLAGS.SKIP_E2E,
+      ci: TEST_CONFIG.FLAGS.CI_MODE,
+      unity: !TestEnvironment.isUnityRunning()
     };
 
     return reasons[reason] || false;
@@ -207,10 +211,10 @@ export class TestEnvironment {
 
   static getSkipMessage(reason) {
     const messages = {
-      'integration': TEST_MESSAGES.SKIPPED.INTEGRATION,
-      'e2e': TEST_MESSAGES.SKIPPED.E2E,
-      'unity': TEST_MESSAGES.SKIPPED.UNITY_NOT_RUNNING,
-      'ci': TEST_MESSAGES.SKIPPED.LONG_RUNNING
+      integration: TEST_MESSAGES.SKIPPED.INTEGRATION,
+      e2e: TEST_MESSAGES.SKIPPED.E2E,
+      unity: TEST_MESSAGES.SKIPPED.UNITY_NOT_RUNNING,
+      ci: TEST_MESSAGES.SKIPPED.LONG_RUNNING
     };
 
     return messages[reason] || 'Test skipped';
@@ -226,7 +230,7 @@ export class TestEnvironment {
 
   static async retry(fn, maxRetries = TEST_CONFIG.TIMING.MAX_RETRIES) {
     let lastError;
-    
+
     for (let i = 0; i < maxRetries; i++) {
       try {
         return await fn();
@@ -237,7 +241,7 @@ export class TestEnvironment {
         }
       }
     }
-    
+
     throw lastError;
   }
 }
@@ -253,7 +257,7 @@ export function createMockUnityConnection(options = {}) {
     disconnect: mock.fn(async () => {}),
     ...options
   };
-  
+
   return mockConnection;
 }
 

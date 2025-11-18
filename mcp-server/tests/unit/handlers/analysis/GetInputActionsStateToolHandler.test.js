@@ -90,17 +90,21 @@ describe('GetInputActionsStateToolHandler', () => {
     });
 
     it('should pass with assetName', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetName: 'PlayerInputActions'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetName: 'PlayerInputActions'
+        })
+      );
     });
 
     it('should pass with optional parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInputActions.inputactions',
-        includeBindings: true,
-        includeControlSchemes: true
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInputActions.inputactions',
+          includeBindings: true,
+          includeControlSchemes: true
+        })
+      );
     });
   });
 
@@ -109,7 +113,10 @@ describe('GetInputActionsStateToolHandler', () => {
       const result = await handler.execute({});
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_actions_state_get');
+      assert.equal(
+        mockConnection.sendCommand.mock.calls[0].arguments[0],
+        'input_actions_state_get'
+      );
 
       assert.ok(result);
       assert.ok(result.content);

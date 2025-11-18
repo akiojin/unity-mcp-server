@@ -20,7 +20,7 @@ describe('AnalyzeSceneContentsToolHandler', () => {
               Camera: 3
             }
           },
-          summary: "Scene contains 10 objects: 5 GameObjects, 2 Lights, 3 Cameras"
+          summary: 'Scene contains 10 objects: 5 GameObjects, 2 Lights, 3 Cameras'
         }
       }
     });
@@ -37,27 +37,26 @@ describe('AnalyzeSceneContentsToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with valid parameters', () => {
-      assert.doesNotThrow(() => handler.validate({"groupByType":true}));
+      assert.doesNotThrow(() => handler.validate({ groupByType: true }));
     });
-
   });
 
   describe('execute', () => {
     it('should execute successfully with valid params', async () => {
-      const result = await handler.execute({"groupByType":true});
-      
+      const result = await handler.execute({ groupByType: true });
+
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
       assert.ok(result);
       assert.ok(result.content);
       assert.equal(result.isError, false);
-      assert.ok(result.content[0].text.includes("Scene contains 10 objects"));
+      assert.ok(result.content[0].text.includes('Scene contains 10 objects'));
     });
 
     it('should throw error if not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      
+
       await assert.rejects(
-        async () => await handler.execute({"groupByType":true}),
+        async () => await handler.execute({ groupByType: true }),
         /Unity connection not available/
       );
     });
@@ -65,13 +64,12 @@ describe('AnalyzeSceneContentsToolHandler', () => {
 
   describe('integration with BaseToolHandler', () => {
     it('should handle valid request through handle method', async () => {
-      const result = await handler.handle({"groupByType":true});
-      
+      const result = await handler.handle({ groupByType: true });
+
       assert.equal(result.status, 'success');
       assert.ok(result.result);
       assert.ok(result.result.content);
       assert.equal(result.result.isError, false);
     });
-
   });
 });

@@ -14,7 +14,8 @@ export class GameObjectGetHierarchyToolHandler extends BaseToolHandler {
         properties: {
           rootPath: {
             type: 'string',
-            description: 'Path to GameObject whose children will be the root of the returned hierarchy (e.g., "/Team_0" returns Team_0\'s children). If not specified, returns scene root objects.'
+            description:
+              'Path to GameObject whose children will be the root of the returned hierarchy (e.g., "/Team_0" returns Team_0\'s children). If not specified, returns scene root objects.'
           },
           includeInactive: {
             type: 'boolean',
@@ -22,16 +23,19 @@ export class GameObjectGetHierarchyToolHandler extends BaseToolHandler {
           },
           maxDepth: {
             type: 'number',
-            description: 'Maximum depth to traverse from the root. 0=immediate children only (default), 1=children+grandchildren, 2=children+grandchildren+great-grandchildren, etc. (-1 for unlimited)',
+            description:
+              'Maximum depth to traverse from the root. 0=immediate children only (default), 1=children+grandchildren, 2=children+grandchildren+great-grandchildren, etc. (-1 for unlimited)',
             minimum: -1
           },
           includeComponents: {
             type: 'boolean',
-            description: 'Include component information (default: false). WARNING: Significantly increases response size - use with small maxObjects values.'
+            description:
+              'Include component information (default: false). WARNING: Significantly increases response size - use with small maxObjects values.'
           },
           includeTransform: {
             type: 'boolean',
-            description: 'Include transform information (default: false). WARNING: Increases response size - use with small maxObjects values.'
+            description:
+              'Include transform information (default: false). WARNING: Increases response size - use with small maxObjects values.'
           },
           includeTags: {
             type: 'boolean',
@@ -43,18 +47,20 @@ export class GameObjectGetHierarchyToolHandler extends BaseToolHandler {
           },
           nameOnly: {
             type: 'boolean',
-            description: 'Return only names and paths for minimal data size (default: false). RECOMMENDED for large hierarchies to reduce token usage.'
+            description:
+              'Return only names and paths for minimal data size (default: false). RECOMMENDED for large hierarchies to reduce token usage.'
           },
           maxObjects: {
             type: 'number',
-            description: 'Maximum number of objects to include in response. Unity default: 100 (-1 for unlimited). RECOMMENDED: 10-50 for detailed info, 100-500 for nameOnly mode to avoid MCP token limits',
+            description:
+              'Maximum number of objects to include in response. Unity default: 100 (-1 for unlimited). RECOMMENDED: 10-50 for detailed info, 100-500 for nameOnly mode to avoid MCP token limits',
             minimum: -1
           }
         },
         required: []
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -65,7 +71,7 @@ export class GameObjectGetHierarchyToolHandler extends BaseToolHandler {
    */
   validate(params) {
     super.validate(params);
-    
+
     // Validate maxDepth
     if (params.maxDepth !== undefined) {
       const depth = Number(params.maxDepth);
@@ -73,7 +79,7 @@ export class GameObjectGetHierarchyToolHandler extends BaseToolHandler {
         throw new Error('maxDepth must be -1 or a positive number');
       }
     }
-    
+
     // Validate maxObjects
     if (params.maxObjects !== undefined) {
       const maxObjects = Number(params.maxObjects);
@@ -93,21 +99,21 @@ export class GameObjectGetHierarchyToolHandler extends BaseToolHandler {
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }
-    
+
     // Send get_hierarchy command
     const result = await this.unityConnection.sendCommand('get_hierarchy', params);
-    
+
     // Check for errors from Unity
     if (result.error) {
       throw new Error(result.error);
     }
-    
+
     // Add helpful summary
     if (result.hierarchy) {
       result.totalObjects = this.countObjects(result.hierarchy);
       result.summary = `Scene "${result.sceneName}" contains ${result.totalObjects} GameObject${result.totalObjects !== 1 ? 's' : ''} (${result.objectCount} at root level)`;
     }
-    
+
     return result;
   }
 
@@ -118,15 +124,15 @@ export class GameObjectGetHierarchyToolHandler extends BaseToolHandler {
    */
   countObjects(hierarchy) {
     let count = 0;
-    
+
     for (const node of hierarchy) {
       count++; // Count this node
-      
+
       if (node.children && Array.isArray(node.children)) {
         count += this.countObjects(node.children);
       }
     }
-    
+
     return count;
   }
 }

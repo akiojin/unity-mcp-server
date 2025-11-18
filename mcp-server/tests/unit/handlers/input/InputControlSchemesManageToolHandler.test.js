@@ -48,36 +48,44 @@ describe('InputControlSchemesManageToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with required parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        operation: 'add'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          operation: 'add'
+        })
+      );
     });
 
     it('should pass with optional parameters for add', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        operation: 'add',
-        schemeName: 'Gamepad',
-        devices: ['Gamepad']
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          operation: 'add',
+          schemeName: 'Gamepad',
+          devices: ['Gamepad']
+        })
+      );
     });
 
     it('should pass with optional parameters for remove', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        operation: 'remove',
-        schemeName: 'Gamepad'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          operation: 'remove',
+          schemeName: 'Gamepad'
+        })
+      );
     });
 
     it('should pass with optional parameters for modify', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        operation: 'modify',
-        schemeName: 'Gamepad',
-        devices: ['Gamepad', 'Joystick']
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          operation: 'modify',
+          schemeName: 'Gamepad',
+          devices: ['Gamepad', 'Joystick']
+        })
+      );
     });
   });
 
@@ -91,7 +99,10 @@ describe('InputControlSchemesManageToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_control_schemes_manage');
+      assert.equal(
+        mockConnection.sendCommand.mock.calls[0].arguments[0],
+        'input_control_schemes_manage'
+      );
 
       assert.ok(result);
       assert.ok(result.content);

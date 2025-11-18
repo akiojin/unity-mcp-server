@@ -45,57 +45,63 @@ describe('ScreenshotAnalyzeToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with imagePath', () => {
-      assert.doesNotThrow(() => handler.validate({
-        imagePath: 'Assets/Screenshots/test.png'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          imagePath: 'Assets/Screenshots/test.png'
+        })
+      );
     });
 
     it('should pass with base64Data', () => {
-      assert.doesNotThrow(() => handler.validate({
-        base64Data: 'iVBORw0KGgoAAAANS...'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          base64Data: 'iVBORw0KGgoAAAANS...'
+        })
+      );
     });
 
     it('should throw error without imagePath or base64Data', () => {
-      assert.throws(
-        () => handler.validate({}),
-        /Either imagePath or base64Data must be provided/
-      );
+      assert.throws(() => handler.validate({}), /Either imagePath or base64Data must be provided/);
     });
 
     it('should throw error with both imagePath and base64Data', () => {
       assert.throws(
-        () => handler.validate({
-          imagePath: 'Assets/test.png',
-          base64Data: 'data...'
-        }),
+        () =>
+          handler.validate({
+            imagePath: 'Assets/test.png',
+            base64Data: 'data...'
+          }),
         /not both/
       );
     });
 
     it('should throw error for imagePath outside Assets', () => {
       assert.throws(
-        () => handler.validate({
-          imagePath: '/absolute/path/test.png'
-        }),
+        () =>
+          handler.validate({
+            imagePath: '/absolute/path/test.png'
+          }),
         /must be within the Assets folder/
       );
     });
 
     it('should throw error for unsupported file format', () => {
       assert.throws(
-        () => handler.validate({
-          imagePath: 'Assets/test.bmp'
-        }),
+        () =>
+          handler.validate({
+            imagePath: 'Assets/test.bmp'
+          }),
         /must be a PNG or JPEG/
       );
     });
 
     it('should pass with valid analysisType', () => {
-      assert.doesNotThrow(() => handler.validate({
-        imagePath: 'Assets/test.png',
-        analysisType: 'basic'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          imagePath: 'Assets/test.png',
+          analysisType: 'basic'
+        })
+      );
     });
   });
 
@@ -174,9 +180,10 @@ describe('ScreenshotAnalyzeToolHandler', () => {
       handler = new ScreenshotAnalyzeToolHandler(mockConnection);
 
       await assert.rejects(
-        async () => await handler.execute({
-          imagePath: 'Assets/invalid.png'
-        }),
+        async () =>
+          await handler.execute({
+            imagePath: 'Assets/invalid.png'
+          }),
         /File not found/
       );
     });
@@ -311,10 +318,12 @@ describe('ScreenshotAnalyzeToolHandler', () => {
 
     it('FR-014: should support multiple analysis types', async () => {
       for (const type of ['basic', 'ui', 'content', 'full']) {
-        assert.doesNotThrow(() => handler.validate({
-          imagePath: 'Assets/test.png',
-          analysisType: type
-        }));
+        assert.doesNotThrow(() =>
+          handler.validate({
+            imagePath: 'Assets/test.png',
+            analysisType: type
+          })
+        );
       }
     });
 

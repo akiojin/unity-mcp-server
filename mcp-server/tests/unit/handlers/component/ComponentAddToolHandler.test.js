@@ -8,19 +8,19 @@ class MockUnityConnection {
     this.connected = true;
     this.mockResponses = new Map();
   }
-  
+
   isConnected() {
     return this.connected;
   }
-  
+
   async connect() {
     this.connected = true;
   }
-  
+
   setMockResponse(command, response) {
     this.mockResponses.set(command, response);
   }
-  
+
   async sendCommand(command, params) {
     const response = this.mockResponses.get(command);
     if (response) {
@@ -49,46 +49,46 @@ describe('ComponentAddToolHandler', () => {
 
   describe('validate', () => {
     it('should fail without gameObjectPath', () => {
-      assert.throws(
-        () => handler.validate({ componentType: 'Rigidbody' }),
-        { message: 'Missing required parameter: gameObjectPath' }
-      );
+      assert.throws(() => handler.validate({ componentType: 'Rigidbody' }), {
+        message: 'Missing required parameter: gameObjectPath'
+      });
     });
 
     it('should fail without componentType', () => {
-      assert.throws(
-        () => handler.validate({ gameObjectPath: '/TestObject' }),
-        { message: 'Missing required parameter: componentType' }
-      );
+      assert.throws(() => handler.validate({ gameObjectPath: '/TestObject' }), {
+        message: 'Missing required parameter: componentType'
+      });
     });
 
     it('should fail with empty gameObjectPath', () => {
-      assert.throws(
-        () => handler.validate({ gameObjectPath: '', componentType: 'Rigidbody' }),
-        { message: 'gameObjectPath cannot be empty' }
-      );
+      assert.throws(() => handler.validate({ gameObjectPath: '', componentType: 'Rigidbody' }), {
+        message: 'gameObjectPath cannot be empty'
+      });
     });
 
     it('should fail with empty componentType', () => {
-      assert.throws(
-        () => handler.validate({ gameObjectPath: '/TestObject', componentType: '' }),
-        { message: 'componentType cannot be empty' }
-      );
+      assert.throws(() => handler.validate({ gameObjectPath: '/TestObject', componentType: '' }), {
+        message: 'componentType cannot be empty'
+      });
     });
 
     it('should pass with valid parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        gameObjectPath: '/TestObject',
-        componentType: 'Rigidbody'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          gameObjectPath: '/TestObject',
+          componentType: 'Rigidbody'
+        })
+      );
     });
 
     it('should pass with properties', () => {
-      assert.doesNotThrow(() => handler.validate({
-        gameObjectPath: '/TestObject',
-        componentType: 'Rigidbody',
-        properties: { mass: 2.0 }
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          gameObjectPath: '/TestObject',
+          componentType: 'Rigidbody',
+          properties: { mass: 2.0 }
+        })
+      );
     });
   });
 
@@ -118,10 +118,11 @@ describe('ComponentAddToolHandler', () => {
       });
 
       await assert.rejects(
-        async () => await handler.execute({
-          gameObjectPath: '/TestObject',
-          componentType: 'InvalidComponent'
-        }),
+        async () =>
+          await handler.execute({
+            gameObjectPath: '/TestObject',
+            componentType: 'InvalidComponent'
+          }),
         { message: 'Component type not found: InvalidComponent' }
       );
     });
@@ -132,10 +133,11 @@ describe('ComponentAddToolHandler', () => {
       });
 
       await assert.rejects(
-        async () => await handler.execute({
-          gameObjectPath: '/NonExistent',
-          componentType: 'Rigidbody'
-        }),
+        async () =>
+          await handler.execute({
+            gameObjectPath: '/NonExistent',
+            componentType: 'Rigidbody'
+          }),
         { message: 'GameObject not found: /NonExistent' }
       );
     });
@@ -146,10 +148,11 @@ describe('ComponentAddToolHandler', () => {
       });
 
       await assert.rejects(
-        async () => await handler.execute({
-          gameObjectPath: '/TestObject',
-          componentType: 'Rigidbody'
-        }),
+        async () =>
+          await handler.execute({
+            gameObjectPath: '/TestObject',
+            componentType: 'Rigidbody'
+          }),
         { message: 'GameObject already has component: Rigidbody' }
       );
     });

@@ -8,19 +8,19 @@ class MockUnityConnection {
     this.connected = true;
     this.mockResponses = new Map();
   }
-  
+
   isConnected() {
     return this.connected;
   }
-  
+
   async connect() {
     this.connected = true;
   }
-  
+
   setMockResponse(command, response) {
     this.mockResponses.set(command, response);
   }
-  
+
   async sendCommand(command, params) {
     const response = this.mockResponses.get(command);
     if (response) {
@@ -105,63 +105,93 @@ describe('EditorLayersManageToolHandler', () => {
     });
 
     it('should fail with missing action', () => {
-      assert.throws(() => {
-        handler.validate({});
-      }, { message: /action is required/ });
+      assert.throws(
+        () => {
+          handler.validate({});
+        },
+        { message: /action is required/ }
+      );
     });
 
     it('should fail with invalid action', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'invalid' });
-      }, { message: /action must be one of/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'invalid' });
+        },
+        { message: /action must be one of/ }
+      );
     });
 
     it('should fail with add action but missing layer name', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'add' });
-      }, { message: /layerName is required for add action/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'add' });
+        },
+        { message: /layerName is required for add action/ }
+      );
     });
 
     it('should fail with empty layer name', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'add', layerName: '' });
-      }, { message: /layerName cannot be empty/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'add', layerName: '' });
+        },
+        { message: /layerName cannot be empty/ }
+      );
     });
 
     it('should fail with invalid layer name characters', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'add', layerName: 'Invalid Layer!' });
-      }, { message: /layerName contains invalid characters/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'add', layerName: 'Invalid Layer!' });
+        },
+        { message: /layerName contains invalid characters/ }
+      );
     });
 
     it('should fail with reserved layer name', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'add', layerName: 'Default' });
-      }, { message: /layerName is reserved/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'add', layerName: 'Default' });
+        },
+        { message: /layerName is reserved/ }
+      );
     });
 
     it('should fail with invalid layer index', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'get_by_index', layerIndex: 32 });
-      }, { message: /layerIndex must be between 0 and 31/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'get_by_index', layerIndex: 32 });
+        },
+        { message: /layerIndex must be between 0 and 31/ }
+      );
     });
 
     it('should fail with negative layer index', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'get_by_index', layerIndex: -1 });
-      }, { message: /layerIndex must be between 0 and 31/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'get_by_index', layerIndex: -1 });
+        },
+        { message: /layerIndex must be between 0 and 31/ }
+      );
     });
 
     it('should fail with missing layerIndex for get_by_index', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'get_by_index' });
-      }, { message: /layerIndex is required for get_by_index action/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'get_by_index' });
+        },
+        { message: /layerIndex is required for get_by_index action/ }
+      );
     });
 
     it('should fail with missing layerName for get_by_name', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'get_by_name' });
-      }, { message: /layerName is required for get_by_name action/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'get_by_name' });
+        },
+        { message: /layerName is required for get_by_name action/ }
+      );
     });
   });
 
@@ -177,7 +207,7 @@ describe('EditorLayersManageToolHandler', () => {
           { index: 8, name: 'Player' },
           { index: 9, name: 'Enemy' }
         ];
-        
+
         mockConnection.setMockResponse('manage_layers', {
           success: true,
           action: 'get',
@@ -365,23 +395,22 @@ describe('EditorLayersManageToolHandler', () => {
         error: 'Unity connection failed'
       });
 
-      await assert.rejects(
-        async () => await handler.execute({ action: 'get' }),
-        { message: 'Unity connection failed' }
-      );
+      await assert.rejects(async () => await handler.execute({ action: 'get' }), {
+        message: 'Unity connection failed'
+      });
     });
   });
 
   describe('getExamples', () => {
     it('should return usage examples', () => {
       const examples = handler.getExamples();
-      
+
       assert.ok(examples.getLayers);
       assert.ok(examples.addLayer);
       assert.ok(examples.removeLayer);
       assert.ok(examples.getLayerByName);
       assert.ok(examples.getLayerByIndex);
-      
+
       assert.equal(examples.getLayers.params.action, 'get');
       assert.equal(examples.addLayer.params.action, 'add');
       assert.equal(examples.removeLayer.params.action, 'remove');

@@ -61,7 +61,8 @@ export default class RegistryConfigToolHandler extends BaseToolHandler {
         if (!registryName) throw new Error('Registry name is required for remove action');
         break;
       case 'add_scope':
-        if (!registryName || !scope) throw new Error('Registry name and scope are required for add_scope action');
+        if (!registryName || !scope)
+          throw new Error('Registry name and scope are required for add_scope action');
         break;
     }
   }
@@ -180,18 +181,38 @@ export default class RegistryConfigToolHandler extends BaseToolHandler {
             scope: pkg.scope
           })),
           message: result.message || `Recommendations for ${result.registry}`
-        };    }
+        };
+    }
   }
 
   static getExamples() {
     return [
       { description: 'List configured registries', input: { action: 'list' } },
-      { description: 'Add OpenUPM registry with popular scopes', input: { action: 'add_openupm', autoAddPopular: true } },
-      { description: 'Add OpenUPM with custom scopes', input: { action: 'add_openupm', scopes: ['com.cysharp', 'com.neuecc', 'jp.keijiro'], autoAddPopular: false } },
-      { description: 'Add Unity NuGet registry', input: { action: 'add_nuget', autoAddPopular: true } },
-      { description: 'Add scope to existing registry', input: { action: 'add_scope', registryName: 'OpenUPM', scope: 'com.yasirkula' } },
+      {
+        description: 'Add OpenUPM registry with popular scopes',
+        input: { action: 'add_openupm', autoAddPopular: true }
+      },
+      {
+        description: 'Add OpenUPM with custom scopes',
+        input: {
+          action: 'add_openupm',
+          scopes: ['com.cysharp', 'com.neuecc', 'jp.keijiro'],
+          autoAddPopular: false
+        }
+      },
+      {
+        description: 'Add Unity NuGet registry',
+        input: { action: 'add_nuget', autoAddPopular: true }
+      },
+      {
+        description: 'Add scope to existing registry',
+        input: { action: 'add_scope', registryName: 'OpenUPM', scope: 'com.yasirkula' }
+      },
       { description: 'Remove a registry', input: { action: 'remove', registryName: 'OpenUPM' } },
-      { description: 'Get recommended packages for OpenUPM', input: { action: 'recommend', registry: 'openupm' } },
+      {
+        description: 'Get recommended packages for OpenUPM',
+        input: { action: 'recommend', registry: 'openupm' }
+      },
       { description: 'Get all registry recommendations', input: { action: 'recommend' } }
     ];
   }

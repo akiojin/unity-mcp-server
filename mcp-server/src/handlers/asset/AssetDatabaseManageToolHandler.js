@@ -13,7 +13,16 @@ export class AssetDatabaseManageToolHandler extends BaseToolHandler {
         properties: {
           action: {
             type: 'string',
-            enum: ['find_assets', 'get_asset_info', 'create_folder', 'delete_asset', 'move_asset', 'copy_asset', 'refresh', 'save'],
+            enum: [
+              'find_assets',
+              'get_asset_info',
+              'create_folder',
+              'delete_asset',
+              'move_asset',
+              'copy_asset',
+              'refresh',
+              'save'
+            ],
             description: 'The action to perform'
           },
           filter: {
@@ -53,7 +62,16 @@ export class AssetDatabaseManageToolHandler extends BaseToolHandler {
       throw new Error('action is required');
     }
 
-    const validActions = ['find_assets', 'get_asset_info', 'create_folder', 'delete_asset', 'move_asset', 'copy_asset', 'refresh', 'save'];
+    const validActions = [
+      'find_assets',
+      'get_asset_info',
+      'create_folder',
+      'delete_asset',
+      'move_asset',
+      'copy_asset',
+      'refresh',
+      'save'
+    ];
     if (!validActions.includes(params.action)) {
       throw new Error(`action must be one of: ${validActions.join(', ')}`);
     }
@@ -123,7 +141,7 @@ export class AssetDatabaseManageToolHandler extends BaseToolHandler {
 
   async execute(params) {
     this.validate(params);
-    
+
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }
@@ -184,8 +202,8 @@ export class AssetDatabaseManageToolHandler extends BaseToolHandler {
         }
       },
       {
-        input: { 
-          action: 'move_asset', 
+        input: {
+          action: 'move_asset',
           fromPath: 'Assets/icon.png',
           toPath: 'Assets/Textures/icon.png'
         },

@@ -24,8 +24,9 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
 
   async execute() {
     const jobManager = this.jobManager;
-    const buildJobs = jobManager.getAllJobs()
-      .filter((job) => typeof job?.id === 'string' && job.id.startsWith('build-'))
+    const buildJobs = jobManager
+      .getAllJobs()
+      .filter(job => typeof job?.id === 'string' && job.id.startsWith('build-'))
       .sort((a, b) => new Date(b.startedAt || 0).getTime() - new Date(a.startedAt || 0).getTime());
     const latestBuildJob = buildJobs.length > 0 ? buildJobs[0] : null;
 
@@ -61,7 +62,7 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
     let totalFiles = 0;
     const breakdown = { assets: 0, packages: 0, packageCache: 0, other: 0 };
 
-    const visit = (targetPath) => {
+    const visit = targetPath => {
       try {
         if (!fs.existsSync(targetPath)) return;
         const stats = fs.statSync(targetPath);

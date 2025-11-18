@@ -5,15 +5,11 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class PlaymodePauseToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'playmode_pause',
-      'Pause or resume Unity play mode',
-      {
-        type: 'object',
-        properties: {},
-        required: []
-      }
-    );
+    super('playmode_pause', 'Pause or resume Unity play mode', {
+      type: 'object',
+      properties: {},
+      required: []
+    });
     this.unityConnection = unityConnection;
   }
 
@@ -27,17 +23,17 @@ export class PlaymodePauseToolHandler extends BaseToolHandler {
     if (!this.unityConnection.isConnected()) {
       throw new Error('Unity connection not available');
     }
-    
+
     // Send pause command to Unity
     const result = await this.unityConnection.sendCommand('pause_game', params);
-    
+
     // Check for Unity-side errors
     if (result.status === 'error') {
       const error = new Error(result.error);
       error.code = 'UNITY_ERROR';
       throw error;
     }
-    
+
     // Return the result with state information
     return result;
   }

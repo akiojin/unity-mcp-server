@@ -12,7 +12,7 @@ export function validateVector3(obj, name) {
   if (obj && typeof obj === 'object') {
     const keys = Object.keys(obj);
     const validKeys = ['x', 'y', 'z'];
-    
+
     for (const key of keys) {
       if (!validKeys.includes(key)) {
         throw new Error(`${name} must only contain x, y, z properties`);

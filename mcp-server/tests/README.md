@@ -19,24 +19,28 @@ tests/
 ## Test Categories
 
 ### Unit Tests (`tests/unit/`)
+
 - **Purpose**: Test individual components in isolation
 - **Speed**: Fast (< 1 second per test)
 - **Coverage**: High granularity, focused on specific functions/classes
 - **Dependencies**: Minimal, uses mocks for external dependencies
 
 ### Integration Tests (`tests/integration/`)
+
 - **Purpose**: Test component interactions and system integration
 - **Speed**: Medium (1-10 seconds per test)
 - **Coverage**: Cross-component functionality
 - **Dependencies**: May require mock Unity connection
 
 ### End-to-End Tests (`tests/e2e/`)
+
 - **Purpose**: Test complete user workflows
 - **Speed**: Slow (10+ seconds per test)
 - **Coverage**: Full system functionality
 - **Dependencies**: May require actual Unity instance
 
 ### Performance Tests (`tests/performance/`)
+
 - **Purpose**: Benchmark and validate performance metrics
 - **Speed**: Variable
 - **Coverage**: Performance-critical paths
@@ -118,7 +122,7 @@ describe('MyComponent', () => {
   test('should handle basic functionality', async () => {
     const mockConnection = new MockUnityConnection();
     const result = await myComponent.process(mockConnection);
-    
+
     TestAssertions.assertValidResponse(result, ['id', 'status']);
     assert.strictEqual(result.status, 'success');
   });
@@ -131,23 +135,29 @@ describe('MyComponent', () => {
 import { TestEnvironment } from '../utils/test-helpers.js';
 
 describe('Integration Tests', () => {
-  test('should integrate components', { 
-    skip: TestEnvironment.shouldSkipTest('integration') 
-  }, async () => {
-    // Test implementation
-  });
+  test(
+    'should integrate components',
+    {
+      skip: TestEnvironment.shouldSkipTest('integration')
+    },
+    async () => {
+      // Test implementation
+    }
+  );
 });
 ```
 
 ## Coverage Requirements
 
 The project maintains the following coverage thresholds:
+
 - **Lines**: 80%
 - **Functions**: 80%
 - **Branches**: 80%
 - **Statements**: 80%
 
 Coverage reports are generated in multiple formats:
+
 - **Console**: Text summary
 - **HTML**: `coverage/index.html`
 - **LCOV**: `coverage/lcov.info` (for CI/CD)
@@ -155,6 +165,7 @@ Coverage reports are generated in multiple formats:
 ## Continuous Integration
 
 Tests run automatically on:
+
 - **Push** to main/develop branches
 - **Pull requests** to main/develop
 - **Manual triggers** via GitHub Actions
@@ -168,6 +179,7 @@ Tests run automatically on:
 ## Performance Benchmarks
 
 Performance tests track:
+
 - **Connection establishment time**: < 1 second
 - **Command execution time**: < 100ms average
 - **Memory usage**: Monitored for leaks
@@ -176,24 +188,28 @@ Performance tests track:
 ## Best Practices
 
 ### Test Organization
+
 1. **One test file per source file** for unit tests
 2. **Descriptive test names** that explain the scenario
 3. **Arrange-Act-Assert** pattern
 4. **Mock external dependencies** appropriately
 
 ### Test Data
+
 1. **Use TestDataFactory** for consistent test data
 2. **Avoid hardcoded values** when possible
 3. **Clean up resources** after tests
 4. **Use meaningful assertions**
 
 ### Performance Considerations
+
 1. **Keep unit tests fast** (< 1 second)
 2. **Use appropriate timeouts** for async operations
 3. **Skip expensive tests** in CI when appropriate
 4. **Monitor test execution time**
 
 ### Error Handling
+
 1. **Test both success and failure cases**
 2. **Use TestAssertions.assertError** for error validation
 3. **Verify error messages** are helpful

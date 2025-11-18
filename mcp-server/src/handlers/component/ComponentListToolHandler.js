@@ -23,7 +23,7 @@ export class ComponentListToolHandler extends BaseToolHandler {
         required: ['gameObjectPath']
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -51,7 +51,9 @@ export class ComponentListToolHandler extends BaseToolHandler {
       gameObjectPath: response.gameObjectPath,
       components: response.components || [],
       componentCount: response.componentCount || 0,
-      ...(response.includesInherited !== undefined && { includesInherited: response.includesInherited })
+      ...(response.includesInherited !== undefined && {
+        includesInherited: response.includesInherited
+      })
     };
   }
 

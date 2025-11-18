@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { 
-    getInputActionsStateToolDefinition,
-    analyzeInputActionsAssetToolDefinition,
-    getInputActionsStateHandler,
-    analyzeInputActionsAssetHandler
+import {
+  getInputActionsStateToolDefinition,
+  analyzeInputActionsAssetToolDefinition,
+  getInputActionsStateHandler,
+  analyzeInputActionsAssetHandler
 } from '../../tools/analysis/getInputActionsState.js';
 
 export class GetInputActionsStateToolHandler extends BaseToolHandler {

@@ -9,7 +9,7 @@ export const TEST_CONFIG = {
     PORT: 6401,
     PORT_ALTERNATE: 6402,
     CONNECTION_TIMEOUT: 5000,
-    COMMAND_TIMEOUT: 30000,
+    COMMAND_TIMEOUT: 30000
   },
 
   // Test timing
@@ -18,7 +18,7 @@ export const TEST_CONFIG = {
     MEDIUM_TIMEOUT: 5000,
     LONG_TIMEOUT: 30000,
     RETRY_DELAY: 100,
-    MAX_RETRIES: 3,
+    MAX_RETRIES: 3
   },
 
   // Test data
@@ -36,7 +36,7 @@ export const TEST_CONFIG = {
     SKIP_INTEGRATION: process.env.SKIP_INTEGRATION === 'true',
     SKIP_E2E: process.env.SKIP_E2E === 'true',
     VERBOSE_LOGGING: process.env.VERBOSE_TEST === 'true',
-    CI_MODE: process.env.CI === 'true',
+    CI_MODE: process.env.CI === 'true'
   }
 };
 
@@ -45,6 +45,6 @@ export const TEST_MESSAGES = {
     INTEGRATION: 'Integration tests skipped - set SKIP_INTEGRATION=false to enable',
     E2E: 'E2E tests skipped - set SKIP_E2E=false to enable',
     UNITY_NOT_RUNNING: 'Unity not running - skipping test',
-    LONG_RUNNING: 'Long running test - skipped in CI',
+    LONG_RUNNING: 'Long running test - skipped in CI'
   }
 };

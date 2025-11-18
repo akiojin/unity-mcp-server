@@ -32,32 +32,46 @@ describe('ScriptRefactorRenameToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with all required parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        relative: 'Assets/Scripts/Example.cs',
-        namePath: 'MyClass/MyMethod',
-        newName: 'RenamedMethod'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          relative: 'Assets/Scripts/Example.cs',
+          namePath: 'MyClass/MyMethod',
+          newName: 'RenamedMethod'
+        })
+      );
     });
 
     it('should throw error when relative is missing', () => {
-      assert.throws(() => handler.validate({
-        namePath: 'MyClass/MyMethod',
-        newName: 'RenamedMethod'
-      }), /relative, namePath, newName are required/);
+      assert.throws(
+        () =>
+          handler.validate({
+            namePath: 'MyClass/MyMethod',
+            newName: 'RenamedMethod'
+          }),
+        /relative, namePath, newName are required/
+      );
     });
 
     it('should throw error when namePath is missing', () => {
-      assert.throws(() => handler.validate({
-        relative: 'Assets/Scripts/Example.cs',
-        newName: 'RenamedMethod'
-      }), /relative, namePath, newName are required/);
+      assert.throws(
+        () =>
+          handler.validate({
+            relative: 'Assets/Scripts/Example.cs',
+            newName: 'RenamedMethod'
+          }),
+        /relative, namePath, newName are required/
+      );
     });
 
     it('should throw error when newName is missing', () => {
-      assert.throws(() => handler.validate({
-        relative: 'Assets/Scripts/Example.cs',
-        namePath: 'MyClass/MyMethod'
-      }), /relative, namePath, newName are required/);
+      assert.throws(
+        () =>
+          handler.validate({
+            relative: 'Assets/Scripts/Example.cs',
+            namePath: 'MyClass/MyMethod'
+          }),
+        /relative, namePath, newName are required/
+      );
     });
   });
 
@@ -118,28 +132,34 @@ describe('ScriptRefactorRenameToolHandler', () => {
     });
 
     it('should support preview mode by default', async () => {
-      assert.doesNotThrow(() => handler.validate({
-        relative: 'Assets/Scripts/Example.cs',
-        namePath: 'MyClass/MyMethod',
-        newName: 'RenamedMethod'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          relative: 'Assets/Scripts/Example.cs',
+          namePath: 'MyClass/MyMethod',
+          newName: 'RenamedMethod'
+        })
+      );
     });
 
     it('should support apply mode when preview=false', async () => {
-      assert.doesNotThrow(() => handler.validate({
-        relative: 'Assets/Scripts/Example.cs',
-        namePath: 'MyClass/MyMethod',
-        newName: 'RenamedMethod',
-        preview: false
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          relative: 'Assets/Scripts/Example.cs',
+          namePath: 'MyClass/MyMethod',
+          newName: 'RenamedMethod',
+          preview: false
+        })
+      );
     });
 
     it('should support namePath format', async () => {
-      assert.doesNotThrow(() => handler.validate({
-        relative: 'Assets/Scripts/Example.cs',
-        namePath: 'Outer/Nested/Member',
-        newName: 'NewMember'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          relative: 'Assets/Scripts/Example.cs',
+          namePath: 'Outer/Nested/Member',
+          newName: 'NewMember'
+        })
+      );
     });
   });
 });
