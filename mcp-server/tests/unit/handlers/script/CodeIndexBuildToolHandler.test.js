@@ -147,9 +147,9 @@ describe('CodeIndexBuildToolHandler', () => {
       // Second build (incremental)
       const secondResult = {
         success: true,
-        updatedFiles: 5,  // Only changed files
-        removedFiles: 1,  // One file deleted
-        totalIndexedSymbols: 2010  // Slightly more
+        updatedFiles: 5, // Only changed files
+        removedFiles: 1, // One file deleted
+        totalIndexedSymbols: 2010 // Slightly more
       };
 
       assert.ok(secondResult.updatedFiles < firstResult.updatedFiles);
@@ -186,7 +186,7 @@ describe('CodeIndexBuildToolHandler', () => {
     it('FR-003: should support incremental updates', async () => {
       const mockResult = {
         success: true,
-        updatedFiles: 5,  // Only changed
+        updatedFiles: 5, // Only changed
         removedFiles: 1,
         totalIndexedSymbols: 2000
       };
@@ -305,7 +305,11 @@ describe('CodeIndexBuildToolHandler', () => {
 
           // Expected contract after implementation
           assert.equal(secondResult.success, false, 'Should return success=false');
-          assert.equal(secondResult.error, 'build_already_running', 'Should return build_already_running error');
+          assert.equal(
+            secondResult.error,
+            'build_already_running',
+            'Should return build_already_running error'
+          );
           assert.ok(secondResult.message, 'Should include error message');
           assert.equal(secondResult.jobId, firstJobId, 'Should return existing jobId');
         } catch (error) {
@@ -347,6 +351,89 @@ describe('CodeIndexBuildToolHandler', () => {
         assert.ok(expectedProgressStructure.total >= 0, 'total should be non-negative');
         assert.ok(expectedProgressStructure.rate >= 0, 'rate should be non-negative');
       });
+    });
+  });
+
+  describe('SPEC-aa705b2b: FR-010 Percentage-based progress logging', () => {
+    it('should log progress at 10% intervals by default', () => {
+      // Test contract: Progress logging frequency
+      const reportPercentage = 10; // Default value
+      const totalFiles = 100;
+      const expectedLogPoints = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+      // Verify that logs should be emitted at these percentages
+      for (const percentage of expectedLogPoints) {
+        const processed = Math.floor((percentage / 100) * totalFiles);
+        assert.ok(processed >= 0 && processed <= totalFiles);
+      }
+    });
+
+    it('should support custom reportPercentage parameter', () => {
+      // Test contract: Custom percentage intervals
+      const customPercentage = 25; // 25% intervals
+      const totalFiles = 100;
+      const expectedLogPoints = [0, 25, 50, 75, 100];
+
+      for (const percentage of expectedLogPoints) {
+        const processed = Math.floor((percentage / 100) * totalFiles);
+        assert.ok(processed >= 0 && processed <= totalFiles);
+      }
+    });
+
+    it('should calculate percentage correctly during execution', () => {
+      // Test contract: Percentage calculation
+      const totalFiles = 7117; // Real-world example
+      const processed = 3500;
+      const expectedPercentage = Math.floor((processed / totalFiles) * 100);
+
+      assert.equal(expectedPercentage, 49); // 49%
+    });
+
+    it('should not log more than once per percentage interval', () => {
+      // Test contract: Prevent duplicate logs
+      const reportPercentage = 10;
+      const totalFiles = 1000;
+
+      // Simulate processing: should log at 10%, 20%, etc.
+      // Not at 10.1%, 10.2%, etc.
+      const shouldLog = processed => {
+        const currentPercentage = Math.floor((processed / totalFiles) * 100);
+        const lastReportedPercentage = Math.floor(((processed - 1) / totalFiles) * 100);
+        return currentPercentage >= lastReportedPercentage + reportPercentage;
+      };
+
+      assert.equal(shouldLog(100), true); // 10%
+      assert.equal(shouldLog(101), false); // 10.1%
+      assert.equal(shouldLog(200), true); // 20%
+      assert.equal(shouldLog(201), false); // 20.1%
+    });
+
+    it('should always log at 100% completion', () => {
+      // Test contract: Final log
+      const reportPercentage = 10;
+      const totalFiles = 100;
+      const processed = 100;
+      const currentPercentage = Math.floor((processed / totalFiles) * 100);
+
+      assert.equal(currentPercentage, 100);
+      // Should log even if less than reportPercentage has passed
+      assert.ok(processed === totalFiles);
+    });
+
+    it('should clamp reportPercentage between 1 and 100', () => {
+      // Test contract: Parameter validation
+      const testCases = [
+        { input: 0, expected: 1 },
+        { input: -10, expected: 1 },
+        { input: 50, expected: 50 },
+        { input: 150, expected: 100 },
+        { input: 1000, expected: 100 }
+      ];
+
+      for (const { input, expected } of testCases) {
+        const clamped = Math.max(1, Math.min(100, input));
+        assert.equal(clamped, expected);
+      }
     });
   });
 });

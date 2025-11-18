@@ -232,6 +232,36 @@ export async function startServer() {
     process.on('SIGINT', stopWatch);
     process.on('SIGTERM', stopWatch);
 
+    // Auto-initialize code index if DB doesn't exist
+    (async () => {
+      try {
+        const { CodeIndex } = await import('./codeIndex.js');
+        const index = new CodeIndex(unityConnection);
+        const ready = await index.isReady();
+
+        if (!ready) {
+          logger.info('[startup] Code index DB not ready. Starting auto-build...');
+          const { CodeIndexBuildToolHandler } = await import(
+            '../handlers/script/CodeIndexBuildToolHandler.js'
+          );
+          const builder = new CodeIndexBuildToolHandler(unityConnection);
+          const result = await builder.execute({});
+
+          if (result.success) {
+            logger.info(
+              `[startup] Code index auto-build started: jobId=${result.jobId}. Use code_index_status to check progress.`
+            );
+          } else {
+            logger.warn(`[startup] Code index auto-build failed: ${result.message}`);
+          }
+        } else {
+          logger.info('[startup] Code index DB already exists. Skipping auto-build.');
+        }
+      } catch (e) {
+        logger.warn(`[startup] Code index auto-init failed: ${e.message}`);
+      }
+    })();
+
     // Handle shutdown
     process.on('SIGINT', async () => {
       logger.info('Shutting down...');
