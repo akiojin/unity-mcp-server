@@ -1,3 +1,10 @@
+## [2.40.2](https://github.com/akiojin/unity-mcp-server/compare/v2.40.1...v2.40.2) (2025-11-18)
+
+
+### Bug Fixes
+
+* **docs:** remove remaining pnpm references from README.ja.md ([95fef1e](https://github.com/akiojin/unity-mcp-server/commit/95fef1e1f24590f7757ae8709dd2b4203a577f4d)), closes [#104](https://github.com/akiojin/unity-mcp-server/issues/104)
+
 ## [2.40.1](https://github.com/akiojin/unity-mcp-server/compare/v2.40.0...v2.40.1) (2025-11-18)
 
 
