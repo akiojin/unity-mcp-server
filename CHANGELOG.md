@@ -1,3 +1,10 @@
+## [2.39.1](https://github.com/akiojin/unity-mcp-server/compare/v2.39.0...v2.39.1) (2025-11-18)
+
+
+### Bug Fixes
+
+* handle profiler autostop and clean test logs ([cdd83fd](https://github.com/akiojin/unity-mcp-server/commit/cdd83fdfada808cb2d1044d101bdf9d1907e0679))
+
 ## [2.39.0](https://github.com/akiojin/unity-mcp-server/compare/v2.38.1...v2.39.0) (2025-11-17)
 
 
