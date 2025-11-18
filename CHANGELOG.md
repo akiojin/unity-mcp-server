@@ -1,3 +1,11 @@
+## [2.40.3](https://github.com/akiojin/unity-mcp-server/compare/v2.40.2...v2.40.3) (2025-11-18)
+
+
+### Bug Fixes
+
+* **mcp-server:** remove unused resources and prompts handlers ([56237d9](https://github.com/akiojin/unity-mcp-server/commit/56237d9eb87359b8a3a8834137c8f0537bc1dc96))
+* **mcp:** resolve "Capabilities: none" issue in MCP SDK v0.6.1 ([c497d3a](https://github.com/akiojin/unity-mcp-server/commit/c497d3aed3bdada65e25803f4a00c2de9dce87f2))
+
 ## [2.40.2](https://github.com/akiojin/unity-mcp-server/compare/v2.40.1...v2.40.2) (2025-11-18)
 
 
