@@ -13,19 +13,23 @@ export class SettingsGetToolHandler extends BaseToolHandler {
         properties: {
           includePlayer: {
             type: 'boolean',
-            description: 'Include player settings (company/product name, version, etc.) (default: true).'
+            description:
+              'Include player settings (company/product name, version, etc.) (default: true).'
           },
           includeGraphics: {
             type: 'boolean',
-            description: 'Include graphics settings (color space, render pipeline, etc.) (default: false).'
+            description:
+              'Include graphics settings (color space, render pipeline, etc.) (default: false).'
           },
           includeQuality: {
             type: 'boolean',
-            description: 'Include quality settings (levels, anti-aliasing, shadows, etc.) (default: false).'
+            description:
+              'Include quality settings (levels, anti-aliasing, shadows, etc.) (default: false).'
           },
           includePhysics: {
             type: 'boolean',
-            description: 'Include 3D physics settings (gravity, solver iterations, etc.) (default: false).'
+            description:
+              'Include 3D physics settings (gravity, solver iterations, etc.) (default: false).'
           },
           includePhysics2D: {
             type: 'boolean',
@@ -33,11 +37,13 @@ export class SettingsGetToolHandler extends BaseToolHandler {
           },
           includeAudio: {
             type: 'boolean',
-            description: 'Include audio settings (speaker mode, DSP buffer, volume, etc.) (default: false).'
+            description:
+              'Include audio settings (speaker mode, DSP buffer, volume, etc.) (default: false).'
           },
           includeTime: {
             type: 'boolean',
-            description: 'Include time settings (fixed timestep, time scale, etc.) (default: false).'
+            description:
+              'Include time settings (fixed timestep, time scale, etc.) (default: false).'
           },
           includeInputManager: {
             type: 'boolean',
@@ -45,11 +51,13 @@ export class SettingsGetToolHandler extends BaseToolHandler {
           },
           includeEditor: {
             type: 'boolean',
-            description: 'Include editor settings (Unity Remote, serialization mode, etc.) (default: false).'
+            description:
+              'Include editor settings (Unity Remote, serialization mode, etc.) (default: false).'
           },
           includeBuild: {
             type: 'boolean',
-            description: 'Include build settings (scenes in build, build target, etc.) (default: false).'
+            description:
+              'Include build settings (scenes in build, build target, etc.) (default: false).'
           },
           includeTags: {
             type: 'boolean',
@@ -59,7 +67,7 @@ export class SettingsGetToolHandler extends BaseToolHandler {
         required: []
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -71,10 +79,17 @@ export class SettingsGetToolHandler extends BaseToolHandler {
   validate(params) {
     // All parameters are optional booleans with defaults, no special validation needed
     const booleanParams = [
-      'includePlayer', 'includeGraphics', 'includeQuality',
-      'includePhysics', 'includePhysics2D', 'includeAudio',
-      'includeTime', 'includeInputManager', 'includeEditor',
-      'includeBuild', 'includeTags'
+      'includePlayer',
+      'includeGraphics',
+      'includeQuality',
+      'includePhysics',
+      'includePhysics2D',
+      'includeAudio',
+      'includeTime',
+      'includeInputManager',
+      'includeEditor',
+      'includeBuild',
+      'includeTags'
     ];
 
     for (const param of booleanParams) {

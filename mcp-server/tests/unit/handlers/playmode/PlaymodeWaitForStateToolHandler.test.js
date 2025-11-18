@@ -42,17 +42,21 @@ describe('PlaymodeWaitForStateToolHandler', () => {
     });
 
     it('should pass with timeout parameter', () => {
-      assert.doesNotThrow(() => handler.validate({
-        isPlaying: true,
-        timeoutMs: 5000
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          isPlaying: true,
+          timeoutMs: 5000
+        })
+      );
     });
 
     it('should pass with poll interval parameter', () => {
-      assert.doesNotThrow(() => handler.validate({
-        isPlaying: true,
-        pollMs: 100
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          isPlaying: true,
+          pollMs: 100
+        })
+      );
     });
   });
 

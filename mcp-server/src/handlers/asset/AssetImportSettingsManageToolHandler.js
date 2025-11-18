@@ -71,7 +71,7 @@ export class AssetImportSettingsManageToolHandler extends BaseToolHandler {
       if (params.preset === undefined || params.preset === null) {
         throw new Error('preset is required for apply_preset action');
       }
-      
+
       if (params.preset === '') {
         throw new Error('preset cannot be empty');
       }
@@ -80,7 +80,7 @@ export class AssetImportSettingsManageToolHandler extends BaseToolHandler {
 
   async execute(params) {
     this.validate(params);
-    
+
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }
@@ -112,8 +112,8 @@ export class AssetImportSettingsManageToolHandler extends BaseToolHandler {
         }
       },
       {
-        input: { 
-          action: 'modify', 
+        input: {
+          action: 'modify',
           assetPath: 'Assets/Textures/icon.png',
           settings: {
             maxTextureSize: 1024,
@@ -136,8 +136,8 @@ export class AssetImportSettingsManageToolHandler extends BaseToolHandler {
         }
       },
       {
-        input: { 
-          action: 'apply_preset', 
+        input: {
+          action: 'apply_preset',
           assetPath: 'Assets/Textures/icon.png',
           preset: 'UI_Sprite'
         },

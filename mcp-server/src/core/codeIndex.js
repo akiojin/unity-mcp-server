@@ -80,14 +80,27 @@ export class CodeIndex {
   async clearAndLoad(symbols) {
     const db = await this.open();
     if (!db) throw new Error('CodeIndex is unavailable (better-sqlite3 not installed)');
-    const insert = db.prepare('INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)');
-    const tx = db.transaction((rows) => {
+    const insert = db.prepare(
+      'INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)'
+    );
+    const tx = db.transaction(rows => {
       db.exec('DELETE FROM symbols');
       db.exec('DELETE FROM files');
       for (const r of rows) {
-        insert.run(r.path, r.name, r.kind, r.container || null, r.ns || r.namespace || null, r.line || null, r.column || null);
+        insert.run(
+          r.path,
+          r.name,
+          r.kind,
+          r.container || null,
+          r.ns || r.namespace || null,
+          r.line || null,
+          r.column || null
+        );
       }
-      db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)').run('lastIndexedAt', new Date().toISOString());
+      db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)').run(
+        'lastIndexedAt',
+        new Date().toISOString()
+      );
     });
     tx(symbols || []);
     return { total: symbols?.length || 0 };
@@ -106,13 +119,17 @@ export class CodeIndex {
   async upsertFile(pathStr, sig) {
     const db = await this.open();
     if (!db) return;
-    db.prepare('REPLACE INTO files(path,sig,updatedAt) VALUES (?,?,?)').run(pathStr, sig || '', new Date().toISOString());
+    db.prepare('REPLACE INTO files(path,sig,updatedAt) VALUES (?,?,?)').run(
+      pathStr,
+      sig || '',
+      new Date().toISOString()
+    );
   }
 
   async removeFile(pathStr) {
     const db = await this.open();
     if (!db) return;
-    const tx = db.transaction((p) => {
+    const tx = db.transaction(p => {
       db.prepare('DELETE FROM symbols WHERE path = ?').run(p);
       db.prepare('DELETE FROM files WHERE path = ?').run(p);
     });
@@ -124,9 +141,23 @@ export class CodeIndex {
     if (!db) return;
     const tx = db.transaction((p, list) => {
       db.prepare('DELETE FROM symbols WHERE path = ?').run(p);
-      const insert = db.prepare('INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)');
-      for (const r of list) insert.run(p, r.name, r.kind, r.container || null, r.ns || r.namespace || null, r.line || null, r.column || null);
-      db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)').run('lastIndexedAt', new Date().toISOString());
+      const insert = db.prepare(
+        'INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)'
+      );
+      for (const r of list)
+        insert.run(
+          p,
+          r.name,
+          r.kind,
+          r.container || null,
+          r.ns || r.namespace || null,
+          r.line || null,
+          r.column || null
+        );
+      db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)').run(
+        'lastIndexedAt',
+        new Date().toISOString()
+      );
     });
     tx(pathStr, rows || []);
   }
@@ -137,27 +168,45 @@ export class CodeIndex {
     let sql = 'SELECT path,name,kind,container,namespace,line,column FROM symbols WHERE 1=1';
     const params = {};
     if (name) {
-      if (exact) { sql += ' AND name = @name'; params.name = name; }
-      else { sql += ' AND name LIKE @name'; params.name = `%${name}%`; }
+      if (exact) {
+        sql += ' AND name = @name';
+        params.name = name;
+      } else {
+        sql += ' AND name LIKE @name';
+        params.name = `%${name}%`;
+      }
     }
-    if (kind) { sql += ' AND kind = @kind'; params.kind = kind; }
+    if (kind) {
+      sql += ' AND kind = @kind';
+      params.kind = kind;
+    }
     const rows = db.prepare(sql).all(params);
     // Apply path-based scope filter in JS (simpler than CASE in SQL)
     const filtered = rows.filter(r => {
       const p = String(r.path || '').replace(/\\\\/g, '/');
       if (scope === 'assets') return p.startsWith('Assets/');
-      if (scope === 'packages') return p.startsWith('Packages/') || p.includes('Library/PackageCache/');
+      if (scope === 'packages')
+        return p.startsWith('Packages/') || p.includes('Library/PackageCache/');
       if (scope === 'embedded') return p.startsWith('Packages/');
       return true;
     });
-    return filtered.map(r => ({ path: r.path, name: r.name, kind: r.kind, container: r.container, ns: r.namespace, line: r.line, column: r.column }));
+    return filtered.map(r => ({
+      path: r.path,
+      name: r.name,
+      kind: r.kind,
+      container: r.container,
+      ns: r.namespace,
+      line: r.line,
+      column: r.column
+    }));
   }
 
   async getStats() {
     const db = await this.open();
     if (!db) return { total: 0, lastIndexedAt: null };
     const total = db.prepare('SELECT COUNT(*) AS c FROM symbols').get().c || 0;
-    const last = db.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
+    const last =
+      db.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
     return { total, lastIndexedAt: last };
   }
 }

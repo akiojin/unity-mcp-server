@@ -34,7 +34,7 @@ export class GameObjectFindToolHandler extends BaseToolHandler {
         required: []
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -45,12 +45,12 @@ export class GameObjectFindToolHandler extends BaseToolHandler {
    */
   validate(params) {
     super.validate(params);
-    
+
     // At least one search criteria must be provided
     if (!params.name && !params.tag && params.layer === undefined) {
       throw new Error('At least one search criteria (name, tag, or layer) must be provided');
     }
-    
+
     // Validate layer
     if (params.layer !== undefined) {
       const layer = Number(params.layer);
@@ -70,20 +70,20 @@ export class GameObjectFindToolHandler extends BaseToolHandler {
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }
-    
+
     // Send find_gameobject command
     const result = await this.unityConnection.sendCommand('find_gameobject', params);
-    
+
     // Check for errors from Unity
     if (result.error) {
       throw new Error(result.error);
     }
-    
+
     // Add summary information
     if (result.objects && Array.isArray(result.objects)) {
       result.summary = this.generateSummary(result.objects, params);
     }
-    
+
     return result;
   }
 
@@ -95,9 +95,11 @@ export class GameObjectFindToolHandler extends BaseToolHandler {
    */
   generateSummary(objects, searchParams) {
     const parts = [];
-    
+
     if (searchParams.name) {
-      parts.push(`name${searchParams.exactMatch === false ? ' containing' : ''} "${searchParams.name}"`);
+      parts.push(
+        `name${searchParams.exactMatch === false ? ' containing' : ''} "${searchParams.name}"`
+      );
     }
     if (searchParams.tag) {
       parts.push(`tag "${searchParams.tag}"`);
@@ -105,9 +107,9 @@ export class GameObjectFindToolHandler extends BaseToolHandler {
     if (searchParams.layer !== undefined) {
       parts.push(`layer ${searchParams.layer}`);
     }
-    
+
     const criteria = parts.join(', ');
-    
+
     if (objects.length === 0) {
       return `No GameObjects found matching ${criteria}`;
     } else if (objects.length === 1) {

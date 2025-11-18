@@ -1,9 +1,9 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { 
-    getAnimatorStateToolDefinition,
-    getAnimatorRuntimeInfoToolDefinition,
-    getAnimatorStateHandler,
-    getAnimatorRuntimeInfoHandler
+import {
+  getAnimatorStateToolDefinition,
+  getAnimatorRuntimeInfoToolDefinition,
+  getAnimatorStateHandler,
+  getAnimatorRuntimeInfoHandler
 } from '../../tools/analysis/getAnimatorState.js';
 
 export class GetAnimatorStateToolHandler extends BaseToolHandler {

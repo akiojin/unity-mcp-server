@@ -10,11 +10,11 @@ describe('Integration Tests', () => {
     it('should connect to Unity and ping successfully', async () => {
       const connection = new UnityConnection();
       const handler = new SystemPingToolHandler(connection);
-      
+
       try {
         // This will connect to Unity if not already connected
         const result = await handler.execute({ message: 'Integration test ping' });
-        
+
         assert.equal(typeof result, 'object');
         assert.equal(typeof result.message, 'string');
         assert.equal(typeof result.echo, 'string');
@@ -30,7 +30,7 @@ describe('Integration Tests', () => {
       const createHandler = new GameObjectCreateToolHandler(connection);
       const deleteHandler = new GameObjectDeleteToolHandler(connection);
       let createdObjectPath = null;
-      
+
       try {
         // Create the test GameObject
         const result = await createHandler.execute({
@@ -38,10 +38,10 @@ describe('Integration Tests', () => {
           primitiveType: 'cube',
           position: { x: 0, y: 0, z: 0 }
         });
-        
+
         // Store the path for cleanup
         createdObjectPath = result.path;
-        
+
         // Verify the creation
         assert.equal(typeof result, 'object');
         assert.equal(typeof result.id, 'number');
@@ -65,14 +65,15 @@ describe('Integration Tests', () => {
     it('should handle Unity errors gracefully', async () => {
       const connection = new UnityConnection();
       const handler = new GameObjectCreateToolHandler(connection);
-      
+
       try {
         // Try to create with invalid parameters that should cause Unity error
         await assert.rejects(
-          async () => await handler.execute({
-            name: 'TestObject',
-            parentPath: '/NonExistentParent/Child/Deep/Nested/Path'
-          }),
+          async () =>
+            await handler.execute({
+              name: 'TestObject',
+              parentPath: '/NonExistentParent/Child/Deep/Nested/Path'
+            }),
           /error|failed|not found/i
         );
       } finally {

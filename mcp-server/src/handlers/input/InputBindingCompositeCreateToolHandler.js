@@ -1,7 +1,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import {
-    createCompositeBindingToolDefinition,
-    createCompositeBindingHandler
+  createCompositeBindingToolDefinition,
+  createCompositeBindingHandler
 } from '../../tools/input/inputActionsEditor.js';
 
 export class InputBindingCompositeCreateToolHandler extends BaseToolHandler {

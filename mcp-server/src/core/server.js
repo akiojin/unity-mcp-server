@@ -1,11 +1,6 @@
 #!/usr/bin/env node
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import {
-  ListToolsRequestSchema,
-  CallToolRequestSchema,
-  ListResourcesRequestSchema,
-  ListPromptsRequestSchema
-} from '@modelcontextprotocol/sdk/types.js';
+import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 // Note: filename is lowercase on disk; use exact casing for POSIX filesystems
 import { UnityConnection } from './unityConnection.js';
 import { createHandlers } from '../handlers/index.js';
@@ -29,9 +24,7 @@ const server = new Server(
     capabilities: {
       // Explicitly advertise tool support; some MCP clients expect a non-empty object
       // Setting listChanged enables future push updates if we emit notifications
-      tools: { listChanged: true },
-      resources: {},
-      prompts: {}
+      tools: { listChanged: true }
     }
   }
 );
@@ -61,20 +54,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
   logger.info(`[MCP] Returning ${tools.length} tool definitions`);
   return { tools };
-});
-
-// Handle resources listing
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
-  logger.debug('[MCP] Received resources/list request');
-  // Unity MCP server doesn't provide resources
-  return { resources: [] };
-});
-
-// Handle prompts listing
-server.setRequestHandler(ListPromptsRequestSchema, async () => {
-  logger.debug('[MCP] Received prompts/list request');
-  // Unity MCP server doesn't provide prompts
-  return { prompts: [] };
 });
 
 // Handle tool execution
@@ -298,9 +277,7 @@ export async function createServer(customConfig = config) {
     },
     {
       capabilities: {
-        tools: { listChanged: true },
-        resources: {},
-        prompts: {}
+        tools: { listChanged: true }
       }
     }
   );
@@ -309,14 +286,6 @@ export async function createServer(customConfig = config) {
   testServer.setRequestHandler(ListToolsRequestSchema, async () => {
     const tools = Array.from(testHandlers.values()).map(handler => handler.getDefinition());
     return { tools };
-  });
-
-  testServer.setRequestHandler(ListResourcesRequestSchema, async () => {
-    return { resources: [] };
-  });
-
-  testServer.setRequestHandler(ListPromptsRequestSchema, async () => {
-    return { prompts: [] };
   });
 
   testServer.setRequestHandler(CallToolRequestSchema, async request => {

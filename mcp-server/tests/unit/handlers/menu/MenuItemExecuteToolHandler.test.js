@@ -16,7 +16,7 @@ describe('MenuItemExecuteToolHandler', () => {
         menuPath: 'Assets/Refresh'
       }))
     };
-    
+
     handler = new MenuItemExecuteToolHandler(mockUnityConnection);
   });
 
@@ -56,17 +56,11 @@ describe('MenuItemExecuteToolHandler', () => {
     });
 
     it('should fail with empty menu path', () => {
-      assert.throws(
-        () => handler.validate({ menuPath: ' ' }),
-        /menuPath cannot be empty/
-      );
+      assert.throws(() => handler.validate({ menuPath: ' ' }), /menuPath cannot be empty/);
     });
 
     it('should fail with missing menu path', () => {
-      assert.throws(
-        () => handler.validate({}),
-        /menuPath is required/
-      );
+      assert.throws(() => handler.validate({}), /menuPath is required/);
     });
 
     it('should validate menu path format', () => {
@@ -85,7 +79,7 @@ describe('MenuItemExecuteToolHandler', () => {
 
     it('should allow blacklisted items when safety check is disabled', () => {
       assert.doesNotThrow(() => {
-        handler.validate({ 
+        handler.validate({
           menuPath: 'File/Quit',
           safetyCheck: false
         });
@@ -94,10 +88,11 @@ describe('MenuItemExecuteToolHandler', () => {
 
     it('should validate action enum', () => {
       assert.throws(
-        () => handler.validate({ 
-          menuPath: 'Assets/Refresh',
-          action: 'invalid_action'
-        }),
+        () =>
+          handler.validate({
+            menuPath: 'Assets/Refresh',
+            action: 'invalid_action'
+          }),
         /action must be one of/
       );
     });
@@ -106,7 +101,7 @@ describe('MenuItemExecuteToolHandler', () => {
       const validActions = ['execute', 'get_available_menus'];
       validActions.forEach(action => {
         assert.doesNotThrow(() => {
-          handler.validate({ 
+          handler.validate({
             menuPath: 'Assets/Refresh',
             action: action
           });
@@ -123,7 +118,7 @@ describe('MenuItemExecuteToolHandler', () => {
 
       assert.equal(mockUnityConnection.sendCommand.mock.calls.length, 1);
       assert.equal(mockUnityConnection.sendCommand.mock.calls[0].arguments[0], 'execute_menu_item');
-      
+
       const params = mockUnityConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.action, 'execute');
       assert.equal(params.menuPath, 'Assets/Refresh');
@@ -162,7 +157,7 @@ describe('MenuItemExecuteToolHandler', () => {
 
       const params = mockUnityConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.action, 'get_available_menus');
-      
+
       assert.ok(Array.isArray(result.availableMenus));
       assert.equal(result.availableMenus.length, 4);
     });
@@ -276,10 +271,7 @@ describe('MenuItemExecuteToolHandler', () => {
     it('should handle menu discovery with filters', async () => {
       mockUnityConnection.sendCommand.mock.mockImplementation(async () => ({
         success: true,
-        availableMenus: [
-          'Assets/Refresh',
-          'Assets/Reimport All'
-        ],
+        availableMenus: ['Assets/Refresh', 'Assets/Reimport All'],
         totalMenus: 150,
         filteredCount: 2,
         message: 'Filtered menus retrieved successfully'

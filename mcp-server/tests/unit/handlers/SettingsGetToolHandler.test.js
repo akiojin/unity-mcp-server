@@ -15,7 +15,7 @@ describe('SettingsGetToolHandler', () => {
         // Mock successful response
         if (command === 'get_project_settings') {
           const result = {};
-          
+
           if (params.includePlayer !== false) {
             result.player = {
               companyName: 'Test Company',
@@ -23,27 +23,27 @@ describe('SettingsGetToolHandler', () => {
               version: '1.0.0'
             };
           }
-          
+
           if (params.includeGraphics) {
             result.graphics = {
               colorSpace: 'Linear',
               renderPipelineAsset: 'URP'
             };
           }
-          
+
           if (params.includeQuality) {
             result.quality = {
               currentLevel: 'High',
               vSyncCount: 1
             };
           }
-          
+
           return result;
         }
         throw new Error(`Unknown command: ${command}`);
       }
     };
-    
+
     handler = new SettingsGetToolHandler(mockConnection);
   });
 
@@ -53,11 +53,13 @@ describe('SettingsGetToolHandler', () => {
     });
 
     it('should pass validation with boolean parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        includePlayer: true,
-        includeGraphics: false,
-        includeQuality: true
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          includePlayer: true,
+          includeGraphics: false,
+          includeQuality: true
+        })
+      );
     });
 
     it('should fail validation with non-boolean parameters', () => {
@@ -71,7 +73,7 @@ describe('SettingsGetToolHandler', () => {
   describe('execute', () => {
     it('should get player settings by default', async () => {
       const result = await handler.execute({});
-      
+
       assert.ok(result.player);
       assert.equal(result.player.companyName, 'Test Company');
       assert.equal(result.player.productName, 'Test Product');
@@ -86,7 +88,7 @@ describe('SettingsGetToolHandler', () => {
         includeGraphics: true,
         includeQuality: true
       });
-      
+
       assert.ok(!result.player);
       assert.ok(result.graphics);
       assert.equal(result.graphics.colorSpace, 'Linear');
@@ -98,18 +100,17 @@ describe('SettingsGetToolHandler', () => {
       mockConnection.sendCommand = async () => {
         return { error: 'Unity error occurred' };
       };
-      
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /Unity error occurred/
-      );
+
+      await assert.rejects(async () => await handler.execute({}), /Unity error occurred/);
     });
 
     it('should connect if not connected', async () => {
       let connectCalled = false;
       mockConnection.isConnected = () => false;
-      mockConnection.connect = async () => { connectCalled = true; };
-      
+      mockConnection.connect = async () => {
+        connectCalled = true;
+      };
+
       await handler.execute({});
       assert.ok(connectCalled);
     });
@@ -118,7 +119,7 @@ describe('SettingsGetToolHandler', () => {
   describe('getExamples', () => {
     it('should return example usage scenarios', () => {
       const examples = handler.getExamples();
-      
+
       assert.ok(examples.getBasicSettings);
       assert.ok(examples.getGraphicsAndQuality);
       assert.ok(examples.getPhysicsSettings);

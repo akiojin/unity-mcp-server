@@ -16,31 +16,31 @@ export class MockUnityServer extends EventEmitter {
   }
 
   async start() {
-    return new Promise((resolve) => {
-      this.server = net.createServer((socket) => {
+    return new Promise(resolve => {
+      this.server = net.createServer(socket => {
         this.connections.add(socket);
         this.emit('connection', socket);
-        
+
         let messageBuffer = Buffer.alloc(0);
 
-        socket.on('data', async (data) => {
+        socket.on('data', async data => {
           // Append new data to buffer
           messageBuffer = Buffer.concat([messageBuffer, data]);
-          
+
           // Process complete messages
           while (messageBuffer.length >= 4) {
             // Read message length (first 4 bytes, big-endian)
             const messageLength = messageBuffer.readInt32BE(0);
-            
+
             // Check if we have the complete message
             if (messageBuffer.length < 4 + messageLength) {
               break; // Wait for more data
             }
-            
+
             // Extract the message
             const messageData = messageBuffer.slice(4, 4 + messageLength);
             messageBuffer = messageBuffer.slice(4 + messageLength);
-            
+
             try {
               const request = JSON.parse(messageData.toString());
               this.emit('request', request);
@@ -57,7 +57,7 @@ export class MockUnityServer extends EventEmitter {
 
               // Get predefined response or create default
               let response = this.responses.get(request.type);
-              
+
               // If response is a function, call it with the request
               if (typeof response === 'function') {
                 const result = response(request.params, request);
@@ -67,7 +67,7 @@ export class MockUnityServer extends EventEmitter {
                   ...(result.success === false ? { error: result.error } : { result })
                 };
               }
-              
+
               if (!response) {
                 if (request.type === 'test_error') {
                   response = {
@@ -113,7 +113,7 @@ export class MockUnityServer extends EventEmitter {
               const responseBuffer = Buffer.from(responseStr, 'utf8');
               const lengthBuffer = Buffer.allocUnsafe(4);
               lengthBuffer.writeInt32BE(responseBuffer.length, 0);
-              
+
               socket.write(Buffer.concat([lengthBuffer, responseBuffer]));
             } catch (err) {
               console.error('MockUnityServer: Error processing request:', err);
@@ -140,7 +140,7 @@ export class MockUnityServer extends EventEmitter {
     this.connections.clear();
 
     // Close server
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (this.server) {
         this.server.close(resolve);
       } else {
@@ -179,7 +179,7 @@ export const testUtils = {
         reject(new Error(`Timeout waiting for event: ${event}`));
       }, timeout);
 
-      emitter.once(event, (data) => {
+      emitter.once(event, data => {
         clearTimeout(timer);
         resolve(data);
       });
@@ -189,12 +189,12 @@ export const testUtils = {
   /**
    * Create a promise that resolves after ms
    */
-  sleep: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
+  sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
 
   /**
    * Measure execution time
    */
-  measureTime: async (fn) => {
+  measureTime: async fn => {
     const start = Date.now();
     try {
       const result = await fn();

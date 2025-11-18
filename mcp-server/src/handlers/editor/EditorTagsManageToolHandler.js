@@ -24,11 +24,19 @@ export class EditorTagsManageToolHandler extends BaseToolHandler {
         required: ['action']
       }
     );
-    
+
     this.unityConnection = unityConnection;
-    
+
     // Reserved Unity tags that cannot be removed
-    this.RESERVED_TAGS = ['Untagged', 'Respawn', 'Finish', 'EditorOnly', 'MainCamera', 'Player', 'GameController'];
+    this.RESERVED_TAGS = [
+      'Untagged',
+      'Respawn',
+      'Finish',
+      'EditorOnly',
+      'MainCamera',
+      'Player',
+      'GameController'
+    ];
   }
 
   /**
@@ -37,17 +45,17 @@ export class EditorTagsManageToolHandler extends BaseToolHandler {
    */
   validate(params) {
     const { action, tagName } = params;
-    
+
     // Check if action is provided
     if (!action) {
       throw new Error('action is required');
     }
-    
+
     // Check if action is valid
     if (!['add', 'remove', 'get'].includes(action)) {
       throw new Error('action must be one of: add, remove, get');
     }
-    
+
     // For add and remove actions, tagName is required
     if (action === 'add' || action === 'remove') {
       if (tagName === undefined || tagName === null) {
@@ -57,21 +65,22 @@ export class EditorTagsManageToolHandler extends BaseToolHandler {
         throw new Error('tagName cannot be empty');
       }
     }
-    
+
     // Validate tag name if provided
     if (tagName !== undefined && tagName !== '') {
-      
       // Check for invalid characters (Unity tag names should be alphanumeric with no spaces or special characters)
       if (!/^[a-zA-Z0-9_]+$/.test(tagName)) {
-        throw new Error('tagName contains invalid characters. Only letters, numbers, and underscores are allowed');
+        throw new Error(
+          'tagName contains invalid characters. Only letters, numbers, and underscores are allowed'
+        );
       }
-      
+
       // Check for reserved tag names when adding
       if (action === 'add' && this.RESERVED_TAGS.includes(tagName)) {
         throw new Error(`tagName is reserved`);
       }
     }
-    
+
     // Call parent validation last to avoid conflicts
     super.validate(params);
   }

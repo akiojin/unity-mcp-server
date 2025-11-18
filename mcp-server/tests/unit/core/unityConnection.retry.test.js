@@ -13,12 +13,12 @@ describe('UnityConnection Retry Logic', () => {
     // Store original config
     const { config } = await import('../../../src/core/config.js');
     originalConfig = { ...config.unity };
-    
+
     // Speed up tests by reducing delays
     config.unity.reconnectDelay = 100;
     config.unity.maxReconnectDelay = 500;
     config.unity.commandTimeout = 1000;
-    
+
     connection = new UnityConnection();
   });
 
@@ -26,7 +26,7 @@ describe('UnityConnection Retry Logic', () => {
     // Restore config
     const { config } = await import('../../../src/core/config.js');
     Object.assign(config.unity, originalConfig);
-    
+
     // Clean up
     if (connection) {
       connection.disconnect();
@@ -39,11 +39,11 @@ describe('UnityConnection Retry Logic', () => {
   describe('Automatic Reconnection', () => {
     it('should attempt to reconnect after connection loss', async () => {
       // Create a server that will accept and then close connections
-      mockServer = net.createServer((socket) => {
+      mockServer = net.createServer(socket => {
         // Immediately close connection to simulate disconnect
         setTimeout(() => socket.destroy(), 50);
       });
-      
+
       await new Promise(resolve => {
         mockServer.listen(0, 'localhost', () => {
           serverPort = mockServer.address().port;
@@ -73,20 +73,23 @@ describe('UnityConnection Retry Logic', () => {
 
       // Should have attempted reconnection
       assert(reconnectAttempts > 0, 'Should have attempted reconnection');
-      assert(connection.reconnectTimer || connection.reconnectAttempts > 0, 
-        'Should have reconnection scheduled or attempts recorded');
+      assert(
+        connection.reconnectTimer || connection.reconnectAttempts > 0,
+        'Should have reconnection scheduled or attempts recorded'
+      );
     });
 
     it('should use exponential backoff for reconnection', async () => {
       const { config } = await import('../../../src/core/config.js');
-      
+
       // Create connection and mock scheduleReconnect
       const delays = [];
       const originalSchedule = connection.scheduleReconnect.bind(connection);
-      
-      connection.scheduleReconnect = function() {
+
+      connection.scheduleReconnect = function () {
         const delay = Math.min(
-          config.unity.reconnectDelay * Math.pow(config.unity.reconnectBackoffMultiplier, this.reconnectAttempts),
+          config.unity.reconnectDelay *
+            Math.pow(config.unity.reconnectBackoffMultiplier, this.reconnectAttempts),
           config.unity.maxReconnectDelay
         );
         delays.push(delay);
@@ -107,8 +110,8 @@ describe('UnityConnection Retry Logic', () => {
 
     it('should reset reconnect attempts on successful connection', async () => {
       // Create a working server
-      mockServer = net.createServer((socket) => {
-        socket.on('data', (data) => {
+      mockServer = net.createServer(socket => {
+        socket.on('data', data => {
           // Echo back data
           socket.write(data);
         });
@@ -149,11 +152,11 @@ describe('UnityConnection Retry Logic', () => {
       config.unity.port = serverPort;
 
       await connection.connect();
-      
+
       // Track if reconnection is scheduled
       let reconnectScheduled = false;
       const originalSchedule = connection.scheduleReconnect.bind(connection);
-      connection.scheduleReconnect = function() {
+      connection.scheduleReconnect = function () {
         reconnectScheduled = true;
         originalSchedule.call(this);
       };
@@ -165,7 +168,11 @@ describe('UnityConnection Retry Logic', () => {
       await new Promise(resolve => setTimeout(resolve, 200));
 
       // Should not have scheduled reconnection
-      assert.equal(reconnectScheduled, false, 'Should not schedule reconnection after disconnect()');
+      assert.equal(
+        reconnectScheduled,
+        false,
+        'Should not schedule reconnection after disconnect()'
+      );
       assert.equal(connection.reconnectTimer, null, 'Should not have reconnect timer');
     });
 
@@ -183,14 +190,16 @@ describe('UnityConnection Retry Logic', () => {
       }
 
       assert(connectionError, 'Should have connection error');
-      assert(connectionError.message.includes('Connection timeout') || 
-             connectionError.message.includes('ECONNREFUSED'), 
-             'Should be timeout or connection refused');
+      assert(
+        connectionError.message.includes('Connection timeout') ||
+          connectionError.message.includes('ECONNREFUSED'),
+        'Should be timeout or connection refused'
+      );
     });
 
     it('should clear pending commands on reconnection', async () => {
       // Create a server that closes after receiving data
-      mockServer = net.createServer((socket) => {
+      mockServer = net.createServer(socket => {
         socket.on('data', () => {
           socket.destroy();
         });
@@ -210,7 +219,7 @@ describe('UnityConnection Retry Logic', () => {
 
       // Send a command that will cause disconnection
       const commandPromise = connection.sendCommand('test', {});
-      
+
       await assert.rejects(
         commandPromise,
         /Connection closed/,
@@ -225,15 +234,15 @@ describe('UnityConnection Retry Logic', () => {
   describe('Reconnection Events', () => {
     it('should emit proper events during reconnection cycle', async () => {
       const events = [];
-      
+
       // Track events
       connection.on('connected', () => events.push('connected'));
       connection.on('disconnected', () => events.push('disconnected'));
-      connection.on('error', (err) => events.push(`error: ${err.message}`));
+      connection.on('error', err => events.push(`error: ${err.message}`));
 
       // Create a flaky server
       let acceptConnections = true;
-      mockServer = net.createServer((socket) => {
+      mockServer = net.createServer(socket => {
         if (acceptConnections) {
           // Accept first connection then close it
           acceptConnections = false;
@@ -256,7 +265,7 @@ describe('UnityConnection Retry Logic', () => {
 
       // Connect
       await connection.connect();
-      
+
       // Wait for disconnect and reconnection attempt
       await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -279,9 +288,9 @@ describe('UnityConnection Retry Logic', () => {
     it('should handle commands sent during reconnection', async () => {
       // Create a server that accepts connections after a delay
       let acceptConnections = false;
-      mockServer = net.createServer((socket) => {
+      mockServer = net.createServer(socket => {
         if (acceptConnections) {
-          socket.on('data', (data) => {
+          socket.on('data', data => {
             try {
               const cmd = JSON.parse(data.toString());
               const response = {

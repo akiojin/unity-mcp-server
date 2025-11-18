@@ -14,27 +14,33 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
           captureMode: {
             type: 'string',
             enum: ['game', 'scene', 'window', 'explorer'],
-            description: 'Capture mode selection:\n- "game": Game View (player\'s perspective, what the user sees)\n- "scene": Scene View (editor\'s 3D workspace view)\n- "explorer": AI/LLM exploration mode (optimized view for understanding scene content)\n- "window": Specific Unity Editor window by name'
+            description:
+              'Capture mode selection:\n- "game": Game View (player\'s perspective, what the user sees)\n- "scene": Scene View (editor\'s 3D workspace view)\n- "explorer": AI/LLM exploration mode (optimized view for understanding scene content)\n- "window": Specific Unity Editor window by name'
           },
           width: {
             type: 'number',
-            description: 'Screenshot width in pixels (0 = use current view size). Range: 1-8192. Not applicable for explorer mode (use explorerSettings.camera.width instead)'
+            description:
+              'Screenshot width in pixels (0 = use current view size). Range: 1-8192. Not applicable for explorer mode (use explorerSettings.camera.width instead)'
           },
           height: {
             type: 'number',
-            description: 'Screenshot height in pixels (0 = use current view size). Range: 1-8192. Not applicable for explorer mode (use explorerSettings.camera.height instead)'
+            description:
+              'Screenshot height in pixels (0 = use current view size). Range: 1-8192. Not applicable for explorer mode (use explorerSettings.camera.height instead)'
           },
           includeUI: {
             type: 'boolean',
-            description: 'Whether to include UI overlay elements in Game View captures. Set to false for clean gameplay screenshots (default: true)'
+            description:
+              'Whether to include UI overlay elements in Game View captures. Set to false for clean gameplay screenshots (default: true)'
           },
           windowName: {
             type: 'string',
-            description: 'Name of the Unity Editor window to capture (required when captureMode is "window"). Examples: "Console", "Inspector", "Hierarchy", "Project"'
+            description:
+              'Name of the Unity Editor window to capture (required when captureMode is "window"). Examples: "Console", "Inspector", "Hierarchy", "Project"'
           },
           encodeAsBase64: {
             type: 'boolean',
-            description: 'Return screenshot data as base64 string for immediate processing/analysis without file I/O (default: false)'
+            description:
+              'Return screenshot data as base64 string for immediate processing/analysis without file I/O (default: false)'
           },
           explorerSettings: {
             type: 'object',
@@ -47,15 +53,18 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
                   type: {
                     type: 'string',
                     enum: ['gameObject', 'tag', 'area', 'position'],
-                    description: 'Target selection method:\n- "gameObject": Focus on a specific GameObject by name\n- "tag": Focus on all objects with a specific tag\n- "area": Focus on a circular area defined by center and radius\n- "position": Manual camera positioning without auto-framing'
+                    description:
+                      'Target selection method:\n- "gameObject": Focus on a specific GameObject by name\n- "tag": Focus on all objects with a specific tag\n- "area": Focus on a circular area defined by center and radius\n- "position": Manual camera positioning without auto-framing'
                   },
                   name: {
                     type: 'string',
-                    description: 'GameObject name to target (required for "gameObject" type). Example: "Player", "MainCamera", "Enemy_01"'
+                    description:
+                      'GameObject name to target (required for "gameObject" type). Example: "Player", "MainCamera", "Enemy_01"'
                   },
                   tag: {
                     type: 'string',
-                    description: 'Tag to search for GameObjects (required for "tag" type). Example: "Enemy", "Collectible", "Player"'
+                    description:
+                      'Tag to search for GameObjects (required for "tag" type). Example: "Enemy", "Collectible", "Player"'
                   },
                   center: {
                     type: 'object',
@@ -68,11 +77,13 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
                   },
                   radius: {
                     type: 'number',
-                    description: 'Radius around center for area targeting (used with "area" type). Defines the circular area to capture'
+                    description:
+                      'Radius around center for area targeting (used with "area" type). Defines the circular area to capture'
                   },
                   includeChildren: {
                     type: 'boolean',
-                    description: 'Include child objects when calculating the target bounds for framing (default: true)'
+                    description:
+                      'Include child objects when calculating the target bounds for framing (default: true)'
                   }
                 }
               },
@@ -109,24 +120,29 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
                   },
                   fieldOfView: {
                     type: 'number',
-                    
-                    description: 'Camera field of view in degrees (1-179). Lower values zoom in, higher values zoom out'
+
+                    description:
+                      'Camera field of view in degrees (1-179). Lower values zoom in, higher values zoom out'
                   },
                   nearClip: {
                     type: 'number',
-                    description: 'Near clipping plane distance. Objects closer than this won\'t be rendered (default: 0.3)'
+                    description:
+                      "Near clipping plane distance. Objects closer than this won't be rendered (default: 0.3)"
                   },
                   farClip: {
                     type: 'number',
-                    description: 'Far clipping plane distance. Objects farther than this won\'t be rendered'
+                    description:
+                      "Far clipping plane distance. Objects farther than this won't be rendered"
                   },
                   autoFrame: {
                     type: 'boolean',
-                    description: 'Automatically position camera to frame the target. Disable for manual positioning (default: true)'
+                    description:
+                      'Automatically position camera to frame the target. Disable for manual positioning (default: true)'
                   },
                   padding: {
                     type: 'number',
-                    description: 'Padding around target when auto-framing (0-1). 0 = tight fit, 1 = lots of space (default: 0.2)'
+                    description:
+                      'Padding around target when auto-framing (0-1). 0 = tight fit, 1 = lots of space (default: 0.2)'
                   },
                   offset: {
                     type: 'object',
@@ -164,11 +180,13 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
                   layers: {
                     type: 'array',
                     items: { type: 'string' },
-                    description: 'Unity layer names to include in rendering. If not specified, all layers are included. Examples: ["Default", "UI", "Player"]'
+                    description:
+                      'Unity layer names to include in rendering. If not specified, all layers are included. Examples: ["Default", "UI", "Player"]'
                   },
                   showGizmos: {
                     type: 'boolean',
-                    description: 'Show editor gizmos (transform handles, icons) in the capture (default: false)'
+                    description:
+                      'Show editor gizmos (transform handles, icons) in the capture (default: false)'
                   },
                   showColliders: {
                     type: 'boolean',
@@ -180,7 +198,8 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
                   },
                   highlightTarget: {
                     type: 'boolean',
-                    description: 'Highlight the target object(s) with an outline or color (default: false)'
+                    description:
+                      'Highlight the target object(s) with an outline or color (default: false)'
                   }
                 }
               }
@@ -190,7 +209,7 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
         required: []
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -213,119 +232,119 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
     if (captureMode === 'window' && !windowName) {
       throw new Error(
         'windowName is required when captureMode is "window". ' +
-        'Specify the name of the Unity Editor window to capture (e.g., "Console", "Inspector", "Hierarchy")'
+          'Specify the name of the Unity Editor window to capture (e.g., "Console", "Inspector", "Hierarchy")'
       );
     }
 
     // Explorer mode validation
     if (captureMode === 'explorer' && explorerSettings) {
       const { target, camera, display } = explorerSettings;
-      
+
       // Validate target settings
       if (target) {
         const { type } = target;
         if (type && !['gameObject', 'tag', 'area', 'position'].includes(type)) {
           throw new Error(
             'Invalid target.type for explorer mode. Must be one of:\n' +
-            '- "gameObject": Focus on a specific GameObject by name\n' +
-            '- "tag": Focus on all objects with a specific tag\n' +
-            '- "area": Focus on a circular area (center + radius)\n' +
-            '- "position": Manual camera positioning'
+              '- "gameObject": Focus on a specific GameObject by name\n' +
+              '- "tag": Focus on all objects with a specific tag\n' +
+              '- "area": Focus on a circular area (center + radius)\n' +
+              '- "position": Manual camera positioning'
           );
         }
-        
+
         if (type === 'gameObject' && !target.name) {
           throw new Error(
             'target.name is required when target.type is "gameObject". ' +
-            'Specify the name of the GameObject to focus on (e.g., "Player", "MainCamera")'
+              'Specify the name of the GameObject to focus on (e.g., "Player", "MainCamera")'
           );
         }
-        
+
         if (type === 'tag' && !target.tag) {
           throw new Error(
             'target.tag is required when target.type is "tag". ' +
-            'Specify the tag to search for (e.g., "Enemy", "Collectible")'
+              'Specify the tag to search for (e.g., "Enemy", "Collectible")'
           );
         }
-        
+
         if (type === 'area') {
           if (!target.center) {
             throw new Error(
               'target.center is required when target.type is "area". ' +
-              'Specify the center position as {x, y, z} in world coordinates'
+                'Specify the center position as {x, y, z} in world coordinates'
             );
           }
           if (target.radius === undefined || target.radius <= 0) {
             throw new Error(
               'target.radius must be a positive number when target.type is "area". ' +
-              'Specify the radius of the area to capture'
+                'Specify the radius of the area to capture'
             );
           }
         }
       }
-      
+
       // Validate camera settings
       if (camera) {
         if (camera.fieldOfView !== undefined) {
           if (camera.fieldOfView < 1 || camera.fieldOfView > 179) {
             throw new Error(
               'camera.fieldOfView must be between 1 and 179 degrees. ' +
-              'Lower values (20-40) provide zoom effect, standard is 60, wide angle is 90+'
+                'Lower values (20-40) provide zoom effect, standard is 60, wide angle is 90+'
             );
           }
         }
-        
+
         if (camera.padding !== undefined) {
           if (camera.padding < 0 || camera.padding > 1) {
             throw new Error(
               'camera.padding must be between 0 and 1. ' +
-              '0 = tight framing, 0.2 = normal padding, 0.5+ = lots of surrounding space'
+                '0 = tight framing, 0.2 = normal padding, 0.5+ = lots of surrounding space'
             );
           }
         }
-        
+
         if (camera.width !== undefined) {
           if (camera.width < 1 || camera.width > 8192) {
             throw new Error(
               'camera.width must be between 1 and 8192 pixels. ' +
-              'Common values: 1920 (Full HD), 2560 (2K), 3840 (4K)'
+                'Common values: 1920 (Full HD), 2560 (2K), 3840 (4K)'
             );
           }
         }
-        
+
         if (camera.height !== undefined) {
           if (camera.height < 1 || camera.height > 8192) {
             throw new Error(
               'camera.height must be between 1 and 8192 pixels. ' +
-              'Common values: 1080 (Full HD), 1440 (2K), 2160 (4K)'
+                'Common values: 1080 (Full HD), 1440 (2K), 2160 (4K)'
             );
           }
         }
-        
+
         if (camera.nearClip !== undefined && camera.nearClip <= 0) {
           throw new Error(
             'camera.nearClip must be a positive number. ' +
-            'Typically 0.01 to 1.0 for close-up views, 0.3 is default'
+              'Typically 0.01 to 1.0 for close-up views, 0.3 is default'
           );
         }
-        
+
         if (camera.farClip !== undefined && camera.farClip <= 0) {
           throw new Error(
             'camera.farClip must be a positive number. ' +
-            'Should be larger than nearClip. Default is 1000, reduce for performance'
+              'Should be larger than nearClip. Default is 1000, reduce for performance'
           );
         }
-        
+
         if (camera.nearClip !== undefined && camera.farClip !== undefined) {
           if (camera.nearClip >= camera.farClip) {
             throw new Error(
               'camera.nearClip must be less than camera.farClip. ' +
-              'nearClip defines the closest visible distance, farClip the farthest'
+                'nearClip defines the closest visible distance, farClip the farthest'
             );
           }
         }
       }
-      
+
       // Validate display settings
       if (display) {
         if (display.backgroundColor) {
@@ -334,7 +353,7 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
             if (value !== undefined && (value < 0 || value > 1)) {
               throw new Error(
                 `backgroundColor.${name} must be between 0 and 1. ` +
-                'Color components use normalized values (0 = black/transparent, 1 = full intensity)'
+                  'Color components use normalized values (0 = black/transparent, 1 = full intensity)'
               );
             }
           };
@@ -343,11 +362,11 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
           validateColorComponent(b, 'b');
           validateColorComponent(a, 'a');
         }
-        
+
         if (display.layers && !Array.isArray(display.layers)) {
           throw new Error(
             'display.layers must be an array of layer names. ' +
-            'Example: ["Default", "UI", "Player"]'
+              'Example: ["Default", "UI", "Player"]'
           );
         }
       }
@@ -357,26 +376,26 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
     if (outputPath) {
       const validExtensions = ['.png', '.jpg', '.jpeg'];
       const hasValidExtension = validExtensions.some(ext => outputPath.toLowerCase().endsWith(ext));
-      
+
       if (!hasValidExtension) {
         throw new Error(
           'outputPath must end with .png, .jpg, or .jpeg. ' +
-          'PNG is recommended for best quality, JPG for smaller file size'
+            'PNG is recommended for best quality, JPG for smaller file size'
         );
       }
-      
+
       if (!outputPath.startsWith('Assets/')) {
         throw new Error(
           'outputPath must be within the Assets folder. ' +
-          'Example: "Assets/Screenshots/capture.png"'
+            'Example: "Assets/Screenshots/capture.png"'
         );
       }
-      
+
       // Warn about potential path issues
       if (outputPath.includes('\\')) {
         throw new Error(
           'outputPath should use forward slashes (/) not backslashes (\\). ' +
-          'Example: "Assets/Screenshots/capture.png"'
+            'Example: "Assets/Screenshots/capture.png"'
         );
       }
     }
@@ -387,16 +406,16 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
         if (params.width < 0 || params.width > 8192) {
           throw new Error(
             'width must be between 0 and 8192 pixels. ' +
-            '0 = use current view size, common values: 1920, 2560, 3840'
+              '0 = use current view size, common values: 1920, 2560, 3840'
           );
         }
       }
-      
+
       if (params.height !== undefined) {
         if (params.height < 0 || params.height > 8192) {
           throw new Error(
             'height must be between 0 and 8192 pixels. ' +
-            '0 = use current view size, common values: 1080, 1440, 2160'
+              '0 = use current view size, common values: 1080, 1440, 2160'
           );
         }
       }
@@ -420,7 +439,10 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
 
     // Send capture command to Unity
     const { WORKSPACE_ROOT } = await import('../../core/config.js');
-    const response = await this.unityConnection.sendCommand('capture_screenshot', { ...(params||{}), workspaceRoot: WORKSPACE_ROOT });
+    const response = await this.unityConnection.sendCommand('capture_screenshot', {
+      ...(params || {}),
+      workspaceRoot: WORKSPACE_ROOT
+    });
 
     // Handle Unity response
     if (response.error) {
@@ -487,7 +509,7 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
           outputPath: 'Assets/Screenshots/scene_4k.png'
         }
       },
-      
+
       // Explorer mode examples for AI/LLM usage
       analyzePlayer: {
         description: 'AI/LLM: Analyze the player character and its surroundings',
@@ -603,7 +625,7 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
         }
       },
       birdEyeView: {
-        description: 'AI/LLM: Top-down bird\'s eye view of the entire level',
+        description: "AI/LLM: Top-down bird's eye view of the entire level",
         params: {
           captureMode: 'explorer',
           encodeAsBase64: true,
@@ -620,7 +642,7 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
           }
         }
       },
-      
+
       // Window capture examples
       captureConsole: {
         description: 'Capture Unity console for error debugging',
@@ -637,7 +659,7 @@ export class ScreenshotCaptureToolHandler extends BaseToolHandler {
           windowName: 'Inspector'
         }
       },
-      
+
       // Advanced explorer examples
       cinematicShot: {
         description: 'AI/LLM: Cinematic angle shot of a specific scene moment',

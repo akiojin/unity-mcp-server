@@ -42,7 +42,7 @@ describe('EnhancedReadLogsToolHandler', () => {
         totalCaptured: 150
       }))
     };
-    
+
     handler = new EnhancedReadLogsToolHandler(mockUnityConnection);
   });
 
@@ -75,7 +75,14 @@ describe('EnhancedReadLogsToolHandler', () => {
 
     it('should define proper enum values', () => {
       const schema = handler.inputSchema;
-      assert.deepEqual(schema.properties.logTypes.items.enum, ['Log', 'Warning', 'Error', 'Assert', 'Exception', 'All']);
+      assert.deepEqual(schema.properties.logTypes.items.enum, [
+        'Log',
+        'Warning',
+        'Error',
+        'Assert',
+        'Exception',
+        'All'
+      ]);
       assert.deepEqual(schema.properties.format.enum, ['detailed', 'compact', 'json', 'plain']);
       assert.deepEqual(schema.properties.sortOrder.enum, ['newest', 'oldest']);
       assert.deepEqual(schema.properties.groupBy.enum, ['none', 'type', 'file', 'time']);
@@ -96,17 +103,11 @@ describe('EnhancedReadLogsToolHandler', () => {
     });
 
     it('should fail with invalid count', () => {
-      assert.throws(
-        () => handler.validate({ count: 1500 }),
-        /count must be between 1 and 1000/
-      );
+      assert.throws(() => handler.validate({ count: 1500 }), /count must be between 1 and 1000/);
     });
 
     it('should fail with negative count', () => {
-      assert.throws(
-        () => handler.validate({ count: -5 }),
-        /count must be between 1 and 1000/
-      );
+      assert.throws(() => handler.validate({ count: -5 }), /count must be between 1 and 1000/);
     });
 
     it('should pass with valid log types array', () => {
@@ -137,10 +138,11 @@ describe('EnhancedReadLogsToolHandler', () => {
 
     it('should fail when untilTimestamp is before sinceTimestamp', () => {
       assert.throws(
-        () => handler.validate({ 
-          sinceTimestamp: '2025-01-24T12:00:00Z',
-          untilTimestamp: '2025-01-24T10:00:00Z'
-        }),
+        () =>
+          handler.validate({
+            sinceTimestamp: '2025-01-24T12:00:00Z',
+            untilTimestamp: '2025-01-24T10:00:00Z'
+          }),
         /untilTimestamp must be after sinceTimestamp/
       );
     });
@@ -152,10 +154,7 @@ describe('EnhancedReadLogsToolHandler', () => {
     });
 
     it('should fail with invalid format', () => {
-      assert.throws(
-        () => handler.validate({ format: 'xml' }),
-        /format must be one of/
-      );
+      assert.throws(() => handler.validate({ format: 'xml' }), /format must be one of/);
     });
   });
 
@@ -164,8 +163,11 @@ describe('EnhancedReadLogsToolHandler', () => {
       const result = await handler.execute({});
 
       assert.equal(mockUnityConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockUnityConnection.sendCommand.mock.calls[0].arguments[0], 'enhanced_read_logs');
-      
+      assert.equal(
+        mockUnityConnection.sendCommand.mock.calls[0].arguments[0],
+        'enhanced_read_logs'
+      );
+
       const params = mockUnityConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.count, 100);
       assert.deepEqual(params.logTypes, ['All']);
@@ -290,10 +292,7 @@ describe('EnhancedReadLogsToolHandler', () => {
         throw new Error('Unity not responding');
       });
 
-      await assert.rejects(
-        () => handler.execute({}),
-        /Unity not responding/
-      );
+      await assert.rejects(() => handler.execute({}), /Unity not responding/);
     });
 
     it('should handle empty logs result', async () => {

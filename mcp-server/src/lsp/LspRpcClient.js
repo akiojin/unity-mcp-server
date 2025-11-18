@@ -18,14 +18,18 @@ export class LspRpcClient {
     this.proc = await this.mgr.ensureStarted();
     // Attach data handler once per process
     if (this.boundOnData) {
-      try { this.proc.stdout.off('data', this.boundOnData); } catch {}
+      try {
+        this.proc.stdout.off('data', this.boundOnData);
+      } catch {}
     }
-    this.boundOnData = (chunk) => this.onData(chunk);
+    this.boundOnData = chunk => this.onData(chunk);
     this.proc.stdout.on('data', this.boundOnData);
     // On process close: reject all pending and reset state
     this.proc.on('close', () => {
       for (const [id, p] of Array.from(this.pending.entries())) {
-        try { p.reject(new Error('LSP process exited')); } catch {}
+        try {
+          p.reject(new Error('LSP process exited'));
+        } catch {}
         this.pending.delete(id);
       }
       this.initialized = false;
@@ -53,7 +57,9 @@ export class LspRpcClient {
           this.pending.get(msg.id).resolve(msg);
           this.pending.delete(msg.id);
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -72,9 +78,9 @@ export class LspRpcClient {
       method: 'initialize',
       params: {
         processId: process.pid,
-        rootUri: this.projectRoot ? ('file://' + String(this.projectRoot).replace(/\\/g, '/')) : null,
+        rootUri: this.projectRoot ? 'file://' + String(this.projectRoot).replace(/\\/g, '/') : null,
         capabilities: {},
-        workspaceFolders: null,
+        workspaceFolders: null
       }
     };
     const timeoutMs = Math.max(5000, Math.min(60000, config.lsp?.requestTimeoutMs || 60000));
@@ -104,12 +110,12 @@ export class LspRpcClient {
     if (!resp) return [];
     const payload = resp.result ?? resp;
     const diagnostics = Array.isArray(payload?.diagnostics) ? payload.diagnostics : [];
-    return diagnostics.map((d) => ({
+    return diagnostics.map(d => ({
       severity: d?.severity,
       message: d?.message,
       id: d?.id,
       line: d?.line,
-      column: d?.column,
+      column: d?.column
     }));
   }
 
@@ -130,17 +136,23 @@ export class LspRpcClient {
       this.writeMessage({ jsonrpc: '2.0', id, method, params });
       return await p;
     } catch (e) {
-      const msg = String(e && e.message || e);
+      const msg = String((e && e.message) || e);
       const recoverable = /timed out|LSP process exited/i.test(msg);
       if (recoverable && attempt === 1) {
         // Auto-reinit and retry once
-        try { await this.mgr.stop(0); } catch {}
-        this.proc = null; this.initialized = false; this.buf = Buffer.alloc(0);
+        try {
+          await this.mgr.stop(0);
+        } catch {}
+        this.proc = null;
+        this.initialized = false;
+        this.buf = Buffer.alloc(0);
         logger.warn(`[csharp-lsp] recoverable error on ${method}: ${msg}. Retrying once...`);
         return await this.#requestWithRetry(method, params, attempt + 1);
       }
       // Standardize error message
-      const hint = recoverable ? 'The server was restarted. Try again if the issue persists.' : 'Check request parameters or increase lsp.requestTimeoutMs.';
+      const hint = recoverable
+        ? 'The server was restarted. Try again if the issue persists.'
+        : 'Check request parameters or increase lsp.requestTimeoutMs.';
       throw new Error(`[${method}] failed: ${msg}. ${hint}`);
     }
   }

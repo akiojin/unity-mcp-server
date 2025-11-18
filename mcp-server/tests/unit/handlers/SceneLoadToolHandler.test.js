@@ -8,17 +8,19 @@ describe('SceneLoadToolHandler', () => {
   let sendCommandSpy;
 
   beforeEach(() => {
-    sendCommandSpy = mock.fn(() => Promise.resolve({
-      status: 'success',
-      result: {
-        sceneName: 'MainMenu',
-        scenePath: 'Assets/Scenes/MainMenu.unity',
-        loadMode: 'Single',
-        isLoaded: true,
-        previousScene: 'SampleScene',
-        summary: 'Loaded scene "MainMenu" in Single mode'
-      }
-    }));
+    sendCommandSpy = mock.fn(() =>
+      Promise.resolve({
+        status: 'success',
+        result: {
+          sceneName: 'MainMenu',
+          scenePath: 'Assets/Scenes/MainMenu.unity',
+          loadMode: 'Single',
+          isLoaded: true,
+          previousScene: 'SampleScene',
+          summary: 'Loaded scene "MainMenu" in Single mode'
+        }
+      })
+    );
 
     mockUnityConnection = {
       sendCommand: sendCommandSpy,
@@ -45,9 +47,9 @@ describe('SceneLoadToolHandler', () => {
 
   it('should handle successful scene load by path', async () => {
     const params = { scenePath: 'Assets/Scenes/MainMenu.unity' };
-    
+
     const response = await handler.handle(params);
-    
+
     assert.equal(response.status, 'success');
     assert.deepEqual(response.result, {
       sceneName: 'MainMenu',
@@ -57,7 +59,7 @@ describe('SceneLoadToolHandler', () => {
       previousScene: 'SampleScene',
       summary: 'Loaded scene "MainMenu" in Single mode'
     });
-    
+
     assert.equal(sendCommandSpy.mock.calls.length, 1);
     assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'load_scene');
     assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], params);
@@ -65,61 +67,63 @@ describe('SceneLoadToolHandler', () => {
 
   it('should handle scene load by name', async () => {
     const params = { sceneName: 'Level1' };
-    
-    sendCommandSpy.mock.mockImplementation(() => Promise.resolve({
-      status: 'success',
-      result: {
-        sceneName: 'Level1',
-        scenePath: 'Assets/Levels/Level1.unity',
-        loadMode: 'Single',
-        isLoaded: true,
-        previousScene: 'MainMenu',
-        summary: 'Loaded scene "Level1" in Single mode'
-      }
-    }));
-    
+
+    sendCommandSpy.mock.mockImplementation(() =>
+      Promise.resolve({
+        status: 'success',
+        result: {
+          sceneName: 'Level1',
+          scenePath: 'Assets/Levels/Level1.unity',
+          loadMode: 'Single',
+          isLoaded: true,
+          previousScene: 'MainMenu',
+          summary: 'Loaded scene "Level1" in Single mode'
+        }
+      })
+    );
+
     const response = await handler.handle(params);
-    
+
     assert.equal(response.status, 'success');
     assert.equal(response.result.sceneName, 'Level1');
   });
 
   it('should handle additive load mode', async () => {
-    const params = { 
+    const params = {
       sceneName: 'UI_Overlay',
       loadMode: 'Additive'
     };
-    
+
     const response = await handler.handle(params);
-    
+
     assert.equal(sendCommandSpy.mock.calls[0].arguments[1].loadMode, 'Additive');
   });
 
   it('should validate missing both parameters', async () => {
     const response = await handler.handle({});
-    
+
     assert.equal(response.status, 'error');
     assert.equal(response.error, 'Either scenePath or sceneName must be provided');
     assert.equal(response.code, 'TOOL_ERROR');
   });
 
   it('should validate both parameters provided', async () => {
-    const response = await handler.handle({ 
+    const response = await handler.handle({
       scenePath: 'Assets/Scenes/Test.unity',
       sceneName: 'Test'
     });
-    
+
     assert.equal(response.status, 'error');
     assert.equal(response.error, 'Provide either scenePath or sceneName, not both');
     assert.equal(response.code, 'TOOL_ERROR');
   });
 
   it('should validate invalid load mode', async () => {
-    const response = await handler.handle({ 
+    const response = await handler.handle({
       sceneName: 'Test',
       loadMode: 'InvalidMode'
     });
-    
+
     assert.equal(response.status, 'error');
     assert.equal(response.error, 'Invalid load mode. Must be "Single" or "Additive"');
     assert.equal(response.code, 'TOOL_ERROR');
@@ -127,36 +131,36 @@ describe('SceneLoadToolHandler', () => {
 
   it('should handle Unity connection not available', async () => {
     mockUnityConnection.isConnected = () => false;
-    
+
     const response = await handler.handle({ sceneName: 'TestScene' });
-    
+
     assert.equal(response.status, 'error');
     assert.equal(response.error, 'Unity connection not available');
     assert.equal(response.code, 'TOOL_ERROR');
   });
 
   it('should handle Unity error response', async () => {
-    sendCommandSpy.mock.mockImplementation(() => Promise.resolve({
-      status: 'error',
-      error: 'Scene not found'
-    }));
-    
+    sendCommandSpy.mock.mockImplementation(() =>
+      Promise.resolve({
+        status: 'error',
+        error: 'Scene not found'
+      })
+    );
+
     const response = await handler.handle({ sceneName: 'NonExistent' });
-    
+
     assert.equal(response.status, 'error');
     assert.equal(response.error, 'Scene not found');
     assert.equal(response.code, 'UNITY_ERROR');
   });
 
   it('should handle command timeout', async () => {
-    sendCommandSpy.mock.mockImplementation(() => 
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Command timeout')), 10)
-      )
+    sendCommandSpy.mock.mockImplementation(
+      () => new Promise((_, reject) => setTimeout(() => reject(new Error('Command timeout')), 10))
     );
-    
+
     const response = await handler.handle({ sceneName: 'TestScene' });
-    
+
     assert.equal(response.status, 'error');
     assert.equal(response.error, 'Command timeout');
     assert.equal(response.code, 'TOOL_ERROR');
@@ -164,12 +168,12 @@ describe('SceneLoadToolHandler', () => {
 
   it('should include parameter summary in error details', async () => {
     mockUnityConnection.isConnected = () => false;
-    
-    const response = await handler.handle({ 
+
+    const response = await handler.handle({
       scenePath: 'Assets/Scenes/MainMenu.unity',
       loadMode: 'Single'
     });
-    
+
     assert.equal(response.status, 'error');
     assert.ok(response.details);
     assert.equal(response.details.tool, 'scene_load');
@@ -179,13 +183,15 @@ describe('SceneLoadToolHandler', () => {
 
   it('should handle Unity returning undefined result (reproduces union error)', async () => {
     // This test reproduces the union error where Unity returns success but undefined result
-    sendCommandSpy.mock.mockImplementation(() => Promise.resolve({
-      status: 'success',
-      result: undefined  // This causes the union error in MCP protocol
-    }));
-    
+    sendCommandSpy.mock.mockImplementation(() =>
+      Promise.resolve({
+        status: 'success',
+        result: undefined // This causes the union error in MCP protocol
+      })
+    );
+
     const response = await handler.handle({ sceneName: 'TestScene' });
-    
+
     // The handler should still return success status
     assert.equal(response.status, 'success');
     // But result should be properly handled (not undefined)
@@ -195,13 +201,15 @@ describe('SceneLoadToolHandler', () => {
   });
 
   it('should handle Unity returning null result', async () => {
-    sendCommandSpy.mock.mockImplementation(() => Promise.resolve({
-      status: 'success',
-      result: null  // Another edge case
-    }));
-    
+    sendCommandSpy.mock.mockImplementation(() =>
+      Promise.resolve({
+        status: 'success',
+        result: null // Another edge case
+      })
+    );
+
     const response = await handler.handle({ sceneName: 'TestScene' });
-    
+
     assert.equal(response.status, 'success');
     assert.ok(response.result !== null);
     assert.ok(typeof response.result === 'object');

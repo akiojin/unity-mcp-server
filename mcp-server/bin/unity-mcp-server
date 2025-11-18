@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { startServer } from '../src/core/server.js';
 
-startServer().catch((error) => {
+startServer().catch(error => {
   console.error('Fatal error:', error);
   console.error('Stack trace:', error?.stack);
   process.exit(1);

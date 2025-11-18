@@ -13,7 +13,7 @@ describe('EditorToolsManageToolHandler', () => {
       sendCommand: async (command, params) => {
         if (command === 'manage_tools') {
           const action = params.action;
-          
+
           if (action === 'get') {
             return {
               success: true,
@@ -48,7 +48,7 @@ describe('EditorToolsManageToolHandler', () => {
               activeCount: 1
             };
           }
-          
+
           if (action === 'activate') {
             if (params.toolName === 'Cinemachine') {
               return {
@@ -73,7 +73,7 @@ describe('EditorToolsManageToolHandler', () => {
               throw new Error('Tool not found: NonExistentTool');
             }
           }
-          
+
           if (action === 'deactivate') {
             if (params.toolName === 'ProBuilder') {
               return {
@@ -86,7 +86,7 @@ describe('EditorToolsManageToolHandler', () => {
               };
             }
           }
-          
+
           if (action === 'refresh') {
             return {
               success: true,
@@ -97,7 +97,7 @@ describe('EditorToolsManageToolHandler', () => {
             };
           }
         }
-        
+
         throw new Error('Unknown command');
       }
     };
@@ -108,7 +108,10 @@ describe('EditorToolsManageToolHandler', () => {
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'editor_tools_manage');
-      assert.equal(handler.description, 'Manage Unity Editor tools and plugins (list, activate, deactivate, refresh)');
+      assert.equal(
+        handler.description,
+        'Manage Unity Editor tools and plugins (list, activate, deactivate, refresh)'
+      );
       assert.ok(handler.inputSchema);
       assert.equal(handler.inputSchema.type, 'object');
     });
@@ -146,52 +149,70 @@ describe('EditorToolsManageToolHandler', () => {
     });
 
     it('should fail without action', () => {
-      assert.throws(() => {
-        handler.validate({});
-      }, { message: /action is required/ });
+      assert.throws(
+        () => {
+          handler.validate({});
+        },
+        { message: /action is required/ }
+      );
     });
 
     it('should fail with invalid action', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'invalid' });
-      }, { message: /action must be one of: get, activate, deactivate, refresh/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'invalid' });
+        },
+        { message: /action must be one of: get, activate, deactivate, refresh/ }
+      );
     });
 
     it('should fail activate without toolName', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'activate' });
-      }, { message: /toolName is required for activate action/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'activate' });
+        },
+        { message: /toolName is required for activate action/ }
+      );
     });
 
     it('should fail deactivate without toolName', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'deactivate' });
-      }, { message: /toolName is required for deactivate action/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'deactivate' });
+        },
+        { message: /toolName is required for deactivate action/ }
+      );
     });
 
     it('should fail with empty toolName for activate', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'activate', toolName: '' });
-      }, { message: /toolName cannot be empty/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'activate', toolName: '' });
+        },
+        { message: /toolName cannot be empty/ }
+      );
     });
 
     it('should fail with empty category', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'get', category: '' });
-      }, { message: /category cannot be empty/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'get', category: '' });
+        },
+        { message: /category cannot be empty/ }
+      );
     });
   });
 
   describe('execute', () => {
     it('should get all tools successfully', async () => {
       const result = await handler.execute({ action: 'get' });
-      
+
       assert.equal(result.success, true);
       assert.equal(result.action, 'get');
       assert.equal(result.tools.length, 3);
       assert.equal(result.installedCount, 2);
       assert.equal(result.activeCount, 1);
-      
+
       const proBuilder = result.tools.find(t => t.name === 'ProBuilder');
       assert.ok(proBuilder);
       assert.equal(proBuilder.isInstalled, true);
@@ -200,7 +221,7 @@ describe('EditorToolsManageToolHandler', () => {
 
     it('should activate a tool successfully', async () => {
       const result = await handler.execute({ action: 'activate', toolName: 'Cinemachine' });
-      
+
       assert.equal(result.success, true);
       assert.equal(result.action, 'activate');
       assert.equal(result.toolName, 'Cinemachine');
@@ -211,7 +232,7 @@ describe('EditorToolsManageToolHandler', () => {
 
     it('should handle already active tool', async () => {
       const result = await handler.execute({ action: 'activate', toolName: 'AlreadyActivePlugin' });
-      
+
       assert.equal(result.success, true);
       assert.equal(result.alreadyActive, true);
       assert.ok(result.message.includes('already active'));
@@ -219,7 +240,7 @@ describe('EditorToolsManageToolHandler', () => {
 
     it('should deactivate a tool successfully', async () => {
       const result = await handler.execute({ action: 'deactivate', toolName: 'ProBuilder' });
-      
+
       assert.equal(result.success, true);
       assert.equal(result.action, 'deactivate');
       assert.equal(result.toolName, 'ProBuilder');
@@ -230,7 +251,7 @@ describe('EditorToolsManageToolHandler', () => {
 
     it('should refresh tool cache', async () => {
       const result = await handler.execute({ action: 'refresh' });
-      
+
       assert.equal(result.success, true);
       assert.equal(result.action, 'refresh');
       assert.ok(result.message.includes('refreshed'));
@@ -239,10 +260,9 @@ describe('EditorToolsManageToolHandler', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      await assert.rejects(
-        handler.execute({ action: 'activate', toolName: 'NonExistentTool' }),
-        { message: /Tool not found: NonExistentTool/ }
-      );
+      await assert.rejects(handler.execute({ action: 'activate', toolName: 'NonExistentTool' }), {
+        message: /Tool not found: NonExistentTool/
+      });
     });
   });
 
@@ -251,7 +271,7 @@ describe('EditorToolsManageToolHandler', () => {
       const examples = handler.getExamples();
       assert.ok(Array.isArray(examples));
       assert.ok(examples.length >= 4);
-      
+
       // Check first example structure
       const firstExample = examples[0];
       assert.ok(firstExample.input);
@@ -262,7 +282,7 @@ describe('EditorToolsManageToolHandler', () => {
     it('should include examples for all actions', () => {
       const examples = handler.getExamples();
       const actions = examples.map(e => e.input.action);
-      
+
       assert.ok(actions.includes('get'));
       assert.ok(actions.includes('activate'));
       assert.ok(actions.includes('deactivate'));

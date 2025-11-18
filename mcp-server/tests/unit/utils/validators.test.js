@@ -76,29 +76,17 @@ describe('validators', () => {
     });
 
     it('should reject values below minimum', () => {
-      assert.throws(
-        () => validateRange(-1, 0, 10, 'value'),
-        /value must be between 0 and 10/
-      );
+      assert.throws(() => validateRange(-1, 0, 10, 'value'), /value must be between 0 and 10/);
     });
 
     it('should reject values above maximum', () => {
-      assert.throws(
-        () => validateRange(11, 0, 10, 'value'),
-        /value must be between 0 and 10/
-      );
+      assert.throws(() => validateRange(11, 0, 10, 'value'), /value must be between 0 and 10/);
     });
 
     it('should reject non-number values', () => {
-      assert.throws(
-        () => validateRange('5', 0, 10, 'value'),
-        /value must be a number/
-      );
+      assert.throws(() => validateRange('5', 0, 10, 'value'), /value must be a number/);
 
-      assert.throws(
-        () => validateRange(null, 0, 10, 'value'),
-        /value must be a number/
-      );
+      assert.throws(() => validateRange(null, 0, 10, 'value'), /value must be a number/);
     });
   });
 
@@ -111,37 +99,19 @@ describe('validators', () => {
     });
 
     it('should reject non-string values', () => {
-      assert.throws(
-        () => validateNonEmptyString(123, 'name'),
-        /name must be a string/
-      );
+      assert.throws(() => validateNonEmptyString(123, 'name'), /name must be a string/);
 
-      assert.throws(
-        () => validateNonEmptyString(null, 'name'),
-        /name must be a string/
-      );
+      assert.throws(() => validateNonEmptyString(null, 'name'), /name must be a string/);
 
-      assert.throws(
-        () => validateNonEmptyString(undefined, 'name'),
-        /name must be a string/
-      );
+      assert.throws(() => validateNonEmptyString(undefined, 'name'), /name must be a string/);
     });
 
     it('should reject empty or whitespace-only strings', () => {
-      assert.throws(
-        () => validateNonEmptyString('', 'name'),
-        /name cannot be empty/
-      );
+      assert.throws(() => validateNonEmptyString('', 'name'), /name cannot be empty/);
 
-      assert.throws(
-        () => validateNonEmptyString('   ', 'name'),
-        /name cannot be empty/
-      );
+      assert.throws(() => validateNonEmptyString('   ', 'name'), /name cannot be empty/);
 
-      assert.throws(
-        () => validateNonEmptyString('\t\n', 'name'),
-        /name cannot be empty/
-      );
+      assert.throws(() => validateNonEmptyString('\t\n', 'name'), /name cannot be empty/);
     });
   });
 
@@ -154,30 +124,15 @@ describe('validators', () => {
     });
 
     it('should reject non-boolean values', () => {
-      assert.throws(
-        () => validateBoolean('true', 'flag'),
-        /flag must be a boolean/
-      );
+      assert.throws(() => validateBoolean('true', 'flag'), /flag must be a boolean/);
 
-      assert.throws(
-        () => validateBoolean(1, 'flag'),
-        /flag must be a boolean/
-      );
+      assert.throws(() => validateBoolean(1, 'flag'), /flag must be a boolean/);
 
-      assert.throws(
-        () => validateBoolean(0, 'flag'),
-        /flag must be a boolean/
-      );
+      assert.throws(() => validateBoolean(0, 'flag'), /flag must be a boolean/);
 
-      assert.throws(
-        () => validateBoolean(null, 'flag'),
-        /flag must be a boolean/
-      );
+      assert.throws(() => validateBoolean(null, 'flag'), /flag must be a boolean/);
 
-      assert.throws(
-        () => validateBoolean(undefined, 'flag'),
-        /flag must be a boolean/
-      );
+      assert.throws(() => validateBoolean(undefined, 'flag'), /flag must be a boolean/);
     });
   });
 
@@ -191,20 +146,11 @@ describe('validators', () => {
     });
 
     it('should reject invalid layer indices', () => {
-      assert.throws(
-        () => validateLayer(-1),
-        /layer must be between 0 and 31/
-      );
+      assert.throws(() => validateLayer(-1), /layer must be between 0 and 31/);
 
-      assert.throws(
-        () => validateLayer(32),
-        /layer must be between 0 and 31/
-      );
+      assert.throws(() => validateLayer(32), /layer must be between 0 and 31/);
 
-      assert.throws(
-        () => validateLayer('5'),
-        /layer must be a number/
-      );
+      assert.throws(() => validateLayer('5'), /layer must be a number/);
     });
   });
 
@@ -230,27 +176,15 @@ describe('validators', () => {
     });
 
     it('should reject empty paths', () => {
-      assert.throws(
-        () => validateGameObjectPath(''),
-        /path cannot be empty/
-      );
+      assert.throws(() => validateGameObjectPath(''), /path cannot be empty/);
 
-      assert.throws(
-        () => validateGameObjectPath('   '),
-        /path cannot be empty/
-      );
+      assert.throws(() => validateGameObjectPath('   '), /path cannot be empty/);
     });
 
     it('should reject non-string paths', () => {
-      assert.throws(
-        () => validateGameObjectPath(null),
-        /path must be a string/
-      );
+      assert.throws(() => validateGameObjectPath(null), /path must be a string/);
 
-      assert.throws(
-        () => validateGameObjectPath(123),
-        /path must be a string/
-      );
+      assert.throws(() => validateGameObjectPath(123), /path must be a string/);
     });
   });
 });

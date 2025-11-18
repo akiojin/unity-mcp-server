@@ -29,15 +29,27 @@ describe('InputTouchToolHandler', () => {
     });
 
     it('should pass with swipe action', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'swipe', startX: 0, startY: 0, endX: 100, endY: 100
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'swipe',
+          startX: 0,
+          startY: 0,
+          endX: 100,
+          endY: 100
+        })
+      );
     });
 
     it('should pass with pinch action', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'pinch', centerX: 500, centerY: 500, startDistance: 100, endDistance: 200
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'pinch',
+          centerX: 500,
+          centerY: 500,
+          startDistance: 100,
+          endDistance: 200
+        })
+      );
     });
 
     it('should throw error when coordinates missing for tap', () => {
@@ -45,20 +57,28 @@ describe('InputTouchToolHandler', () => {
     });
 
     it('should throw error when coordinates missing for swipe', () => {
-      assert.throws(() => handler.validate({ action: 'swipe' }), /startX, startY, endX, and endY are required/);
+      assert.throws(
+        () => handler.validate({ action: 'swipe' }),
+        /startX, startY, endX, and endY are required/
+      );
     });
 
     it('should validate batched actions array', () => {
-      assert.doesNotThrow(() => handler.validate({
-        actions: [
-          { action: 'tap', x: 10, y: 10 },
-          { action: 'swipe', startX: 0, startY: 0, endX: 5, endY: 5 }
-        ]
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          actions: [
+            { action: 'tap', x: 10, y: 10 },
+            { action: 'swipe', startX: 0, startY: 0, endX: 5, endY: 5 }
+          ]
+        })
+      );
     });
 
     it('should throw when actions array empty', () => {
-      assert.throws(() => handler.validate({ actions: [] }), /actions must contain at least one entry/);
+      assert.throws(
+        () => handler.validate({ actions: [] }),
+        /actions must contain at least one entry/
+      );
     });
   });
 
@@ -70,14 +90,25 @@ describe('InputTouchToolHandler', () => {
     });
 
     it('should execute swipe action', async () => {
-      await handler.execute({ action: 'swipe', startX: 0, startY: 0, endX: 100, endY: 100, duration: 500 });
+      await handler.execute({
+        action: 'swipe',
+        startX: 0,
+        startY: 0,
+        endX: 100,
+        endY: 100,
+        duration: 500
+      });
       const params = mockConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.duration, 500);
     });
 
     it('should execute pinch action', async () => {
       await handler.execute({
-        action: 'pinch', centerX: 500, centerY: 500, startDistance: 100, endDistance: 200
+        action: 'pinch',
+        centerX: 500,
+        centerY: 500,
+        startDistance: 100,
+        endDistance: 200
       });
       const params = mockConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.startDistance, 100);
@@ -87,7 +118,10 @@ describe('InputTouchToolHandler', () => {
     it('should support multi-touch', async () => {
       await handler.execute({
         action: 'multi',
-        touches: [{ x: 100, y: 200, phase: 'began' }, { x: 300, y: 400, phase: 'moved' }]
+        touches: [
+          { x: 100, y: 200, phase: 'began' },
+          { x: 300, y: 400, phase: 'moved' }
+        ]
       });
       const params = mockConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.touches.length, 2);
@@ -113,13 +147,21 @@ describe('InputTouchToolHandler', () => {
     });
 
     it('should simulate swipe', async () => {
-      assert.ok(await handler.execute({ action: 'swipe', startX: 0, startY: 0, endX: 100, endY: 100 }));
+      assert.ok(
+        await handler.execute({ action: 'swipe', startX: 0, startY: 0, endX: 100, endY: 100 })
+      );
     });
 
     it('should simulate pinch', async () => {
-      assert.ok(await handler.execute({
-        action: 'pinch', centerX: 0, centerY: 0, startDistance: 10, endDistance: 20
-      }));
+      assert.ok(
+        await handler.execute({
+          action: 'pinch',
+          centerX: 0,
+          centerY: 0,
+          startDistance: 10,
+          endDistance: 20
+        })
+      );
     });
   });
 });

@@ -5,24 +5,21 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class SceneSaveToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'scene_save',
-      'Save current scene or save as a specified path.',
-      {
-        type: 'object',
-        properties: {
-          scenePath: {
-            type: 'string',
-            description: 'Path where to save the scene. If not provided, saves to current scene path. Required if saveAs is true.'
-          },
-          saveAs: {
-            type: 'boolean',
-            description: 'Whether to save as a new scene (creates a copy). Default: false'
-          }
+    super('scene_save', 'Save current scene or save as a specified path.', {
+      type: 'object',
+      properties: {
+        scenePath: {
+          type: 'string',
+          description:
+            'Path where to save the scene. If not provided, saves to current scene path. Required if saveAs is true.'
         },
-        required: []
-      }
-    );
+        saveAs: {
+          type: 'boolean',
+          description: 'Whether to save as a new scene (creates a copy). Default: false'
+        }
+      },
+      required: []
+    });
     this.unityConnection = unityConnection;
   }
 
@@ -33,7 +30,7 @@ export class SceneSaveToolHandler extends BaseToolHandler {
    */
   validate(params) {
     // Don't call super.validate() since we have no required fields
-    
+
     // Validate saveAs requires scenePath
     if (params.saveAs && !params.scenePath) {
       throw new Error('scenePath is required when saveAs is true');
@@ -50,17 +47,17 @@ export class SceneSaveToolHandler extends BaseToolHandler {
     if (!this.unityConnection.isConnected()) {
       throw new Error('Unity connection not available');
     }
-    
+
     // Send command to Unity
     const result = await this.unityConnection.sendCommand('save_scene', params);
-    
+
     // Check for Unity-side errors
     if (result.status === 'error') {
       const error = new Error(result.error);
       error.code = 'UNITY_ERROR';
       throw error;
     }
-    
+
     // Handle undefined or null results from Unity
     if (result.result === undefined || result.result === null) {
       return {
@@ -70,7 +67,7 @@ export class SceneSaveToolHandler extends BaseToolHandler {
         message: 'Scene save completed but Unity returned no details'
       };
     }
-    
+
     return result.result;
   }
 }

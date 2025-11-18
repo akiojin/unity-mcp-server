@@ -13,7 +13,8 @@ export class AssetPrefabSaveToolHandler extends BaseToolHandler {
         properties: {
           gameObjectPath: {
             type: 'string',
-            description: 'Path to GameObject to save as prefab override (optional - if not provided, saves current prefab in prefab mode)'
+            description:
+              'Path to GameObject to save as prefab override (optional - if not provided, saves current prefab in prefab mode)'
           },
           includeChildren: {
             type: 'boolean',
@@ -22,7 +23,7 @@ export class AssetPrefabSaveToolHandler extends BaseToolHandler {
         }
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -63,11 +64,17 @@ export class AssetPrefabSaveToolHandler extends BaseToolHandler {
     return {
       success: response.success,
       message: response.message || 'Prefab saved',
-      ...(response.savedInPrefabMode !== undefined && { savedInPrefabMode: response.savedInPrefabMode }),
+      ...(response.savedInPrefabMode !== undefined && {
+        savedInPrefabMode: response.savedInPrefabMode
+      }),
       ...(response.prefabPath !== undefined && { prefabPath: response.prefabPath }),
       ...(response.gameObjectPath !== undefined && { gameObjectPath: response.gameObjectPath }),
-      ...(response.overridesApplied !== undefined && { overridesApplied: response.overridesApplied }),
-      ...(response.includedChildren !== undefined && { includedChildren: response.includedChildren })
+      ...(response.overridesApplied !== undefined && {
+        overridesApplied: response.overridesApplied
+      }),
+      ...(response.includedChildren !== undefined && {
+        includedChildren: response.includedChildren
+      })
     };
   }
 

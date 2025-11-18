@@ -13,11 +13,11 @@ describe('SystemGetCommandStatsToolHandler', () => {
         success: true,
         totalCommands: 150,
         commandCounts: {
-          'create_gameobject': 25,
-          'modify_gameobject': 30,
-          'get_hierarchy': 45,
-          'capture_screenshot': 10,
-          'run_unity_tests': 5
+          create_gameobject: 25,
+          modify_gameobject: 30,
+          get_hierarchy: 45,
+          capture_screenshot: 10,
+          run_unity_tests: 5
         },
         recentCommands: [
           { command: 'get_hierarchy', timestamp: '2025-01-17T12:00:00Z' },

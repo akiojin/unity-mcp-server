@@ -51,21 +51,25 @@ describe('InputActionMapCreateToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with required parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap'
+        })
+      );
     });
 
     it('should pass with optional actions', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap',
-        actions: [
-          { name: 'Move', type: 'Value' },
-          { name: 'Jump', type: 'Button' }
-        ]
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap',
+          actions: [
+            { name: 'Move', type: 'Value' },
+            { name: 'Jump', type: 'Button' }
+          ]
+        })
+      );
     });
   });
 
@@ -77,7 +81,10 @@ describe('InputActionMapCreateToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_action_map_create');
+      assert.equal(
+        mockConnection.sendCommand.mock.calls[0].arguments[0],
+        'input_action_map_create'
+      );
 
       assert.ok(result);
       assert.ok(result.content);
@@ -109,9 +116,7 @@ describe('InputActionMapCreateToolHandler', () => {
       await handler.execute({
         assetPath: 'Assets/Input/PlayerInput.inputactions',
         mapName: 'PlayerMap',
-        actions: [
-          { name: 'Move', type: 'Value' }
-        ]
+        actions: [{ name: 'Move', type: 'Value' }]
       });
 
       const sentParams = mockConnection.sendCommand.mock.calls[0].arguments[1];

@@ -13,11 +13,11 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
       sendCommand: async (command, params) => {
         if (command === 'analyze_asset_dependencies') {
           const action = params.action;
-          
+
           if (action === 'get_dependencies') {
             const assetPath = params.assetPath;
             const recursive = params.recursive || false;
-            
+
             if (assetPath === 'Assets/Prefabs/Player.prefab') {
               return {
                 success: true,
@@ -48,15 +48,15 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
                 maxDepth: recursive ? 2 : 1
               };
             }
-            
+
             if (assetPath === 'Assets/NonExistent.prefab') {
               throw new Error('Asset not found: Assets/NonExistent.prefab');
             }
           }
-          
+
           if (action === 'get_dependents') {
             const assetPath = params.assetPath;
-            
+
             if (assetPath === 'Assets/Materials/PlayerMaterial.mat') {
               return {
                 success: true,
@@ -78,18 +78,14 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
               };
             }
           }
-          
+
           if (action === 'analyze_circular') {
             return {
               success: true,
               action: 'analyze_circular',
               circularDependencies: [
                 {
-                  cycle: [
-                    'Assets/Scripts/A.cs',
-                    'Assets/Scripts/B.cs',
-                    'Assets/Scripts/A.cs'
-                  ],
+                  cycle: ['Assets/Scripts/A.cs', 'Assets/Scripts/B.cs', 'Assets/Scripts/A.cs'],
                   length: 3,
                   severity: 'warning'
                 }
@@ -98,10 +94,10 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
               totalCycles: 1
             };
           }
-          
+
           if (action === 'find_unused') {
             const includeBuiltIn = params.includeBuiltIn || false;
-            
+
             return {
               success: true,
               action: 'find_unused',
@@ -124,10 +120,10 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
               totalSizeKB: 2560
             };
           }
-          
+
           if (action === 'analyze_size_impact') {
             const assetPath = params.assetPath;
-            
+
             if (assetPath === 'Assets/Textures/large_texture.png') {
               return {
                 success: true,
@@ -149,7 +145,7 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
               };
             }
           }
-          
+
           if (action === 'validate_references') {
             return {
               success: true,
@@ -170,7 +166,7 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
             };
           }
         }
-        
+
         throw new Error('Unknown command');
       }
     };
@@ -181,7 +177,10 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'asset_dependency_analyze');
-      assert.equal(handler.description, 'Analyze Unity asset dependencies (get dependencies, dependents, circular deps, unused assets, size impact)');
+      assert.equal(
+        handler.description,
+        'Analyze Unity asset dependencies (get dependencies, dependents, circular deps, unused assets, size impact)'
+      );
       assert.ok(handler.inputSchema);
       assert.equal(handler.inputSchema.type, 'object');
     });
@@ -196,8 +195,8 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
 
     it('should validate get_dependencies with recursive option', () => {
       assert.doesNotThrow(() => {
-        handler.validate({ 
-          action: 'get_dependencies', 
+        handler.validate({
+          action: 'get_dependencies',
           assetPath: 'Assets/Prefabs/Player.prefab',
           recursive: true
         });
@@ -206,7 +205,10 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
 
     it('should validate get_dependents action', () => {
       assert.doesNotThrow(() => {
-        handler.validate({ action: 'get_dependents', assetPath: 'Assets/Materials/PlayerMaterial.mat' });
+        handler.validate({
+          action: 'get_dependents',
+          assetPath: 'Assets/Materials/PlayerMaterial.mat'
+        });
       });
     });
 
@@ -241,93 +243,114 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
     });
 
     it('should fail without action', () => {
-      assert.throws(() => {
-        handler.validate({});
-      }, { message: /action is required/ });
+      assert.throws(
+        () => {
+          handler.validate({});
+        },
+        { message: /action is required/ }
+      );
     });
 
     it('should fail with invalid action', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'invalid' });
-      }, { message: /action must be one of/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'invalid' });
+        },
+        { message: /action must be one of/ }
+      );
     });
 
     it('should fail get_dependencies without assetPath', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'get_dependencies' });
-      }, { message: /assetPath is required/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'get_dependencies' });
+        },
+        { message: /assetPath is required/ }
+      );
     });
 
     it('should fail get_dependents without assetPath', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'get_dependents' });
-      }, { message: /assetPath is required/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'get_dependents' });
+        },
+        { message: /assetPath is required/ }
+      );
     });
 
     it('should fail analyze_size_impact without assetPath', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'analyze_size_impact' });
-      }, { message: /assetPath is required/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'analyze_size_impact' });
+        },
+        { message: /assetPath is required/ }
+      );
     });
 
     it('should fail with empty assetPath', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'get_dependencies', assetPath: '' });
-      }, { message: /assetPath cannot be empty/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'get_dependencies', assetPath: '' });
+        },
+        { message: /assetPath cannot be empty/ }
+      );
     });
 
     it('should fail with invalid assetPath format', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'get_dependencies', assetPath: 'Prefabs/Player.prefab' });
-      }, { message: /assetPath must start with "Assets\/"/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'get_dependencies', assetPath: 'Prefabs/Player.prefab' });
+        },
+        { message: /assetPath must start with "Assets\/"/ }
+      );
     });
   });
 
   describe('execute', () => {
     it('should get dependencies successfully', async () => {
-      const result = await handler.execute({ 
-        action: 'get_dependencies', 
-        assetPath: 'Assets/Prefabs/Player.prefab' 
+      const result = await handler.execute({
+        action: 'get_dependencies',
+        assetPath: 'Assets/Prefabs/Player.prefab'
       });
-      
+
       assert.equal(result.success, true);
       assert.equal(result.action, 'get_dependencies');
       assert.equal(result.assetPath, 'Assets/Prefabs/Player.prefab');
       assert.equal(result.dependencies.length, 3);
       assert.equal(result.count, 3);
       assert.equal(result.maxDepth, 1);
-      
+
       const materialDep = result.dependencies.find(d => d.type === 'Material');
       assert.ok(materialDep);
       assert.equal(materialDep.isDirectDependency, true);
     });
 
     it('should get dependencies recursively', async () => {
-      const result = await handler.execute({ 
-        action: 'get_dependencies', 
+      const result = await handler.execute({
+        action: 'get_dependencies',
         assetPath: 'Assets/Prefabs/Player.prefab',
         recursive: true
       });
-      
+
       assert.equal(result.recursive, true);
       assert.equal(result.maxDepth, 2);
-      
+
       const textureDep = result.dependencies.find(d => d.type === 'Texture2D');
       assert.equal(textureDep.depth, 2);
       assert.equal(textureDep.isDirectDependency, false);
     });
 
     it('should get dependents successfully', async () => {
-      const result = await handler.execute({ 
-        action: 'get_dependents', 
-        assetPath: 'Assets/Materials/PlayerMaterial.mat' 
+      const result = await handler.execute({
+        action: 'get_dependents',
+        assetPath: 'Assets/Materials/PlayerMaterial.mat'
       });
-      
+
       assert.equal(result.success, true);
       assert.equal(result.action, 'get_dependents');
       assert.equal(result.dependents.length, 2);
       assert.equal(result.count, 2);
-      
+
       const playerDependent = result.dependents.find(d => d.path.includes('Player'));
       assert.ok(playerDependent);
       assert.equal(playerDependent.usage, 'Renderer.material');
@@ -335,13 +358,13 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
 
     it('should analyze circular dependencies', async () => {
       const result = await handler.execute({ action: 'analyze_circular' });
-      
+
       assert.equal(result.success, true);
       assert.equal(result.action, 'analyze_circular');
       assert.equal(result.hasCircularDependencies, true);
       assert.equal(result.totalCycles, 1);
       assert.equal(result.circularDependencies.length, 1);
-      
+
       const cycle = result.circularDependencies[0];
       assert.equal(cycle.length, 3);
       assert.equal(cycle.severity, 'warning');
@@ -350,24 +373,24 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
 
     it('should find unused assets', async () => {
       const result = await handler.execute({ action: 'find_unused' });
-      
+
       assert.equal(result.success, true);
       assert.equal(result.action, 'find_unused');
       assert.equal(result.unusedAssets.length, 2);
       assert.equal(result.count, 2);
       assert.equal(result.totalSizeKB, 2560);
-      
+
       const textureAsset = result.unusedAssets.find(a => a.type === 'Texture2D');
       assert.ok(textureAsset);
       assert.equal(textureAsset.size, 512);
     });
 
     it('should analyze size impact', async () => {
-      const result = await handler.execute({ 
-        action: 'analyze_size_impact', 
-        assetPath: 'Assets/Textures/large_texture.png' 
+      const result = await handler.execute({
+        action: 'analyze_size_impact',
+        assetPath: 'Assets/Textures/large_texture.png'
       });
-      
+
       assert.equal(result.success, true);
       assert.equal(result.action, 'analyze_size_impact');
       assert.equal(result.analysis.directSize, 2048);
@@ -379,7 +402,7 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
 
     it('should validate references', async () => {
       const result = await handler.execute({ action: 'validate_references' });
-      
+
       assert.equal(result.success, true);
       assert.equal(result.action, 'validate_references');
       assert.equal(result.validation.totalAssets, 150);
@@ -402,7 +425,7 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
       const examples = handler.getExamples();
       assert.ok(Array.isArray(examples));
       assert.ok(examples.length >= 5);
-      
+
       // Check first example structure
       const firstExample = examples[0];
       assert.ok(firstExample.input);
@@ -413,7 +436,7 @@ describe('AssetDependencyAnalyzeToolHandler', () => {
     it('should include examples for all main actions', () => {
       const examples = handler.getExamples();
       const actions = examples.map(e => e.input.action);
-      
+
       assert.ok(actions.includes('get_dependencies'));
       assert.ok(actions.includes('get_dependents'));
       assert.ok(actions.includes('analyze_circular'));

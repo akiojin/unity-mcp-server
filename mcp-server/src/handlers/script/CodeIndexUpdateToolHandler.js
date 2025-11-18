@@ -159,7 +159,9 @@ export class CodeIndexUpdateToolHandler extends BaseToolHandler {
     let lastErr = null;
     for (let attempt = 0; attempt <= retry; attempt += 1) {
       try {
-        const res = await this.lsp.request('textDocument/documentSymbol', { textDocument: { uri } });
+        const res = await this.lsp.request('textDocument/documentSymbol', {
+          textDocument: { uri }
+        });
         return res?.result ?? res;
       } catch (err) {
         lastErr = err;
@@ -212,23 +214,31 @@ export class CodeIndexUpdateToolHandler extends BaseToolHandler {
   _toRelative(absPath, projectRoot) {
     const normAbs = String(absPath).replace(/\\/g, '/');
     const normRoot = String(projectRoot).replace(/\\/g, '/').replace(/\/$/, '');
-    return normAbs.startsWith(normRoot)
-      ? normAbs.substring(normRoot.length + 1)
-      : normAbs;
+    return normAbs.startsWith(normRoot) ? normAbs.substring(normRoot.length + 1) : normAbs;
   }
 
   _kindFromLsp(kind) {
     switch (kind) {
-      case 5: return 'class';
-      case 23: return 'struct';
-      case 11: return 'interface';
-      case 10: return 'enum';
-      case 6: return 'method';
-      case 7: return 'property';
-      case 8: return 'field';
-      case 3: return 'namespace';
-      case 9: return 'constructor';
-      default: return 'symbol';
+      case 5:
+        return 'class';
+      case 23:
+        return 'struct';
+      case 11:
+        return 'interface';
+      case 10:
+        return 'enum';
+      case 6:
+        return 'method';
+      case 7:
+        return 'property';
+      case 8:
+        return 'field';
+      case 3:
+        return 'namespace';
+      case 9:
+        return 'constructor';
+      default:
+        return 'symbol';
     }
   }
 }
