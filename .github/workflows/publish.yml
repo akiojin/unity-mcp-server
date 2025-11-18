@@ -195,12 +195,6 @@ jobs:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.20.0
-          run_install: false
-
       - name: Get latest tag
         id: tag
         run: |
@@ -237,11 +231,11 @@ jobs:
           exit 1
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Run tests
         working-directory: mcp-server
-        run: pnpm run test:ci
+        run: npm run test:ci
 
       - name: Publish to npm
         working-directory: mcp-server
