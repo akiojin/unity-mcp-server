@@ -1,3 +1,10 @@
+## [2.39.2](https://github.com/akiojin/unity-mcp-server/compare/v2.39.1...v2.39.2) (2025-11-18)
+
+
+### Bug Fixes
+
+* resolve duplicate requestedSessionId in profiler stop ([099a824](https://github.com/akiojin/unity-mcp-server/commit/099a8242eb1128639e70072aea65d0aa6c32360f))
+
 ## [2.39.1](https://github.com/akiojin/unity-mcp-server/compare/v2.39.0...v2.39.1) (2025-11-18)
 
 
