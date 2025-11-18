@@ -184,10 +184,11 @@ namespace UnityMCPServer.Handlers
             {
                 Debug.Log($"[ProfilerHandler.Stop] Stopping profiling session: sessionId={s_SessionId ?? "none"}");
 
+                var requestedSessionId = parameters["sessionId"]?.ToString();
+
                 // 1. Check if profiling is running
                 if (!s_IsRecording)
                 {
-                    var requestedSessionId = parameters["sessionId"]?.ToString();
                     if (s_LastStopResult != null &&
                         (string.IsNullOrEmpty(requestedSessionId) || requestedSessionId == s_LastSessionId))
                     {
@@ -208,7 +209,6 @@ namespace UnityMCPServer.Handlers
                 }
 
                 // 2. Validate sessionId if provided
-                var requestedSessionId = parameters["sessionId"]?.ToString();
                 if (!string.IsNullOrEmpty(requestedSessionId) && requestedSessionId != s_SessionId)
                 {
                     return new
