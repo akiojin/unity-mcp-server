@@ -33,6 +33,10 @@ namespace UnityMCPServer.Handlers
         private static string[] s_Metrics;
         private static List<MetricRecorder> s_ProfilerRecorders;
         private static EditorApplication.CallbackFunction s_AutoStopCallback;
+        private static object s_LastStopResult;
+        private static string s_LastSessionId;
+        private static bool s_LastAutoStopped;
+        private static bool s_StopIsAuto;
 
         /// <summary>
         /// Start profiling session.
@@ -41,7 +45,6 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                Debug.LogError("[PROFILER TEST] Start() called - LATEST CODE");
                 var mode = parameters["mode"]?.ToString() ?? "normal";
                 var recordToFile = parameters["recordToFile"]?.ToObject<bool>() ?? true;
                 var metricsCount = parameters["metrics"]?.ToObject<string[]>()?.Length ?? 0;
@@ -79,6 +82,10 @@ namespace UnityMCPServer.Handlers
 
                 // 5. Generate session ID (GUID without hyphens)
                 s_SessionId = Guid.NewGuid().ToString("N");
+                s_LastStopResult = null;
+                s_LastSessionId = null;
+                s_LastAutoStopped = false;
+                s_StopIsAuto = false;
 
                 // 6. Record start time
                 s_StartedAt = DateTime.UtcNow;
@@ -133,6 +140,7 @@ namespace UnityMCPServer.Handlers
                         var elapsed = (DateTime.UtcNow - s_StartedAt).TotalSeconds;
                         if (elapsed >= s_MaxDurationSec)
                         {
+                            s_StopIsAuto = true;
                             Stop(new JObject());
                         }
                     };
@@ -179,6 +187,19 @@ namespace UnityMCPServer.Handlers
                 // 1. Check if profiling is running
                 if (!s_IsRecording)
                 {
+                    var requestedSessionId = parameters["sessionId"]?.ToString();
+                    if (s_LastStopResult != null &&
+                        (string.IsNullOrEmpty(requestedSessionId) || requestedSessionId == s_LastSessionId))
+                    {
+                        // Return the last auto-stopped result so callers still get data
+                        return new
+                        {
+                            alreadyStopped = true,
+                            autoStopped = s_LastAutoStopped,
+                            lastResult = s_LastStopResult
+                        };
+                    }
+
                     return new
                     {
                         error = "No profiling session is currently running.",
@@ -272,18 +293,23 @@ namespace UnityMCPServer.Handlers
                 s_Mode = null;
                 s_RecordToFile = false;
                 s_Metrics = null;
-
-                Debug.Log($"[ProfilerHandler.Stop] Profiling session stopped successfully: sessionId={sessionId}, duration={duration:F2}s, frameCount={frameCount}");
-
-                // 10. Return response
-                return new
+                s_LastStopResult = new
                 {
                     sessionId,
                     outputPath = savedPath,
                     duration,
                     frameCount,
-                    metrics
+                    metrics,
+                    autoStopped = s_StopIsAuto
                 };
+                s_LastSessionId = sessionId;
+                s_LastAutoStopped = s_StopIsAuto;
+                s_StopIsAuto = false;
+
+                Debug.Log($"[ProfilerHandler.Stop] Profiling session stopped successfully: sessionId={sessionId}, duration={duration:F2}s, frameCount={frameCount}");
+
+                // 10. Return response
+                return s_LastStopResult;
             }
             catch (Exception ex)
             {
