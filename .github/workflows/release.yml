@@ -76,7 +76,13 @@ jobs:
     name: Semantic Release
     runs-on: ubuntu-latest
     needs: pre-release-tests
-    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    # Prevent duplicate execution when semantic-release creates chore(release) commit
+    # IMPORTANT: If .releaserc.cjs message format changes, update this condition
+    if: |
+      !(
+        github.event.head_commit.author.name == 'github-actions[bot]' &&
+        startsWith(github.event.head_commit.message, 'chore(release):')
+      )
 
     outputs:
       new_release_published: ${{ steps.semantic.outputs.new_release_published }}
@@ -142,10 +148,18 @@ jobs:
     name: Merge to main
     needs: semantic-release
     runs-on: ubuntu-latest
+    # Execute merge when:
+    # 1. semantic-release created a new release, OR
+    # 2. This is a re-triggered run from semantic-release's chore(release) commit
     if: |
       always() &&
-      (needs.semantic-release.outputs.new_release_published == 'true' ||
-       startsWith(github.event.head_commit.message, 'chore(release):'))
+      (
+        needs.semantic-release.outputs.new_release_published == 'true' ||
+        (
+          github.event.head_commit.author.name == 'github-actions[bot]' &&
+          startsWith(github.event.head_commit.message, 'chore(release):')
+        )
+      )
 
     steps:
       - name: Checkout

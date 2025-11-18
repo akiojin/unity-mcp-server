@@ -1,3 +1,10 @@
+## [2.40.1](https://github.com/akiojin/unity-mcp-server/compare/v2.40.0...v2.40.1) (2025-11-18)
+
+
+### Bug Fixes
+
+* **ci:** improve release workflow duplicate execution prevention ([241cf79](https://github.com/akiojin/unity-mcp-server/commit/241cf797c4bb8b2e88a034d09c6ab2b5eca012c1))
+
 ## [2.40.0](https://github.com/akiojin/unity-mcp-server/compare/v2.39.2...v2.40.0) (2025-11-18)
 
 
