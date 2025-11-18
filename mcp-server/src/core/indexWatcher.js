@@ -34,14 +34,18 @@ export class IndexWatcher {
     if (this.running) return;
     this.running = true;
     try {
-      // Check if code index DB exists
-      const { CodeIndex } = await import('./codeIndex.js');
-      const index = new CodeIndex(this.unityConnection);
-      const isReady = await index.isReady();
+      // Check if code index DB file exists (before opening DB)
+      const { ProjectInfoProvider } = await import('./projectInfo.js');
+      const projectInfo = new ProjectInfoProvider(this.unityConnection);
+      const info = await projectInfo.get();
+      const fs = await import('fs');
+      const path = await import('path');
+      const dbPath = path.default.join(info.codeIndexRoot, 'code-index.db');
+      const dbExists = fs.default.existsSync(dbPath);
 
-      if (!isReady) {
-        logger.warn('[index] watcher: code index DB not found or empty, triggering full rebuild');
-        // Force full rebuild when DB is missing
+      if (!dbExists) {
+        logger.warn('[index] watcher: code index DB file not found, triggering full rebuild');
+        // Force full rebuild when DB file is missing
         const jobId = `watcher-rebuild-${Date.now()}`;
         this.currentWatcherJobId = jobId;
 
