@@ -7,7 +7,7 @@ services:
       - bash-history:/root/.bash_history_dir
       - claude-config:/root/.claude
       - codex-config:/root/.codex
-      - ~/.codex/auth.json:/root/.codex/auth.json
+      - ${HOME:-~}/.codex:/root/.codex-host:ro
       - ~/.serena:/root/.serena
     environment:
       - NPM_USER

@@ -1,3 +1,18 @@
+## [2.40.0](https://github.com/akiojin/unity-mcp-server/compare/v2.39.2...v2.40.0) (2025-11-18)
+
+
+### Features
+
+* **code-index:** add auto-initialization and percentage-based progress logging ([52e738a](https://github.com/akiojin/unity-mcp-server/commit/52e738ac25e8d22113d63fa785651c3a3b7d3178))
+* **index-watcher:** add DB existence check and auto-rebuild on deletion ([7bf65e1](https://github.com/akiojin/unity-mcp-server/commit/7bf65e18b8622575589c1e2c6faff6ad19abb31c))
+* **index:** enable IndexWatcher by default and add DB deletion recovery ([8783471](https://github.com/akiojin/unity-mcp-server/commit/87834710eea5cde3734ff00e34fcfaade6361395))
+
+
+### Bug Fixes
+
+* **index-watcher:** use fs.existsSync for DB file check instead of isReady() ([a300d9c](https://github.com/akiojin/unity-mcp-server/commit/a300d9c5ee74700c3a72bd2ae6cfcfe754df4772))
+* update Docker configuration for codex auth.json synchronization ([ce4e7ec](https://github.com/akiojin/unity-mcp-server/commit/ce4e7ecb6bde5947aa10e327ba12efe7e91c5600))
+
 ## [2.39.2](https://github.com/akiojin/unity-mcp-server/compare/v2.39.1...v2.39.2) (2025-11-18)
 
 
