@@ -209,7 +209,7 @@ Installation
 
 You must install the MCP server's dependencies **on the same OS where the server runs** so that native modules such as `better-sqlite3` are built for the correct platform.
 
-> First-time install note (npx): On environments without a matching prebuilt `better-sqlite3`, the very first `npx @akiojin/unity-mcp-server@latest` may spend 60–90s compiling the native addon. To avoid MCP client timeouts (default 30s), either warm the cache once with `npx -y @akiojin/unity-mcp-server@latest --help` or start your client with a higher timeout (e.g. `MCP_TIMEOUT=90000`). Subsequent runs use the warmed cache and start quickly.
+> First-time install note (npx): On environments without a matching prebuilt `better-sqlite3`, the very first `npx @akiojin/unity-mcp-server@latest` can spend 60–90s compiling the native addon. To avoid MCP client timeouts (default 30s), either warm the cache once with `npx -y @akiojin/unity-mcp-server@latest --help` or start your client with a higher timeout (e.g. `MCP_TIMEOUT=90000`). By default we now **skip native rebuild** to keep first-run fast; to force native build set `UNITY_MCP_SKIP_NATIVE_BUILD=0` or `UNITY_MCP_FORCE_NATIVE=1` before install.
 
 - **General rule**: if your `.mcp.json` uses `"command": "node"` (e.g. `node bin/unity-mcp-server serve`), run `npm install` (or `npm ci`) inside the directory where the package lives _on that machine/container_ before launching the MCP client.
 - **`npx` launch**: the README example above (`npx @akiojin/unity-mcp-server@latest`) downloads dependencies at runtime and works on the supported Node.js versions (18.x / 20.x / 22.x). Node.js 23+ is not supported; the server exits early with a version error.
