@@ -1,3 +1,10 @@
+## [2.40.4](https://github.com/akiojin/unity-mcp-server/compare/v2.40.3...v2.40.4) (2025-11-19)
+
+
+### Bug Fixes
+
+* better-sqlite3再構築とWASMフォールバック ([780bab8](https://github.com/akiojin/unity-mcp-server/commit/780bab8e00788b5b202784a3d9de6765ee3ff028))
+
 ## [2.40.3](https://github.com/akiojin/unity-mcp-server/compare/v2.40.2...v2.40.3) (2025-11-18)
 
 
