@@ -178,8 +178,17 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
 
           echo "Merging $RELEASE_BRANCH to main (version: $VERSION)..."
-          git fetch origin "$RELEASE_BRANCH"
-          git merge "origin/$RELEASE_BRANCH" --no-ff -m "chore(release): merge v${VERSION} to main
+          git fetch origin "$RELEASE_BRANCH" || true
+
+          SOURCE_REF="origin/$RELEASE_BRANCH"
+          if ! git rev-parse --verify "$SOURCE_REF" >/dev/null 2>&1; then
+            # Fallback: use the triggering commit SHA (branch may have been deleted by cleanup policies)
+            git fetch origin "${GITHUB_SHA}" || true
+            SOURCE_REF="${GITHUB_SHA}"
+            echo "WARN: $RELEASE_BRANCH not found on origin. Falling back to SHA ${GITHUB_SHA}."
+          fi
+
+          git merge "$SOURCE_REF" --no-ff -m "chore(release): merge v${VERSION} to main
 
           Automated merge of release branch for version ${VERSION}
 
