@@ -28,7 +28,13 @@ function main() {
     return;
   }
 
-  if (existsSync(bindingPath)) {
+  if (forceNative) {
+    console.log(
+      '[postinstall] UNITY_MCP_FORCE_NATIVE=1 -> forcing better-sqlite3 rebuild even if binding exists'
+    );
+  }
+
+  if (!forceNative && existsSync(bindingPath)) {
     return;
   }
 
