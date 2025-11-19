@@ -28,6 +28,34 @@ describe('CodeIndex', () => {
     });
   });
 
+  describe('when native binding is missing', () => {
+    it('disables gracefully and records the reason', async () => {
+      const { CodeIndex, __resetCodeIndexDriverStatusForTest } = await import(
+        '../../../src/core/codeIndex.js'
+      );
+
+      mock.method(CodeIndex.prototype, '_ensureDriver', async function () {
+        this._Database = class {
+          constructor() {
+            throw new Error('Could not locate the bindings file. Tried:');
+          }
+        };
+        return true;
+      });
+
+      const mockConnection = { isConnected: () => false };
+      const index = new CodeIndex(mockConnection);
+      const ready = await index.isReady();
+
+      assert.equal(ready, false);
+      assert.equal(index.disabled, true);
+      assert.match(index.disableReason, /bindings file/i);
+
+      mock.restoreAll();
+      __resetCodeIndexDriverStatusForTest();
+    });
+  });
+
   describe('SPEC compliance', () => {
     it('should provide code index functionality', async () => {
       try {

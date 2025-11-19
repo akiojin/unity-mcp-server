@@ -219,6 +219,12 @@ export async function startServer() {
         const ready = await index.isReady();
 
         if (!ready) {
+          if (index.disabled) {
+            logger.warn(
+              `[startup] Code index disabled: ${index.disableReason || 'SQLite native binding missing'}. Skipping auto-build.`
+            );
+            return;
+          }
           logger.info('[startup] Code index DB not ready. Starting auto-build...');
           const { CodeIndexBuildToolHandler } = await import(
             '../handlers/script/CodeIndexBuildToolHandler.js'

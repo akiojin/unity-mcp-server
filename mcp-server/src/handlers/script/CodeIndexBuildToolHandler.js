@@ -77,6 +77,13 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
    */
   async _executeBuild(params, job) {
     try {
+      // Fail fast when native SQLite binding is unavailable
+      const db = await this.index.open();
+      if (!db) {
+        const reason = this.index.disableReason || 'Code index unavailable (SQLite driver missing)';
+        throw new Error(reason);
+      }
+
       const throttleMs = Math.max(0, Number(params?.throttleMs ?? 0));
       const delayStartMs = Math.max(0, Number(params?.delayStartMs ?? 0));
       const info = await this.projectInfo.get();
