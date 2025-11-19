@@ -1,6 +1,6 @@
 {
   "name": "@akiojin/unity-mcp-server",
-  "version": "2.40.3",
+  "version": "2.40.4",
   "description": "MCP server and Unity Editor bridge — enables AI assistants to control Unity for AI-assisted workflows",
   "type": "module",
   "main": "src/core/server.js",
@@ -27,7 +27,7 @@
     "test:verbose": "VERBOSE_TEST=true node --test tests/**/*.test.js",
     "prepare": "cd .. && husky || true",
     "prepublishOnly": "npm run test:ci",
-    "postinstall": "chmod +x bin/unity-mcp-server || true",
+    "postinstall": "node scripts/ensure-better-sqlite3.mjs && chmod +x bin/unity-mcp-server || true",
     "test:ci:unity": "timeout 60 node --test tests/unit/core/codeIndex.test.js tests/unit/core/codeIndexDb.test.js tests/unit/core/config.test.js tests/unit/core/indexWatcher.test.js tests/unit/core/projectInfo.test.js tests/unit/core/server.test.js || exit 0",
     "test:unity": "node tests/run-unity-integration.mjs",
     "test:nounity": "npm run test:integration",
@@ -50,7 +50,8 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.6.1",
     "better-sqlite3": "^9.4.3",
-    "find-up": "^6.3.0"
+    "find-up": "^6.3.0",
+    "sql.js": "^1.13.0"
   },
   "engines": {
     "node": ">=18 <23"

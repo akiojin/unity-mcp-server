@@ -1,6 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 import { ProjectInfoProvider } from './projectInfo.js';
+import { logger } from './config.js';
+import { createSqliteFallback } from './sqliteFallback.js';
+
+// Shared driver availability state across CodeIndex instances
+const driverStatus = {
+  available: null,
+  error: null,
+  logged: false
+};
 
 export class CodeIndex {
   constructor(unityConnection) {
@@ -9,21 +18,42 @@ export class CodeIndex {
     this.db = null;
     this.dbPath = null;
     this.disabled = false; // set true if better-sqlite3 is unavailable
+    this.disableReason = null;
     this._Database = null;
+    this._openFallback = null;
+    this._persistFallback = null;
   }
 
   async _ensureDriver() {
-    if (this.disabled) return false;
+    if (driverStatus.available === false || this.disabled) {
+      this.disabled = true;
+      this.disableReason = this.disableReason || driverStatus.error;
+      return false;
+    }
     if (this._Database) return true;
     try {
       // Dynamic import to avoid hard failure when native binding is missing
       const mod = await import('better-sqlite3');
       this._Database = mod.default || mod;
+      driverStatus.available = true;
+      driverStatus.error = null;
       return true;
     } catch (e) {
-      // Mark as disabled and operate in fallback (index unavailable)
-      this.disabled = true;
-      return false;
+      // Try wasm fallback (sql.js) before giving up
+      try {
+        this._openFallback = createSqliteFallback;
+        driverStatus.available = true;
+        driverStatus.error = null;
+        logger?.info?.('[index] falling back to sql.js (WASM) for code index');
+        return true;
+      } catch (fallbackError) {
+        this.disabled = true;
+        this.disableReason = `better-sqlite3 unavailable: ${e?.message || e}. Fallback failed: ${fallbackError?.message || fallbackError}`;
+        driverStatus.available = false;
+        driverStatus.error = this.disableReason;
+        this._logDisable(this.disableReason);
+        return false;
+      }
     }
   }
 
@@ -36,9 +66,33 @@ export class CodeIndex {
     fs.mkdirSync(dir, { recursive: true });
     const dbPath = path.join(dir, 'code-index.db');
     this.dbPath = dbPath;
-    this.db = new this._Database(dbPath);
+    try {
+      if (this._Database) {
+        this.db = new this._Database(dbPath);
+      } else if (this._openFallback) {
+        this.db = await this._openFallback(dbPath);
+        this._persistFallback = this.db.persist;
+      } else {
+        throw new Error('No database driver available');
+      }
+    } catch (e) {
+      this.disabled = true;
+      this.disableReason = e?.message || 'Failed to open code index database';
+      driverStatus.available = false;
+      driverStatus.error = this.disableReason;
+      this._logDisable(this.disableReason);
+      return null;
+    }
     this._initSchema();
     return this.db;
+  }
+
+  _logDisable(reason) {
+    if (driverStatus.logged) return;
+    driverStatus.logged = true;
+    try {
+      logger?.warn?.(`[index] code index disabled: ${reason}`);
+    } catch {}
   }
 
   _initSchema() {
@@ -68,6 +122,7 @@ export class CodeIndex {
       CREATE INDEX IF NOT EXISTS idx_symbols_kind ON symbols(kind);
       CREATE INDEX IF NOT EXISTS idx_symbols_path ON symbols(path);
     `);
+    if (this._persistFallback) this._persistFallback();
   }
 
   async isReady() {
@@ -103,6 +158,7 @@ export class CodeIndex {
       );
     });
     tx(symbols || []);
+    await this._flushFallback();
     return { total: symbols?.length || 0 };
   }
 
@@ -124,6 +180,7 @@ export class CodeIndex {
       sig || '',
       new Date().toISOString()
     );
+    await this._flushFallback();
   }
 
   async removeFile(pathStr) {
@@ -134,6 +191,7 @@ export class CodeIndex {
       db.prepare('DELETE FROM files WHERE path = ?').run(p);
     });
     tx(pathStr);
+    await this._flushFallback();
   }
 
   async replaceSymbolsForPath(pathStr, rows) {
@@ -160,6 +218,7 @@ export class CodeIndex {
       );
     });
     tx(pathStr, rows || []);
+    await this._flushFallback();
   }
 
   async querySymbols({ name, kind, scope = 'all', exact = false }) {
@@ -209,4 +268,19 @@ export class CodeIndex {
       db.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
     return { total, lastIndexedAt: last };
   }
+
+  async _flushFallback() {
+    if (typeof this._persistFallback === 'function') {
+      try {
+        await this._persistFallback();
+      } catch {}
+    }
+  }
+}
+
+// Test-only helper to reset cached driver status between runs
+export function __resetCodeIndexDriverStatusForTest() {
+  driverStatus.available = null;
+  driverStatus.error = null;
+  driverStatus.logged = false;
 }
