@@ -11,10 +11,20 @@ const bindingPath = resolve(
   'Release',
   'better_sqlite3.node'
 );
+// Default: skip native rebuild to avoid first-time npx timeouts; set UNITY_MCP_SKIP_NATIVE_BUILD=0 to allow.
+const skipNative = process.env.UNITY_MCP_SKIP_NATIVE_BUILD !== '0';
+const forceNative = process.env.UNITY_MCP_FORCE_NATIVE === '1';
 
 function main() {
   if (process.env.SKIP_SQLITE_REBUILD) {
     console.log('[postinstall] SKIP_SQLITE_REBUILD set, skipping better-sqlite3 check');
+    return;
+  }
+
+  if (skipNative && !forceNative) {
+    console.log(
+      '[postinstall] UNITY_MCP_SKIP_NATIVE_BUILD=1 -> skipping better-sqlite3 rebuild (will rely on fallback/sql.js if missing)'
+    );
     return;
   }
 
