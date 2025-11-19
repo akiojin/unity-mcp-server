@@ -1,3 +1,10 @@
+## [2.40.5](https://github.com/akiojin/unity-mcp-server/compare/v2.40.4...v2.40.5) (2025-11-19)
+
+
+### Bug Fixes
+
+* **docs:** note first-time npx timeout and warmup ([e57572f](https://github.com/akiojin/unity-mcp-server/commit/e57572f1ce786440b1cfc14809a3200771babc73))
+
 ## [2.40.4](https://github.com/akiojin/unity-mcp-server/compare/v2.40.3...v2.40.4) (2025-11-19)
 
 
