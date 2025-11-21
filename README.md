@@ -235,9 +235,10 @@ Environment-specific notes:
   - Install Node.js 20.x or 22.x (e.g. `brew install node@22` / `node@20` and add it to `PATH`). Node 18.x also works; newer majors (23+) are unsupported.
   - Run `pnpm install --frozen-lockfile` wherever the package is installed (for repo clones: `cd ~/unity-mcp-server/mcp-server && pnpm install --frozen-lockfile`).
 
-After installation you can verify the server with `node mcp-server/bin/unity-mcp-server --version`. If `better-sqlite3` fails to load, reinstall the dependencies _inside the target environment_ or rebuild with `pnpm rebuild better-sqlite3 --filter mcp-server --build-from-source` once the toolchain is present.
-
-- The MCP server now ships with a WASM fallback (sql.js). If the native `better-sqlite3` binding cannot be located (common in minimal Docker images or when install scripts are blocked), the server will keep running on the fallback so tools stay available, albeit a bit slower. A lightweight postinstall step (`node scripts/ensure-better-sqlite3.mjs`) also attempts to restore the native binding; if it still stays missing, run `npm rebuild better-sqlite3 --build-from-source` inside the container to regain native performance.
+After installation you can verify the server with `node mcp-server/bin/unity-mcp-server --version`.  
+- **バイナリ同梱:** `mcp-server/prebuilt/better-sqlite3` に Linux x64 (Node v22 ABI=127) 向けのネイティブ binding を同梱。postinstall で自動コピーされるため、オフラインでも追加手順なしでコードインデックスが起動します。  
+- **不足時の自動リカバリ:** バインディングが見つからない場合、postinstall が同梱バイナリをコピーし、それでも無いときは `better-sqlite3` のビルドを試行します。  
+- **最終手段のフォールバック:** それでも失敗した場合のみ sql.js(WASM) にフォールバックし、機能は維持されます（低速）。ネイティブ性能が必要なら `npm rebuild better-sqlite3 --build-from-source` を実行してください。
 
 ## Usage Workflow
 

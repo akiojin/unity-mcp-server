@@ -221,9 +221,10 @@ sequenceDiagram
   - `brew install node@22` または `node@20` などで Node.js 22.x / 20.x を導入し、`PATH` に追加します（18.x も利用可）。23 以上のメジャーバージョンはサポートしません。
   - パッケージが配置されているディレクトリ（リポジトリ clone 時: `~/unity-mcp-server/mcp-server`）で `pnpm install --frozen-lockfile` を実行します。
 
-セットアップ後、`node mcp-server/bin/unity-mcp-server --version` で起動確認ができます。`better-sqlite3` の読み込みエラーが出る場合は、対象環境内で依存を再インストールするか、ツールチェーンが揃った状態で `pnpm rebuild better-sqlite3 --filter mcp-server --build-from-source` を実行してください。
-
-- ネイティブの `better-sqlite3` バインディングが見つからない場合（Docker の最小イメージやインストールスクリプトが実行されない環境など）は、自動で WASM 版の sql.js にフォールバックして動作を継続します（少し遅くなります）。ポストインストールフック `node scripts/ensure-better-sqlite3.mjs` もネイティブ再構築を試みます。改善しない場合は、コンテナ内で `npm rebuild better-sqlite3 --build-from-source` を実行してネイティブ性能を取り戻してください。
+セットアップ後、`node mcp-server/bin/unity-mcp-server --version` で起動確認ができます。  
+- **バイナリ同梱:** `mcp-server/prebuilt/better-sqlite3` に Linux x64 (Node v22 ABI=127) 向けバイナリを同梱し、postinstall で自動コピーするため、追加手順なしでコードインデックスが動作します。  
+- **不足時の自動リカバリ:** バインディングが見つからない場合は同梱バイナリをコピーし、それでも無い場合は `better-sqlite3` のビルドを試みます。  
+- **最終手段のフォールバック:** すべて失敗した場合のみ sql.js(WASM) に自動フォールバックして動作を継続します（低速）。ネイティブ性能が必要なら `npm rebuild better-sqlite3 --build-from-source` を実行してください。
 
 ## 使い方ワークフロー
 

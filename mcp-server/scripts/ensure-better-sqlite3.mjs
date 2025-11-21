@@ -12,6 +12,14 @@ import { fileURLToPath } from 'url';
 
 const require = createRequire(import.meta.url);
 const pkgRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const abiLabel = `node-v${process.versions.modules}`;
+const bundled = path.join(
+  pkgRoot,
+  'prebuilt',
+  'better-sqlite3',
+  `${process.platform}-${process.arch}-${abiLabel}`,
+  'better_sqlite3.node'
+);
 
 function resolveBetterSqliteDir() {
   try {
@@ -26,11 +34,39 @@ function findBinding(dir) {
   if (!dir) return { exists: false, path: null, candidates: [] };
   const candidates = [
     path.join(dir, 'build', 'Release', 'better_sqlite3.node'),
+    path.join(
+      dir,
+      'compiled',
+      process.version,
+      process.platform,
+      process.arch,
+      'better_sqlite3.node'
+    ),
     path.join(dir, 'build', 'Debug', 'better_sqlite3.node'),
     path.join(dir, 'build', 'better_sqlite3.node')
   ];
   const found = candidates.find(fs.existsSync) || null;
   return { exists: Boolean(found), path: found, candidates };
+}
+
+function copyBundled(dir) {
+  if (!fs.existsSync(bundled)) return false;
+  const targets = [
+    path.join(dir, 'build', 'Release', 'better_sqlite3.node'),
+    path.join(
+      dir,
+      'compiled',
+      process.version,
+      process.platform,
+      process.arch,
+      'better_sqlite3.node'
+    )
+  ];
+  for (const t of targets) {
+    fs.mkdirSync(path.dirname(t), { recursive: true });
+    fs.copyFileSync(bundled, t);
+  }
+  return true;
 }
 
 function attemptRebuild(dir) {
@@ -53,6 +89,16 @@ function main() {
       '[unity-mcp-server] better-sqlite3 module not found; skipping native binding check.'
     );
     return;
+  }
+
+  if (copyBundled(dir)) {
+    const afterBundled = findBinding(dir);
+    if (afterBundled.exists) {
+      console.log(
+        `[unity-mcp-server] better-sqlite3 binding restored from bundled prebuild: ${afterBundled.path}`
+      );
+      return;
+    }
   }
 
   const before = findBinding(dir);
