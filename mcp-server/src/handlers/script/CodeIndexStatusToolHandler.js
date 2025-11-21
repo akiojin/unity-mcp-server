@@ -32,6 +32,17 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
 
     // Check whether the persistent index already exists or is being built in the background.
     const ready = await this.codeIndex.isReady();
+    if (this.codeIndex.disabled) {
+      return {
+        success: false,
+        error: 'code_index_unavailable',
+        message:
+          this.codeIndex.disableReason ||
+          'Code index is disabled because the SQLite driver could not be loaded. The server will continue without the symbol index.',
+        remediation:
+          'Install native build tools (python3, make, g++) in this environment and run "npm rebuild better-sqlite3 --build-from-source", then restart the server.'
+      };
+    }
     const buildInProgress = latestBuildJob?.status === 'running';
     if (!ready && !buildInProgress) {
       return {
