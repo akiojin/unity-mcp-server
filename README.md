@@ -88,17 +88,14 @@ Performance
 
 ## Automated Release Management
 
-This project uses **semantic-release** for fully automated version management and publishing:
+This project uses **release-please (manifest mode)** + GitHub Actions for automated releases:
 
-- **Version Detection**: Automatically determines version bumps based on Conventional Commits
-  - `fix:` commits → patch version (e.g., 2.26.0 → 2.26.1)
-  - `feat:` commits → minor version (e.g., 2.26.0 → 2.27.0)
-  - `BREAKING CHANGE:` or `feat!:` → major version (e.g., 2.26.0 → 3.0.0)
-- **Release Flow**: develop → release/vX.Y.Z → main
-- **Publishing**: Automated npm, OpenUPM, and GitHub Release publication
-- **Multi-platform Builds**: Automatic csharp-lsp builds for all supported platforms
+1) `Create Release Branch` (manual): release-please opens a release PR against `main` and is auto-merged.  
+2) `Release` (push to `main` or manual): release-please tags `vX.Y.Z` and creates the GitHub Release (version scope: `mcp-server` and Unity package via extra-files).  
+3) `Publish` (tag `v*`): builds csharp-lsp for linux/win/macos (x64/arm64), uploads binaries+manifest, publishes `mcp-server` to npm, lets OpenUPM auto-detect, then backmerges `main` → `develop`.  
+4) Versioning follows Conventional Commits; required checks (Test & Coverage, Package, Markdown/ESLint/Prettier, Commit Message Lint) must pass for branch protection.
 
-See [CLAUDE.md](CLAUDE.md) for detailed release workflow documentation.
+See [CLAUDE.md](CLAUDE.md) for the detailed release workflow.
 
 ## LLM Optimization Principles
 
@@ -545,50 +542,22 @@ Example:
 
 ## Release Process
 
-### Automated Release Flow
+### Automated Release Flow (release-please)
 
-This project uses [semantic-release](https://semantic-release.gitbook.io/) with [Conventional Commits](https://www.conventionalcommits.org/) for fully automated releases.
+1. **Feature → develop**  
+   - Work on `feature/SPEC-xxxxxxxx`, Conventional Commits必須。`finish-feature.sh`でPR作成→developにauto-merge（必須チェック: Markdown/ESLint/Prettier, Commit Message Lint）。  
+2. **リリースPR（手動トリガー）**  
+   - Actionsの`Create Release Branch`を実行すると release-please が `main` 向けリリースPRを生成し、自動マージを有効化。  
+3. **タグ＆GitHub Release**  
+   - `main` へのマージで `Release` ワークフローが動き、release-pleaseが `vX.Y.Z` をタグ付けしGitHub Releaseを作成（対象: `mcp-server` と Unity パッケージのバージョン/CHANGELOG）。  
+4. **Publish（タグトリガー）**  
+   - `Publish` ワークフローがタグで起動し、csharp-lspをwin/linux/macos x64/arm64でビルド＋manifest添付、`mcp-server` を npm publish、OpenUPM はタグを自動検出、完了後に `main` → `develop` をバックマージ。  
 
-**Note**: Testing automated release workflow.
-
-#### Three-Tier Release Flow (feature → develop → main)
-
-This project implements a **three-tier release workflow** for controlled and predictable releases:
-
-1. **Feature Development** (feature branches)
-   - Create feature branch: `feature/SPEC-xxxxxxxx`
-   - Commit with Conventional Commits
-   - Run `finish-feature.sh` → auto-create PR to `develop`
-
-2. **Integration Stage** (`develop` branch)
-   - Required checks pass → auto-merge to `develop`
-   - Multiple features accumulate in `develop`
-   - No releases triggered from `develop`
-
-3. **Production Release** (`main` branch)
-   - Run `/release` command → create `develop` → `main` PR
-   - Required checks pass → auto-merge to `main`
-   - **semantic-release auto-executes**: version bump, CHANGELOG, tag creation
-   - **csharp-lsp Build**: all platforms → GitHub Release
-   - **npm Publish**: MCPサーバー → npmjs.com
-
-**Benefits**:
-- 🎯 Controlled release timing (manual `/release` trigger)
-- 🔄 Multiple features can be bundled into one release
-- 🛡️ `develop` acts as integration/staging before production
-- 📦 Single version across all components (mcp-server, Unity Package, csharp-lsp)
-
-#### How It Works (Legacy Two-Tier)
-
-The previous two-tier flow (feature → main) is deprecated:
-
-1. **Developer**: Create feature branch, commit with Conventional Commits, create PR
-2. **Auto-Merge**: Required checks pass → automatic merge to `main`
-3. **semantic-release**: Analyzes commits → determines version → updates package.json (mcp-server + Unity Package) → generates CHANGELOG.md → creates tag (`v*`)
-4. **csharp-lsp Build**: Triggered by tag → builds all platforms → creates GitHub Release
-5. **npm Publish**: Triggered by Release → waits for csharp-lsp-manifest.json → publishes to npm
-
-All components (mcp-server, Unity Package, csharp-lsp) are released with the same version number.
+Branch protection Required Checks（main/develop共通）  
+- `Markdown, ESLint & Formatting`  
+- `Commit Message Lint`  
+- `Test & Coverage`  
+- `Package`
 
 #### Commit Message Format
 
@@ -617,16 +586,15 @@ If automated release fails, you can manually trigger workflows:
 
 #### Troubleshooting
 
-- **No release created**: Check if commits follow Conventional Commits format
-- **csharp-lsp build failed**: npm publish will timeout after 20 minutes
-- **Version mismatch**: Ensure Unity Package version is synced (automatic via `sync-unity-package-version.js`)
+- **No release created**: Check that commits follow Conventional Commits (release-please derives the bump from them).
+- **csharp-lsp build failed**: npm publish waits up to 10 minutes for the manifest; rerun `Publish` on the tag if needed.
+- **Version mismatch**: release-please updates `mcp-server/package.json` and `UnityMCPServer/Packages/unity-mcp-server/package.json` via extra-files; re-run `Release` if they drift.
 
 #### Version Synchronization
 
-- **mcp-server**: Updated by semantic-release
-- **Unity Package**: Auto-synced via `scripts/sync-unity-package-version.js`
-- **csharp-lsp**: Tagged with same version, binaries attached to GitHub Release
-- **CHANGELOG.md**: Auto-generated from commit messages
+- **mcp-server & Unity Package**: Updated by release-please (manifest + extra-files).
+- **csharp-lsp**: Binaries built on tag `vX.Y.Z`; installer/manifest carry the same version from the tag.
+- **CHANGELOG.md**: Generated by release-please and attached to the GitHub Release notes.
 
 ## Repository Structure (Workspace Root)
 

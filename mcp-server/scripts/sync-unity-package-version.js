@@ -2,7 +2,7 @@
 
 /**
  * Sync Unity Package version with mcp-server version
- * Called by semantic-release prepareCmd
+ * Called by release-please via extra-files or manual invocation
  *
  * Usage: node sync-unity-package-version.js <version>
  */
