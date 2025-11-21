@@ -10,6 +10,7 @@ export class UnityConnection extends EventEmitter {
     super();
     this.socket = null;
     this.connected = false;
+    this.connectPromise = null;
     this.reconnectAttempts = 0;
     this.reconnectTimer = null;
     this.commandId = 0;
@@ -27,7 +28,12 @@ export class UnityConnection extends EventEmitter {
    * @returns {Promise<void>}
    */
   async connect() {
-    return new Promise((resolve, reject) => {
+    // Return the in-flight promise if we're already trying to connect.
+    if (this.connectPromise) {
+      return this.connectPromise;
+    }
+
+    this.connectPromise = new Promise((resolve, reject) => {
       if (this.connected) {
         resolve();
         return;
@@ -46,6 +52,13 @@ export class UnityConnection extends EventEmitter {
       this.socket = new net.Socket();
       let connectionTimeout = null;
       let resolved = false;
+      const settle = (fn, value) => {
+        if (resolved) return;
+        resolved = true;
+        clearConnectionTimeout();
+        this.connectPromise = null;
+        fn(value);
+      };
 
       // Helper to clean up the connection timeout
       const clearConnectionTimeout = () => {
@@ -60,10 +73,10 @@ export class UnityConnection extends EventEmitter {
         logger.info('Connected to Unity Editor');
         this.connected = true;
         this.reconnectAttempts = 0;
-        resolved = true;
-        clearConnectionTimeout();
+        this.connectPromise = null;
         this.emit('connected');
-        resolve();
+        this._pumpQueue(); // flush any queued commands that arrived during reconnect
+        settle(resolve);
       });
 
       this.socket.on('data', data => {
@@ -72,11 +85,12 @@ export class UnityConnection extends EventEmitter {
 
       this.socket.on('error', error => {
         logger.error('Socket error:', error.message);
-        this.emit('error', error);
+        if (this.listenerCount('error') > 0) {
+          this.emit('error', error);
+        }
 
         if (!this.connected && !resolved) {
-          resolved = true;
-          clearConnectionTimeout();
+          this.connectPromise = null;
           // Mark as disconnecting to prevent reconnection
           this.isDisconnecting = true;
           // Destroy the socket to clean up properly
@@ -89,6 +103,7 @@ export class UnityConnection extends EventEmitter {
       this.socket.on('close', () => {
         // Clear the connection timeout when socket closes
         clearConnectionTimeout();
+        this.connectPromise = null;
 
         // Check if we're already handling disconnection
         if (this.isDisconnecting || !this.socket) {
@@ -123,14 +138,15 @@ export class UnityConnection extends EventEmitter {
       // Set timeout for initial connection
       connectionTimeout = setTimeout(() => {
         if (!this.connected && !resolved && this.socket) {
-          resolved = true;
           // Remove event listeners before destroying to prevent callbacks after timeout
           this.socket.removeAllListeners();
           this.socket.destroy();
-          reject(new Error('Connection timeout'));
+          this.connectPromise = null;
+          settle(reject, new Error('Connection timeout'));
         }
       }, config.unity.commandTimeout);
     });
+    return this.connectPromise;
   }
 
   /**
@@ -164,6 +180,11 @@ export class UnityConnection extends EventEmitter {
    */
   scheduleReconnect() {
     if (this.reconnectTimer) {
+      return;
+    }
+    // Avoid piling up reconnects if a connection attempt is already in progress
+    if (this.connectPromise) {
+      logger.info('Reconnect skipped; connection attempt already in progress');
       return;
     }
 
@@ -338,8 +359,10 @@ export class UnityConnection extends EventEmitter {
     logger.info(`[Unity] enqueue sendCommand: ${type}`, { connected: this.connected });
 
     if (!this.connected) {
-      logger.error('[Unity] Cannot send command - not connected');
-      throw new Error('Not connected to Unity');
+      logger.warn('[Unity] Not connected; waiting for reconnection before sending command');
+      await this.ensureConnected({
+        timeoutMs: config.unity.commandTimeout
+      });
     }
 
     // Create an external promise that will resolve when Unity responds
@@ -425,10 +448,51 @@ export class UnityConnection extends EventEmitter {
   }
 
   /**
+   * Wait until the connection is available, attempting to reconnect if needed.
+   * @param {object} options
+   * @param {number} options.timeoutMs - Maximum time to wait for reconnection
+   */
+  async ensureConnected({ timeoutMs = config.unity.commandTimeout } = {}) {
+    const start = Date.now();
+    let lastError = null;
+
+    while (!this.connected && Date.now() - start < timeoutMs) {
+      try {
+        await this.connect();
+      } catch (error) {
+        lastError = error;
+        const msg = error?.message || '';
+        if (process.env.NODE_ENV === 'test' || process.env.CI === 'true') {
+          // In test/CI we bail out immediately to avoid long waits
+          throw error;
+        }
+        if (/test environment/i.test(msg)) {
+          throw error;
+        }
+      }
+
+      if (this.connected) return;
+      await sleep(Math.min(500, timeoutMs));
+    }
+
+    if (!this.connected) {
+      const error = new Error(
+        `Failed to reconnect to Unity within ${timeoutMs}ms${lastError ? `: ${lastError.message}` : ''}`
+      );
+      error.code = 'UNITY_RECONNECT_TIMEOUT';
+      throw error;
+    }
+  }
+
+  /**
    * Checks if connected to Unity
    * @returns {boolean}
    */
   isConnected() {
     return this.connected;
   }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, Math.max(0, ms || 0)));
 }
