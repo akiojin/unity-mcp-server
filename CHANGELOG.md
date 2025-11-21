@@ -1,3 +1,15 @@
+## [2.41.0](https://github.com/akiojin/unity-mcp-server/compare/v2.40.6...v2.41.0) (2025-11-21)
+
+
+### Features
+
+* bundle better-sqlite3 prebuilt artifacts ([34d4daa](https://github.com/akiojin/unity-mcp-server/commit/34d4daa69e238b8d47ce0e66ce4d710af5aeb256))
+
+
+### Bug Fixes
+
+* add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
+
 ## [2.40.6](https://github.com/akiojin/unity-mcp-server/compare/v2.40.5...v2.40.6) (2025-11-19)
 
 
