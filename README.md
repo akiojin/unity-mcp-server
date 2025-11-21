@@ -237,6 +237,8 @@ Environment-specific notes:
 
 After installation you can verify the server with `node mcp-server/bin/unity-mcp-server --version`. If `better-sqlite3` fails to load, reinstall the dependencies _inside the target environment_ or rebuild with `pnpm rebuild better-sqlite3 --filter mcp-server --build-from-source` once the toolchain is present.
 
+- The MCP server now ships with a WASM fallback (sql.js). If the native `better-sqlite3` binding cannot be located (common in minimal Docker images or when install scripts are blocked), the server will keep running on the fallback so tools stay available, albeit a bit slower. A lightweight postinstall step (`node scripts/ensure-better-sqlite3.mjs`) also attempts to restore the native binding; if it still stays missing, run `npm rebuild better-sqlite3 --build-from-source` inside the container to regain native performance.
+
 ## Usage Workflow
 
 1. **Install the Unity package.** Use the Git URL listed above or, once OpenUPM is configured, run `openupm add com.akiojin.unity-mcp-server` inside your project.

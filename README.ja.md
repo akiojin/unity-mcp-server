@@ -223,6 +223,8 @@ sequenceDiagram
 
 セットアップ後、`node mcp-server/bin/unity-mcp-server --version` で起動確認ができます。`better-sqlite3` の読み込みエラーが出る場合は、対象環境内で依存を再インストールするか、ツールチェーンが揃った状態で `pnpm rebuild better-sqlite3 --filter mcp-server --build-from-source` を実行してください。
 
+- ネイティブの `better-sqlite3` バインディングが見つからない場合（Docker の最小イメージやインストールスクリプトが実行されない環境など）は、自動で WASM 版の sql.js にフォールバックして動作を継続します（少し遅くなります）。ポストインストールフック `node scripts/ensure-better-sqlite3.mjs` もネイティブ再構築を試みます。改善しない場合は、コンテナ内で `npm rebuild better-sqlite3 --build-from-source` を実行してネイティブ性能を取り戻してください。
+
 ## 使い方ワークフロー
 
 1. **Unityパッケージを導入** — 前述の Git URL から追加するか、OpenUPM を設定後に `openupm add com.akiojin.unity-mcp-server` を実行します。
