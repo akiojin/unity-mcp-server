@@ -1,125 +1,119 @@
 #!/usr/bin/env node
-/**
- * Postinstall helper to ensure better-sqlite3 has a native binding.
- * - If the prebuilt binding is missing, it attempts to rerun better-sqlite3's install script.
- * - On failure it prints actionable guidance but never fails the install (sql.js fallback will be used).
- */
+// Ensure better-sqlite3 native binding exists. Prefers bundled prebuilt binaries, otherwise
+// optionally attempts a native rebuild (opt-in to avoid first-time npx timeouts).
 import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
-import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 
-const require = createRequire(import.meta.url);
-const pkgRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const abiLabel = `node-v${process.versions.modules}`;
-const bundled = path.join(
-  pkgRoot,
-  'prebuilt',
-  'better-sqlite3',
-  `${process.platform}-${process.arch}-${abiLabel}`,
-  'better_sqlite3.node'
-);
+const SCRIPT_PATH = fileURLToPath(import.meta.url);
+const PKG_ROOT = path.resolve(path.dirname(SCRIPT_PATH), '..');
 
-function resolveBetterSqliteDir() {
-  try {
-    const pkgJson = require.resolve('better-sqlite3/package.json', { paths: [pkgRoot] });
-    return path.dirname(pkgJson);
-  } catch {
-    return null;
+const DEFAULT_BINDING_PATH = process.env.UNITY_MCP_BINDING_PATH
+  ? path.resolve(process.env.UNITY_MCP_BINDING_PATH)
+  : path.join(
+      PKG_ROOT,
+      'node_modules',
+      'better-sqlite3',
+      'build',
+      'Release',
+      'better_sqlite3.node'
+    );
+
+const DEFAULT_PREBUILT_ROOT = process.env.UNITY_MCP_PREBUILT_DIR
+  ? path.resolve(process.env.UNITY_MCP_PREBUILT_DIR)
+  : path.join(PKG_ROOT, 'prebuilt', 'better-sqlite3');
+
+export function resolvePlatformKey(
+  nodeVersion = process.versions.node,
+  platform = process.platform,
+  arch = process.arch
+) {
+  const major = String(nodeVersion).split('.')[0];
+  return `${platform}-${arch}-node${major}`;
+}
+
+function copyPrebuiltBinding(prebuiltDir, bindingTarget, log) {
+  const platformKey = resolvePlatformKey();
+  const source = path.join(prebuiltDir, platformKey, 'better_sqlite3.node');
+  if (!fs.existsSync(source)) return false;
+  fs.mkdirSync(path.dirname(bindingTarget), { recursive: true });
+  fs.copyFileSync(source, bindingTarget);
+  if (log) log(`[postinstall] Installed better-sqlite3 prebuilt for ${platformKey}`);
+  return true;
+}
+
+function rebuildNative(bindingTarget, pkgRoot, log) {
+  log(
+    '[postinstall] No prebuilt available. Attempting native rebuild (npm rebuild better-sqlite3 --build-from-source)'
+  );
+  const result = spawnSync('npm', ['rebuild', 'better-sqlite3', '--build-from-source'], {
+    stdio: 'inherit',
+    shell: false,
+    cwd: pkgRoot
+  });
+  if (result.status !== 0) {
+    throw new Error(`better-sqlite3 rebuild failed with code ${result.status ?? 'null'}`);
   }
-}
-
-function findBinding(dir) {
-  if (!dir) return { exists: false, path: null, candidates: [] };
-  const candidates = [
-    path.join(dir, 'build', 'Release', 'better_sqlite3.node'),
-    path.join(
-      dir,
-      'compiled',
-      process.version,
-      process.platform,
-      process.arch,
-      'better_sqlite3.node'
-    ),
-    path.join(dir, 'build', 'Debug', 'better_sqlite3.node'),
-    path.join(dir, 'build', 'better_sqlite3.node')
-  ];
-  const found = candidates.find(fs.existsSync) || null;
-  return { exists: Boolean(found), path: found, candidates };
-}
-
-function copyBundled(dir) {
-  if (!fs.existsSync(bundled)) return false;
-  const targets = [
-    path.join(dir, 'build', 'Release', 'better_sqlite3.node'),
-    path.join(
-      dir,
-      'compiled',
-      process.version,
-      process.platform,
-      process.arch,
-      'better_sqlite3.node'
-    )
-  ];
-  for (const t of targets) {
-    fs.mkdirSync(path.dirname(t), { recursive: true });
-    fs.copyFileSync(bundled, t);
+  if (!fs.existsSync(bindingTarget)) {
+    throw new Error('better-sqlite3 rebuild completed but binding was still not found');
   }
   return true;
 }
 
-function attemptRebuild(dir) {
-  const script = path.join(dir, 'install.js');
-  if (!fs.existsSync(script)) {
-    return { ok: false, reason: 'install.js not found' };
-  }
-  const result = spawnSync(process.execPath, [script], {
-    cwd: dir,
-    env: { ...process.env },
-    stdio: 'inherit'
-  });
-  return { ok: result.status === 0, exitCode: result.status ?? -1 };
-}
+export function ensureBetterSqlite3(options = {}) {
+  const {
+    bindingPath = DEFAULT_BINDING_PATH,
+    prebuiltRoot = DEFAULT_PREBUILT_ROOT,
+    pkgRoot = PKG_ROOT,
+    skipNative = process.env.UNITY_MCP_SKIP_NATIVE_BUILD !== '0',
+    forceNative = process.env.UNITY_MCP_FORCE_NATIVE === '1',
+    skipLegacyFlag = Boolean(process.env.SKIP_SQLITE_REBUILD),
+    log = console.log,
+    warn = console.warn
+  } = options;
 
-function main() {
-  const dir = resolveBetterSqliteDir();
-  if (!dir) {
-    console.warn(
-      '[unity-mcp-server] better-sqlite3 module not found; skipping native binding check.'
+  if (skipLegacyFlag && !forceNative) {
+    warn('[postinstall] SKIP_SQLITE_REBUILD set, skipping better-sqlite3 check');
+    return { status: 'skipped' };
+  }
+
+  if (!forceNative && copyPrebuiltBinding(prebuiltRoot, bindingPath, log)) {
+    return { status: 'copied' };
+  }
+
+  if (skipNative && !forceNative) {
+    warn(
+      '[postinstall] UNITY_MCP_SKIP_NATIVE_BUILD=1 -> skipping native rebuild; sql.js fallback will be used'
     );
-    return;
+    return { status: 'skipped' };
   }
 
-  if (copyBundled(dir)) {
-    const afterBundled = findBinding(dir);
-    if (afterBundled.exists) {
-      console.log(
-        `[unity-mcp-server] better-sqlite3 binding restored from bundled prebuild: ${afterBundled.path}`
-      );
-      return;
-    }
+  if (forceNative) {
+    log('[postinstall] UNITY_MCP_FORCE_NATIVE=1 -> forcing better-sqlite3 rebuild');
+  } else if (fs.existsSync(bindingPath)) {
+    // Binding already exists and native rebuild not forced.
+    return { status: 'existing' };
   }
 
-  const before = findBinding(dir);
-  if (before.exists) {
-    console.log(`[unity-mcp-server] better-sqlite3 binding present: ${before.path}`);
-    return;
-  }
-
-  console.warn('[unity-mcp-server] better-sqlite3 binding missing; attempting rebuild...');
-  const rebuild = attemptRebuild(dir);
-  if (rebuild.ok) {
-    const after = findBinding(dir);
-    if (after.exists) {
-      console.log(`[unity-mcp-server] better-sqlite3 binding restored: ${after.path}`);
-      return;
-    }
-  }
-
-  console.warn(
-    '[unity-mcp-server] better-sqlite3 binding still missing. Install build tools (python3, make, g++) and run "npm rebuild better-sqlite3 --build-from-source" inside this environment. Falling back to sql.js at runtime.'
-  );
+  rebuildNative(bindingPath, pkgRoot, log);
+  return { status: 'rebuilt' };
 }
 
-main();
+function isCliExecution() {
+  const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+  return invokedPath === SCRIPT_PATH;
+}
+
+async function main() {
+  try {
+    await ensureBetterSqlite3();
+  } catch (err) {
+    console.warn(`[postinstall] Warning: ${err.message}`);
+    // Do not hard fail install; runtime may still use sql.js fallback in codeIndex
+  }
+}
+
+if (isCliExecution()) {
+  main();
+}

@@ -52,13 +52,15 @@ describe('VideoCaptureForToolHandler', () => {
     });
 
     it('should pass with all parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        durationSec: 10,
-        width: 1920,
-        height: 1080,
-        fps: 60,
-        play: true
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          durationSec: 10,
+          width: 1920,
+          height: 1080,
+          fps: 60,
+          play: true
+        })
+      );
     });
   });
 
@@ -160,8 +162,10 @@ describe('VideoCaptureForToolHandler', () => {
 
       assert.ok(result.result.content);
       assert.ok(Array.isArray(result.result.content));
-      assert.ok(result.result.content[0].text.includes('completed') ||
-                result.result.content[0].text.includes('Recording'));
+      assert.ok(
+        result.result.content[0].text.includes('completed') ||
+          result.result.content[0].text.includes('Recording')
+      );
     });
 
     it('should handle execution errors gracefully', async () => {

@@ -49,17 +49,21 @@ describe('VideoCaptureStartToolHandler', () => {
     });
 
     it('should pass with custom dimensions', () => {
-      assert.doesNotThrow(() => handler.validate({
-        width: 1920,
-        height: 1080,
-        fps: 60
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          width: 1920,
+          height: 1080,
+          fps: 60
+        })
+      );
     });
 
     it('should pass with max duration', () => {
-      assert.doesNotThrow(() => handler.validate({
-        maxDurationSec: 30
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          maxDurationSec: 30
+        })
+      );
     });
   });
 
@@ -114,19 +118,13 @@ describe('VideoCaptureStartToolHandler', () => {
       });
       handler = new VideoCaptureStartToolHandler(mockConnection);
 
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /Unity Recorder not installed/
-      );
+      await assert.rejects(async () => await handler.execute({}), /Unity Recorder not installed/);
     });
 
     it('should throw error if not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
 
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /Unity connection not available/
-      );
+      await assert.rejects(async () => await handler.execute({}), /Unity connection not available/);
     });
 
     it('should connect if not already connected', async () => {

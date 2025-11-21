@@ -59,7 +59,7 @@ describe('CodeIndexUpdateToolHandler', () => {
     handler.projectInfo = new MockProjectInfo(projectRoot);
 
     lsp = {
-      request: async () => ([
+      request: async () => [
         {
           name: 'Foo',
           kind: 5,
@@ -72,7 +72,7 @@ describe('CodeIndexUpdateToolHandler', () => {
             }
           ]
         }
-      ])
+      ]
     };
     handler.lsp = lsp;
   });

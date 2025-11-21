@@ -34,6 +34,17 @@ export class IndexWatcher {
     if (this.running) return;
     this.running = true;
     try {
+      // Skip watcher entirely when the native SQLite binding is unavailable
+      const { CodeIndex } = await import('./codeIndex.js');
+      const probe = new CodeIndex(this.unityConnection);
+      const driverOk = await probe._ensureDriver();
+      if (!driverOk || probe.disabled) {
+        const reason = probe.disableReason || 'SQLite native binding not available';
+        logger.warn(`[index] watcher: code index disabled (${reason}); stopping watcher`);
+        this.stop();
+        return;
+      }
+
       // Check if code index DB file exists (before opening DB)
       const { ProjectInfoProvider } = await import('./projectInfo.js');
       const projectInfo = new ProjectInfoProvider(this.unityConnection);

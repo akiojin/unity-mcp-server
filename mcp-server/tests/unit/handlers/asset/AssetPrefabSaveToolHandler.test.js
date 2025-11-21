@@ -8,19 +8,19 @@ class MockUnityConnection {
     this.connected = true;
     this.mockResponses = new Map();
   }
-  
+
   isConnected() {
     return this.connected;
   }
-  
+
   async connect() {
     this.connected = true;
   }
-  
+
   setMockResponse(command, response) {
     this.mockResponses.set(command, response);
   }
-  
+
   async sendCommand(command, params) {
     const response = this.mockResponses.get(command);
     if (response) {
@@ -42,7 +42,10 @@ describe('AssetPrefabSaveToolHandler', () => {
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'asset_prefab_save');
-      assert.equal(handler.description, 'Save current prefab changes in prefab mode or save a GameObject as prefab override');
+      assert.equal(
+        handler.description,
+        'Save current prefab changes in prefab mode or save a GameObject as prefab override'
+      );
       assert.equal(handler.inputSchema.required, undefined);
     });
   });
@@ -53,23 +56,26 @@ describe('AssetPrefabSaveToolHandler', () => {
     });
 
     it('should pass with valid gameObjectPath', () => {
-      assert.doesNotThrow(() => handler.validate({
-        gameObjectPath: '/Canvas/Button'
-      }));
-    });
-
-    it('should fail with empty gameObjectPath', () => {
-      assert.throws(
-        () => handler.validate({ gameObjectPath: '' }),
-        { message: 'gameObjectPath cannot be empty when provided' }
+      assert.doesNotThrow(() =>
+        handler.validate({
+          gameObjectPath: '/Canvas/Button'
+        })
       );
     });
 
+    it('should fail with empty gameObjectPath', () => {
+      assert.throws(() => handler.validate({ gameObjectPath: '' }), {
+        message: 'gameObjectPath cannot be empty when provided'
+      });
+    });
+
     it('should pass with includeChildren option', () => {
-      assert.doesNotThrow(() => handler.validate({
-        gameObjectPath: '/Player',
-        includeChildren: true
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          gameObjectPath: '/Player',
+          includeChildren: true
+        })
+      );
     });
   });
 
@@ -111,10 +117,9 @@ describe('AssetPrefabSaveToolHandler', () => {
         error: 'Not currently in prefab mode and no gameObjectPath specified'
       });
 
-      await assert.rejects(
-        async () => await handler.execute({}),
-        { message: 'Not currently in prefab mode and no gameObjectPath specified' }
-      );
+      await assert.rejects(async () => await handler.execute({}), {
+        message: 'Not currently in prefab mode and no gameObjectPath specified'
+      });
     });
 
     it('should handle GameObject not a prefab instance', async () => {

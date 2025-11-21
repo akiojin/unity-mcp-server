@@ -19,21 +19,14 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.20.0
-          run_install: false
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Run semantic-release dry-run
         id: version
@@ -42,7 +35,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           # semantic-release dry-runを実行してバージョン番号を取得
-          OUTPUT=$(pnpm exec semantic-release --dry-run --branches develop 2>&1)
+          OUTPUT=$(npx semantic-release --dry-run --branches develop 2>&1)
           echo "$OUTPUT"
 
           # Conventional Commits検証

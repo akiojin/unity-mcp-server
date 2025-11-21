@@ -29,11 +29,15 @@ describe('InputGamepadToolHandler', () => {
     });
 
     it('should pass with stick action', () => {
-      assert.doesNotThrow(() => handler.validate({ action: 'stick', stick: 'left', x: 0.5, y: 0.5 }));
+      assert.doesNotThrow(() =>
+        handler.validate({ action: 'stick', stick: 'left', x: 0.5, y: 0.5 })
+      );
     });
 
     it('should pass with trigger action', () => {
-      assert.doesNotThrow(() => handler.validate({ action: 'trigger', trigger: 'left', value: 0.8 }));
+      assert.doesNotThrow(() =>
+        handler.validate({ action: 'trigger', trigger: 'left', value: 0.8 })
+      );
     });
 
     it('should pass with dpad action', () => {
@@ -49,7 +53,10 @@ describe('InputGamepadToolHandler', () => {
     });
 
     it('should throw error when stick values out of range', () => {
-      assert.throws(() => handler.validate({ action: 'stick', x: 2, y: 0 }), /must be between -1 and 1/);
+      assert.throws(
+        () => handler.validate({ action: 'stick', x: 2, y: 0 }),
+        /must be between -1 and 1/
+      );
     });
 
     it('should throw error when trigger value missing', () => {
@@ -57,7 +64,10 @@ describe('InputGamepadToolHandler', () => {
     });
 
     it('should throw error when trigger value out of range', () => {
-      assert.throws(() => handler.validate({ action: 'trigger', value: 1.5 }), /must be between 0 and 1/);
+      assert.throws(
+        () => handler.validate({ action: 'trigger', value: 1.5 }),
+        /must be between 0 and 1/
+      );
     });
 
     it('should throw error when direction missing for dpad', () => {
@@ -65,26 +75,38 @@ describe('InputGamepadToolHandler', () => {
     });
 
     it('should validate batched actions array', () => {
-      assert.doesNotThrow(() => handler.validate({
-        actions: [
-          { action: 'button', button: 'a' },
-          { action: 'stick', stick: 'left', x: 0, y: 1 }
-        ]
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          actions: [
+            { action: 'button', button: 'a' },
+            { action: 'stick', stick: 'left', x: 0, y: 1 }
+          ]
+        })
+      );
     });
 
     it('should throw when actions array empty', () => {
-      assert.throws(() => handler.validate({ actions: [] }), /actions must contain at least one entry/);
+      assert.throws(
+        () => handler.validate({ actions: [] }),
+        /actions must contain at least one entry/
+      );
     });
 
     it('should throw when holdSeconds negative', () => {
-      assert.throws(() => handler.validate({ action: 'button', button: 'a', holdSeconds: -0.5 }), /holdSeconds must be zero or positive/);
+      assert.throws(
+        () => handler.validate({ action: 'button', button: 'a', holdSeconds: -0.5 }),
+        /holdSeconds must be zero or positive/
+      );
     });
   });
 
   describe('execute', () => {
     it('should execute button action', async () => {
-      const result = await handler.execute({ action: 'button', button: 'a', buttonAction: 'press' });
+      const result = await handler.execute({
+        action: 'button',
+        button: 'a',
+        buttonAction: 'press'
+      });
       assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_gamepad');
       assert.ok(result.success);
     });
@@ -109,7 +131,12 @@ describe('InputGamepadToolHandler', () => {
     });
 
     it('should include holdSeconds when provided', async () => {
-      await handler.execute({ action: 'button', button: 'b', buttonAction: 'press', holdSeconds: 0.75 });
+      await handler.execute({
+        action: 'button',
+        button: 'b',
+        buttonAction: 'press',
+        holdSeconds: 0.75
+      });
       const params = mockConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.holdSeconds, 0.75);
     });

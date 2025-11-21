@@ -40,84 +40,91 @@ describe('AssetMaterialCreateToolHandler - Extended Validation Tests', () => {
       );
 
       // Valid paths should pass
-      assert.doesNotThrow(() => handler.validate({
-        materialPath: 'Assets/Materials/TestMaterial.mat'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          materialPath: 'Assets/Materials/TestMaterial.mat'
+        })
+      );
     });
 
     it('should validate properties object structure', () => {
       // Properties must be an object if provided
       assert.throws(
-        () => handler.validate({
-          materialPath: 'Assets/Materials/Test.mat',
-          properties: 'invalid'
-        }),
+        () =>
+          handler.validate({
+            materialPath: 'Assets/Materials/Test.mat',
+            properties: 'invalid'
+          }),
         /properties must be an object/
       );
 
       assert.throws(
-        () => handler.validate({
-          materialPath: 'Assets/Materials/Test.mat',
-          properties: null
-        }),
+        () =>
+          handler.validate({
+            materialPath: 'Assets/Materials/Test.mat',
+            properties: null
+          }),
         /properties must be an object/
       );
 
       // Valid object should pass
-      assert.doesNotThrow(() => handler.validate({
-        materialPath: 'Assets/Materials/Test.mat',
-        properties: { _Color: { r: 1, g: 0, b: 0, a: 1 } }
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          materialPath: 'Assets/Materials/Test.mat',
+          properties: { _Color: { r: 1, g: 0, b: 0, a: 1 } }
+        })
+      );
     });
 
     it('should validate empty shader', () => {
       assert.throws(
-        () => handler.validate({
-          materialPath: 'Assets/Materials/Test.mat',
-          shader: ''
-        }),
+        () =>
+          handler.validate({
+            materialPath: 'Assets/Materials/Test.mat',
+            shader: ''
+          }),
         /shader cannot be empty when provided/
       );
 
-      assert.doesNotThrow(() => handler.validate({
-        materialPath: 'Assets/Materials/Test.mat',
-        shader: 'Standard'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          materialPath: 'Assets/Materials/Test.mat',
+          shader: 'Standard'
+        })
+      );
     });
 
     it('should validate copyFrom parameter format', () => {
       assert.throws(
-        () => handler.validate({
-          materialPath: 'Assets/Materials/Test.mat',
-          copyFrom: ''
-        }),
+        () =>
+          handler.validate({
+            materialPath: 'Assets/Materials/Test.mat',
+            copyFrom: ''
+          }),
         /copyFrom cannot be empty when provided/
       );
 
       assert.throws(
-        () => handler.validate({
-          materialPath: 'Assets/Materials/Test.mat',
-          copyFrom: 'InvalidPath.mat'
-        }),
+        () =>
+          handler.validate({
+            materialPath: 'Assets/Materials/Test.mat',
+            copyFrom: 'InvalidPath.mat'
+          }),
         /copyFrom must be a valid material path/
       );
 
-      assert.doesNotThrow(() => handler.validate({
-        materialPath: 'Assets/Materials/Test.mat',
-        copyFrom: 'Assets/Materials/ExistingMaterial.mat'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          materialPath: 'Assets/Materials/Test.mat',
+          copyFrom: 'Assets/Materials/ExistingMaterial.mat'
+        })
+      );
     });
 
     it('should handle missing required materialPath', () => {
-      assert.throws(
-        () => handler.validate({}),
-        /materialPath is required/
-      );
+      assert.throws(() => handler.validate({}), /materialPath is required/);
 
-      assert.throws(
-        () => handler.validate({ shader: 'Standard' }),
-        /materialPath is required/
-      );
+      assert.throws(() => handler.validate({ shader: 'Standard' }), /materialPath is required/);
     });
 
     it('should validate complex property structures', () => {
@@ -129,22 +136,28 @@ describe('AssetMaterialCreateToolHandler - Extended Validation Tests', () => {
         _EmissionColor: { r: 0.0, g: 1.0, b: 0.0, a: 1.0 }
       };
 
-      assert.doesNotThrow(() => handler.validate({
-        materialPath: 'Assets/Materials/Complex.mat',
-        properties: complexProperties
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          materialPath: 'Assets/Materials/Complex.mat',
+          properties: complexProperties
+        })
+      );
     });
 
     it('should validate edge cases for path formatting', () => {
       // Paths with spaces
-      assert.doesNotThrow(() => handler.validate({
-        materialPath: 'Assets/Materials/My Material.mat'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          materialPath: 'Assets/Materials/My Material.mat'
+        })
+      );
 
       // Nested directories
-      assert.doesNotThrow(() => handler.validate({
-        materialPath: 'Assets/Materials/Weapons/Sword/SwordMaterial.mat'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          materialPath: 'Assets/Materials/Weapons/Sword/SwordMaterial.mat'
+        })
+      );
 
       // Empty string should fail
       assert.throws(
@@ -162,9 +175,10 @@ describe('AssetMaterialCreateToolHandler - Extended Validation Tests', () => {
       });
 
       await assert.rejects(
-        async () => await handler.execute({
-          materialPath: 'Assets/Materials/Test.mat'
-        }),
+        async () =>
+          await handler.execute({
+            materialPath: 'Assets/Materials/Test.mat'
+          }),
         /Connection failed/
       );
     });
@@ -175,9 +189,10 @@ describe('AssetMaterialCreateToolHandler - Extended Validation Tests', () => {
       });
 
       await assert.rejects(
-        async () => await handler.execute({
-          materialPath: 'Assets/Materials/Test.mat'
-        }),
+        async () =>
+          await handler.execute({
+            materialPath: 'Assets/Materials/Test.mat'
+          }),
         /Material creation failed: Path already exists/
       );
     });
@@ -222,7 +237,7 @@ describe('AssetMaterialCreateToolHandler - Extended Validation Tests', () => {
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
       const sentParams = mockConnection.sendCommand.mock.calls[0].arguments[1];
-      
+
       assert.equal(sentParams.materialPath, params.materialPath);
       assert.equal(sentParams.shader, params.shader);
       assert.deepEqual(sentParams.properties, params.properties);
@@ -234,10 +249,12 @@ describe('AssetMaterialCreateToolHandler - Extended Validation Tests', () => {
   describe('boundary value testing', () => {
     it('should handle very long material paths', () => {
       const longPath = 'Assets/Materials/' + 'A'.repeat(200) + '.mat';
-      
-      assert.doesNotThrow(() => handler.validate({
-        materialPath: longPath
-      }));
+
+      assert.doesNotThrow(() =>
+        handler.validate({
+          materialPath: longPath
+        })
+      );
     });
 
     it('should handle deeply nested properties', () => {
@@ -251,10 +268,12 @@ describe('AssetMaterialCreateToolHandler - Extended Validation Tests', () => {
         }
       };
 
-      assert.doesNotThrow(() => handler.validate({
-        materialPath: 'Assets/Materials/Deep.mat',
-        properties: deepProperties
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          materialPath: 'Assets/Materials/Deep.mat',
+          properties: deepProperties
+        })
+      );
     });
 
     it('should handle large property objects', () => {
@@ -263,10 +282,12 @@ describe('AssetMaterialCreateToolHandler - Extended Validation Tests', () => {
         largeProperties[`property_${i}`] = Math.random();
       }
 
-      assert.doesNotThrow(() => handler.validate({
-        materialPath: 'Assets/Materials/Large.mat',
-        properties: largeProperties
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          materialPath: 'Assets/Materials/Large.mat',
+          properties: largeProperties
+        })
+      );
     });
   });
 

@@ -1,7 +1,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import {
-    addInputActionToolDefinition,
-    addInputActionHandler
+  addInputActionToolDefinition,
+  addInputActionHandler
 } from '../../tools/input/inputActionsEditor.js';
 
 export class InputActionAddToolHandler extends BaseToolHandler {

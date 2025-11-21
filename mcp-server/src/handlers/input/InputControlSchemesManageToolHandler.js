@@ -1,7 +1,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import {
-    manageControlSchemesToolDefinition,
-    manageControlSchemesHandler
+  manageControlSchemesToolDefinition,
+  manageControlSchemesHandler
 } from '../../tools/input/inputActionsEditor.js';
 
 export class InputControlSchemesManageToolHandler extends BaseToolHandler {

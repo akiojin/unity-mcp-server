@@ -12,11 +12,11 @@ describe('GetSceneInfoToolHandler', () => {
       sendCommandResult: {
         status: 'success',
         result: {
-          name: "TestScene",
-          path: "Assets/Scenes/TestScene.unity",
+          name: 'TestScene',
+          path: 'Assets/Scenes/TestScene.unity',
           isLoaded: true,
           isDirty: false,
-          summary: "Scene: TestScene"
+          summary: 'Scene: TestScene'
         }
       }
     });
@@ -33,15 +33,14 @@ describe('GetSceneInfoToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with valid parameters', () => {
-      assert.doesNotThrow(() => handler.validate({"sceneName":"TestScene"}));
+      assert.doesNotThrow(() => handler.validate({ sceneName: 'TestScene' }));
     });
-
   });
 
   describe('execute', () => {
     it('should execute successfully with valid params', async () => {
-      const result = await handler.execute({"sceneName":"TestScene"});
-      
+      const result = await handler.execute({ sceneName: 'TestScene' });
+
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
       assert.ok(result);
       assert.ok(result.content);
@@ -50,9 +49,9 @@ describe('GetSceneInfoToolHandler', () => {
 
     it('should return error if not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      
-      const result = await handler.execute({"sceneName":"TestScene"});
-      
+
+      const result = await handler.execute({ sceneName: 'TestScene' });
+
       assert.ok(result);
       assert.equal(result.isError, true);
       assert.ok(result.content[0].text.includes('Unity connection not available'));
@@ -61,13 +60,12 @@ describe('GetSceneInfoToolHandler', () => {
 
   describe('integration with BaseToolHandler', () => {
     it('should handle valid request through handle method', async () => {
-      const result = await handler.handle({"sceneName":"TestScene"});
-      
+      const result = await handler.handle({ sceneName: 'TestScene' });
+
       assert.equal(result.status, 'success');
       assert.ok(result.result);
       assert.ok(result.result.content);
       assert.equal(result.result.isError, false);
     });
-
   });
 });

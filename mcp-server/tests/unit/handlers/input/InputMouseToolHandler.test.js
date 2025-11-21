@@ -28,21 +28,35 @@ describe('InputMouseToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with move action and coordinates', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'move', x: 100, y: 200
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'move',
+          x: 100,
+          y: 200
+        })
+      );
     });
 
     it('should pass with drag action and all coordinates', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'drag', startX: 0, startY: 0, endX: 100, endY: 100
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'drag',
+          startX: 0,
+          startY: 0,
+          endX: 100,
+          endY: 100
+        })
+      );
     });
 
     it('should pass with button action and buttonAction', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'button', button: 'left', buttonAction: 'press'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'button',
+          button: 'left',
+          buttonAction: 'press'
+        })
+      );
     });
 
     it('should throw error when x/y missing for move', () => {
@@ -50,7 +64,10 @@ describe('InputMouseToolHandler', () => {
     });
 
     it('should throw error when coordinates missing for drag', () => {
-      assert.throws(() => handler.validate({ action: 'drag' }), /startX, startY, endX, and endY are required/);
+      assert.throws(
+        () => handler.validate({ action: 'drag' }),
+        /startX, startY, endX, and endY are required/
+      );
     });
 
     it('should throw error when scroll deltas missing', () => {
@@ -59,24 +76,41 @@ describe('InputMouseToolHandler', () => {
 
     it('should throw error when button info missing for button action', () => {
       assert.throws(() => handler.validate({ action: 'button' }), /button is required/);
-      assert.throws(() => handler.validate({ action: 'button', button: 'left' }), /buttonAction is required/);
+      assert.throws(
+        () => handler.validate({ action: 'button', button: 'left' }),
+        /buttonAction is required/
+      );
     });
 
     it('should validate batched actions array', () => {
-      assert.doesNotThrow(() => handler.validate({
-        actions: [
-          { action: 'move', x: 0, y: 0 },
-          { action: 'button', button: 'left', buttonAction: 'press' }
-        ]
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          actions: [
+            { action: 'move', x: 0, y: 0 },
+            { action: 'button', button: 'left', buttonAction: 'press' }
+          ]
+        })
+      );
     });
 
     it('should throw when actions array empty', () => {
-      assert.throws(() => handler.validate({ actions: [] }), /actions must contain at least one entry/);
+      assert.throws(
+        () => handler.validate({ actions: [] }),
+        /actions must contain at least one entry/
+      );
     });
 
     it('should throw when holdSeconds negative', () => {
-      assert.throws(() => handler.validate({ action: 'button', button: 'left', buttonAction: 'press', holdSeconds: -1 }), /holdSeconds must be zero or positive/);
+      assert.throws(
+        () =>
+          handler.validate({
+            action: 'button',
+            button: 'left',
+            buttonAction: 'press',
+            holdSeconds: -1
+          }),
+        /holdSeconds must be zero or positive/
+      );
     });
   });
 
@@ -95,7 +129,14 @@ describe('InputMouseToolHandler', () => {
     });
 
     it('should support drag action', async () => {
-      await handler.execute({ action: 'drag', startX: 0, startY: 0, endX: 100, endY: 100, button: 'left' });
+      await handler.execute({
+        action: 'drag',
+        startX: 0,
+        startY: 0,
+        endX: 100,
+        endY: 100,
+        button: 'left'
+      });
       const params = mockConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.startX, 0);
       assert.equal(params.endX, 100);
@@ -108,7 +149,12 @@ describe('InputMouseToolHandler', () => {
     });
 
     it('should support button press action with holdSeconds', async () => {
-      await handler.execute({ action: 'button', button: 'left', buttonAction: 'press', holdSeconds: 0.25 });
+      await handler.execute({
+        action: 'button',
+        button: 'left',
+        buttonAction: 'press',
+        holdSeconds: 0.25
+      });
       const params = mockConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.button, 'left');
       assert.equal(params.holdSeconds, 0.25);
@@ -153,7 +199,13 @@ describe('InputMouseToolHandler', () => {
     });
 
     it('should simulate mouse drag', async () => {
-      const result = await handler.execute({ action: 'drag', startX: 0, startY: 0, endX: 100, endY: 100 });
+      const result = await handler.execute({
+        action: 'drag',
+        startX: 0,
+        startY: 0,
+        endX: 100,
+        endY: 100
+      });
       assert.ok(result.success);
     });
 

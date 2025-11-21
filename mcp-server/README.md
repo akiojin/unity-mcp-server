@@ -332,6 +332,27 @@ npm uninstall -g @akiojin/unity-mcp-server
 npm install -g @akiojin/unity-mcp-server
 ```
 
+### MCP Client Shows "Capabilities: none"
+
+If your MCP client (Claude Code, Cursor, etc.) shows "Capabilities: none" despite successful connection:
+
+**Symptom**: Server connects successfully, but no tools are visible to the client.
+
+**Root Cause**: Empty capability objects (`resources: {}`, `prompts: {}`) in MCP SDK v0.6.1 cause capability validation to fail silently.
+
+**Solution**: Update to latest version with the fix:
+
+```bash
+# Update to latest version (2.41.0+)
+npm update -g @akiojin/unity-mcp-server
+
+# Or reinstall
+npm uninstall -g @akiojin/unity-mcp-server
+npm install -g @akiojin/unity-mcp-server
+```
+
+**Verification**: After restart, your MCP client should display 107 available tools.
+
 ## Repository
 
 Full source code and documentation: <https://github.com/akiojin/unity-mcp-server>

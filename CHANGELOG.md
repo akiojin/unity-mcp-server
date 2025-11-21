@@ -1,3 +1,73 @@
+## [2.41.0](https://github.com/akiojin/unity-mcp-server/compare/v2.40.6...v2.41.0) (2025-11-21)
+
+
+### Features
+
+* bundle better-sqlite3 prebuilt artifacts ([34d4daa](https://github.com/akiojin/unity-mcp-server/commit/34d4daa69e238b8d47ce0e66ce4d710af5aeb256))
+
+
+### Bug Fixes
+
+* add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
+
+## [2.40.6](https://github.com/akiojin/unity-mcp-server/compare/v2.40.5...v2.40.6) (2025-11-19)
+
+
+### Bug Fixes
+
+* skip native rebuild by default to avoid first-run timeout ([60eb8fa](https://github.com/akiojin/unity-mcp-server/commit/60eb8fa1c7f68f79e674614f33d307738c3a8725))
+
+## [2.40.5](https://github.com/akiojin/unity-mcp-server/compare/v2.40.4...v2.40.5) (2025-11-19)
+
+
+### Bug Fixes
+
+* **docs:** note first-time npx timeout and warmup ([e57572f](https://github.com/akiojin/unity-mcp-server/commit/e57572f1ce786440b1cfc14809a3200771babc73))
+
+## [2.40.4](https://github.com/akiojin/unity-mcp-server/compare/v2.40.3...v2.40.4) (2025-11-19)
+
+
+### Bug Fixes
+
+* better-sqlite3再構築とWASMフォールバック ([780bab8](https://github.com/akiojin/unity-mcp-server/commit/780bab8e00788b5b202784a3d9de6765ee3ff028))
+
+## [2.40.3](https://github.com/akiojin/unity-mcp-server/compare/v2.40.2...v2.40.3) (2025-11-18)
+
+
+### Bug Fixes
+
+* **mcp-server:** remove unused resources and prompts handlers ([56237d9](https://github.com/akiojin/unity-mcp-server/commit/56237d9eb87359b8a3a8834137c8f0537bc1dc96))
+* **mcp:** resolve "Capabilities: none" issue in MCP SDK v0.6.1 ([c497d3a](https://github.com/akiojin/unity-mcp-server/commit/c497d3aed3bdada65e25803f4a00c2de9dce87f2))
+
+## [2.40.2](https://github.com/akiojin/unity-mcp-server/compare/v2.40.1...v2.40.2) (2025-11-18)
+
+
+### Bug Fixes
+
+* **docs:** remove remaining pnpm references from README.ja.md ([95fef1e](https://github.com/akiojin/unity-mcp-server/commit/95fef1e1f24590f7757ae8709dd2b4203a577f4d)), closes [#104](https://github.com/akiojin/unity-mcp-server/issues/104)
+
+## [2.40.1](https://github.com/akiojin/unity-mcp-server/compare/v2.40.0...v2.40.1) (2025-11-18)
+
+
+### Bug Fixes
+
+* **ci:** improve release workflow duplicate execution prevention ([241cf79](https://github.com/akiojin/unity-mcp-server/commit/241cf797c4bb8b2e88a034d09c6ab2b5eca012c1))
+
+## [2.40.0](https://github.com/akiojin/unity-mcp-server/compare/v2.39.2...v2.40.0) (2025-11-18)
+
+
+### Features
+
+* **code-index:** add auto-initialization and percentage-based progress logging ([52e738a](https://github.com/akiojin/unity-mcp-server/commit/52e738ac25e8d22113d63fa785651c3a3b7d3178))
+* **index-watcher:** add DB existence check and auto-rebuild on deletion ([7bf65e1](https://github.com/akiojin/unity-mcp-server/commit/7bf65e18b8622575589c1e2c6faff6ad19abb31c))
+* **index:** enable IndexWatcher by default and add DB deletion recovery ([8783471](https://github.com/akiojin/unity-mcp-server/commit/87834710eea5cde3734ff00e34fcfaade6361395))
+
+
+### Bug Fixes
+
+* **index-watcher:** use fs.existsSync for DB file check instead of isReady() ([a300d9c](https://github.com/akiojin/unity-mcp-server/commit/a300d9c5ee74700c3a72bd2ae6cfcfe754df4772))
+* update Docker configuration for codex auth.json synchronization ([ce4e7ec](https://github.com/akiojin/unity-mcp-server/commit/ce4e7ecb6bde5947aa10e327ba12efe7e91c5600))
+
 ## [2.39.2](https://github.com/akiojin/unity-mcp-server/compare/v2.39.1...v2.39.2) (2025-11-18)
 
 

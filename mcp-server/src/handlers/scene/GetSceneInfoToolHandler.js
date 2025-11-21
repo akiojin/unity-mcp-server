@@ -5,16 +5,16 @@ import { getSceneInfoToolDefinition, getSceneInfoHandler } from '../../tools/sce
  * Handler for get_scene_info tool
  */
 export class GetSceneInfoToolHandler extends BaseToolHandler {
-    constructor(unityConnection) {
-        super(
-            getSceneInfoToolDefinition.name,
-            getSceneInfoToolDefinition.description,
-            getSceneInfoToolDefinition.inputSchema
-        );
-        this.unityConnection = unityConnection;
-    }
+  constructor(unityConnection) {
+    super(
+      getSceneInfoToolDefinition.name,
+      getSceneInfoToolDefinition.description,
+      getSceneInfoToolDefinition.inputSchema
+    );
+    this.unityConnection = unityConnection;
+  }
 
-    async execute(args) {
-        return getSceneInfoHandler(this.unityConnection, args);
-    }
+  async execute(args) {
+    return getSceneInfoHandler(this.unityConnection, args);
+  }
 }

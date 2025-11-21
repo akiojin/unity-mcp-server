@@ -53,31 +53,39 @@ describe('InputKeyboardToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with press action and key', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'press',
-        key: 'space'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'press',
+          key: 'space'
+        })
+      );
     });
 
     it('should pass with release action and key', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'release',
-        key: 'space'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'release',
+          key: 'space'
+        })
+      );
     });
 
     it('should pass with type action and text', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'type',
-        text: 'Hello World'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'type',
+          text: 'Hello World'
+        })
+      );
     });
 
     it('should pass with combo action and keys array', () => {
-      assert.doesNotThrow(() => handler.validate({
-        action: 'combo',
-        keys: ['ctrl', 'c']
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          action: 'combo',
+          keys: ['ctrl', 'c']
+        })
+      );
     });
 
     it('should throw error when action is missing', () => {
@@ -97,24 +105,35 @@ describe('InputKeyboardToolHandler', () => {
     });
 
     it('should throw error when keys is empty for combo', () => {
-      assert.throws(() => handler.validate({ action: 'combo', keys: [] }), /keys array is required/);
+      assert.throws(
+        () => handler.validate({ action: 'combo', keys: [] }),
+        /keys array is required/
+      );
     });
 
     it('should validate batched actions array', () => {
-      assert.doesNotThrow(() => handler.validate({
-        actions: [
-          { action: 'press', key: 'w' },
-          { action: 'release', key: 'w' }
-        ]
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          actions: [
+            { action: 'press', key: 'w' },
+            { action: 'release', key: 'w' }
+          ]
+        })
+      );
     });
 
     it('should throw error when actions array is empty', () => {
-      assert.throws(() => handler.validate({ actions: [] }), /actions must contain at least one entry/);
+      assert.throws(
+        () => handler.validate({ actions: [] }),
+        /actions must contain at least one entry/
+      );
     });
 
     it('should throw error when holdSeconds is negative', () => {
-      assert.throws(() => handler.validate({ action: 'press', key: 'a', holdSeconds: -1 }), /holdSeconds must be zero or positive/);
+      assert.throws(
+        () => handler.validate({ action: 'press', key: 'a', holdSeconds: -1 }),
+        /holdSeconds must be zero or positive/
+      );
     });
   });
 

@@ -20,7 +20,7 @@ describe('SettingsUpdateToolHandler', () => {
               code: 'CONFIRMATION_REQUIRED'
             };
           }
-          
+
           return {
             success: true,
             results: {
@@ -36,7 +36,7 @@ describe('SettingsUpdateToolHandler', () => {
         throw new Error(`Unknown command: ${command}`);
       }
     };
-    
+
     handler = new SettingsUpdateToolHandler(mockConnection);
   });
 
@@ -56,85 +56,102 @@ describe('SettingsUpdateToolHandler', () => {
     });
 
     it('should pass validation with confirmChanges and settings', () => {
-      assert.doesNotThrow(() => handler.validate({
-        confirmChanges: true,
-        player: { version: '1.0.0' }
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          confirmChanges: true,
+          player: { version: '1.0.0' }
+        })
+      );
     });
 
     it('should validate globalVolume range', () => {
       assert.throws(
-        () => handler.validate({
-          confirmChanges: true,
-          audio: { globalVolume: 1.5 }
-        }),
+        () =>
+          handler.validate({
+            confirmChanges: true,
+            audio: { globalVolume: 1.5 }
+          }),
         /globalVolume must be a number between 0 and 1/
       );
-      
-      assert.doesNotThrow(() => handler.validate({
-        confirmChanges: true,
-        audio: { globalVolume: 0.5 }
-      }));
+
+      assert.doesNotThrow(() =>
+        handler.validate({
+          confirmChanges: true,
+          audio: { globalVolume: 0.5 }
+        })
+      );
     });
 
     it('should validate vSyncCount range', () => {
       assert.throws(
-        () => handler.validate({
-          confirmChanges: true,
-          quality: { vSyncCount: 5 }
-        }),
+        () =>
+          handler.validate({
+            confirmChanges: true,
+            quality: { vSyncCount: 5 }
+          }),
         /vSyncCount must be an integer between 0 and 4/
       );
-      
-      assert.doesNotThrow(() => handler.validate({
-        confirmChanges: true,
-        quality: { vSyncCount: 1 }
-      }));
+
+      assert.doesNotThrow(() =>
+        handler.validate({
+          confirmChanges: true,
+          quality: { vSyncCount: 1 }
+        })
+      );
     });
 
     it('should validate antiAliasing values', () => {
       assert.throws(
-        () => handler.validate({
-          confirmChanges: true,
-          quality: { antiAliasing: 3 }
-        }),
+        () =>
+          handler.validate({
+            confirmChanges: true,
+            quality: { antiAliasing: 3 }
+          }),
         /antiAliasing must be 0, 2, 4, or 8/
       );
-      
-      assert.doesNotThrow(() => handler.validate({
-        confirmChanges: true,
-        quality: { antiAliasing: 4 }
-      }));
+
+      assert.doesNotThrow(() =>
+        handler.validate({
+          confirmChanges: true,
+          quality: { antiAliasing: 4 }
+        })
+      );
     });
 
     it('should validate colorSpace values', () => {
       assert.throws(
-        () => handler.validate({
-          confirmChanges: true,
-          graphics: { colorSpace: 'sRGB' }
-        }),
+        () =>
+          handler.validate({
+            confirmChanges: true,
+            graphics: { colorSpace: 'sRGB' }
+          }),
         /colorSpace must be either "Gamma" or "Linear"/
       );
-      
-      assert.doesNotThrow(() => handler.validate({
-        confirmChanges: true,
-        graphics: { colorSpace: 'Linear' }
-      }));
+
+      assert.doesNotThrow(() =>
+        handler.validate({
+          confirmChanges: true,
+          graphics: { colorSpace: 'Linear' }
+        })
+      );
     });
 
     it('should validate timeScale range', () => {
       assert.throws(
-        () => handler.validate({
-          confirmChanges: true,
-          time: { timeScale: -1 }
-        }),
+        () =>
+          handler.validate({
+            confirmChanges: true,
+            time: { timeScale: -1 }
+          }),
         /timeScale must be a non-negative number/
       );
-      
-      assert.doesNotThrow(() => handler.validate({
-        confirmChanges: true,
-        time: { timeScale: 1.5 }
-      }));
+
+      assert.doesNotThrow(() =>
+        handler.validate({
+          confirmChanges: true,
+          time: { timeScale: 1.5 }
+        })
+      );
     });
   });
 
@@ -147,7 +164,7 @@ describe('SettingsUpdateToolHandler', () => {
           version: '2.0.0'
         }
       });
-      
+
       assert.ok(result.success);
       assert.ok(result.results.player);
       assert.equal(result.message, 'Settings updated successfully.');
@@ -155,10 +172,11 @@ describe('SettingsUpdateToolHandler', () => {
 
     it('should handle confirmation required error', async () => {
       await assert.rejects(
-        async () => await handler.execute({
-          confirmChanges: false,
-          player: { version: '1.0.0' }
-        }),
+        async () =>
+          await handler.execute({
+            confirmChanges: false,
+            player: { version: '1.0.0' }
+          }),
         /Settings update requires confirmation/
       );
     });
@@ -167,12 +185,13 @@ describe('SettingsUpdateToolHandler', () => {
       mockConnection.sendCommand = async () => {
         return { error: 'Unity error occurred' };
       };
-      
+
       await assert.rejects(
-        async () => await handler.execute({
-          confirmChanges: true,
-          player: { version: '1.0.0' }
-        }),
+        async () =>
+          await handler.execute({
+            confirmChanges: true,
+            player: { version: '1.0.0' }
+          }),
         /Unity error occurred/
       );
     });
@@ -180,8 +199,10 @@ describe('SettingsUpdateToolHandler', () => {
     it('should connect if not connected', async () => {
       let connectCalled = false;
       mockConnection.isConnected = () => false;
-      mockConnection.connect = async () => { connectCalled = true; };
-      
+      mockConnection.connect = async () => {
+        connectCalled = true;
+      };
+
       await handler.execute({
         confirmChanges: true,
         player: { version: '1.0.0' }
@@ -193,13 +214,13 @@ describe('SettingsUpdateToolHandler', () => {
   describe('getExamples', () => {
     it('should return example usage scenarios', () => {
       const examples = handler.getExamples();
-      
+
       assert.ok(examples.updatePlayerSettings);
       assert.ok(examples.updatePhysicsSettings);
       assert.ok(examples.updateQualitySettings);
       assert.ok(examples.updateMultipleCategories);
       assert.ok(examples.safetyCheckExample);
-      
+
       // Verify safety check example has confirmChanges: false
       assert.equal(examples.safetyCheckExample.params.confirmChanges, false);
     });
@@ -219,19 +240,19 @@ describe('SettingsUpdateToolHandler', () => {
 
     it('should have detailed property schemas', () => {
       const schema = handler.inputSchema;
-      
+
       // Check player properties
       assert.ok(schema.properties.player.properties.companyName);
       assert.ok(schema.properties.player.properties.productName);
       assert.ok(schema.properties.player.properties.version);
-      
+
       // Check graphics properties
       assert.deepEqual(schema.properties.graphics.properties.colorSpace.enum, ['Gamma', 'Linear']);
-      
+
       // Check audio properties
       assert.equal(schema.properties.audio.properties.globalVolume.minimum, 0);
       assert.equal(schema.properties.audio.properties.globalVolume.maximum, 1);
-      
+
       // Check quality properties
       assert.deepEqual(schema.properties.quality.properties.antiAliasing.enum, [0, 2, 4, 8]);
     });

@@ -5,37 +5,36 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class ConsoleClearToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'console_clear',
-      'Clear Console logs (optionally set auto-clear and preserve levels).',
-      {
-        type: 'object',
-        properties: {
-          clearOnPlay: {
-            type: 'boolean',
-            description: 'Clear console when entering play mode. Unity default: false. Set to true for cleaner testing sessions'
-          },
-          clearOnRecompile: {
-            type: 'boolean',
-            description: 'Clear console on script recompilation. Unity default: false. Set to true to focus on current compilation errors'
-          },
-          clearOnBuild: {
-            type: 'boolean',
-            description: 'Clear console when building. Unity default: false. Set to true for clean build logs'
-          },
-          preserveWarnings: {
-            type: 'boolean',
-            description: 'Preserve warning messages when clearing (default: false)'
-          },
-          preserveErrors: {
-            type: 'boolean',
-            description: 'Preserve error messages when clearing (default: false)'
-          }
+    super('console_clear', 'Clear Console logs (optionally set auto-clear and preserve levels).', {
+      type: 'object',
+      properties: {
+        clearOnPlay: {
+          type: 'boolean',
+          description:
+            'Clear console when entering play mode. Unity default: false. Set to true for cleaner testing sessions'
         },
-        required: []
-      }
-    );
-    
+        clearOnRecompile: {
+          type: 'boolean',
+          description:
+            'Clear console on script recompilation. Unity default: false. Set to true to focus on current compilation errors'
+        },
+        clearOnBuild: {
+          type: 'boolean',
+          description:
+            'Clear console when building. Unity default: false. Set to true for clean build logs'
+        },
+        preserveWarnings: {
+          type: 'boolean',
+          description: 'Preserve warning messages when clearing (default: false)'
+        },
+        preserveErrors: {
+          type: 'boolean',
+          description: 'Preserve error messages when clearing (default: false)'
+        }
+      },
+      required: []
+    });
+
     this.unityConnection = unityConnection;
   }
 
@@ -45,13 +44,8 @@ export class ConsoleClearToolHandler extends BaseToolHandler {
    * @throws {Error} If validation fails
    */
   validate(params) {
-    const {
-      clearOnPlay,
-      clearOnRecompile,
-      clearOnBuild,
-      preserveWarnings,
-      preserveErrors
-    } = params;
+    const { clearOnPlay, clearOnRecompile, clearOnBuild, preserveWarnings, preserveErrors } =
+      params;
 
     // Validate boolean parameters
     if (clearOnPlay !== undefined && typeof clearOnPlay !== 'boolean') {
@@ -75,9 +69,10 @@ export class ConsoleClearToolHandler extends BaseToolHandler {
     }
 
     // Validate logical consistency
-    const isClearing = clearOnPlay !== false || clearOnRecompile !== false || clearOnBuild !== false;
+    const isClearing =
+      clearOnPlay !== false || clearOnRecompile !== false || clearOnBuild !== false;
     const isPreserving = preserveWarnings === true || preserveErrors === true;
-    
+
     if (isPreserving && !isClearing) {
       throw new Error('Cannot preserve specific log types when not clearing console');
     }
@@ -89,13 +84,8 @@ export class ConsoleClearToolHandler extends BaseToolHandler {
    * @returns {Promise<Object>} The result of the clear operation
    */
   async execute(params) {
-    const {
-      clearOnPlay,
-      clearOnRecompile,
-      clearOnBuild,
-      preserveWarnings,
-      preserveErrors
-    } = params;
+    const { clearOnPlay, clearOnRecompile, clearOnBuild, preserveWarnings, preserveErrors } =
+      params;
 
     // Ensure connection to Unity
     if (!this.unityConnection.isConnected()) {

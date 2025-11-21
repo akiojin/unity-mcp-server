@@ -5,28 +5,25 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class SceneListToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'scene_list',
-      'List scenes in project (filter to loaded/build scenes or by path).',
-      {
-        type: 'object',
-        properties: {
-          includeLoadedOnly: {
-            type: 'boolean',
-            description: 'Only include currently loaded scenes (default: false)'
-          },
-          includeBuildScenesOnly: {
-            type: 'boolean',
-            description: 'Only include scenes in build settings (default: false)'
-          },
-          includePath: {
-            type: 'string',
-            description: 'Filter scenes by path pattern (e.g., "Levels" to find scenes in Levels folder)'
-          }
+    super('scene_list', 'List scenes in project (filter to loaded/build scenes or by path).', {
+      type: 'object',
+      properties: {
+        includeLoadedOnly: {
+          type: 'boolean',
+          description: 'Only include currently loaded scenes (default: false)'
         },
-        required: []
-      }
-    );
+        includeBuildScenesOnly: {
+          type: 'boolean',
+          description: 'Only include scenes in build settings (default: false)'
+        },
+        includePath: {
+          type: 'string',
+          description:
+            'Filter scenes by path pattern (e.g., "Levels" to find scenes in Levels folder)'
+        }
+      },
+      required: []
+    });
     this.unityConnection = unityConnection;
   }
 
@@ -40,10 +37,10 @@ export class SceneListToolHandler extends BaseToolHandler {
     if (!this.unityConnection.isConnected()) {
       throw new Error('Unity connection not available');
     }
-    
+
     // Send command to Unity
     const result = await this.unityConnection.sendCommand('list_scenes', params);
-    
+
     // The unityConnection.sendCommand already extracts the result field
     // Check for Unity-side errors
     if (result && result.error) {
@@ -51,7 +48,7 @@ export class SceneListToolHandler extends BaseToolHandler {
       error.code = 'UNITY_ERROR';
       throw error;
     }
-    
+
     // Return the result directly since it's already unwrapped
     return result;
   }

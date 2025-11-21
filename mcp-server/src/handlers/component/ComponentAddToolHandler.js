@@ -28,7 +28,7 @@ export class ComponentAddToolHandler extends BaseToolHandler {
         required: ['gameObjectPath', 'componentType']
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -39,7 +39,7 @@ export class ComponentAddToolHandler extends BaseToolHandler {
    */
   validate(params) {
     super.validate(params); // Check required fields
-    
+
     const { gameObjectPath, componentType } = params;
 
     if (!gameObjectPath || gameObjectPath.trim() === '') {

@@ -14,16 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.20.0
-          run_install: false
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
       - name: Install build tools (Linux)
         if: runner.os == 'Linux'
@@ -32,22 +27,22 @@ jobs:
           sudo apt-get install -y build-essential python3 make gcc g++
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Run Markdownlint
         working-directory: ./mcp-server
         run: >
-          pnpm exec markdownlint "./**/*.md"
+          npx markdownlint "./**/*.md"
           --config ../.markdownlint.json
           --ignore-path ../.markdownlintignore
 
       - name: Run ESLint
         working-directory: ./mcp-server
-        run: pnpm exec eslint src tests --ext .js --max-warnings=0
+        run: npx eslint src tests --ext .js --max-warnings=0
 
       - name: Check formatting
         working-directory: ./mcp-server
-        run: pnpm exec prettier --check .
+        run: npx prettier --check .
         continue-on-error: true
 
   commitlint:
@@ -61,23 +56,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.20.0
-          run_install: false
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Validate commit messages
         run: >
-          pnpm exec commitlint
+          npx commitlint
           --from ${{ github.event.pull_request.base.sha }}
           --to ${{ github.event.pull_request.head.sha }}
           --verbose

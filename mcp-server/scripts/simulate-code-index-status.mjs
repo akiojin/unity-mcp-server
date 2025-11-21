@@ -14,7 +14,7 @@ const options = {
   throttleMs: 50,
   pollMs: 500,
   reset: false,
-  delayStartMs: 0,
+  delayStartMs: 0
 };
 
 for (const arg of argv) {
@@ -44,8 +44,12 @@ Options:
 }
 
 const mockUnityConnection = {
-  isConnected() { return false; },
-  sendCommand() { throw new Error('Unity connection not available in simulation'); }
+  isConnected() {
+    return false;
+  },
+  sendCommand() {
+    throw new Error('Unity connection not available in simulation');
+  }
 };
 
 const buildHandler = new CodeIndexBuildToolHandler(mockUnityConnection);
@@ -68,7 +72,10 @@ const projectInfo = new ProjectInfoProvider(mockUnityConnection);
   }
 
   console.log('[simulate] Starting code_index_build with throttleMs =', options.throttleMs);
-  const buildResult = await buildHandler.execute({ throttleMs: options.throttleMs, delayStartMs: options.delayStartMs });
+  const buildResult = await buildHandler.execute({
+    throttleMs: options.throttleMs,
+    delayStartMs: options.delayStartMs
+  });
   console.log('[simulate] Job ID:', buildResult.jobId);
 
   const interval = setInterval(async () => {
@@ -81,7 +88,7 @@ const projectInfo = new ProjectInfoProvider(mockUnityConnection);
         rows: status.index?.rows,
         jobStatus: job?.status ?? null,
         processed: job?.progress?.processed ?? null,
-        total: job?.progress?.total ?? null,
+        total: job?.progress?.total ?? null
       };
       console.log('[status]', JSON.stringify(line));
 

@@ -54,47 +54,53 @@ describe('InputBindingCompositeCreateToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with required parameters for 2D Vector', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap',
-        actionName: 'Move',
-        bindings: {
-          up: '<Keyboard>/w',
-          down: '<Keyboard>/s',
-          left: '<Keyboard>/a',
-          right: '<Keyboard>/d'
-        }
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap',
+          actionName: 'Move',
+          bindings: {
+            up: '<Keyboard>/w',
+            down: '<Keyboard>/s',
+            left: '<Keyboard>/a',
+            right: '<Keyboard>/d'
+          }
+        })
+      );
     });
 
     it('should pass with required parameters for 1D Axis', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap',
-        actionName: 'Throttle',
-        compositeType: '1DAxis',
-        bindings: {
-          negative: '<Keyboard>/s',
-          positive: '<Keyboard>/w'
-        }
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap',
+          actionName: 'Throttle',
+          compositeType: '1DAxis',
+          bindings: {
+            negative: '<Keyboard>/s',
+            positive: '<Keyboard>/w'
+          }
+        })
+      );
     });
 
     it('should pass with optional parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap',
-        actionName: 'Move',
-        compositeType: '2DVector',
-        name: 'WASD',
-        bindings: {
-          up: '<Keyboard>/w',
-          down: '<Keyboard>/s',
-          left: '<Keyboard>/a',
-          right: '<Keyboard>/d'
-        },
-        groups: 'Keyboard&Mouse'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap',
+          actionName: 'Move',
+          compositeType: '2DVector',
+          name: 'WASD',
+          bindings: {
+            up: '<Keyboard>/w',
+            down: '<Keyboard>/s',
+            left: '<Keyboard>/a',
+            right: '<Keyboard>/d'
+          },
+          groups: 'Keyboard&Mouse'
+        })
+      );
     });
   });
 
@@ -113,7 +119,10 @@ describe('InputBindingCompositeCreateToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_binding_composite_create');
+      assert.equal(
+        mockConnection.sendCommand.mock.calls[0].arguments[0],
+        'input_binding_composite_create'
+      );
 
       assert.ok(result);
       assert.ok(result.content);

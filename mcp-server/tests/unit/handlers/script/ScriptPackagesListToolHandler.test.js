@@ -38,9 +38,11 @@ describe('ScriptPackagesListToolHandler', () => {
     });
 
     it('should pass with includeBuiltIn parameter', () => {
-      assert.doesNotThrow(() => handler.validate({
-        includeBuiltIn: true
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          includeBuiltIn: true
+        })
+      );
     });
   });
 

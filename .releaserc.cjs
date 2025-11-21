@@ -54,6 +54,10 @@ module.exports = {
           'CHANGELOG.md',
           'UnityMCPServer/Packages/unity-mcp-server/package.json'
         ],
+        // IMPORTANT: Changing this message format requires updating .github/workflows/release.yml
+        // The workflow uses this format to detect and skip duplicate executions:
+        // - semantic-release job: skips when message starts with 'chore(release):'
+        // - merge-to-main job: executes when message starts with 'chore(release):'
         message: 'chore(release): ${nextRelease.version}\n\n${nextRelease.notes}'
       }
     ],

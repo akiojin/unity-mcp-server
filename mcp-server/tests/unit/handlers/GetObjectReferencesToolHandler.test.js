@@ -8,17 +8,15 @@ describe('GetObjectReferencesToolHandler', () => {
   let mockConnection;
 
   beforeEach(() => {
-        mockConnection = createMockUnityConnection({
+    mockConnection = createMockUnityConnection({
       sendCommandResult: {
         status: 'success',
         result: {
           references: {
-            outgoing: [
-              {"gameObjectName":"Target","component":"Script","field":"target"}
-            ],
+            outgoing: [{ gameObjectName: 'Target', component: 'Script', field: 'target' }],
             incoming: []
           },
-          summary: "TestObject has 1 outgoing reference and 0 incoming references"
+          summary: 'TestObject has 1 outgoing reference and 0 incoming references'
         }
       }
     });
@@ -29,39 +27,36 @@ describe('GetObjectReferencesToolHandler', () => {
     it('should initialize with correct properties', () => {
       assert.ok(handler.name);
       assert.ok(handler.description);
-      assert.deepEqual(handler.inputSchema.required, ["gameObjectName"]);
+      assert.deepEqual(handler.inputSchema.required, ['gameObjectName']);
     });
   });
 
   describe('validate', () => {
     it('should pass with valid parameters', () => {
-      assert.doesNotThrow(() => handler.validate({"gameObjectName":"TestObject"}));
+      assert.doesNotThrow(() => handler.validate({ gameObjectName: 'TestObject' }));
     });
 
     it('should fail with missing required parameter', () => {
-      assert.throws(
-        () => handler.validate({}),
-        /Missing required parameter: gameObjectName/
-      );
+      assert.throws(() => handler.validate({}), /Missing required parameter: gameObjectName/);
     });
   });
 
-    describe('execute', () => {
+  describe('execute', () => {
     it('should execute successfully with valid params', async () => {
-      const result = await handler.execute({"gameObjectName":"TestObject"});
-      
+      const result = await handler.execute({ gameObjectName: 'TestObject' });
+
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
       assert.ok(result);
       assert.ok(result.content);
       assert.equal(result.isError, false);
-      assert.ok(result.content[0].text.includes("1 outgoing reference"));
+      assert.ok(result.content[0].text.includes('1 outgoing reference'));
     });
 
     it('should return error if not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      
-      const result = await handler.execute({"gameObjectName":"TestObject"});
-      
+
+      const result = await handler.execute({ gameObjectName: 'TestObject' });
+
       assert.ok(result);
       assert.equal(result.isError, true);
       assert.ok(result.content[0].text.includes('Unity connection not available'));
@@ -70,8 +65,8 @@ describe('GetObjectReferencesToolHandler', () => {
 
   describe('integration with BaseToolHandler', () => {
     it('should handle valid request through handle method', async () => {
-      const result = await handler.handle({"gameObjectName":"TestObject"});
-      
+      const result = await handler.handle({ gameObjectName: 'TestObject' });
+
       assert.equal(result.status, 'success');
       assert.ok(result.result);
       assert.ok(result.result.content);
@@ -80,7 +75,7 @@ describe('GetObjectReferencesToolHandler', () => {
 
     it('should return error for validation failure', async () => {
       const result = await handler.handle({});
-      
+
       assert.equal(result.status, 'error');
       assert.match(result.error, /Missing required parameter: gameObjectName/);
     });

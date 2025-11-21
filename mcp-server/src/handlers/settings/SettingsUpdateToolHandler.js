@@ -110,14 +110,18 @@ export class SettingsUpdateToolHandler extends BaseToolHandler {
                 enum: [0, 2, 4, 8],
                 description: 'Anti-aliasing samples'
               },
-              shadowDistance: { type: 'number', minimum: 0, description: 'Shadow rendering distance' }
+              shadowDistance: {
+                type: 'number',
+                minimum: 0,
+                description: 'Shadow rendering distance'
+              }
             }
           }
         },
         required: ['confirmChanges']
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -129,13 +133,23 @@ export class SettingsUpdateToolHandler extends BaseToolHandler {
   validate(params) {
     // Require explicit confirmation
     if (!params.confirmChanges) {
-      throw new Error('confirmChanges must be set to true to update settings. This is a safety measure to prevent accidental changes.');
+      throw new Error(
+        'confirmChanges must be set to true to update settings. This is a safety measure to prevent accidental changes.'
+      );
     }
 
     // Check that at least one settings category is provided
-    const settingsCategories = ['player', 'graphics', 'physics', 'physics2D', 'audio', 'time', 'quality'];
+    const settingsCategories = [
+      'player',
+      'graphics',
+      'physics',
+      'physics2D',
+      'audio',
+      'time',
+      'quality'
+    ];
     const hasSettings = settingsCategories.some(cat => params[cat] !== undefined);
-    
+
     if (!hasSettings) {
       throw new Error('At least one settings category must be provided to update');
     }
@@ -261,7 +275,7 @@ export class SettingsUpdateToolHandler extends BaseToolHandler {
       safetyCheckExample: {
         description: 'Example showing safety check (will fail)',
         params: {
-          confirmChanges: false,  // This will trigger safety check
+          confirmChanges: false, // This will trigger safety check
           player: {
             productName: 'Accidental Change'
           }
