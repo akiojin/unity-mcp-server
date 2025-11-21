@@ -8,6 +8,16 @@ describe('UnityConnection Retry Logic', () => {
   let mockServer;
   let serverPort;
   let originalConfig;
+  const frame = obj => {
+    const payload = Buffer.from(JSON.stringify(obj), 'utf8');
+    const len = Buffer.allocUnsafe(4);
+    len.writeInt32BE(payload.length, 0);
+    return Buffer.concat([len, payload]);
+  };
+  const parseFrame = buf => {
+    const len = buf.readInt32BE(0);
+    return JSON.parse(buf.slice(4, 4 + len).toString('utf8'));
+  };
 
   beforeEach(async () => {
     // Store original config
@@ -18,6 +28,8 @@ describe('UnityConnection Retry Logic', () => {
     config.unity.reconnectDelay = 100;
     config.unity.maxReconnectDelay = 500;
     config.unity.commandTimeout = 1000;
+    config.unity.unityHost = 'localhost';
+    config.unity.mcpHost = 'localhost';
 
     connection = new UnityConnection();
   });
@@ -277,11 +289,16 @@ describe('UnityConnection Retry Logic', () => {
 
   describe('Command Handling During Reconnection', () => {
     it('should reject commands when not connected', async () => {
-      // Don't connect
+      // Force connect() to fail immediately
+      connection.connect = mock.fn(async () => {
+        throw new Error('Connection refused');
+      });
+      connection.connected = false;
+
       await assert.rejects(
         connection.sendCommand('test', {}),
-        /Not connected to Unity/,
-        'Should reject command when not connected'
+        /Connection refused|Failed to reconnect|Connection timeout/,
+        'Should bubble up connection failure when not connected'
       );
     });
 
@@ -292,13 +309,13 @@ describe('UnityConnection Retry Logic', () => {
         if (acceptConnections) {
           socket.on('data', data => {
             try {
-              const cmd = JSON.parse(data.toString());
+              const cmd = parseFrame(data);
               const response = {
                 id: cmd.id,
-                success: true,
-                data: { echo: cmd.type }
+                status: 'success',
+                result: { echo: cmd.type }
               };
-              socket.write(JSON.stringify(response) + '\n');
+              socket.write(frame(response));
             } catch (e) {
               // Ignore
             }
