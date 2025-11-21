@@ -195,7 +195,7 @@ sequenceDiagram
 
 ネイティブ拡張（`better-sqlite3` など）は **MCPサーバーを動かすOS上で依存関係をインストールしたとき** にのみ正しく構築されます。以下を必ず実施してください。
 
-> 初回 npx 実行の注意: 対応する prebuilt が無い環境では、最初の `npx @akiojin/unity-mcp-server@latest` で `better-sqlite3` のビルドに 60〜90 秒かかる場合があります。MCP クライアントの既定タイムアウト（30 秒）にかからないよう、事前に `npx -y @akiojin/unity-mcp-server@latest --help` でキャッシュを温めるか、`MCP_TIMEOUT=90000` などタイムアウトを延長して起動してください。初回ビルド待ちを避けるため、初期設定ではネイティブ再ビルドをスキップしています。ネイティブを強制したい場合は `UNITY_MCP_SKIP_NATIVE_BUILD=0` または `UNITY_MCP_FORCE_NATIVE=1` を指定してインストールしてください。
+> 初回 npx 実行の注意: linux/darwin/win32 (x64/arm64, Node 18/20/22) 向けに better-sqlite3 の prebuilt バイナリを同梱したため、`npx @akiojin/unity-mcp-server@latest` は数秒で完了します。追加のウォームアップやタイムアウト調整は不要です。非対応プラットフォームでは自動的に sql.js フォールバックに切り替わり、`UNITY_MCP_FORCE_NATIVE=1` を設定すればネイティブ再ビルドを強制できます。
 
 - **基本ルール**: `.mcp.json` で `"command": "node"`（例: `node bin/unity-mcp-server serve`）を使う場合は、MCPサーバーを動かすマシン／コンテナ内で本パッケージが展開されているディレクトリで `npm ci` を実行してから MCP クライアントを起動します。
 - **`npx` 実行**: README の例（`npx @akiojin/unity-mcp-server@latest`）は起動時に依存をダウンロードします。サポート対象の Node.js（18.x / 20.x / 22.x）では追加作業なしで利用できます。Node.js 23 以上はサポート外であり、サーバー起動時に拒否されます。
