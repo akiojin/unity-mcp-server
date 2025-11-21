@@ -1,3 +1,10 @@
+## [2.40.6](https://github.com/akiojin/unity-mcp-server/compare/v2.40.5...v2.40.6) (2025-11-19)
+
+
+### Bug Fixes
+
+* skip native rebuild by default to avoid first-run timeout ([60eb8fa](https://github.com/akiojin/unity-mcp-server/commit/60eb8fa1c7f68f79e674614f33d307738c3a8725))
+
 ## [2.40.5](https://github.com/akiojin/unity-mcp-server/compare/v2.40.4...v2.40.5) (2025-11-19)
 
 
