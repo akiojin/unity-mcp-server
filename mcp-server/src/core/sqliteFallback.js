@@ -1,13 +1,18 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 import initSqlJs from 'sql.js';
 
 // Create a lightweight better-sqlite3 compatible surface using sql.js (WASM)
 export async function createSqliteFallback(dbPath) {
+  const require = createRequire(import.meta.url);
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
   const pkgRoot = path.resolve(moduleDir, '..', '..');
-  const wasmPath = path.resolve(pkgRoot, 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm');
+  const wasmPath = require.resolve('sql.js/dist/sql-wasm.wasm', {
+    // Resolve from package-local node_modules first, then workspace root
+    paths: [path.join(pkgRoot, 'node_modules'), path.join(pkgRoot, '..', 'node_modules')]
+  });
   const SQL = await initSqlJs({ locateFile: () => wasmPath });
 
   const loadDb = () => {
