@@ -30,10 +30,14 @@ release-please を使って main の最新コミットからリリースPRを起
 
 ## スクリプト実行
 
-以下を実行してリリースPRを起動します：
+1. 先に develop → main のリリースPRを作成（必要な変更が develop にある場合）：
+   ```bash
+   scripts/prepare-release-pr.sh
+   ```
+   - PR が自動で作成され、Required Checks 完了後に自動マージされます。
+2. main に取り込まれたら、リリースPRを起動：
+   ```bash
+   scripts/create-release-pr.sh
+   ```
 
-```bash
-scripts/create-release-pr.sh
-```
-
-トリガー後は Actions の `create-release.yml` → `release.yml` → `publish.yml` の順で進むので、`gh run watch` か GitHub Actions 画面で進捗を確認してください。
+トリガー後は Actions の `prepare-release.yml`（ステップ1実行時）→ `create-release.yml` → `release.yml` → `publish.yml` の順で進むので、`gh run watch` か GitHub Actions 画面で進捗を確認してください。
