@@ -33,7 +33,7 @@ release-please を使って main の最新コミットからリリースPRを起
 以下を実行してリリースPRを起動します：
 
 ```bash
-scripts/create-release-branch.sh
+scripts/create-release-pr.sh
 ```
 
 トリガー後は Actions の `create-release.yml` → `release.yml` → `publish.yml` の順で進むので、`gh run watch` か GitHub Actions 画面で進捗を確認してください。
