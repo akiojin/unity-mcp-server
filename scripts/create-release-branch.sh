@@ -2,7 +2,7 @@
 set -euo pipefail
 
 echo "==========================================="
-echo "Creating Release Branch"
+echo "Create Release PR (release-please)"
 echo "==========================================="
 echo ""
 
@@ -15,8 +15,8 @@ fi
 
 echo "[1/2] Triggering GitHub Actions workflow..."
 
-# create-release.yml ワークフローを実行
-gh workflow run create-release.yml --ref develop
+# create-release.yml ワークフローを実行（mainベースで release-please を起動）
+gh workflow run create-release.yml --ref main
 
 echo "✓ Workflow triggered successfully"
 echo ""
@@ -33,7 +33,7 @@ gh run list --workflow=create-release.yml --limit 3
 
 echo ""
 echo "==========================================="
-echo "✓ Release branch creation initiated"
+echo "✓ release-please のリリースPR作成を開始しました"
 echo "==========================================="
 echo ""
 echo "To monitor progress, run:"
