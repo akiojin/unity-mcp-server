@@ -54,21 +54,21 @@ namespace UnityMCPServer.Handlers
                 s_IncludeUI = parameters["includeUI"]?.ToObject<bool>() ?? true;
                 s_MaxDurationSec = Math.Max(0, parameters["maxDurationSec"]?.ToObject<double>() ?? 0);
 
-                // 固定保存先: <project>/.unity/capture
+                // 固定保存先: <project>/.unity/captures
                 string format = parameters["format"]?.ToString() ?? "mp4";
                 if (!IsValidFormat(format))
                 {
                     return new { error = "Invalid format. Use 'mp4', 'webm' or 'png_sequence'", code = "E_INVALID_FORMAT" };
                 }
-                // 生成ファイルパスを固定で作成 (<workspace>/.unity/capture)
+                // 生成ファイルパスを固定で作成 (<workspace>/.unity/captures)
                 {
                     string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
                     var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
                     var workspaceRoot = ResolveWorkspaceRoot(projectRoot);
-                    var captureDir = Path.Combine(workspaceRoot, ".unity", "capture");
+                    var captureDir = Path.Combine(workspaceRoot, ".unity", "captures");
                     if (!Directory.Exists(captureDir)) Directory.CreateDirectory(captureDir);
                     string ext = string.Equals(format, "webm", StringComparison.OrdinalIgnoreCase) ? ".webm" : ".mp4";
-                    s_OutputPath = Path.Combine(captureDir, $"recording_{s_CaptureMode}_{timestamp}{ext}");
+                    s_OutputPath = Path.Combine(captureDir, $"video_{s_CaptureMode}_{timestamp}{ext}");
                 }
 
                 // Guard: dimensions
@@ -91,10 +91,10 @@ namespace UnityMCPServer.Handlers
                 s_MovieRecorderSettings = ScriptableObject.CreateInstance<MovieRecorderSettings>();
 
                 s_MovieRecorderSettings.Enabled = true;
-                // 出力先（ワークスペース直下 .unity/capture/<file>）に設定
+                // 出力先（ワークスペース直下 .unity/captures/<file>）に設定
                 var fileNoExt = Path.GetFileNameWithoutExtension(s_OutputPath);
                 s_MovieRecorderSettings.FileNameGenerator.Root = OutputPath.Root.Project;
-                s_MovieRecorderSettings.FileNameGenerator.Leaf = "/../.unity/capture";
+                s_MovieRecorderSettings.FileNameGenerator.Leaf = "/../.unity/captures";
                 s_MovieRecorderSettings.FileNameGenerator.FileName = fileNoExt;
                 // フォーマット設定はデフォルト（MP4/H.264）を使用
 

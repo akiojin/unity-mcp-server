@@ -859,11 +859,11 @@ README.mdにカバレッジバッジを追加する場合：
   - `Library/PackageCache/**` は自動生成（編集禁止）
   - エディタ拡張のスクショ/動画ハンドラ:
     - `Editor/Handlers/ScreenshotHandler.cs`:
-      - 保存先は常に `<workspace>/.unity/capture/screenshot_<mode>_<timestamp>.png`
+      - 保存先は常に `<workspace>/.unity/captures/image_<mode>_<timestamp>.png`
       - Nodeから受け取る `workspaceRoot` を優先。未受領時のみ `.unity/config.json` を用いてフォールバック解決。
     - `Editor/Handlers/VideoCaptureHandler.cs`:
       - Unity Recorder（必須依存）で mp4/webm へ録画。
-      - 保存先は常に `<workspace>/.unity/capture/recording_<mode>_<timestamp>.(mp4|webm)`。
+      - 保存先は常に `<workspace>/.unity/captures/video_<mode>_<timestamp>.(mp4|webm)`。
       - Nodeから受け取る `workspaceRoot` を優先採用。
 
 - `mcp-server/`（Node製 MCP サーバ）
@@ -882,13 +882,13 @@ README.mdにカバレッジバッジを追加する場合：
   - 成果物: 自己完結バイナリは `~/.unity/tools/csharp-lsp/<rid>/` 配下（Git管理外推奨）。
 
 ### パス解決ポリシー（統一）
-- スクリーンショット/動画の出力先は常にワークスペースルート固定の `./.unity/capture/`。
+- スクリーンショット/動画の出力先は常にワークスペースルート固定の `./.unity/captures/`。
 - Node側が `WORKSPACE_ROOT` を決定し、全Unityコマンドに `workspaceRoot` を付与。
 - Unity側は `workspaceRoot` を優先採用し、未受領時のみ `.unity/config.json` の `project.root` によるフォールバックでワークスペースを探索。
 - `process.cwd()` 変化・環境変数には依存しない。
 
 ### Git 管理
-- `/.unity/capture/` は `.gitignore` に登録（一時成果物の保護）。
+- `/.unity/captures/` は `.gitignore` に登録（一時成果物の保護）。
 - `Library/PackageCache/**` は編集禁止（生成物）。
 
 ### MCPサーバー開発メモ（汎用）

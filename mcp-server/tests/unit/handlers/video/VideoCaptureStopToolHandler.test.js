@@ -13,7 +13,7 @@ describe('VideoCaptureStopToolHandler', () => {
         success: true,
         recordingId: 'rec-12345',
         status: 'stopped',
-        outputPath: '.unity/capture/recording_game_20250117_120000.mp4',
+        outputPath: '.unity/captures/video_game_20250117_120000.mp4',
         duration: 15.5,
         fileSize: 5242880
       }
