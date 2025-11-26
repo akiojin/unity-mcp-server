@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.41.2](https://github.com/akiojin/unity-mcp-server/compare/v2.41.1...v2.41.2) (2025-11-26)
+
+
+### Bug Fixes
+
+* document release automation for mcp-server ([3fcb515](https://github.com/akiojin/unity-mcp-server/commit/3fcb51549835c187e56a27158207a5d381c4bd64))
+
 ## [2.41.1](https://github.com/akiojin/unity-mcp-server/compare/v2.41.0...v2.41.1) (2025-11-25)
 
 
