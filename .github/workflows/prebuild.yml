@@ -1,0 +1,239 @@
+name: Prebuild better-sqlite3
+
+on:
+  workflow_dispatch:
+    inputs:
+      better_sqlite3_version:
+        description: 'better-sqlite3 version to build (e.g., 11.10.0)'
+        required: false
+        default: ''
+  push:
+    paths:
+      - 'mcp-server/scripts/prebuild-better-sqlite3.mjs'
+      - '.github/workflows/prebuild.yml'
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prebuild:
+    name: Build ${{ matrix.platform }}-${{ matrix.arch }}-node${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x64
+          - os: ubuntu-22.04
+            platform: linux
+            arch: x64
+            node: 18
+          - os: ubuntu-22.04
+            platform: linux
+            arch: x64
+            node: 20
+          - os: ubuntu-22.04
+            platform: linux
+            arch: x64
+            node: 22
+          # Linux arm64 (cross-compile)
+          - os: ubuntu-22.04
+            platform: linux
+            arch: arm64
+            node: 18
+            cross: true
+          - os: ubuntu-22.04
+            platform: linux
+            arch: arm64
+            node: 20
+            cross: true
+          - os: ubuntu-22.04
+            platform: linux
+            arch: arm64
+            node: 22
+            cross: true
+          # macOS x64
+          - os: macos-13
+            platform: darwin
+            arch: x64
+            node: 18
+          - os: macos-13
+            platform: darwin
+            arch: x64
+            node: 20
+          - os: macos-13
+            platform: darwin
+            arch: x64
+            node: 22
+          # macOS arm64
+          - os: macos-14
+            platform: darwin
+            arch: arm64
+            node: 18
+          - os: macos-14
+            platform: darwin
+            arch: arm64
+            node: 20
+          - os: macos-14
+            platform: darwin
+            arch: arm64
+            node: 22
+          # Windows x64
+          - os: windows-2022
+            platform: win32
+            arch: x64
+            node: 18
+          - os: windows-2022
+            platform: win32
+            arch: x64
+            node: 20
+          - os: windows-2022
+            platform: win32
+            arch: x64
+            node: 22
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install cross-compile dependencies (Linux arm64)
+        if: matrix.cross == true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+      - name: Get better-sqlite3 version
+        id: version
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.better_sqlite3_version }}" ]; then
+            VERSION="${{ github.event.inputs.better_sqlite3_version }}"
+          else
+            VERSION=$(node -p "require('./mcp-server/package.json').dependencies['better-sqlite3'].replace(/[^0-9.]/g, '')")
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        working-directory: mcp-server
+        run: npm ci
+
+      - name: Build better-sqlite3 native binding
+        working-directory: mcp-server
+        shell: bash
+        env:
+          npm_config_arch: ${{ matrix.arch }}
+          CC: ${{ matrix.cross && 'aarch64-linux-gnu-gcc' || '' }}
+          CXX: ${{ matrix.cross && 'aarch64-linux-gnu-g++' || '' }}
+        run: |
+          # Rebuild better-sqlite3 from source
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            npm rebuild better-sqlite3 --build-from-source --target_arch=${{ matrix.arch }}
+          else
+            npm rebuild better-sqlite3 --build-from-source
+          fi
+
+      - name: Copy binding to prebuilt directory
+        shell: bash
+        run: |
+          PLATFORM_KEY="${{ matrix.platform }}-${{ matrix.arch }}-node${{ matrix.node }}"
+          PREBUILT_DIR="mcp-server/prebuilt/better-sqlite3/${PLATFORM_KEY}"
+          mkdir -p "${PREBUILT_DIR}"
+
+          # Find the built binding
+          if [ "${{ matrix.platform }}" = "win32" ]; then
+            BINDING="mcp-server/node_modules/better-sqlite3/build/Release/better_sqlite3.node"
+          else
+            BINDING="mcp-server/node_modules/better-sqlite3/build/Release/better_sqlite3.node"
+          fi
+
+          if [ -f "$BINDING" ]; then
+            cp "$BINDING" "${PREBUILT_DIR}/"
+            echo "Copied binding to ${PREBUILT_DIR}/"
+            ls -la "${PREBUILT_DIR}/"
+          else
+            echo "ERROR: Binding not found at $BINDING"
+            find mcp-server/node_modules/better-sqlite3 -name "*.node" || true
+            exit 1
+          fi
+
+      - name: Upload prebuilt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: prebuilt-${{ matrix.platform }}-${{ matrix.arch }}-node${{ matrix.node }}
+          path: mcp-server/prebuilt/better-sqlite3/${{ matrix.platform }}-${{ matrix.arch }}-node${{ matrix.node }}/
+          retention-days: 30
+
+  collect-prebuilts:
+    name: Collect all prebuilts
+    needs: prebuild
+    runs-on: ubuntu-latest
+    if: always() && needs.prebuild.result == 'success'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: prebuilt-*
+
+      - name: Organize prebuilts
+        run: |
+          mkdir -p mcp-server/prebuilt/better-sqlite3
+          for dir in artifacts/prebuilt-*/; do
+            platform_key=$(basename "$dir" | sed 's/^prebuilt-//')
+            mkdir -p "mcp-server/prebuilt/better-sqlite3/${platform_key}"
+            cp -r "$dir"* "mcp-server/prebuilt/better-sqlite3/${platform_key}/" || true
+          done
+          echo "Prebuilt directory structure:"
+          find mcp-server/prebuilt -type f -name "*.node" | head -20
+
+      - name: Upload combined prebuilts
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-prebuilts
+          path: mcp-server/prebuilt/
+          retention-days: 90
+
+      - name: Generate prebuilt manifest
+        run: |
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            const crypto = require("crypto");
+            const root = "mcp-server/prebuilt/better-sqlite3";
+            const manifest = { generated: new Date().toISOString(), binaries: [] };
+            if (fs.existsSync(root)) {
+              for (const platformKey of fs.readdirSync(root)) {
+                const dir = path.join(root, platformKey);
+                const binding = path.join(dir, "better_sqlite3.node");
+                if (fs.existsSync(binding)) {
+                  const data = fs.readFileSync(binding);
+                  const sha256 = crypto.createHash("sha256").update(data).digest("hex");
+                  const stat = fs.statSync(binding);
+                  manifest.binaries.push({
+                    platformKey,
+                    sha256,
+                    size: stat.size
+                  });
+                }
+              }
+            }
+            fs.writeFileSync("prebuilt-manifest.json", JSON.stringify(manifest, null, 2));
+            console.log(JSON.stringify(manifest, null, 2));
+          '
+
+      - name: Upload manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: prebuilt-manifest
+          path: prebuilt-manifest.json
