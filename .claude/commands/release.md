@@ -30,10 +30,11 @@ release-please を使って main の最新コミットからリリースPRを起
 
 ## スクリプト実行
 
-以下を実行してリリースPRを起動します：
+1. develop にリリースしたい変更がある場合は、まず develop → main のPRを作成（自動マージ設定）:
+   ```bash
+   scripts/prepare-release-pr.sh
+   ```
+2. PR がマージされ main に入ると、`release.yml` で release-please が自動実行され、タグ・GitHub Release が作成されます。
+3. タグ push で `publish.yml` が走り、npm / OpenUPM / csharp-lsp を配信、完了後 main→develop を自動バックマージします。
 
-```bash
-scripts/create-release-branch.sh
-```
-
-トリガー後は Actions の `create-release.yml` → `release.yml` → `publish.yml` の順で進むので、`gh run watch` か GitHub Actions 画面で進捗を確認してください。
+進捗確認は `gh run watch $(gh run list --workflow=prepare-release.yml --limit 1 --json databaseId --jq '.[0].databaseId')` などで可能です。

@@ -1,0 +1,37 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-merge-pr:
+    name: Create PR develop -> main (auto-merge)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or reuse PR develop -> main
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          pr_number=$(gh pr list --base main --head develop --json number --jq '.[0].number' || true)
+          if [ -z "$pr_number" ]; then
+            url=$(gh pr create \
+              --base main \
+              --head develop \
+              --title "chore(release): merge develop to main" \
+              --body "Automated release prep PR (develop -> main)")
+            pr_number=$(echo "$url" | grep -oE '[0-9]+$')
+            echo "Created PR #$pr_number"
+          else
+            echo "PR #$pr_number already exists"
+          fi
+          gh pr merge "$pr_number" --auto --merge
+          echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
+
+      - name: Show PR URL
+        run: |
+          echo "https://github.com/${{ github.repository }}/pull/${PR_NUMBER}" || true
