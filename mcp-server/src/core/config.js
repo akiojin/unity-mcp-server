@@ -47,7 +47,7 @@ function resolvePackageVersion() {
  * Base configuration for Unity MCP Server Server
  */
 const envUnityHost =
-  process.env.UNITY_UNITY_HOST || process.env.UNITY_BIND_HOST || process.env.UNITY_HOST || null;
+  process.env.UNITY_BIND_HOST || process.env.UNITY_HOST || null;
 
 const envMcpHost =
   process.env.UNITY_MCP_HOST || process.env.UNITY_CLIENT_HOST || process.env.UNITY_HOST || null;
