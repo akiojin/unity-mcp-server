@@ -35,6 +35,6 @@ release-please を使って main の最新コミットからリリースPRを起
    scripts/prepare-release-pr.sh
    ```
 2. PR がマージされ main に入ると、`release.yml` で release-please が自動実行され、タグ・GitHub Release が作成されます。
-3. タグ push で `publish.yml` が走り、npm / OpenUPM / csharp-lsp を配信、完了後 main→develop を自動バックマージします。
+3. タグ push で `publish.yml` が走り、npm / OpenUPM / csharp-lsp を配信します（バックマージは行いません）。
 
 進捗確認は `gh run watch $(gh run list --workflow=prepare-release.yml --limit 1 --json databaseId --jq '.[0].databaseId')` などで可能です。
