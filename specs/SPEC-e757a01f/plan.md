@@ -4,7 +4,7 @@
 
 **統合SPEC**:
 - SPEC-aa705b2b: コードインデックスビルドのバックグラウンド実行（実装完了）
-- SPEC-eb99c755: Prebuilt better-sqlite3 配布（未実装）
+- SPEC-eb99c755: Prebuilt better-sqlite3 配布（実装中）
 
 ## 概要
 
@@ -23,9 +23,12 @@
 - ✅ US-7: 軽量スニペット編集
 - ✅ US-8: バックグラウンドインデックスビルド
 
-### 未実装
+### 実装中
 
-- ⏳ US-9: 初回起動の高速化（Prebuilt better-sqlite3 配布）
+- 🔄 US-9: 初回起動の高速化（Prebuilt better-sqlite3 配布）
+  - TDDテスト: 11ユニット + 5統合テスト実装済み
+  - CIワークフロー: prebuild.yml作成済み
+  - 残タスク: CI統合テスト、ドキュメント更新
 
 ## 軽量スニペット編集の技術設計
 
