@@ -22,4 +22,4 @@ jobs:
           manifest-file: .release-please-manifest.json
           config-file: .release-please-config.json
           target-branch: main
-          skip-github-pull-request: true
+          skip-github-pull-request: false
