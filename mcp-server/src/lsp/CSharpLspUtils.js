@@ -213,7 +213,9 @@ export class CSharpLspUtils {
       if (process.platform !== 'win32') fs.chmodSync(dest, 0o755);
     } catch {}
     logger.info(`[csharp-lsp] downloaded: ${path.basename(dest)} @ ${path.dirname(dest)}`);
-    return targetVersion;
+    // manifestから実際のバージョンを取得（信頼性の高いソースとして使用）
+    const actualVersion = manifest.version || targetVersion;
+    return actualVersion;
   }
 
   async fetchLatestReleaseVersion(repo) {
