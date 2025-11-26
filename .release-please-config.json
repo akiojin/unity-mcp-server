@@ -12,7 +12,7 @@
       "extra-files": [
         {
           "type": "json",
-          "path": "../UnityMCPServer/Packages/unity-mcp-server/package.json",
+          "path": "UnityMCPServer/Packages/unity-mcp-server/package.json",
           "jsonpath": "$.version"
         }
       ]
