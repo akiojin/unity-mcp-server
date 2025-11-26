@@ -332,6 +332,30 @@ npm uninstall -g @akiojin/unity-mcp-server
 npm install -g @akiojin/unity-mcp-server
 ```
 
+### Native Module (better-sqlite3) Issues
+
+If you encounter errors related to `better-sqlite3` during installation or startup:
+
+**Symptom**: Installation fails with `node-gyp` errors, or startup shows "Could not locate the bindings file."
+
+**Cause**: The package includes prebuilt native binaries for supported platforms (Linux/macOS/Windows × x64/arm64 × Node 18/20/22). If your platform isn't supported or the prebuilt fails to load, the system falls back to WASM.
+
+**Solution 1 - Use WASM fallback (recommended for unsupported platforms)**:
+
+```bash
+# Skip native build and use sql.js WASM fallback
+UNITY_MCP_SKIP_NATIVE_BUILD=1 npm install @akiojin/unity-mcp-server
+```
+
+**Solution 2 - Force native rebuild**:
+
+```bash
+# Force rebuild from source (requires build tools)
+UNITY_MCP_FORCE_NATIVE=1 npm install @akiojin/unity-mcp-server
+```
+
+**Note**: WASM fallback is fully functional but may have slightly slower performance for large codebases. Code index features work normally in either mode.
+
 ### MCP Client Shows "Capabilities: none"
 
 If your MCP client (Claude Code, Cursor, etc.) shows "Capabilities: none" despite successful connection:
