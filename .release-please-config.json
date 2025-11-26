@@ -1,0 +1,21 @@
+{
+  "bootstrap-sha": "HEAD",
+  "default-branch": "main",
+  "pull-request-title-pattern": "chore(release): ${version}",
+  "packages": {
+    "mcp-server": {
+      "path": "mcp-server",
+      "package-name": "mcp-server",
+      "release-type": "node",
+      "changelog-path": "CHANGELOG.md",
+      "include-component-in-tag": false,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "UnityMCPServer/Packages/unity-mcp-server/package.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}

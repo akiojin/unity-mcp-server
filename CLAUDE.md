@@ -267,18 +267,18 @@ cd .worktrees/SPEC-0d5d84f9/
 
 **編集実行**:
 
-4. **`script_edit_structured`**: 構造化編集
+1. **`script_edit_structured`**: 構造化編集
    - メソッド本体の完全置換
    - クラスメンバーの追加
    - namePath指定で対象を一意に特定
 
-5. **`script_edit_snippet`**: 軽量スニペット編集
+2. **`script_edit_snippet`**: 軽量スニペット編集
    - 1〜2行の小さな変更
    - アンカー文字列で編集位置を厳密に指定
 
 **検証**:
 
-6. **`code_index_status`**: インデックス状態の確認
+1. **`code_index_status`**: インデックス状態の確認
    - カバレッジ率を確認
    - インデックスが古い場合は`code_index_update`で更新
 
@@ -471,7 +471,7 @@ cd .worktrees/SPEC-0d5d84f9/
 
 **コミットメッセージはバージョン番号とリリース内容を決定する唯一の情報源です。**
 
-本プロジェクトは**semantic-release**による完全自動リリースを採用しており、コミットメッセージの形式が不正確な場合、以下の重大な問題が発生します：
+本プロジェクトは**release-please + GitHub Actions**による自動リリースを採用しており、コミットメッセージの形式が不正確な場合、以下の重大な問題が発生します：
 
 - ❌ **意図しないバージョンアップ**: `feat:`を誤用すると不要なminorバージョンアップが発生
 - ❌ **リリースの欠落**: 正しい形式でないコミットはCHANGELOG.mdに記載されない
@@ -624,7 +624,7 @@ git commit -m "feat: add hooks and fix bug and update docs"
 - [ ] 1コミット1変更になっているか
 - [ ] commitlintが通るか（CI失敗しないか）
 
-### semantic-releaseとの整合性
+### release-pleaseとの整合性
 
 コミットメッセージは以下のように自動処理されます：
 
@@ -646,9 +646,7 @@ git commit -m "feat: add hooks and fix bug and update docs"
 
 ## バージョン管理
 
-### 自動リリース（semantic-release）
-
-本プロジェクトは**semantic-release**を使用した完全自動リリースフローを採用しています。
+### 自動リリース（release-please + GitHub Actions）
 
 #### Conventional Commits規約
 
@@ -659,39 +657,19 @@ git commit -m "feat: add hooks and fix bug and update docs"
 - **`BREAKING CHANGE:`** または **`feat!:`** - 破壊的変更 → **major** version up (例: 2.16.3 → 3.0.0)
 - **`chore:`**, **`docs:`**, **`test:`** - version up なし
 
-#### リリースフロー（4層: feature → develop → release/* → main）
+#### リリースフロー（feature → develop → main + tag）
 
-1. **featureブランチで開発**（Conventional Commitsを使用）
-2. **finish-feature.sh実行** → PR作成（developベース）
-3. **lint.yml + test.yml実行**（pull_request: [develop]トリガー）
-   - Markdownlint + ESLint + Prettier
-   - test:ci + coverage
-   - Package build
-4. **Required Checks成功** → 自動マージ（developへ）
-5. **developブランチで変更を蓄積**（複数のfeatureを統合）
-6. **`/release` コマンド実行** → release/vX.Y.Zブランチ作成
-   - semantic-release dry-run実行
-   - Conventional Commits検証
-   - バージョン決定
-7. **release.yml実行**（release/**ブランチpushトリガー）:
-   - **pre-release-tests**:
-     - Markdownlint
-     - ESLint
-     - Prettier
-     - test:ci
-   - **semantic-release実行**:
-     - コミット解析 → バージョン決定
-     - package.json更新（mcp-server + Unity Package自動同期）
-     - CHANGELOG.md生成
-     - タグ作成（v*）
-   - **release/* → main 自動マージ**
-   - **main → develop バックマージ**
-   - **release branch削除**
-8. **publish.yml実行**（mainブランチpushトリガー）:
-   - csharp-lspビルド（全プラットフォーム）
-   - GitHub Release作成
-   - npm publish実行
-   - OpenUPM自動検出
+1. **featureブランチで開発**（Conventional Commits厳守）  
+   - `finish-feature.sh`でPR作成 → develop向け。  
+   - Required Checks（Markdown/ESLint/Prettier・Commit Message Lint）成功でauto-merge。  
+2. **リリースPR作成（手動）**  
+   - Actionsの`Create Release Branch`を実行 → release-pleaseが`main`向けリリースPRを生成しauto-mergeを有効化。  
+3. **タグ付け・GitHub Release**  
+   - `main`へのマージで`Release`ワークフローが動き、release-pleaseが`vX.Y.Z`タグとGitHub Releaseを作成（対象: mcp-serverとUnityパッケージのバージョン/CHANGELOG）。  
+4. **Publish（タグトリガー）**  
+   - `Publish`ワークフローがcsharp-lspを全RIDでビルドし、manifest＋バイナリをReleaseに添付。  
+   - `mcp-server`をnpm publish。OpenUPMはタグを自動検出。  
+   - 完了後、`main`→`develop`をバックマージ。  
 
 **重要**: 手動でのバージョン変更・npm publishは禁止（すべて自動化）
 
@@ -720,16 +698,15 @@ git commit -m "test: Add unit tests"
 
 #### バージョン同期
 
-- **mcp-server**: semantic-releaseが自動更新
-- **Unity Package**: scripts/sync-unity-package-version.jsで自動同期
-- **csharp-lsp**: 同一バージョンでタグ作成、GitHub Releaseに添付
-- **CHANGELOG.md**: コミットメッセージから自動生成
+- **mcp-server / Unity Package**: release-please（manifest + extra-files）が自動更新
+- **csharp-lsp**: タグ `vX.Y.Z` に合わせてビルドし、GitHub Releaseに添付
+- **CHANGELOG.md**: release-pleaseのリリースノートで更新
 
 #### トラブルシューティング
 
-- **リリースが作成されない**: Conventional Commits形式を確認
-- **バージョンが不正**: semantic-releaseのログを確認
-- **Unity Packageバージョン同期失敗**: sync-unity-package-version.jsのログを確認
+- **リリースが作成されない**: Conventional Commits形式とrelease-pleaseログを確認
+- **バージョンが不正**: manifest/extra-filesが更新されたか確認し、必要なら`Release`を再実行
+- **Unity Packageバージョン同期失敗**: release-pleaseのリリース結果を確認（手動で書き換えない）
 
 ### Git操作のベストプラクティス
 
@@ -1157,4 +1134,3 @@ PreToolUse Hookは以下の形式でJSON応答を返す必要があります：
 
 **Q: 会話履歴が見つからない**
 - A: `~/.claude/projects/`配下にプロジェクトディレクトリが存在するか確認してください
-

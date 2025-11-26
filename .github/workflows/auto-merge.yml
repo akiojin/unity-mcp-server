@@ -1,9 +1,10 @@
 name: Auto Merge PR
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
+      - main
       - develop
 
 permissions:
@@ -12,13 +13,12 @@ permissions:
 
 jobs:
   auto-merge:
-    name: Enable Auto Merge
+    name: Enable auto-merge
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
-
     steps:
       - name: Enable auto-merge
         env:
-          GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          gh pr merge --auto --merge ${{ github.event.pull_request.number }} --repo ${{ github.repository }}
+          gh pr merge "${{ github.event.pull_request.number }}" --auto --merge --repo "${{ github.repository }}"

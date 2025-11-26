@@ -1,41 +1,27 @@
 ---
-description: developからrelease/vX.Y.Zブランチを作成し、リリースフローを開始します。
+description: develop→main のPRを自動で作成・マージし、mainでrelease-pleaseを走らせてリリースする（ollama-router / llm-routerと同じフロー）。
 tags: [project]
 ---
 
-# リリースコマンド
+# リリースコマンド（prepare-release → release-please）
 
-developブランチから`release/vX.Y.Z`ブランチを自動作成し、リリースフローを開始します。
+1. GitHub CLI 認証確認:
+   ```bash
+   gh auth status
+   ```
+2. develop→main のリリースPRを作成（既存があれば再利用し auto-merge 設定）:
+   ```bash
+   scripts/prepare-release-pr.sh
+   ```
+3. PR が main にマージされると `release.yml` で release-please が動き、タグ & GitHub Release を作成。
+4. タグ push で `publish.yml` が走り、npm / OpenUPM / csharp-lsp を配信。完了後、main→develop を自動バックマージ。
 
-> ℹ️ ブランチ作成処理は GitHub Actions 上で完結するため、ローカルで develop ブランチに切り替える必要はありません。任意の Worktree／ブランチから実行できます。
+## Required Checks（develop ブランチ）
+- Markdown, ESLint & Formatting
+- Commit Message Lint
+- Test & Coverage
+- Package
 
-## 実行内容
-
-1. GitHub CLIの認証状態を確認（`gh auth status`）。
-2. `scripts/create-release-branch.sh` が `create-release.yml` ワークフローを develop ブランチで起動。
-3. ワークフロー内で semantic-release dry-run を実行し、次のバージョン番号を確定。
-4. GitHub Actions が `release/vX.Y.Z` ブランチを **リモート develop 最新コミット** から作成して push。
-5. release ブランチが push されると `release.yml` が起動し、以下を自動実行：
-   - semantic-release によるバージョン決定、CHANGELOG.md 生成、タグ／GitHub Release 作成
-   - release → main の自動マージと csharp-lsp ビルド、npm/OpenUPM publish
-   - main → develop のバックマージ
-
-## 前提条件
-
-- GitHub CLIが認証済みであること（`gh auth login`）
-- リリースしたい変更がすべて develop ブランチにマージ済みであること（`finish-feature.sh` 完了済み）
-- コミットがすべて Conventional Commits 形式であること
-- semantic-release がバージョンアップを判定できるコミットが存在すること
-
-## スクリプト実行
-
-リリースブランチを作成するため、以下のスクリプトを実行してください：
-
-```bash
-scripts/create-release-branch.sh
-```
-
-スクリプトはGitHub Actions ワークフローを起動し、リモートで以下を実行します：
-1. developブランチで semantic-release dry-run
-2. バージョン番号を判定
-3. release/vX.Y.Zブランチを作成＆push
+## 進捗確認
+- prepare-release: `gh run watch $(gh run list --workflow=prepare-release.yml --limit 1 --json databaseId --jq '.[0].databaseId')`
+- release/publish は GitHub Actions 画面または `gh run list` で確認。
