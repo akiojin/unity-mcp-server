@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.41.4](https://github.com/akiojin/unity-mcp-server/compare/v2.41.3...v2.41.4) (2025-11-26)
+
+
+### Bug Fixes
+
+* resolve sql.js wasm path correctly for pnpm monorepo ([66d994a](https://github.com/akiojin/unity-mcp-server/commit/66d994ac30ea06b5c1e7f05e1ec14f659d5f39a2))
+
 ## [2.41.3](https://github.com/akiojin/unity-mcp-server/compare/v2.41.2...v2.41.3) (2025-11-26)
 
 
