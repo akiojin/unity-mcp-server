@@ -17,9 +17,11 @@ jobs:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          pr_number=$(gh pr list --base main --head develop --json number --jq '.[0].number' || true)
+          repo="${{ github.repository }}"
+          pr_number=$(gh pr list --repo "$repo" --base main --head develop --json number --jq '.[0].number' || true)
           if [ -z "$pr_number" ]; then
             url=$(gh pr create \
+              --repo "$repo" \
               --base main \
               --head develop \
               --title "chore(release): merge develop to main" \
@@ -29,7 +31,7 @@ jobs:
           else
             echo "PR #$pr_number already exists"
           fi
-          gh pr merge "$pr_number" --auto --merge
+          gh pr merge "$pr_number" --repo "$repo" --auto --merge
           echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
 
       - name: Show PR URL
