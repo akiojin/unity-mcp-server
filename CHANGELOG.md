@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.41.5](https://github.com/akiojin/unity-mcp-server/compare/v2.41.4...v2.41.5) (2025-11-26)
+
+
+### Bug Fixes
+
+* configure release-please to track entire project (align with llm-router) ([d27cb51](https://github.com/akiojin/unity-mcp-server/commit/d27cb510d2df38cd5bc5771cfbd52f50f37feb2e))
+* enable release-please PR creation (align with llm-router) ([07e4387](https://github.com/akiojin/unity-mcp-server/commit/07e4387d18df03f29496f106c1b2a14bfbcd6a03))
+
 ## [2.40.6](https://github.com/akiojin/unity-mcp-server/compare/v2.40.5...v2.40.6) (2025-11-19)
 
 
