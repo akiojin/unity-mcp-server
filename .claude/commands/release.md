@@ -1,5 +1,5 @@
 ---
-description: develop→main のPRを自動で作成・マージし、mainでrelease-pleaseを走らせてリリースする（ollama-router / llm-routerと同じフロー）。
+description: develop→main のPRを自動作成・マージし、mainで release-please を走らせてリリースする。
 tags: [project]
 ---
 
@@ -13,8 +13,8 @@ tags: [project]
    ```bash
    scripts/prepare-release-pr.sh
    ```
-3. PR が main にマージされると `release.yml` で release-please が動き、タグ & GitHub Release を作成。
-4. タグ push で `publish.yml` が走り、npm / OpenUPM / csharp-lsp を配信。完了後、main→develop を自動バックマージ。
+3. PR が main にマージされると `release.yml` で release-please が走り、タグ & GitHub Release を作成。
+4. タグ push で `publish.yml` が走り、npm / OpenUPM / csharp-lsp を配信（バックマージなし）。
 
 ## Required Checks（develop ブランチ）
 - Markdown, ESLint & Formatting
