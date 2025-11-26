@@ -17,23 +17,28 @@ export class LspProcessManager {
     if (this.state.proc && !this.state.proc.killed) return this.state.proc;
     if (this.state.starting) return this.state.starting;
     this.state.starting = (async () => {
-      const rid = this.utils.detectRid();
-      const bin = await this.utils.ensureLocal(rid);
-      const proc = spawn(bin, { stdio: ['pipe', 'pipe', 'pipe'] });
-      proc.on('error', e => logger.error(`[csharp-lsp] process error: ${e.message}`));
-      proc.on('close', (code, sig) => {
-        logger.warn(`[csharp-lsp] exited code=${code} signal=${sig || ''}`);
-        if (this.state.proc === proc) {
-          this.state.proc = null;
-        }
-      });
-      proc.stderr.on('data', d => {
-        const s = String(d || '').trim();
-        if (s) logger.debug(`[csharp-lsp] ${s}`);
-      });
-      this.state.proc = proc;
-      logger.info(`[csharp-lsp] started (pid=${proc.pid})`);
-      return proc;
+      try {
+        const rid = this.utils.detectRid();
+        const bin = await this.utils.ensureLocal(rid);
+        const proc = spawn(bin, { stdio: ['pipe', 'pipe', 'pipe'] });
+        proc.on('error', e => logger.error(`[csharp-lsp] process error: ${e.message}`));
+        proc.on('close', (code, sig) => {
+          logger.warn(`[csharp-lsp] exited code=${code} signal=${sig || ''}`);
+          if (this.state.proc === proc) {
+            this.state.proc = null;
+          }
+        });
+        proc.stderr.on('data', d => {
+          const s = String(d || '').trim();
+          if (s) logger.debug(`[csharp-lsp] ${s}`);
+        });
+        this.state.proc = proc;
+        logger.info(`[csharp-lsp] started (pid=${proc.pid})`);
+        return proc;
+      } catch (e) {
+        logger.error(`[csharp-lsp] failed to start: ${e.message}`);
+        throw e;
+      }
     })();
     try {
       return await this.state.starting;

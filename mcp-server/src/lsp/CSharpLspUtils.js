@@ -131,13 +131,32 @@ export class CSharpLspUtils {
   async ensureLocal(rid) {
     const p = this.getLocalPath(rid);
     const desired = this.getDesiredVersion();
-    if (!desired) throw new Error('mcp-server version not found; cannot resolve LSP tag');
+
+    // バージョン取得失敗時もバイナリが存在すれば使用
+    if (!desired) {
+      if (fs.existsSync(p)) {
+        logger.warn('[csharp-lsp] version not found, using existing binary');
+        return p;
+      }
+      throw new Error('mcp-server version not found; cannot resolve LSP tag');
+    }
+
     const current = this.readLocalVersion(rid);
     if (fs.existsSync(p) && current === desired) return p;
-    const resolved = await this.autoDownload(rid, desired);
-    if (!fs.existsSync(p)) throw new Error('csharp-lsp binary not found after download');
-    this.writeLocalVersion(rid, resolved || desired);
-    return p;
+
+    // ダウンロード失敗時のフォールバック
+    try {
+      const resolved = await this.autoDownload(rid, desired);
+      if (!fs.existsSync(p)) throw new Error('csharp-lsp binary not found after download');
+      this.writeLocalVersion(rid, resolved || desired);
+      return p;
+    } catch (e) {
+      if (fs.existsSync(p)) {
+        logger.warn(`[csharp-lsp] download failed, using existing binary: ${e.message}`);
+        return p;
+      }
+      throw e;
+    }
   }
 
   async autoDownload(rid, version) {
@@ -194,7 +213,9 @@ export class CSharpLspUtils {
       if (process.platform !== 'win32') fs.chmodSync(dest, 0o755);
     } catch {}
     logger.info(`[csharp-lsp] downloaded: ${path.basename(dest)} @ ${path.dirname(dest)}`);
-    return targetVersion;
+    // manifestから実際のバージョンを取得（信頼性の高いソースとして使用）
+    const actualVersion = manifest.version || targetVersion;
+    return actualVersion;
   }
 
   async fetchLatestReleaseVersion(repo) {
