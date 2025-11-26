@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.41.3](https://github.com/akiojin/unity-mcp-server/compare/v2.41.2...v2.41.3) (2025-11-26)
+
+
+### Bug Fixes
+
+* **config:** remove duplicated UNITY_UNITY_HOST env variable ([49b4b5c](https://github.com/akiojin/unity-mcp-server/commit/49b4b5c8a4032b5adaddf1ce547bb308ac035526))
+
 ## [2.41.2](https://github.com/akiojin/unity-mcp-server/compare/v2.41.1...v2.41.2) (2025-11-26)
 
 
