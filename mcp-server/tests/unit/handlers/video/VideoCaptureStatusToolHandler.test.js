@@ -15,7 +15,7 @@ describe('VideoCaptureStatusToolHandler', () => {
         recordingId: 'rec-12345',
         status: 'recording',
         currentDuration: 10.5,
-        outputPath: '.unity/capture/recording_game_20250117_120000.mp4'
+        outputPath: '.unity/captures/video_game_20250117_120000.mp4'
       }
     });
     handler = new VideoCaptureStatusToolHandler(mockConnection);
