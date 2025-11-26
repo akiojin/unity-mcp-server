@@ -36,16 +36,16 @@ test_release_shows_preview() {
 test_release_creates_pr_without_auto_merge() {
   echo "TEST: /releaseコマンドがauto-merge無効でPRを作成する"
   # TODO: release.mdまたはスクリプトがgh pr create --no-auto-mergeを使用していることを検証
-  if [ -f "$REPO_ROOT/scripts/create-release-pr.sh" ]; then
-    if grep -q "gh.*pr create\\|release" "$REPO_ROOT/scripts/create-release-pr.sh"; then
-      echo "✓ PASS: create-release-pr.shがPR作成機能を持っている"
+  if [ -f "$REPO_ROOT/scripts/prepare-release-pr.sh" ]; then
+    if grep -q "gh.*pr create\\|gh workflow run" "$REPO_ROOT/scripts/prepare-release-pr.sh"; then
+      echo "✓ PASS: prepare-release-pr.shがPR作成機能を持っている"
       return 0
     else
-      echo "⚠️  WARN: create-release-pr.shのPR作成機能が明示的でない"
+      echo "⚠️  WARN: prepare-release-pr.shのPR作成機能が明示的でない"
       return 0
     fi
   else
-    echo "⚠️  WARN: create-release-pr.shが存在しない（/releaseコマンドが直接実装している可能性）"
+    echo "⚠️  WARN: prepare-release-pr.shが存在しない（/releaseコマンドが直接実装している可能性）"
     return 0
   fi
 }
