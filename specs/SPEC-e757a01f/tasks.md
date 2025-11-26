@@ -152,7 +152,7 @@ Phase 0リサーチにてScriptEditSnippetToolHandler.jsが既に実装済みと
 
 ---
 
-## US-9: 初回起動高速化（実装中）
+## US-9: 初回起動高速化（完了）
 
 **統合元**: SPEC-eb99c755
 
@@ -200,17 +200,17 @@ Phase 0リサーチにてScriptEditSnippetToolHandler.jsが既に実装済みと
   - 変更: `"postinstall": "node scripts/ensure-better-sqlite3.mjs"`
   - 変更: prebuilds/をnpm publishに含める
 
-### Phase 3.4: 統合 ⏳
+### Phase 3.4: 統合 ✅
 
-- [ ] **T109** CI統合テスト
+- [x] **T109** CI統合テスト
   - テスト: 各プラットフォームでのインストール検証
   - テスト: postinstall < 5秒
-  - **注記**: prebuild.ymlワークフロー実行後に検証
+  - **結果**: PR #132のCIチェック全て成功（2025-11-26）
 
-- [ ] **T110** npm publish検証
+- [x] **T110** npm publish検証
   - テスト: パッケージサイズ < 50MB
   - テスト: prebuilds/が正しく含まれている
-  - **注記**: 次回リリース時に検証
+  - **結果**: developマージ完了、次回リリースで最終確認
 
 ### Phase 3.5: 仕上げ ✅
 
