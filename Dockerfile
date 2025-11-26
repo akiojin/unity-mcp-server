@@ -20,6 +20,9 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install GitHub CLI extensions
+RUN gh extension install twelvelabs/gh-repo-config
+
 # Install .NET 9 SDK (for C# LSP build) via official install script
 ENV DOTNET_ROOT=/usr/share/dotnet
 ENV PATH="${DOTNET_ROOT}:${PATH}"
