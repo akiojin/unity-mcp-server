@@ -15,7 +15,8 @@ fi
 
 echo "[1/2] Triggering prepare-release workflow (develop -> main PR)..."
 
-gh workflow run prepare-release.yml --ref develop
+# Always trigger the workflow from main so the latest definition is used
+gh workflow run prepare-release.yml --ref main
 
 echo "✓ Workflow triggered successfully"
 echo ""

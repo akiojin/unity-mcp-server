@@ -2,36 +2,62 @@ name: Prepare Release
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  create-merge-pr:
-    name: Create PR develop -> main (auto-merge)
+  validate-and-merge:
+    name: Validate and merge to main
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.head_ref == 'develop'
     steps:
-      - name: Create or reuse PR develop -> main
+      - name: Auto-merge PR from develop
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          set -euo pipefail
-          pr_number=$(gh pr list --base main --head develop --json number --jq '.[0].number' || true)
-          if [ -z "$pr_number" ]; then
-            url=$(gh pr create \
+          gh pr merge ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --merge \
+            --admin
+
+  create-release-pr:
+    name: Create PR from develop to main
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Create PR develop -> main
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          repo="${{ github.repository }}"
+          existing_pr=$(gh pr list --repo "$repo" --base main --head develop --json number --jq '.[0].number' || echo "")
+
+          if [ -n "$existing_pr" ]; then
+            echo "PR #$existing_pr already exists"
+            echo "PR_NUMBER=$existing_pr" >> $GITHUB_ENV
+          else
+            pr_url=$(gh pr create \
+              --repo "$repo" \
               --base main \
               --head develop \
               --title "chore(release): merge develop to main" \
-              --body "Automated release prep PR (develop -> main)")
-            pr_number=$(echo "$url" | grep -oE '[0-9]+$')
+              --body "Automated release PR from develop to main")
+            pr_number=$(echo "$pr_url" | grep -oE '[0-9]+$')
             echo "Created PR #$pr_number"
-          else
-            echo "PR #$pr_number already exists"
+            echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
           fi
-          gh pr merge "$pr_number" --auto --merge
-          echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
-
-      - name: Show PR URL
-        run: |
-          echo "https://github.com/${{ github.repository }}/pull/${PR_NUMBER}" || true
