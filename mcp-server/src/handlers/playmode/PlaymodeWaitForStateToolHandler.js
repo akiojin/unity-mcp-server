@@ -26,7 +26,9 @@ export class PlaymodeWaitForStateToolHandler extends BaseToolHandler {
     const start = Date.now();
     for (;;) {
       if (!this.unityConnection.isConnected()) {
-        try { await this.unityConnection.connect(); } catch {}
+        try {
+          await this.unityConnection.connect();
+        } catch {}
       }
       try {
         const state = await this.unityConnection.sendCommand('playmode_get_state', {});
@@ -36,10 +38,11 @@ export class PlaymodeWaitForStateToolHandler extends BaseToolHandler {
       } catch {}
       await new Promise(r => setTimeout(r, pollMs));
       if (timeoutMs != null && Date.now() - start > timeoutMs) {
-        const state = this.unityConnection.isConnected() ? await this.unityConnection.sendCommand('get_editor_state', {}).catch(() => ({})) : {};
+        const state = this.unityConnection.isConnected()
+          ? await this.unityConnection.sendCommand('get_editor_state', {}).catch(() => ({}))
+          : {};
         return { status: 'timeout', state, waitedMs: Date.now() - start };
       }
     }
   }
 }
-

@@ -8,19 +8,19 @@ class MockUnityConnection {
     this.connected = true;
     this.mockResponses = new Map();
   }
-  
+
   isConnected() {
     return this.connected;
   }
-  
+
   async connect() {
     this.connected = true;
   }
-  
+
   setMockResponse(command, response) {
     this.mockResponses.set(command, response);
   }
-  
+
   async sendCommand(command, params) {
     const response = this.mockResponses.get(command);
     if (response) {
@@ -83,45 +83,66 @@ describe('EditorTagsManageToolHandler', () => {
     });
 
     it('should fail with missing action', () => {
-      assert.throws(() => {
-        handler.validate({});
-      }, { message: /action is required/ });
+      assert.throws(
+        () => {
+          handler.validate({});
+        },
+        { message: /action is required/ }
+      );
     });
 
     it('should fail with invalid action', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'invalid' });
-      }, { message: /action must be one of/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'invalid' });
+        },
+        { message: /action must be one of/ }
+      );
     });
 
     it('should fail with add action but missing tag name', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'add' });
-      }, { message: /tagName is required for add action/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'add' });
+        },
+        { message: /tagName is required for add action/ }
+      );
     });
 
     it('should fail with remove action but missing tag name', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'remove' });
-      }, { message: /tagName is required for remove action/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'remove' });
+        },
+        { message: /tagName is required for remove action/ }
+      );
     });
 
     it('should fail with empty tag name', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'add', tagName: '' });
-      }, { message: /tagName cannot be empty/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'add', tagName: '' });
+        },
+        { message: /tagName cannot be empty/ }
+      );
     });
 
     it('should fail with invalid tag name characters', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'add', tagName: 'Invalid Tag!' });
-      }, { message: /tagName contains invalid characters/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'add', tagName: 'Invalid Tag!' });
+        },
+        { message: /tagName contains invalid characters/ }
+      );
     });
 
     it('should fail with reserved tag name', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'add', tagName: 'Untagged' });
-      }, { message: /tagName is reserved/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'add', tagName: 'Untagged' });
+        },
+        { message: /tagName is reserved/ }
+      );
     });
   });
 
@@ -240,21 +261,20 @@ describe('EditorTagsManageToolHandler', () => {
         error: 'Unity connection failed'
       });
 
-      await assert.rejects(
-        async () => await handler.execute({ action: 'get' }),
-        { message: 'Unity connection failed' }
-      );
+      await assert.rejects(async () => await handler.execute({ action: 'get' }), {
+        message: 'Unity connection failed'
+      });
     });
   });
 
   describe('getExamples', () => {
     it('should return usage examples', () => {
       const examples = handler.getExamples();
-      
+
       assert.ok(examples.getTags);
       assert.ok(examples.addTag);
       assert.ok(examples.removeTag);
-      
+
       assert.equal(examples.getTags.params.action, 'get');
       assert.equal(examples.addTag.params.action, 'add');
       assert.equal(examples.removeTag.params.action, 'remove');

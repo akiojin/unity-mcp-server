@@ -16,7 +16,7 @@ describe('ConsoleClearToolHandler', () => {
         timestamp: '2025-01-24T12:00:00Z'
       }))
     };
-    
+
     handler = new ConsoleClearToolHandler(mockUnityConnection);
   });
 
@@ -114,13 +114,14 @@ describe('ConsoleClearToolHandler', () => {
 
     it('should fail when trying to preserve without keeping any logs', () => {
       assert.throws(
-        () => handler.validate({ 
-          preserveWarnings: true,
-          preserveErrors: false,
-          clearOnPlay: false,
-          clearOnRecompile: false,
-          clearOnBuild: false
-        }),
+        () =>
+          handler.validate({
+            preserveWarnings: true,
+            preserveErrors: false,
+            clearOnPlay: false,
+            clearOnRecompile: false,
+            clearOnBuild: false
+          }),
         /Cannot preserve specific log types when not clearing console/
       );
     });
@@ -138,7 +139,7 @@ describe('ConsoleClearToolHandler', () => {
 
       assert.equal(mockUnityConnection.sendCommand.mock.calls.length, 1);
       assert.equal(mockUnityConnection.sendCommand.mock.calls[0].arguments[0], 'clear_console');
-      
+
       const params = mockUnityConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(params.clearOnPlay, false);
       assert.equal(params.clearOnRecompile, false);
@@ -180,10 +181,7 @@ describe('ConsoleClearToolHandler', () => {
         throw new Error('Unity not responding');
       });
 
-      await assert.rejects(
-        () => handler.execute({}),
-        /Unity not responding/
-      );
+      await assert.rejects(() => handler.execute({}), /Unity not responding/);
     });
 
     it('should handle console clear failure', async () => {
@@ -192,10 +190,7 @@ describe('ConsoleClearToolHandler', () => {
         error: 'Failed to clear console: Permission denied'
       }));
 
-      await assert.rejects(
-        () => handler.execute({}),
-        /Failed to clear console/
-      );
+      await assert.rejects(() => handler.execute({}), /Failed to clear console/);
     });
 
     it('should include clear statistics if available', async () => {

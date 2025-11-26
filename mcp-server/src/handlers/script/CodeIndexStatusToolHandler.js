@@ -24,13 +24,25 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
 
   async execute() {
     const jobManager = this.jobManager;
-    const buildJobs = jobManager.getAllJobs()
-      .filter((job) => typeof job?.id === 'string' && job.id.startsWith('build-'))
+    const buildJobs = jobManager
+      .getAllJobs()
+      .filter(job => typeof job?.id === 'string' && job.id.startsWith('build-'))
       .sort((a, b) => new Date(b.startedAt || 0).getTime() - new Date(a.startedAt || 0).getTime());
     const latestBuildJob = buildJobs.length > 0 ? buildJobs[0] : null;
 
     // Check whether the persistent index already exists or is being built in the background.
     const ready = await this.codeIndex.isReady();
+    if (this.codeIndex.disabled) {
+      return {
+        success: false,
+        error: 'code_index_unavailable',
+        message:
+          this.codeIndex.disableReason ||
+          'Code index is disabled because the SQLite driver could not be loaded. The server will continue without the symbol index.',
+        remediation:
+          'Install native build tools (python3, make, g++) in this environment and run "npm rebuild better-sqlite3 --build-from-source", then restart the server.'
+      };
+    }
     const buildInProgress = latestBuildJob?.status === 'running';
     if (!ready && !buildInProgress) {
       return {
@@ -61,7 +73,7 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
     let totalFiles = 0;
     const breakdown = { assets: 0, packages: 0, packageCache: 0, other: 0 };
 
-    const visit = (targetPath) => {
+    const visit = targetPath => {
       try {
         if (!fs.existsSync(targetPath)) return;
         const stats = fs.statSync(targetPath);

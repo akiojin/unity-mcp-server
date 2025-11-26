@@ -8,19 +8,19 @@ class MockUnityConnection {
     this.connected = true;
     this.mockResponses = new Map();
   }
-  
+
   isConnected() {
     return this.connected;
   }
-  
+
   async connect() {
     this.connected = true;
   }
-  
+
   setMockResponse(command, response) {
     this.mockResponses.set(command, response);
   }
-  
+
   async sendCommand(command, params) {
     const response = this.mockResponses.get(command);
     if (response) {
@@ -49,23 +49,26 @@ describe('ComponentListToolHandler', () => {
 
   describe('validate', () => {
     it('should fail without gameObjectPath', () => {
-      assert.throws(
-        () => handler.validate({}),
-        { message: 'Missing required parameter: gameObjectPath' }
-      );
+      assert.throws(() => handler.validate({}), {
+        message: 'Missing required parameter: gameObjectPath'
+      });
     });
 
     it('should pass with valid parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        gameObjectPath: '/TestObject'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          gameObjectPath: '/TestObject'
+        })
+      );
     });
 
     it('should pass with optional includeInherited', () => {
-      assert.doesNotThrow(() => handler.validate({
-        gameObjectPath: '/TestObject',
-        includeInherited: true
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          gameObjectPath: '/TestObject',
+          includeInherited: true
+        })
+      );
     });
   });
 
@@ -115,9 +118,10 @@ describe('ComponentListToolHandler', () => {
       });
 
       await assert.rejects(
-        async () => await handler.execute({
-          gameObjectPath: '/NonExistent'
-        }),
+        async () =>
+          await handler.execute({
+            gameObjectPath: '/NonExistent'
+          }),
         { message: 'GameObject not found at path: /NonExistent' }
       );
     });

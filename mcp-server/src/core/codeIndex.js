@@ -1,6 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 import { ProjectInfoProvider } from './projectInfo.js';
+import { logger } from './config.js';
+import { createSqliteFallback } from './sqliteFallback.js';
+
+// Shared driver availability state across CodeIndex instances
+const driverStatus = {
+  available: null,
+  error: null,
+  logged: false
+};
 
 export class CodeIndex {
   constructor(unityConnection) {
@@ -9,21 +18,42 @@ export class CodeIndex {
     this.db = null;
     this.dbPath = null;
     this.disabled = false; // set true if better-sqlite3 is unavailable
+    this.disableReason = null;
     this._Database = null;
+    this._openFallback = null;
+    this._persistFallback = null;
   }
 
   async _ensureDriver() {
-    if (this.disabled) return false;
+    if (driverStatus.available === false || this.disabled) {
+      this.disabled = true;
+      this.disableReason = this.disableReason || driverStatus.error;
+      return false;
+    }
     if (this._Database) return true;
     try {
       // Dynamic import to avoid hard failure when native binding is missing
       const mod = await import('better-sqlite3');
       this._Database = mod.default || mod;
+      driverStatus.available = true;
+      driverStatus.error = null;
       return true;
     } catch (e) {
-      // Mark as disabled and operate in fallback (index unavailable)
-      this.disabled = true;
-      return false;
+      // Try wasm fallback (sql.js) before giving up
+      try {
+        this._openFallback = createSqliteFallback;
+        driverStatus.available = true;
+        driverStatus.error = null;
+        logger?.info?.('[index] falling back to sql.js (WASM) for code index');
+        return true;
+      } catch (fallbackError) {
+        this.disabled = true;
+        this.disableReason = `better-sqlite3 unavailable: ${e?.message || e}. Fallback failed: ${fallbackError?.message || fallbackError}`;
+        driverStatus.available = false;
+        driverStatus.error = this.disableReason;
+        this._logDisable(this.disableReason);
+        return false;
+      }
     }
   }
 
@@ -36,9 +66,33 @@ export class CodeIndex {
     fs.mkdirSync(dir, { recursive: true });
     const dbPath = path.join(dir, 'code-index.db');
     this.dbPath = dbPath;
-    this.db = new this._Database(dbPath);
+    try {
+      if (this._Database) {
+        this.db = new this._Database(dbPath);
+      } else if (this._openFallback) {
+        this.db = await this._openFallback(dbPath);
+        this._persistFallback = this.db.persist;
+      } else {
+        throw new Error('No database driver available');
+      }
+    } catch (e) {
+      this.disabled = true;
+      this.disableReason = e?.message || 'Failed to open code index database';
+      driverStatus.available = false;
+      driverStatus.error = this.disableReason;
+      this._logDisable(this.disableReason);
+      return null;
+    }
     this._initSchema();
     return this.db;
+  }
+
+  _logDisable(reason) {
+    if (driverStatus.logged) return;
+    driverStatus.logged = true;
+    try {
+      logger?.warn?.(`[index] code index disabled: ${reason}`);
+    } catch {}
   }
 
   _initSchema() {
@@ -68,6 +122,7 @@ export class CodeIndex {
       CREATE INDEX IF NOT EXISTS idx_symbols_kind ON symbols(kind);
       CREATE INDEX IF NOT EXISTS idx_symbols_path ON symbols(path);
     `);
+    if (this._persistFallback) this._persistFallback();
   }
 
   async isReady() {
@@ -80,16 +135,30 @@ export class CodeIndex {
   async clearAndLoad(symbols) {
     const db = await this.open();
     if (!db) throw new Error('CodeIndex is unavailable (better-sqlite3 not installed)');
-    const insert = db.prepare('INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)');
-    const tx = db.transaction((rows) => {
+    const insert = db.prepare(
+      'INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)'
+    );
+    const tx = db.transaction(rows => {
       db.exec('DELETE FROM symbols');
       db.exec('DELETE FROM files');
       for (const r of rows) {
-        insert.run(r.path, r.name, r.kind, r.container || null, r.ns || r.namespace || null, r.line || null, r.column || null);
+        insert.run(
+          r.path,
+          r.name,
+          r.kind,
+          r.container || null,
+          r.ns || r.namespace || null,
+          r.line || null,
+          r.column || null
+        );
       }
-      db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)').run('lastIndexedAt', new Date().toISOString());
+      db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)').run(
+        'lastIndexedAt',
+        new Date().toISOString()
+      );
     });
     tx(symbols || []);
+    await this._flushFallback();
     return { total: symbols?.length || 0 };
   }
 
@@ -106,17 +175,23 @@ export class CodeIndex {
   async upsertFile(pathStr, sig) {
     const db = await this.open();
     if (!db) return;
-    db.prepare('REPLACE INTO files(path,sig,updatedAt) VALUES (?,?,?)').run(pathStr, sig || '', new Date().toISOString());
+    db.prepare('REPLACE INTO files(path,sig,updatedAt) VALUES (?,?,?)').run(
+      pathStr,
+      sig || '',
+      new Date().toISOString()
+    );
+    await this._flushFallback();
   }
 
   async removeFile(pathStr) {
     const db = await this.open();
     if (!db) return;
-    const tx = db.transaction((p) => {
+    const tx = db.transaction(p => {
       db.prepare('DELETE FROM symbols WHERE path = ?').run(p);
       db.prepare('DELETE FROM files WHERE path = ?').run(p);
     });
     tx(pathStr);
+    await this._flushFallback();
   }
 
   async replaceSymbolsForPath(pathStr, rows) {
@@ -124,11 +199,26 @@ export class CodeIndex {
     if (!db) return;
     const tx = db.transaction((p, list) => {
       db.prepare('DELETE FROM symbols WHERE path = ?').run(p);
-      const insert = db.prepare('INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)');
-      for (const r of list) insert.run(p, r.name, r.kind, r.container || null, r.ns || r.namespace || null, r.line || null, r.column || null);
-      db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)').run('lastIndexedAt', new Date().toISOString());
+      const insert = db.prepare(
+        'INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)'
+      );
+      for (const r of list)
+        insert.run(
+          p,
+          r.name,
+          r.kind,
+          r.container || null,
+          r.ns || r.namespace || null,
+          r.line || null,
+          r.column || null
+        );
+      db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)').run(
+        'lastIndexedAt',
+        new Date().toISOString()
+      );
     });
     tx(pathStr, rows || []);
+    await this._flushFallback();
   }
 
   async querySymbols({ name, kind, scope = 'all', exact = false }) {
@@ -137,27 +227,60 @@ export class CodeIndex {
     let sql = 'SELECT path,name,kind,container,namespace,line,column FROM symbols WHERE 1=1';
     const params = {};
     if (name) {
-      if (exact) { sql += ' AND name = @name'; params.name = name; }
-      else { sql += ' AND name LIKE @name'; params.name = `%${name}%`; }
+      if (exact) {
+        sql += ' AND name = @name';
+        params.name = name;
+      } else {
+        sql += ' AND name LIKE @name';
+        params.name = `%${name}%`;
+      }
     }
-    if (kind) { sql += ' AND kind = @kind'; params.kind = kind; }
+    if (kind) {
+      sql += ' AND kind = @kind';
+      params.kind = kind;
+    }
     const rows = db.prepare(sql).all(params);
     // Apply path-based scope filter in JS (simpler than CASE in SQL)
     const filtered = rows.filter(r => {
       const p = String(r.path || '').replace(/\\\\/g, '/');
       if (scope === 'assets') return p.startsWith('Assets/');
-      if (scope === 'packages') return p.startsWith('Packages/') || p.includes('Library/PackageCache/');
+      if (scope === 'packages')
+        return p.startsWith('Packages/') || p.includes('Library/PackageCache/');
       if (scope === 'embedded') return p.startsWith('Packages/');
       return true;
     });
-    return filtered.map(r => ({ path: r.path, name: r.name, kind: r.kind, container: r.container, ns: r.namespace, line: r.line, column: r.column }));
+    return filtered.map(r => ({
+      path: r.path,
+      name: r.name,
+      kind: r.kind,
+      container: r.container,
+      ns: r.namespace,
+      line: r.line,
+      column: r.column
+    }));
   }
 
   async getStats() {
     const db = await this.open();
     if (!db) return { total: 0, lastIndexedAt: null };
     const total = db.prepare('SELECT COUNT(*) AS c FROM symbols').get().c || 0;
-    const last = db.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
+    const last =
+      db.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
     return { total, lastIndexedAt: last };
   }
+
+  async _flushFallback() {
+    if (typeof this._persistFallback === 'function') {
+      try {
+        await this._persistFallback();
+      } catch {}
+    }
+  }
+}
+
+// Test-only helper to reset cached driver status between runs
+export function __resetCodeIndexDriverStatusForTest() {
+  driverStatus.available = null;
+  driverStatus.error = null;
+  driverStatus.logged = false;
 }

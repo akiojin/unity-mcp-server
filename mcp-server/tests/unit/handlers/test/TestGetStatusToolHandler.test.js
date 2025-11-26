@@ -125,7 +125,10 @@ describe('TestGetStatusToolHandler', () => {
 
     assert.deepEqual(result, cachedResult);
     assert.equal(persistMock.mock.calls.length, 1);
-    assert.deepEqual(persistMock.mock.calls[0].arguments[0].latestResult, mockResponse.latestResult);
+    assert.deepEqual(
+      persistMock.mock.calls[0].arguments[0].latestResult,
+      mockResponse.latestResult
+    );
     assert.equal(loadMock.mock.calls.length, 1);
     assert.equal(loadMock.mock.calls[0].arguments[0], '/tmp/TestResults.json');
     assert.deepEqual(result.latestResult, mockResponse.latestResult);

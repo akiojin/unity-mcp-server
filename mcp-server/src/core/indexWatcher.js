@@ -34,10 +34,55 @@ export class IndexWatcher {
     if (this.running) return;
     this.running = true;
     try {
+      // Skip watcher entirely when the native SQLite binding is unavailable
+      const { CodeIndex } = await import('./codeIndex.js');
+      const probe = new CodeIndex(this.unityConnection);
+      const driverOk = await probe._ensureDriver();
+      if (!driverOk || probe.disabled) {
+        const reason = probe.disableReason || 'SQLite native binding not available';
+        logger.warn(`[index] watcher: code index disabled (${reason}); stopping watcher`);
+        this.stop();
+        return;
+      }
+
+      // Check if code index DB file exists (before opening DB)
+      const { ProjectInfoProvider } = await import('./projectInfo.js');
+      const projectInfo = new ProjectInfoProvider(this.unityConnection);
+      const info = await projectInfo.get();
+      const fs = await import('fs');
+      const path = await import('path');
+      const dbPath = path.default.join(info.codeIndexRoot, 'code-index.db');
+      const dbExists = fs.default.existsSync(dbPath);
+
+      if (!dbExists) {
+        logger.warn('[index] watcher: code index DB file not found, triggering full rebuild');
+        // Force full rebuild when DB file is missing
+        const jobId = `watcher-rebuild-${Date.now()}`;
+        this.currentWatcherJobId = jobId;
+
+        const { CodeIndexBuildToolHandler } = await import(
+          '../handlers/script/CodeIndexBuildToolHandler.js'
+        );
+        const handler = new CodeIndexBuildToolHandler(this.unityConnection);
+
+        this.jobManager.create(jobId, async job => {
+          const params = {
+            concurrency: config.indexing.concurrency || 8,
+            retry: config.indexing.retry || 2,
+            reportPercentage: 10
+          };
+          return await handler._executeBuild(params, job);
+        });
+
+        logger.info(`[index] watcher: started DB rebuild job ${jobId}`);
+        this._monitorJob(jobId);
+        return;
+      }
+
       // Check if manual build is already running (jobs starting with 'build-')
       const allJobs = this.jobManager.getAllJobs();
-      const manualBuildRunning = allJobs.some(job =>
-        job.id.startsWith('build-') && job.status === 'running'
+      const manualBuildRunning = allJobs.some(
+        job => job.id.startsWith('build-') && job.status === 'running'
       );
 
       if (manualBuildRunning) {
@@ -60,15 +105,17 @@ export class IndexWatcher {
       const jobId = `watcher-${Date.now()}`;
       this.currentWatcherJobId = jobId;
 
-      const { CodeIndexBuildToolHandler } = await import('../handlers/script/CodeIndexBuildToolHandler.js');
+      const { CodeIndexBuildToolHandler } = await import(
+        '../handlers/script/CodeIndexBuildToolHandler.js'
+      );
       const handler = new CodeIndexBuildToolHandler(this.unityConnection);
 
       // Create the build job through JobManager
-      this.jobManager.create(jobId, async (job) => {
+      this.jobManager.create(jobId, async job => {
         const params = {
           concurrency: config.indexing.concurrency || 8,
           retry: config.indexing.retry || 2,
-          reportEvery: config.indexing.reportEvery || 500,
+          reportEvery: config.indexing.reportEvery || 500
         };
         return await handler._executeBuild(params, job);
       });
@@ -78,7 +125,6 @@ export class IndexWatcher {
       // Monitor job completion in background
       // (Job result will be logged when it completes/fails)
       this._monitorJob(jobId);
-
     } catch (e) {
       logger.warn(`[index] watcher exception: ${e.message}`);
     } finally {
@@ -101,7 +147,9 @@ export class IndexWatcher {
       }
 
       if (job.status === 'completed') {
-        logger.info(`[index] watcher: auto-build completed - updated=${job.result?.updatedFiles || 0} removed=${job.result?.removedFiles || 0} total=${job.result?.totalIndexedSymbols || 0}`);
+        logger.info(
+          `[index] watcher: auto-build completed - updated=${job.result?.updatedFiles || 0} removed=${job.result?.removedFiles || 0} total=${job.result?.totalIndexedSymbols || 0}`
+        );
         clearInterval(checkInterval);
       } else if (job.status === 'failed') {
         logger.warn(`[index] watcher: auto-build failed - ${job.error}`);

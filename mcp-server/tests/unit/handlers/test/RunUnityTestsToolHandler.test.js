@@ -201,19 +201,13 @@ describe('RunUnityTestsToolHandler', () => {
       });
       handler = new RunUnityTestsToolHandler(mockConnection);
 
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /Test execution timed out/
-      );
+      await assert.rejects(async () => await handler.execute({}), /Test execution timed out/);
     });
 
     it('should throw error if not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
 
-      await assert.rejects(
-        async () => await handler.execute({}),
-        /Unity connection not available/
-      );
+      await assert.rejects(async () => await handler.execute({}), /Unity connection not available/);
     });
 
     it('should connect if not already connected', async () => {

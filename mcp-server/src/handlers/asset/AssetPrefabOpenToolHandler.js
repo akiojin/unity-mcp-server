@@ -17,7 +17,8 @@ export class AssetPrefabOpenToolHandler extends BaseToolHandler {
           },
           focusObject: {
             type: 'string',
-            description: 'Optional path to object within prefab to focus on (relative to prefab root)'
+            description:
+              'Optional path to object within prefab to focus on (relative to prefab root)'
           },
           isolateObject: {
             type: 'boolean',
@@ -27,7 +28,7 @@ export class AssetPrefabOpenToolHandler extends BaseToolHandler {
         required: ['prefabPath']
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -38,7 +39,7 @@ export class AssetPrefabOpenToolHandler extends BaseToolHandler {
    */
   validate(params) {
     super.validate(params); // Check required fields
-    
+
     const { prefabPath } = params;
 
     // Validate prefabPath is not empty
@@ -111,7 +112,8 @@ export class AssetPrefabOpenToolHandler extends BaseToolHandler {
         }
       },
       openForComponentWork: {
-        description: 'Open prefab for component inspection and modification (use with component tools like list_components, add_component, etc.)',
+        description:
+          'Open prefab for component inspection and modification (use with component tools like list_components, add_component, etc.)',
         params: {
           prefabPath: 'Assets/Prefabs/Weapons/Sword.prefab'
         }

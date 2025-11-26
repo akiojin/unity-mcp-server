@@ -5,32 +5,29 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class SceneCreateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'scene_create',
-      'Create a new scene (optionally load it and add to build settings).',
-      {
-        type: 'object',
-        properties: {
-          sceneName: {
-            type: 'string',
-            description: 'Name of the scene to create'
-          },
-          path: {
-            type: 'string',
-            description: 'Path where the scene should be saved (e.g., "Assets/Scenes/"). If not specified, defaults to "Assets/Scenes/"'
-          },
-          loadScene: {
-            type: 'boolean',
-            description: 'Whether to load the scene after creation (default: true)'
-          },
-          addToBuildSettings: {
-            type: 'boolean',
-            description: 'Whether to add the scene to build settings (default: false)'
-          }
+    super('scene_create', 'Create a new scene (optionally load it and add to build settings).', {
+      type: 'object',
+      properties: {
+        sceneName: {
+          type: 'string',
+          description: 'Name of the scene to create'
         },
-        required: ['sceneName']
-      }
-    );
+        path: {
+          type: 'string',
+          description:
+            'Path where the scene should be saved (e.g., "Assets/Scenes/"). If not specified, defaults to "Assets/Scenes/"'
+        },
+        loadScene: {
+          type: 'boolean',
+          description: 'Whether to load the scene after creation (default: true)'
+        },
+        addToBuildSettings: {
+          type: 'boolean',
+          description: 'Whether to add the scene to build settings (default: false)'
+        }
+      },
+      required: ['sceneName']
+    });
     this.unityConnection = unityConnection;
   }
 
@@ -41,12 +38,12 @@ export class SceneCreateToolHandler extends BaseToolHandler {
    */
   validate(params) {
     super.validate(params);
-    
+
     // Additional validation for scene name
     if (!params.sceneName || params.sceneName.trim() === '') {
       throw new Error('Scene name cannot be empty');
     }
-    
+
     // Check for invalid characters in scene name
     if (params.sceneName.includes('/') || params.sceneName.includes('\\')) {
       throw new Error('Scene name contains invalid characters');
@@ -63,17 +60,17 @@ export class SceneCreateToolHandler extends BaseToolHandler {
     if (!this.unityConnection.isConnected()) {
       throw new Error('Unity connection not available');
     }
-    
+
     // Send command to Unity
     const result = await this.unityConnection.sendCommand('create_scene', params);
-    
+
     // Check for Unity-side errors
     if (result.status === 'error') {
       const error = new Error(result.error);
       error.code = 'UNITY_ERROR';
       throw error;
     }
-    
+
     // Handle undefined or null results from Unity
     if (result.result === undefined || result.result === null) {
       return {
@@ -85,7 +82,7 @@ export class SceneCreateToolHandler extends BaseToolHandler {
         message: 'Scene creation completed but Unity returned no details'
       };
     }
-    
+
     return result.result;
   }
 }

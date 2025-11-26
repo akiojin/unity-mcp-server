@@ -148,7 +148,15 @@ describe('sync-unity-package-version.js', () => {
 
     // 更新後のバージョンを確認
     const updatedPackageJson = JSON.parse(fs.readFileSync(UNITY_PACKAGE_PATH, 'utf8'));
-    assert.strictEqual(updatedPackageJson.version, testVersion, 'Version should be updated from old value');
-    assert.notStrictEqual(updatedPackageJson.version, oldVersion, 'Version should be different from old value');
+    assert.strictEqual(
+      updatedPackageJson.version,
+      testVersion,
+      'Version should be updated from old value'
+    );
+    assert.notStrictEqual(
+      updatedPackageJson.version,
+      oldVersion,
+      'Version should be different from old value'
+    );
   });
 });

@@ -43,11 +43,13 @@ describe('InputBindingRemoveAllToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with required parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap',
-        actionName: 'Move'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap',
+          actionName: 'Move'
+        })
+      );
     });
   });
 
@@ -60,7 +62,10 @@ describe('InputBindingRemoveAllToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_binding_remove_all');
+      assert.equal(
+        mockConnection.sendCommand.mock.calls[0].arguments[0],
+        'input_binding_remove_all'
+      );
 
       assert.ok(result);
       assert.ok(result.content);

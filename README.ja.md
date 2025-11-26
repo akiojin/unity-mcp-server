@@ -170,7 +170,7 @@ sequenceDiagram
 ```
 
 ## セットアップ
-- 対応バージョン: Unity 2020.3 LTS以降 / Node.js 18.x・20.x・22.x LTS（23 以上のメジャーバージョンでは起動を拒否） / pnpm（Corepack経由で提供）
+- 対応バージョン: Unity 2020.3 LTS以降 / Node.js 18.x・20.x・22.x LTS（23 以上のメジャーバージョンでは起動を拒否）
   - 推奨は Node.js 20.x または 22.x（`better-sqlite3` の prebuilt バイナリが利用可能）。Node 18.x も動作しますが、23 以上は起動時に拒否されます。
 - MCPクライアント: Claude Desktop など
 
@@ -195,8 +195,9 @@ sequenceDiagram
 
 ネイティブ拡張（`better-sqlite3` など）は **MCPサーバーを動かすOS上で依存関係をインストールしたとき** にのみ正しく構築されます。以下を必ず実施してください。
 
-- **基本ルール**: `.mcp.json` で `"command": "node"`（例: `node bin/unity-mcp-server serve`）を使う場合は、MCPサーバーを動かすマシン／コンテナ内で本パッケージが展開されているディレクトリで `pnpm install`（または `pnpm install --frozen-lockfile`）を実行してから MCP クライアントを起動します。
-- **pnpmでのビルド許可**: pnpm v10以降は依存のインストールスクリプトを許可制にしています。`better-sqlite3` がビルドできるよう、初回セットアップ時に `pnpm approve-builds better-sqlite3` を実行し、対話メニューで承認してください。citeturn1view0
+> 初回 npx 実行の注意: linux/darwin/win32 (x64/arm64, Node 18/20/22) 向けに better-sqlite3 の prebuilt バイナリを同梱したため、`npx @akiojin/unity-mcp-server@latest` は数秒で完了します。追加のウォームアップやタイムアウト調整は不要です。非対応プラットフォームでは自動的に sql.js フォールバックに切り替わり、`UNITY_MCP_FORCE_NATIVE=1` を設定すればネイティブ再ビルドを強制できます。
+
+- **基本ルール**: `.mcp.json` で `"command": "node"`（例: `node bin/unity-mcp-server serve`）を使う場合は、MCPサーバーを動かすマシン／コンテナ内で本パッケージが展開されているディレクトリで `npm ci` を実行してから MCP クライアントを起動します。
 - **`npx` 実行**: README の例（`npx @akiojin/unity-mcp-server@latest`）は起動時に依存をダウンロードします。サポート対象の Node.js（18.x / 20.x / 22.x）では追加作業なしで利用できます。Node.js 23 以上はサポート外であり、サーバー起動時に拒否されます。
 - **`node_modules` の共有禁止**: Windows と Linux/macOS など異なるOS間で `node_modules` を共有するとネイティブバイナリが一致せず動作しません。
 
@@ -204,24 +205,24 @@ sequenceDiagram
 
 - **Windows (PowerShell / コマンドプロンプト)**
   - Node.js 20.x または 22.x LTS（18.x も利用可）を利用してください。23 以上のメジャーバージョンはサポート外です。
-  - パッケージが配置されているディレクトリ（リポジトリを clone した場合: `C:\path\to\unity-mcp-server\mcp-server`）で `pnpm install --frozen-lockfile` を実行します。
+  - パッケージが配置されているディレクトリ（リポジトリを clone した場合: `C:\path\to\unity-mcp-server\mcp-server`）で `npm ci` を実行します。
   - `.mcp.json` で `node` を指す場合でも、依存を入れた後であれば `npx` に切り替えても構いません。
 
 - **Windows Subsystem for Linux (WSL)**
   - リポジトリは Linux ファイルシステム上（例: `/home/<user>/unity-mcp-server`）に配置してください。
   - Node.js 20.x または 22.x（18.x も利用可）を WSL 内に導入します。
-  - パッケージが展開されているディレクトリ（リポジトリ clone 時: `/home/<user>/unity-mcp-server/mcp-server`）で `pnpm install --frozen-lockfile` を実行します。
+  - パッケージが展開されているディレクトリ（リポジトリ clone 時: `/home/<user>/unity-mcp-server/mcp-server`）で `npm ci` を実行します。
 
 - **Docker / Linux コンテナ**
   - Node.js 20.x または 22.x（18.x も利用可）ベースのイメージを使用してください。23 以上のメジャーバージョンは起動時に拒否されます。
-  - イメージ構築時に `pnpm install --filter mcp-server --frozen-lockfile`（またはパッケージ展開ディレクトリで `pnpm install --frozen-lockfile`）を実行し、コンテナ内にプラットフォーム適合済みの依存を用意します。
+  - イメージ構築時に `npm ci --workspace=mcp-server`（またはパッケージ展開ディレクトリで `npm ci`）を実行し、コンテナ内にプラットフォーム適合済みの依存を用意します。
   - ホスト側の `node_modules` を bind mount しないでください。
 
 - **macOS**
   - `brew install node@22` または `node@20` などで Node.js 22.x / 20.x を導入し、`PATH` に追加します（18.x も利用可）。23 以上のメジャーバージョンはサポートしません。
-  - パッケージが配置されているディレクトリ（リポジトリ clone 時: `~/unity-mcp-server/mcp-server`）で `pnpm install --frozen-lockfile` を実行します。
+  - パッケージが配置されているディレクトリ（リポジトリ clone 時: `~/unity-mcp-server/mcp-server`）で `npm ci` を実行します。
 
-セットアップ後、`node mcp-server/bin/unity-mcp-server --version` で起動確認ができます。`better-sqlite3` の読み込みエラーが出る場合は、対象環境内で依存を再インストールするか、ツールチェーンが揃った状態で `pnpm rebuild better-sqlite3 --filter mcp-server --build-from-source` を実行してください。
+セットアップ後、`node mcp-server/bin/unity-mcp-server --version` で起動確認ができます。`better-sqlite3` の読み込みエラーが出る場合は、対象環境内で依存を再インストールするか、ツールチェーンが揃った状態で `npm rebuild better-sqlite3 --workspace=mcp-server` を実行してください。
 
 ## 使い方ワークフロー
 

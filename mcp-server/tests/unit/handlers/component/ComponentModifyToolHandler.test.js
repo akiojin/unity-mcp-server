@@ -8,19 +8,19 @@ class MockUnityConnection {
     this.connected = true;
     this.mockResponses = new Map();
   }
-  
+
   isConnected() {
     return this.connected;
   }
-  
+
   async connect() {
     this.connected = true;
   }
-  
+
   setMockResponse(command, response) {
     this.mockResponses.set(command, response);
   }
-  
+
   async sendCommand(command, params) {
     const response = this.mockResponses.get(command);
     if (response) {
@@ -42,39 +42,50 @@ describe('ComponentModifyToolHandler', () => {
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
       assert.equal(handler.name, 'component_modify');
-      assert.equal(handler.description, 'Modify properties of a component on a GameObject in Unity');
-      assert.deepEqual(handler.inputSchema.required, ['gameObjectPath', 'componentType', 'properties']);
+      assert.equal(
+        handler.description,
+        'Modify properties of a component on a GameObject in Unity'
+      );
+      assert.deepEqual(handler.inputSchema.required, [
+        'gameObjectPath',
+        'componentType',
+        'properties'
+      ]);
     });
   });
 
   describe('validate', () => {
     it('should fail without properties', () => {
       assert.throws(
-        () => handler.validate({ 
-          gameObjectPath: '/TestObject',
-          componentType: 'Rigidbody'
-        }),
+        () =>
+          handler.validate({
+            gameObjectPath: '/TestObject',
+            componentType: 'Rigidbody'
+          }),
         { message: 'Missing required parameter: properties' }
       );
     });
 
     it('should fail with empty properties', () => {
       assert.throws(
-        () => handler.validate({ 
-          gameObjectPath: '/TestObject',
-          componentType: 'Rigidbody',
-          properties: {}
-        }),
+        () =>
+          handler.validate({
+            gameObjectPath: '/TestObject',
+            componentType: 'Rigidbody',
+            properties: {}
+          }),
         { message: 'properties cannot be empty' }
       );
     });
 
     it('should pass with valid parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        gameObjectPath: '/TestObject',
-        componentType: 'Rigidbody',
-        properties: { mass: 2.0 }
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          gameObjectPath: '/TestObject',
+          componentType: 'Rigidbody',
+          properties: { mass: 2.0 }
+        })
+      );
     });
   });
 
@@ -103,11 +114,12 @@ describe('ComponentModifyToolHandler', () => {
       });
 
       await assert.rejects(
-        async () => await handler.execute({
-          gameObjectPath: '/TestObject',
-          componentType: 'Rigidbody',
-          properties: { nonExistentProperty: 123 }
-        }),
+        async () =>
+          await handler.execute({
+            gameObjectPath: '/TestObject',
+            componentType: 'Rigidbody',
+            properties: { nonExistentProperty: 123 }
+          }),
         { message: 'Property not found or invalid: nonExistentProperty' }
       );
     });
@@ -118,11 +130,12 @@ describe('ComponentModifyToolHandler', () => {
       });
 
       await assert.rejects(
-        async () => await handler.execute({
-          gameObjectPath: '/TestObject',
-          componentType: 'Rigidbody',
-          properties: { mass: 'invalid' }
-        }),
+        async () =>
+          await handler.execute({
+            gameObjectPath: '/TestObject',
+            componentType: 'Rigidbody',
+            properties: { mass: 'invalid' }
+          }),
         { message: 'Invalid property value for mass: expected number, got string' }
       );
     });
@@ -138,13 +151,16 @@ describe('ComponentModifyToolHandler', () => {
       const result = await handler.execute({
         gameObjectPath: '/TestObject',
         componentType: 'Rigidbody',
-        properties: { 
+        properties: {
           'constraints.freezePositionX': true,
           'constraints.freezePositionY': true
         }
       });
 
-      assert.deepEqual(result.modifiedProperties, ['constraints.freezePositionX', 'constraints.freezePositionY']);
+      assert.deepEqual(result.modifiedProperties, [
+        'constraints.freezePositionX',
+        'constraints.freezePositionY'
+      ]);
     });
   });
 });

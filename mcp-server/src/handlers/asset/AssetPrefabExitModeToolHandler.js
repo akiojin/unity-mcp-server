@@ -5,20 +5,16 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class AssetPrefabExitModeToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'asset_prefab_exit_mode',
-      'Exit prefab mode and return to the main scene',
-      {
-        type: 'object',
-        properties: {
-          saveChanges: {
-            type: 'boolean',
-            description: 'Save changes before exiting (default: true)'
-          }
+    super('asset_prefab_exit_mode', 'Exit prefab mode and return to the main scene', {
+      type: 'object',
+      properties: {
+        saveChanges: {
+          type: 'boolean',
+          description: 'Save changes before exiting (default: true)'
         }
       }
-    );
-    
+    });
+
     this.unityConnection = unityConnection;
   }
 

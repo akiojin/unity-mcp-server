@@ -18,7 +18,8 @@ export class EditorWindowsManageToolHandler extends BaseToolHandler {
           },
           windowType: {
             type: 'string',
-            description: 'Window type (e.g., SceneView, GameView, InspectorWindow). Required for focus/get_state.'
+            description:
+              'Window type (e.g., SceneView, GameView, InspectorWindow). Required for focus/get_state.'
           },
           includeHidden: {
             type: 'boolean',
@@ -53,7 +54,7 @@ export class EditorWindowsManageToolHandler extends BaseToolHandler {
       if (windowType === undefined || windowType === null) {
         throw new Error(`windowType is required for ${action} action`);
       }
-      
+
       if (windowType === '') {
         throw new Error('windowType cannot be empty');
       }
@@ -71,13 +72,13 @@ export class EditorWindowsManageToolHandler extends BaseToolHandler {
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }
-    
+
     const result = await this.unityConnection.sendCommand('manage_windows', params);
-    
+
     if (result.error) {
       throw new Error(result.error);
     }
-    
+
     return result;
   }
 

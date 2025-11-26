@@ -8,19 +8,19 @@ class MockUnityConnection {
     this.connected = true;
     this.mockResponses = new Map();
   }
-  
+
   isConnected() {
     return this.connected;
   }
-  
+
   async connect() {
     this.connected = true;
   }
-  
+
   setMockResponse(command, response) {
     this.mockResponses.set(command, response);
   }
-  
+
   async sendCommand(command, params) {
     const response = this.mockResponses.get(command);
     if (response) {
@@ -103,45 +103,66 @@ describe('EditorSelectionManageToolHandler', () => {
     });
 
     it('should fail with missing action', () => {
-      assert.throws(() => {
-        handler.validate({});
-      }, { message: /action is required/ });
+      assert.throws(
+        () => {
+          handler.validate({});
+        },
+        { message: /action is required/ }
+      );
     });
 
     it('should fail with invalid action', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'invalid' });
-      }, { message: /action must be one of/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'invalid' });
+        },
+        { message: /action must be one of/ }
+      );
     });
 
     it('should fail with set action but missing objectPaths', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'set' });
-      }, { message: /objectPaths is required for set action/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'set' });
+        },
+        { message: /objectPaths is required for set action/ }
+      );
     });
 
     it('should fail with empty objectPaths for set action', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'set', objectPaths: [] });
-      }, { message: /objectPaths cannot be empty/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'set', objectPaths: [] });
+        },
+        { message: /objectPaths cannot be empty/ }
+      );
     });
 
     it('should fail with non-array objectPaths', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'set', objectPaths: '/Main Camera' });
-      }, { message: /objectPaths must be an array/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'set', objectPaths: '/Main Camera' });
+        },
+        { message: /objectPaths must be an array/ }
+      );
     });
 
     it('should fail with invalid path in objectPaths', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'set', objectPaths: ['Main Camera'] });
-      }, { message: /All object paths must start with/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'set', objectPaths: ['Main Camera'] });
+        },
+        { message: /All object paths must start with/ }
+      );
     });
 
     it('should fail with non-string path in objectPaths', () => {
-      assert.throws(() => {
-        handler.validate({ action: 'set', objectPaths: ['/Main Camera', 123] });
-      }, { message: /All object paths must be strings/ });
+      assert.throws(
+        () => {
+          handler.validate({ action: 'set', objectPaths: ['/Main Camera', 123] });
+        },
+        { message: /All object paths must be strings/ }
+      );
     });
   });
 
@@ -157,7 +178,7 @@ describe('EditorSelectionManageToolHandler', () => {
           ],
           count: 2
         };
-        
+
         mockConnection.setMockResponse('manage_selection', mockSelection);
 
         const result = await handler.execute({ action: 'get' });
@@ -188,7 +209,7 @@ describe('EditorSelectionManageToolHandler', () => {
           ],
           count: 1
         };
-        
+
         mockConnection.setMockResponse('manage_selection', mockSelection);
 
         const result = await handler.execute({ action: 'get', includeDetails: true });
@@ -242,9 +263,9 @@ describe('EditorSelectionManageToolHandler', () => {
           message: 'Selection set to 2 objects'
         });
 
-        const result = await handler.execute({ 
-          action: 'set', 
-          objectPaths: ['/Player', '/Enemy'] 
+        const result = await handler.execute({
+          action: 'set',
+          objectPaths: ['/Player', '/Enemy']
         });
 
         assert.equal(result.success, true);
@@ -257,17 +278,15 @@ describe('EditorSelectionManageToolHandler', () => {
         mockConnection.setMockResponse('manage_selection', {
           success: true,
           action: 'set',
-          selection: [
-            { path: '/Player', name: 'Player' }
-          ],
+          selection: [{ path: '/Player', name: 'Player' }],
           notFound: ['/NonExistent'],
           count: 1,
           message: 'Selection set to 1 object(s). 1 object(s) not found.'
         });
 
-        const result = await handler.execute({ 
-          action: 'set', 
-          objectPaths: ['/Player', '/NonExistent'] 
+        const result = await handler.execute({
+          action: 'set',
+          objectPaths: ['/Player', '/NonExistent']
         });
 
         assert.equal(result.success, true);
@@ -282,10 +301,11 @@ describe('EditorSelectionManageToolHandler', () => {
         });
 
         await assert.rejects(
-          async () => await handler.execute({ 
-            action: 'set', 
-            objectPaths: ['/NonExistent1', '/NonExistent2'] 
-          }),
+          async () =>
+            await handler.execute({
+              action: 'set',
+              objectPaths: ['/NonExistent1', '/NonExistent2']
+            }),
           { message: 'No valid objects found to select' }
         );
       });
@@ -389,23 +409,22 @@ describe('EditorSelectionManageToolHandler', () => {
         error: 'Unity connection failed'
       });
 
-      await assert.rejects(
-        async () => await handler.execute({ action: 'get' }),
-        { message: 'Unity connection failed' }
-      );
+      await assert.rejects(async () => await handler.execute({ action: 'get' }), {
+        message: 'Unity connection failed'
+      });
     });
   });
 
   describe('getExamples', () => {
     it('should return usage examples', () => {
       const examples = handler.getExamples();
-      
+
       assert.ok(examples.getSelection);
       assert.ok(examples.getSelectionWithDetails);
       assert.ok(examples.setSelection);
       assert.ok(examples.clearSelection);
       assert.ok(examples.getSelectionDetails);
-      
+
       assert.equal(examples.getSelection.params.action, 'get');
       assert.equal(examples.setSelection.params.action, 'set');
       assert.equal(examples.clearSelection.params.action, 'clear');

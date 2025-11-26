@@ -2,14 +2,21 @@ import { describe, it, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import net from 'net';
 import { UnityConnection } from '../../../src/core/unityConnection.js';
+import { config } from '../../../src/core/config.js';
 import { EventEmitter } from 'events';
 
 describe('UnityConnection', () => {
   let connection;
   let mockSocket;
   let originalSocket;
+  let originalConfig;
 
   beforeEach(() => {
+    originalConfig = { ...config.unity };
+    config.unity.commandTimeout = 50;
+    config.unity.unityHost = 'localhost';
+    config.unity.mcpHost = 'localhost';
+
     connection = new UnityConnection();
     mockSocket = new EventEmitter();
     mockSocket.write = mock.fn((data, callback) => {
@@ -40,6 +47,7 @@ describe('UnityConnection', () => {
   afterEach(() => {
     // Ensure connection is properly cleaned up
     connection.isDisconnecting = true;
+    Object.assign(config.unity, originalConfig);
 
     // Clear any reconnect timer first
     if (connection.reconnectTimer) {
@@ -161,7 +169,10 @@ describe('UnityConnection', () => {
     it('should throw if not connected', async () => {
       connection.connected = false;
 
-      await assert.rejects(connection.sendCommand('test'), /Not connected to Unity/);
+      await assert.rejects(
+        connection.sendCommand('test'),
+        /Unity connection disabled|Failed to reconnect|Connection timeout/
+      );
     });
 
     it('should send command with incrementing ID', async () => {
@@ -170,7 +181,9 @@ describe('UnityConnection', () => {
       // Verify command was sent
       assert.equal(mockSocket.write.mock.calls.length, 1);
       const sentData = mockSocket.write.mock.calls[0].arguments[0];
-      const command = JSON.parse(sentData);
+      const frameLength = sentData.readInt32BE(0);
+      const payload = sentData.slice(4, 4 + frameLength).toString('utf8');
+      const command = JSON.parse(payload);
 
       assert.equal(command.id, '1');
       assert.equal(command.type, 'system_ping');
@@ -182,7 +195,10 @@ describe('UnityConnection', () => {
         status: 'success',
         data: { message: 'pong' }
       };
-      mockSocket.emit('data', Buffer.from(JSON.stringify(response)));
+      const responseBuffer = Buffer.from(JSON.stringify(response), 'utf8');
+      const responseLength = Buffer.allocUnsafe(4);
+      responseLength.writeInt32BE(responseBuffer.length, 0);
+      mockSocket.emit('data', Buffer.concat([responseLength, responseBuffer]));
 
       const result = await sendPromise;
       assert.deepEqual(result, { message: 'pong' });
@@ -237,14 +253,21 @@ describe('UnityConnection', () => {
       const pingPromise = connection.ping();
 
       assert.equal(mockSocket.write.mock.calls.length, 1);
-      assert.equal(mockSocket.write.mock.calls[0].arguments[0], 'system_ping');
+      const sentData = mockSocket.write.mock.calls[0].arguments[0];
+      const frameLength = sentData.readInt32BE(0);
+      const payload = sentData.slice(4, 4 + frameLength).toString('utf8');
+      const parsed = JSON.parse(payload);
+      assert.equal(parsed.type, 'ping');
 
       // Simulate pong response
       const response = {
         status: 'success',
         data: { message: 'pong', timestamp: '2025-06-21T10:00:00Z' }
       };
-      mockSocket.emit('data', Buffer.from(JSON.stringify(response)));
+      const responseBuffer = Buffer.from(JSON.stringify(response), 'utf8');
+      const responseLength = Buffer.allocUnsafe(4);
+      responseLength.writeInt32BE(responseBuffer.length, 0);
+      mockSocket.emit('data', Buffer.concat([responseLength, responseBuffer]));
 
       const result = await pingPromise;
       assert.equal(result.message, 'pong');
@@ -252,7 +275,7 @@ describe('UnityConnection', () => {
     });
 
     it('should timeout if no pong received', async () => {
-      await assert.rejects(connection.ping(), /Ping timeout/);
+      await assert.rejects(connection.ping(), /Command timeout/);
     });
   });
 

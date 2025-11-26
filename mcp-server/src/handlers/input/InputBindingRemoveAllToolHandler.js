@@ -1,7 +1,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import {
-    removeAllBindingsToolDefinition,
-    removeAllBindingsHandler
+  removeAllBindingsToolDefinition,
+  removeAllBindingsHandler
 } from '../../tools/input/inputActionsEditor.js';
 
 export class InputBindingRemoveAllToolHandler extends BaseToolHandler {

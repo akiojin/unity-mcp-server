@@ -1,3 +1,142 @@
+## [2.41.0](https://github.com/akiojin/unity-mcp-server/compare/v2.40.6...v2.41.0) (2025-11-21)
+
+
+### Features
+
+* bundle better-sqlite3 prebuilt artifacts ([34d4daa](https://github.com/akiojin/unity-mcp-server/commit/34d4daa69e238b8d47ce0e66ce4d710af5aeb256))
+
+
+### Bug Fixes
+
+* add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
+
+## [2.40.6](https://github.com/akiojin/unity-mcp-server/compare/v2.40.5...v2.40.6) (2025-11-19)
+
+
+### Bug Fixes
+
+* skip native rebuild by default to avoid first-run timeout ([60eb8fa](https://github.com/akiojin/unity-mcp-server/commit/60eb8fa1c7f68f79e674614f33d307738c3a8725))
+
+## [2.40.5](https://github.com/akiojin/unity-mcp-server/compare/v2.40.4...v2.40.5) (2025-11-19)
+
+
+### Bug Fixes
+
+* **docs:** note first-time npx timeout and warmup ([e57572f](https://github.com/akiojin/unity-mcp-server/commit/e57572f1ce786440b1cfc14809a3200771babc73))
+
+## [2.40.4](https://github.com/akiojin/unity-mcp-server/compare/v2.40.3...v2.40.4) (2025-11-19)
+
+
+### Bug Fixes
+
+* better-sqlite3再構築とWASMフォールバック ([780bab8](https://github.com/akiojin/unity-mcp-server/commit/780bab8e00788b5b202784a3d9de6765ee3ff028))
+
+## [2.40.3](https://github.com/akiojin/unity-mcp-server/compare/v2.40.2...v2.40.3) (2025-11-18)
+
+
+### Bug Fixes
+
+* **mcp-server:** remove unused resources and prompts handlers ([56237d9](https://github.com/akiojin/unity-mcp-server/commit/56237d9eb87359b8a3a8834137c8f0537bc1dc96))
+* **mcp:** resolve "Capabilities: none" issue in MCP SDK v0.6.1 ([c497d3a](https://github.com/akiojin/unity-mcp-server/commit/c497d3aed3bdada65e25803f4a00c2de9dce87f2))
+
+## [2.40.2](https://github.com/akiojin/unity-mcp-server/compare/v2.40.1...v2.40.2) (2025-11-18)
+
+
+### Bug Fixes
+
+* **docs:** remove remaining pnpm references from README.ja.md ([95fef1e](https://github.com/akiojin/unity-mcp-server/commit/95fef1e1f24590f7757ae8709dd2b4203a577f4d)), closes [#104](https://github.com/akiojin/unity-mcp-server/issues/104)
+
+## [2.40.1](https://github.com/akiojin/unity-mcp-server/compare/v2.40.0...v2.40.1) (2025-11-18)
+
+
+### Bug Fixes
+
+* **ci:** improve release workflow duplicate execution prevention ([241cf79](https://github.com/akiojin/unity-mcp-server/commit/241cf797c4bb8b2e88a034d09c6ab2b5eca012c1))
+
+## [2.40.0](https://github.com/akiojin/unity-mcp-server/compare/v2.39.2...v2.40.0) (2025-11-18)
+
+
+### Features
+
+* **code-index:** add auto-initialization and percentage-based progress logging ([52e738a](https://github.com/akiojin/unity-mcp-server/commit/52e738ac25e8d22113d63fa785651c3a3b7d3178))
+* **index-watcher:** add DB existence check and auto-rebuild on deletion ([7bf65e1](https://github.com/akiojin/unity-mcp-server/commit/7bf65e18b8622575589c1e2c6faff6ad19abb31c))
+* **index:** enable IndexWatcher by default and add DB deletion recovery ([8783471](https://github.com/akiojin/unity-mcp-server/commit/87834710eea5cde3734ff00e34fcfaade6361395))
+
+
+### Bug Fixes
+
+* **index-watcher:** use fs.existsSync for DB file check instead of isReady() ([a300d9c](https://github.com/akiojin/unity-mcp-server/commit/a300d9c5ee74700c3a72bd2ae6cfcfe754df4772))
+* update Docker configuration for codex auth.json synchronization ([ce4e7ec](https://github.com/akiojin/unity-mcp-server/commit/ce4e7ecb6bde5947aa10e327ba12efe7e91c5600))
+
+## [2.39.2](https://github.com/akiojin/unity-mcp-server/compare/v2.39.1...v2.39.2) (2025-11-18)
+
+
+### Bug Fixes
+
+* resolve duplicate requestedSessionId in profiler stop ([099a824](https://github.com/akiojin/unity-mcp-server/commit/099a8242eb1128639e70072aea65d0aa6c32360f))
+
+## [2.39.1](https://github.com/akiojin/unity-mcp-server/compare/v2.39.0...v2.39.1) (2025-11-18)
+
+
+### Bug Fixes
+
+* handle profiler autostop and clean test logs ([cdd83fd](https://github.com/akiojin/unity-mcp-server/commit/cdd83fdfada808cb2d1044d101bdf9d1907e0679))
+
+## [2.39.0](https://github.com/akiojin/unity-mcp-server/compare/v2.38.1...v2.39.0) (2025-11-17)
+
+
+### Features
+
+* **claude-md:** enforce unity-mcp-server for C# editing ([8af1c81](https://github.com/akiojin/unity-mcp-server/commit/8af1c8133586af6b0c18d0b727d4f9c51013baaf))
+* **hooks:** add Unity C# editing protection Hook ([fcf2d69](https://github.com/akiojin/unity-mcp-server/commit/fcf2d69e5d18966333af4f545439ab2afdb45d56))
+* **hooks:** AppBrew記事準拠のCLAUDE.md自動改善システムを実装 ([36f2050](https://github.com/akiojin/unity-mcp-server/commit/36f2050df4a407993a60453847415514a0530883))
+* **mcp-server:** add search_tools meta-tool for 96.2% token reduction ([d63270b](https://github.com/akiojin/unity-mcp-server/commit/d63270b5b8e11195af4fc9269374ad5ef00fb7ad))
+* **mcp-server:** implement actual 96.2% token reduction via ListTools restriction ([64b794c](https://github.com/akiojin/unity-mcp-server/commit/64b794c57185e1a38e004af585c8747a8bbc1cc6))
+* **profiler:** add structured logging to ProfilerHandler (T027) ([9302c56](https://github.com/akiojin/unity-mcp-server/commit/9302c56d3ead1355998dd0a7695b6f735d71f626))
+* **profiler:** enhance error handling with parameter validation (T026) ([e66d6e1](https://github.com/akiojin/unity-mcp-server/commit/e66d6e1ce1f2c6d583ac2338bc37f7074825b0d5))
+* **profiler:** implement profiler handlers (T013-T020) ([74d405f](https://github.com/akiojin/unity-mcp-server/commit/74d405fd7962da85756915610e872b304d4cd170))
+* **profiler:** setup profiler handlers and contracts (T001-T007) ([bb4801d](https://github.com/akiojin/unity-mcp-server/commit/bb4801d99fba85a61227f87ebd1da2751831c7b8))
+
+
+### Bug Fixes
+
+* **ci:** enable merge-to-main even when semantic-release is skipped ([98976c0](https://github.com/akiojin/unity-mcp-server/commit/98976c060d3e85a5d72dbf60e2cc2e78164576df))
+* **mcp-server:** revert ListTools restriction - return all tools for MCP protocol compliance ([54a6f2d](https://github.com/akiojin/unity-mcp-server/commit/54a6f2d5df6a497fd32677ef87e2c37af76cfa5d))
+* **profiler:** fix string interpolation syntax error in ProfilerHandler.cs ([2d07072](https://github.com/akiojin/unity-mcp-server/commit/2d07072269d1df4dfc316b879c395484603f4f94))
+* **profiler:** fix Unity.Profiling API usage for ProfilerRecorder ([dc54711](https://github.com/akiojin/unity-mcp-server/commit/dc54711271039ba5759d0e6a3ed3cae721c430d7))
+* **script:** normalize line endings in script_edit_snippet for Issue [#97](https://github.com/akiojin/unity-mcp-server/issues/97) ([27f4650](https://github.com/akiojin/unity-mcp-server/commit/27f465070ca55e53df7b5845b9990d19d58e63da))
+
+## [2.39.0](https://github.com/akiojin/unity-mcp-server/compare/v2.38.1...v2.39.0) (2025-11-17)
+
+
+### Features
+
+* **claude-md:** enforce unity-mcp-server for C# editing ([8af1c81](https://github.com/akiojin/unity-mcp-server/commit/8af1c8133586af6b0c18d0b727d4f9c51013baaf))
+* **hooks:** add Unity C# editing protection Hook ([fcf2d69](https://github.com/akiojin/unity-mcp-server/commit/fcf2d69e5d18966333af4f545439ab2afdb45d56))
+* **hooks:** AppBrew記事準拠のCLAUDE.md自動改善システムを実装 ([36f2050](https://github.com/akiojin/unity-mcp-server/commit/36f2050df4a407993a60453847415514a0530883))
+* **mcp-server:** add search_tools meta-tool for 96.2% token reduction ([d63270b](https://github.com/akiojin/unity-mcp-server/commit/d63270b5b8e11195af4fc9269374ad5ef00fb7ad))
+* **mcp-server:** implement actual 96.2% token reduction via ListTools restriction ([64b794c](https://github.com/akiojin/unity-mcp-server/commit/64b794c57185e1a38e004af585c8747a8bbc1cc6))
+* **profiler:** add structured logging to ProfilerHandler (T027) ([9302c56](https://github.com/akiojin/unity-mcp-server/commit/9302c56d3ead1355998dd0a7695b6f735d71f626))
+* **profiler:** enhance error handling with parameter validation (T026) ([e66d6e1](https://github.com/akiojin/unity-mcp-server/commit/e66d6e1ce1f2c6d583ac2338bc37f7074825b0d5))
+* **profiler:** implement profiler handlers (T013-T020) ([74d405f](https://github.com/akiojin/unity-mcp-server/commit/74d405fd7962da85756915610e872b304d4cd170))
+* **profiler:** setup profiler handlers and contracts (T001-T007) ([bb4801d](https://github.com/akiojin/unity-mcp-server/commit/bb4801d99fba85a61227f87ebd1da2751831c7b8))
+
+
+### Bug Fixes
+
+* **ci:** enable merge-to-main even when semantic-release is skipped ([98976c0](https://github.com/akiojin/unity-mcp-server/commit/98976c060d3e85a5d72dbf60e2cc2e78164576df))
+* **mcp-server:** revert ListTools restriction - return all tools for MCP protocol compliance ([54a6f2d](https://github.com/akiojin/unity-mcp-server/commit/54a6f2d5df6a497fd32677ef87e2c37af76cfa5d))
+* **profiler:** fix string interpolation syntax error in ProfilerHandler.cs ([2d07072](https://github.com/akiojin/unity-mcp-server/commit/2d07072269d1df4dfc316b879c395484603f4f94))
+* **profiler:** fix Unity.Profiling API usage for ProfilerRecorder ([dc54711](https://github.com/akiojin/unity-mcp-server/commit/dc54711271039ba5759d0e6a3ed3cae721c430d7))
+* **script:** normalize line endings in script_edit_snippet for Issue [#97](https://github.com/akiojin/unity-mcp-server/issues/97) ([27f4650](https://github.com/akiojin/unity-mcp-server/commit/27f465070ca55e53df7b5845b9990d19d58e63da))
+
+## [2.38.1](https://github.com/akiojin/unity-mcp-server/compare/v2.38.0...v2.38.1) (2025-11-17)
+
+
+### Bug Fixes
+
+* align lsp manifest version and prep 2.38.1 ([b740c41](https://github.com/akiojin/unity-mcp-server/commit/b740c41e039a8ff80d7224979417292606257aaa))
+
 ## [2.38.0](https://github.com/akiojin/unity-mcp-server/compare/v2.37.2...v2.38.0) (2025-11-17)
 
 

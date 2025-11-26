@@ -47,7 +47,7 @@ function resolvePackageVersion() {
  * Base configuration for Unity MCP Server Server
  */
 const envUnityHost =
-  process.env.UNITY_UNITY_HOST || process.env.UNITY_BIND_HOST || process.env.UNITY_HOST || null;
+  process.env.UNITY_BIND_HOST || process.env.UNITY_HOST || null;
 
 const envMcpHost =
   process.env.UNITY_MCP_HOST || process.env.UNITY_CLIENT_HOST || process.env.UNITY_HOST || null;
@@ -97,7 +97,7 @@ const baseConfig = {
   // Indexing (code index) settings
   indexing: {
     // Enable periodic incremental index updates (polling watcher)
-    watch: (process.env.INDEX_WATCH || 'false').toLowerCase() === 'true',
+    watch: true,
     // Polling interval (ms)
     intervalMs: Number(process.env.INDEX_WATCH_INTERVAL_MS || 15000),
     // Build options

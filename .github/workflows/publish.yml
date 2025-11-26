@@ -2,17 +2,25 @@ name: Publish
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to publish (override detected tag)"
+        required: false
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   build-csharp-lsp:
     name: Build csharp-lsp ${{ matrix.rid }}
     runs-on: ${{ matrix.os }}
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
+      RELEASE_VERSION: ${{ (github.event.inputs.release_tag != '' && github.event.inputs.release_tag) || github.ref_name }}
     strategy:
       fail-fast: false
       matrix:
@@ -72,9 +80,18 @@ jobs:
         if: steps.detect.outputs.present == 'true'
         shell: bash
         run: |
+          set -euo pipefail
+          VERSION="${RELEASE_VERSION#v}"
+          if [[ -z "$VERSION" ]]; then
+            echo "Release version is empty"
+            exit 1
+          fi
           mkdir -p out/${{ matrix.rid }}
           dotnet publish csharp-lsp/Server.csproj \
             -c Release -r "${{ matrix.rid }}" \
+            -p:Version="$VERSION" \
+            -p:FileVersion="$VERSION" \
+            -p:InformationalVersion="$VERSION" \
             --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
             -o out/${{ matrix.rid }}
           BIN="out/${{ matrix.rid }}/server${{ matrix.ext }}"
@@ -103,6 +120,8 @@ jobs:
     needs: build-csharp-lsp
     runs-on: ubuntu-latest
     if: needs.build-csharp-lsp.result == 'success'
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
 
     steps:
       - uses: actions/checkout@v4
@@ -129,10 +148,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Get latest tag
+      - name: Get release tag
         id: tag
         run: |
-          TAG=$(git describe --tags --abbrev=0)
+          TAG="${{ env.RELEASE_TAG }}"
+          if [ -z "$TAG" ]; then
+            TAG=$(git describe --tags --abbrev=0)
+          fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Generate manifest
@@ -183,6 +205,8 @@ jobs:
     name: Publish to npm
     needs: build-csharp-lsp
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
 
     steps:
       - uses: actions/checkout@v4
@@ -195,16 +219,13 @@ jobs:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.20.0
-          run_install: false
-
-      - name: Get latest tag
+      - name: Get release tag
         id: tag
         run: |
-          TAG=$(git describe --tags --abbrev=0)
+          TAG="${{ env.RELEASE_TAG }}"
+          if [ -z "$TAG" ]; then
+            TAG=$(git describe --tags --abbrev=0)
+          fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Verify version matches tag
@@ -237,11 +258,11 @@ jobs:
           exit 1
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Run tests
         working-directory: mcp-server
-        run: pnpm run test:ci
+        run: npm run test:ci
 
       - name: Publish to npm
         working-directory: mcp-server
@@ -264,7 +285,7 @@ jobs:
     name: Backmerge to develop
     needs: [release-csharp-lsp, npm-publish, openupm-publish]
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ github.ref_type == 'tag' }}
 
     steps:
       - name: Checkout

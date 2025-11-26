@@ -18,7 +18,8 @@ export class EditorLayersManageToolHandler extends BaseToolHandler {
           },
           layerName: {
             type: 'string',
-            description: 'Layer name (required for add/remove/get_by_name). Letters/numbers/space/_ only.'
+            description:
+              'Layer name (required for add/remove/get_by_name). Letters/numbers/space/_ only.'
           },
           layerIndex: {
             type: 'number',
@@ -68,13 +69,13 @@ export class EditorLayersManageToolHandler extends BaseToolHandler {
           throw new Error('layerName is reserved');
         }
         break;
-      
+
       case 'get_by_name':
         if (layerName === undefined || layerName === null) {
           throw new Error('layerName is required for get_by_name action');
         }
         break;
-      
+
       case 'get_by_index':
         if (layerIndex === undefined || layerIndex === null) {
           throw new Error('layerIndex is required for get_by_index action');
@@ -106,13 +107,13 @@ export class EditorLayersManageToolHandler extends BaseToolHandler {
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }
-    
+
     const result = await this.unityConnection.sendCommand('manage_layers', params);
-    
+
     if (result.error) {
       throw new Error(result.error);
     }
-    
+
     return result;
   }
 

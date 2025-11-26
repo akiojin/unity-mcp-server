@@ -46,7 +46,7 @@ export class EditorToolsManageToolHandler extends BaseToolHandler {
       if (params.toolName === undefined || params.toolName === null) {
         throw new Error(`toolName is required for ${params.action} action`);
       }
-      
+
       if (params.toolName === '') {
         throw new Error('toolName cannot be empty');
       }
@@ -60,7 +60,7 @@ export class EditorToolsManageToolHandler extends BaseToolHandler {
 
   async execute(params) {
     this.validate(params);
-    
+
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }

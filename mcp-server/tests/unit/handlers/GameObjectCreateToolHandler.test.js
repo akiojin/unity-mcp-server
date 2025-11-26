@@ -9,7 +9,7 @@ describe('GameObjectCreateToolHandler', () => {
 
   beforeEach(() => {
     mockConnection = createMockUnityConnection({
-      sendCommandResult: UNITY_RESPONSES.gameObject({ 
+      sendCommandResult: UNITY_RESPONSES.gameObject({
         id: -2000,
         name: 'NewCube'
       })
@@ -35,18 +35,24 @@ describe('GameObjectCreateToolHandler', () => {
     });
 
     it('should pass with valid position', () => {
-      assert.doesNotThrow(() => handler.validate({ 
-        position: { x: 1, y: 2, z: 3 } 
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          position: { x: 1, y: 2, z: 3 }
+        })
+      );
     });
 
     it('should pass with valid primitive type', () => {
-      assert.doesNotThrow(() => handler.validate({ 
-        primitiveType: 'cube' 
-      }));
-      assert.doesNotThrow(() => handler.validate({ 
-        primitiveType: 'SPHERE' // Case insensitive
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          primitiveType: 'cube'
+        })
+      );
+      assert.doesNotThrow(() =>
+        handler.validate({
+          primitiveType: 'SPHERE' // Case insensitive
+        })
+      );
     });
 
     it('should fail with invalid primitive type', () => {
@@ -68,29 +74,25 @@ describe('GameObjectCreateToolHandler', () => {
     });
 
     it('should fail with invalid layer', () => {
-      assert.throws(
-        () => handler.validate({ layer: -1 }),
-        /layer must be between 0 and 31/
-      );
-      assert.throws(
-        () => handler.validate({ layer: 32 }),
-        /layer must be between 0 and 31/
-      );
+      assert.throws(() => handler.validate({ layer: -1 }), /layer must be between 0 and 31/);
+      assert.throws(() => handler.validate({ layer: 32 }), /layer must be between 0 and 31/);
     });
 
     it('should validate all vector3 properties', () => {
-      assert.doesNotThrow(() => handler.validate({
-        position: { x: 0, y: 0, z: 0 },
-        rotation: { x: 0, y: 90, z: 0 },
-        scale: { x: 2, y: 2, z: 2 }
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          position: { x: 0, y: 0, z: 0 },
+          rotation: { x: 0, y: 90, z: 0 },
+          scale: { x: 2, y: 2, z: 2 }
+        })
+      );
     });
   });
 
   describe('execute', () => {
     it('should create GameObject with default parameters', async () => {
       const result = await handler.execute({});
-      
+
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
       assert.deepEqual(mockConnection.sendCommand.mock.calls[0].arguments[0], 'create_gameobject');
       assert.deepEqual(mockConnection.sendCommand.mock.calls[0].arguments[1], {});
@@ -107,9 +109,9 @@ describe('GameObjectCreateToolHandler', () => {
         tag: 'Player',
         layer: 8
       };
-      
+
       const result = await handler.execute(params);
-      
+
       const sentParams = mockConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(sentParams.name, 'MyCube');
       assert.equal(sentParams.primitiveType, 'cube');
@@ -119,16 +121,16 @@ describe('GameObjectCreateToolHandler', () => {
 
     it('should pass through primitive type as-is', async () => {
       await handler.execute({ primitiveType: 'CUBE' });
-      
+
       const sentParams = mockConnection.sendCommand.mock.calls[0].arguments[1];
       assert.equal(sentParams.primitiveType, 'CUBE');
     });
 
     it('should connect if not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      
+
       await handler.execute({ name: 'Test' });
-      
+
       assert.equal(mockConnection.connect.mock.calls.length, 1);
     });
 
@@ -136,7 +138,7 @@ describe('GameObjectCreateToolHandler', () => {
       mockConnection.sendCommand.mock.mockImplementation(async () => {
         throw new Error('Unity error: GameObject limit reached');
       });
-      
+
       await assert.rejects(
         async () => await handler.execute({}),
         /Unity error: GameObject limit reached/
@@ -155,9 +157,9 @@ describe('GameObjectCreateToolHandler', () => {
         layer: 0,
         isActive: true
       }));
-      
+
       const result = await handler.execute({ name: 'TestCube', primitiveType: 'cube' });
-      
+
       assert.equal(result.id, -3000);
       assert.equal(result.name, 'TestCube');
       assert.equal(result.path, '/TestCube');
@@ -172,7 +174,7 @@ describe('GameObjectCreateToolHandler', () => {
         primitiveType: 'sphere',
         position: { x: 1, y: 2, z: 3 }
       });
-      
+
       assert.equal(result.status, 'success');
       assert.equal(result.result.id, -2000);
       assert.equal(result.result.name, 'NewCube');
@@ -182,7 +184,7 @@ describe('GameObjectCreateToolHandler', () => {
       const result = await handler.handle({
         primitiveType: 'invalid_type'
       });
-      
+
       assert.equal(result.status, 'error');
       assert.match(result.error, /primitiveType must be one of/);
       assert.equal(result.code, 'TOOL_ERROR');

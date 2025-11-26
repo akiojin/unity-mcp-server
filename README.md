@@ -88,17 +88,14 @@ Performance
 
 ## Automated Release Management
 
-This project uses **semantic-release** for fully automated version management and publishing:
+This project uses **release-please (manifest mode)** + GitHub Actions for automated releases:
 
-- **Version Detection**: Automatically determines version bumps based on Conventional Commits
-  - `fix:` commits → patch version (e.g., 2.26.0 → 2.26.1)
-  - `feat:` commits → minor version (e.g., 2.26.0 → 2.27.0)
-  - `BREAKING CHANGE:` or `feat!:` → major version (e.g., 2.26.0 → 3.0.0)
-- **Release Flow**: develop → release/vX.Y.Z → main
-- **Publishing**: Automated npm, OpenUPM, and GitHub Release publication
-- **Multi-platform Builds**: Automatic csharp-lsp builds for all supported platforms
+1) `Create Release Branch` (manual): release-please opens a release PR against `main` and is auto-merged.  
+2) `Release` (push to `main` or manual): release-please tags `vX.Y.Z` and creates the GitHub Release (version scope: `mcp-server` and Unity package via extra-files).  
+3) `Publish` (tag `v*`): builds csharp-lsp for linux/win/macos (x64/arm64), uploads binaries+manifest, publishes `mcp-server` to npm, lets OpenUPM auto-detect, then backmerges `main` → `develop`.  
+4) Versioning follows Conventional Commits; required checks (Test & Coverage, Package, Markdown/ESLint/Prettier, Commit Message Lint) must pass for branch protection.
 
-See [CLAUDE.md](CLAUDE.md) for detailed release workflow documentation.
+See [CLAUDE.md](CLAUDE.md) for the detailed release workflow.
 
 ## LLM Optimization Principles
 
@@ -184,7 +181,7 @@ sequenceDiagram
 ## Setup
 
 - Unity 2020.3 LTS or newer
-- Node.js 18.x / 20.x / 22.x LTS (the server refuses to start on newer majors) and pnpm (via Corepack)
+- Node.js 18.x / 20.x / 22.x LTS (the server refuses to start on newer majors)
   - Prefer Node.js 20.x or 22.x for the best compatibility (prebuilt `better-sqlite3` binaries are available); Node.js 18.x works, but anything ≥23 is rejected at launch.
 - Claude Desktop or another MCP-compatible client
 
@@ -207,10 +204,11 @@ Installation
 
 ### MCP Server Environment Setup
 
-You must install the MCP server's pnpm-managed dependencies **on the same OS where the server runs** so that native modules such as `better-sqlite3` are built for the correct platform.
+You must install the MCP server's dependencies **on the same OS where the server runs** so that native modules such as `better-sqlite3` are built for the correct platform.
 
-- **General rule**: if your `.mcp.json` uses `"command": "node"` (e.g. `node bin/unity-mcp-server serve`), run `pnpm install` (or `pnpm install --frozen-lockfile`) inside the directory where the package lives _on that machine/container_ before launching the MCP client.
-- **pnpm build approval**: pnpm v10+ blocks native build scripts until you approve them. Run `pnpm approve-builds better-sqlite3` once (select the package and confirm) so the SQLite binding can compile successfully.citeturn1view0
+> First-time install note (npx): unity-mcp-server now bundles better-sqlite3 prebuilt binaries for linux/darwin/win32 (x64/arm64, Node 18/20/22). `npx @akiojin/unity-mcp-server@latest` completes within seconds without cache warm-up or timeout tweaks. If you are on an unsupported platform we automatically fall back to sql.js; set `UNITY_MCP_FORCE_NATIVE=1` to force a native rebuild, or `UNITY_MCP_SKIP_NATIVE_BUILD=1` to stay on the fallback.
+
+- **General rule**: if your `.mcp.json` uses `"command": "node"` (e.g. `node bin/unity-mcp-server serve`), run `npm install` (or `npm ci`) inside the directory where the package lives _on that machine/container_ before launching the MCP client.
 - **`npx` launch**: the README example above (`npx @akiojin/unity-mcp-server@latest`) downloads dependencies at runtime and works on the supported Node.js versions (18.x / 20.x / 22.x). Node.js 23+ is not supported; the server exits early with a version error.
 - **Avoid sharing `node_modules` across operating systems** (Windows ↔ Linux/macOS). Native binaries compiled for one platform cannot be reused on another.
 
@@ -218,24 +216,24 @@ Environment-specific notes:
 
 - **Windows (PowerShell / Command Prompt)**
   - Install Node.js 20.x or 22.x LTS (18.x also works if you prefer). Newer major versions (23+) are unsupported.
-  - In your workspace: change into the installed package directory (for repo clones: `cd C:\path\to\unity-mcp-server\mcp-server`) then run `pnpm install --frozen-lockfile`.
+  - In your workspace: change into the installed package directory (for repo clones: `cd C:\path\to\unity-mcp-server\mcp-server`) then run `npm ci`.
   - Point `.mcp.json` to `node` or keep using `npx` once dependencies exist.
 
 - **Windows Subsystem for Linux (WSL)**
   - Keep the repository on the Linux filesystem (e.g. `/home/<user>/unity-mcp-server`).
   - Use Node.js 20.x or 22.x inside WSL (18.x also works).
-  - Run `pnpm install --frozen-lockfile` inside the installed package directory (for repo clones: `/home/<user>/unity-mcp-server/mcp-server`).
+  - Run `npm ci` inside the installed package directory (for repo clones: `/home/<user>/unity-mcp-server/mcp-server`).
 
 - **Docker / Linux containers**
   - Base your image on Node.js 20.x or 22.x (18.x also works). Images with newer Node versions (23+) are unsupported and will fail fast.
-  - During the image build run `pnpm install --filter mcp-server --frozen-lockfile` (or `pnpm install --frozen-lockfile` inside the package directory) so the container has platform-matched dependencies.
+  - During the image build run `npm ci --workspace=mcp-server` (or `npm ci` inside the package directory) so the container has platform-matched dependencies.
   - Do not bind-mount a host `node_modules` directory into the container.
 
 - **macOS**
   - Install Node.js 20.x or 22.x (e.g. `brew install node@22` / `node@20` and add it to `PATH`). Node 18.x also works; newer majors (23+) are unsupported.
-  - Run `pnpm install --frozen-lockfile` wherever the package is installed (for repo clones: `cd ~/unity-mcp-server/mcp-server && pnpm install --frozen-lockfile`).
+  - Run `npm ci` wherever the package is installed (for repo clones: `cd ~/unity-mcp-server/mcp-server && npm ci`).
 
-After installation you can verify the server with `node mcp-server/bin/unity-mcp-server --version`. If `better-sqlite3` fails to load, reinstall the dependencies _inside the target environment_ or rebuild with `pnpm rebuild better-sqlite3 --filter mcp-server --build-from-source` once the toolchain is present.
+After installation you can verify the server with `node mcp-server/bin/unity-mcp-server --version`. If `better-sqlite3` fails to load, reinstall the dependencies _inside the target environment_ or rebuild with `npm rebuild better-sqlite3` once the toolchain is present.
 
 ## Usage Workflow
 
@@ -416,6 +414,50 @@ sequenceDiagram
 - Capabilities: simulate keyboard, mouse, gamepad, and touch input for playmode testing and UI interaction.
 - Tip: Ensure your project uses Input System; otherwise simulated input will not affect gameplay.
 
+## Profiler Performance Measurement
+
+Unity Profiler integration via MCP tools for performance analysis and optimization.
+
+### Available Tools
+
+- **`profiler_start`**: Start profiling session with configurable modes (normal/deep)
+- **`profiler_stop`**: Stop profiling and save `.data` file
+- **`profiler_status`**: Get current profiling session status
+- **`profiler_get_metrics`**: Query available metrics or current metric values
+
+### Features
+
+- **Recording Modes**: Normal (standard profiling) and Deep (detailed analysis with higher overhead)
+- **File Output**: Save profiling data to `.data` files in `.unity/capture/` for analysis in Unity Profiler Window
+- **Real-time Metrics**: Query current performance metrics without file output
+- **Auto-stop**: Automatically stop profiling after specified duration
+- **Selective Metrics**: Record specific metrics (e.g., 'System Used Memory', 'Draw Calls Count')
+
+### Example Usage
+
+```javascript
+// Start profiling session (normal mode, save to file)
+await client.callTool('profiler_start', {
+  mode: 'normal',
+  recordToFile: true,
+  maxDurationSec: 60  // Auto-stop after 60 seconds
+});
+
+// Get current status
+const status = await client.callTool('profiler_status', {});
+// Returns: { isRecording: true, sessionId, startedAt, elapsedSec, remainingSec }
+
+// Stop profiling
+const result = await client.callTool('profiler_stop', {});
+// Returns: { sessionId, outputPath, duration, frameCount, metrics }
+```
+
+### Output
+
+- **File Location**: `.unity/capture/profiler_{sessionId}_{timestamp}.data`
+- **Format**: Unity Profiler binary format (`.data`)
+- **Analysis**: Open `.data` files in Unity Editor → Window → Analysis → Profiler
+
 ## C# Language Server (LSP)
 
 The project bundles a self-contained C# Language Server (LSP). The MCP server auto-downloads and manages its lifecycle. `script_*` tools talk to the LSP under the hood:
@@ -500,50 +542,22 @@ Example:
 
 ## Release Process
 
-### Automated Release Flow
+### Automated Release Flow (release-please)
 
-This project uses [semantic-release](https://semantic-release.gitbook.io/) with [Conventional Commits](https://www.conventionalcommits.org/) for fully automated releases.
+1. **Feature → develop**  
+   - Work on `feature/SPEC-xxxxxxxx`, Conventional Commits必須。`finish-feature.sh`でPR作成→developにauto-merge（必須チェック: Markdown/ESLint/Prettier, Commit Message Lint）。  
+2. **リリースPR（手動トリガー）**  
+   - Actionsの`Create Release Branch`を実行すると release-please が `main` 向けリリースPRを生成し、自動マージを有効化。  
+3. **タグ＆GitHub Release**  
+   - `main` へのマージで `Release` ワークフローが動き、release-pleaseが `vX.Y.Z` をタグ付けしGitHub Releaseを作成（対象: `mcp-server` と Unity パッケージのバージョン/CHANGELOG）。  
+4. **Publish（タグトリガー）**  
+   - `Publish` ワークフローがタグで起動し、csharp-lspをwin/linux/macos x64/arm64でビルド＋manifest添付、`mcp-server` を npm publish、OpenUPM はタグを自動検出、完了後に `main` → `develop` をバックマージ。  
 
-**Note**: Testing automated release workflow.
-
-#### Three-Tier Release Flow (feature → develop → main)
-
-This project implements a **three-tier release workflow** for controlled and predictable releases:
-
-1. **Feature Development** (feature branches)
-   - Create feature branch: `feature/SPEC-xxxxxxxx`
-   - Commit with Conventional Commits
-   - Run `finish-feature.sh` → auto-create PR to `develop`
-
-2. **Integration Stage** (`develop` branch)
-   - Required checks pass → auto-merge to `develop`
-   - Multiple features accumulate in `develop`
-   - No releases triggered from `develop`
-
-3. **Production Release** (`main` branch)
-   - Run `/release` command → create `develop` → `main` PR
-   - Required checks pass → auto-merge to `main`
-   - **semantic-release auto-executes**: version bump, CHANGELOG, tag creation
-   - **csharp-lsp Build**: all platforms → GitHub Release
-   - **npm Publish**: MCPサーバー → npmjs.com
-
-**Benefits**:
-- 🎯 Controlled release timing (manual `/release` trigger)
-- 🔄 Multiple features can be bundled into one release
-- 🛡️ `develop` acts as integration/staging before production
-- 📦 Single version across all components (mcp-server, Unity Package, csharp-lsp)
-
-#### How It Works (Legacy Two-Tier)
-
-The previous two-tier flow (feature → main) is deprecated:
-
-1. **Developer**: Create feature branch, commit with Conventional Commits, create PR
-2. **Auto-Merge**: Required checks pass → automatic merge to `main`
-3. **semantic-release**: Analyzes commits → determines version → updates package.json (mcp-server + Unity Package) → generates CHANGELOG.md → creates tag (`v*`)
-4. **csharp-lsp Build**: Triggered by tag → builds all platforms → creates GitHub Release
-5. **npm Publish**: Triggered by Release → waits for csharp-lsp-manifest.json → publishes to npm
-
-All components (mcp-server, Unity Package, csharp-lsp) are released with the same version number.
+Branch protection Required Checks（main/develop共通）  
+- `Markdown, ESLint & Formatting`  
+- `Commit Message Lint`  
+- `Test & Coverage`  
+- `Package`
 
 #### Commit Message Format
 
@@ -572,16 +586,15 @@ If automated release fails, you can manually trigger workflows:
 
 #### Troubleshooting
 
-- **No release created**: Check if commits follow Conventional Commits format
-- **csharp-lsp build failed**: npm publish will timeout after 20 minutes
-- **Version mismatch**: Ensure Unity Package version is synced (automatic via `sync-unity-package-version.js`)
+- **No release created**: Check that commits follow Conventional Commits (release-please derives the bump from them).
+- **csharp-lsp build failed**: npm publish waits up to 10 minutes for the manifest; rerun `Publish` on the tag if needed.
+- **Version mismatch**: release-please updates `mcp-server/package.json` and `UnityMCPServer/Packages/unity-mcp-server/package.json` via extra-files; re-run `Release` if they drift.
 
 #### Version Synchronization
 
-- **mcp-server**: Updated by semantic-release
-- **Unity Package**: Auto-synced via `scripts/sync-unity-package-version.js`
-- **csharp-lsp**: Tagged with same version, binaries attached to GitHub Release
-- **CHANGELOG.md**: Auto-generated from commit messages
+- **mcp-server & Unity Package**: Updated by release-please (manifest + extra-files).
+- **csharp-lsp**: Binaries built on tag `vX.Y.Z`; installer/manifest carry the same version from the tag.
+- **CHANGELOG.md**: Generated by release-please and attached to the GitHub Release notes.
 
 ## Repository Structure (Workspace Root)
 

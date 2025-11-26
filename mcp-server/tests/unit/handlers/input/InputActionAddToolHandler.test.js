@@ -50,20 +50,24 @@ describe('InputActionAddToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with required parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap',
-        actionName: 'Move'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap',
+          actionName: 'Move'
+        })
+      );
     });
 
     it('should pass with actionType parameter', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap',
-        actionName: 'Move',
-        actionType: 'Value'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap',
+          actionName: 'Move',
+          actionType: 'Value'
+        })
+      );
     });
   });
 

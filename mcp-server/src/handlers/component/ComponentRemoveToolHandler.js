@@ -27,7 +27,7 @@ export class ComponentRemoveToolHandler extends BaseToolHandler {
         required: ['gameObjectPath', 'componentType']
       }
     );
-    
+
     this.unityConnection = unityConnection;
   }
 
@@ -38,7 +38,7 @@ export class ComponentRemoveToolHandler extends BaseToolHandler {
    */
   validate(params) {
     super.validate(params); // Check required fields
-    
+
     const { componentIndex } = params;
 
     // Validate component index if provided

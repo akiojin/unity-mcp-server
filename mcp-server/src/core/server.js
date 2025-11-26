@@ -1,11 +1,6 @@
 #!/usr/bin/env node
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import {
-  ListToolsRequestSchema,
-  CallToolRequestSchema,
-  ListResourcesRequestSchema,
-  ListPromptsRequestSchema
-} from '@modelcontextprotocol/sdk/types.js';
+import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 // Note: filename is lowercase on disk; use exact casing for POSIX filesystems
 import { UnityConnection } from './unityConnection.js';
 import { createHandlers } from '../handlers/index.js';
@@ -29,9 +24,7 @@ const server = new Server(
     capabilities: {
       // Explicitly advertise tool support; some MCP clients expect a non-empty object
       // Setting listChanged enables future push updates if we emit notifications
-      tools: { listChanged: true },
-      resources: {},
-      prompts: {}
+      tools: { listChanged: true }
     }
   }
 );
@@ -61,20 +54,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
   logger.info(`[MCP] Returning ${tools.length} tool definitions`);
   return { tools };
-});
-
-// Handle resources listing
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
-  logger.debug('[MCP] Received resources/list request');
-  // Unity MCP server doesn't provide resources
-  return { resources: [] };
-});
-
-// Handle prompts listing
-server.setRequestHandler(ListPromptsRequestSchema, async () => {
-  logger.debug('[MCP] Received prompts/list request');
-  // Unity MCP server doesn't provide prompts
-  return { prompts: [] };
 });
 
 // Handle tool execution
@@ -232,6 +211,42 @@ export async function startServer() {
     process.on('SIGINT', stopWatch);
     process.on('SIGTERM', stopWatch);
 
+    // Auto-initialize code index if DB doesn't exist
+    (async () => {
+      try {
+        const { CodeIndex } = await import('./codeIndex.js');
+        const index = new CodeIndex(unityConnection);
+        const ready = await index.isReady();
+
+        if (!ready) {
+          if (index.disabled) {
+            logger.warn(
+              `[startup] Code index disabled: ${index.disableReason || 'SQLite native binding missing'}. Skipping auto-build.`
+            );
+            return;
+          }
+          logger.info('[startup] Code index DB not ready. Starting auto-build...');
+          const { CodeIndexBuildToolHandler } = await import(
+            '../handlers/script/CodeIndexBuildToolHandler.js'
+          );
+          const builder = new CodeIndexBuildToolHandler(unityConnection);
+          const result = await builder.execute({});
+
+          if (result.success) {
+            logger.info(
+              `[startup] Code index auto-build started: jobId=${result.jobId}. Use code_index_status to check progress.`
+            );
+          } else {
+            logger.warn(`[startup] Code index auto-build failed: ${result.message}`);
+          }
+        } else {
+          logger.info('[startup] Code index DB already exists. Skipping auto-build.');
+        }
+      } catch (e) {
+        logger.warn(`[startup] Code index auto-init failed: ${e.message}`);
+      }
+    })();
+
     // Handle shutdown
     process.on('SIGINT', async () => {
       logger.info('Shutting down...');
@@ -268,9 +283,7 @@ export async function createServer(customConfig = config) {
     },
     {
       capabilities: {
-        tools: { listChanged: true },
-        resources: {},
-        prompts: {}
+        tools: { listChanged: true }
       }
     }
   );
@@ -279,14 +292,6 @@ export async function createServer(customConfig = config) {
   testServer.setRequestHandler(ListToolsRequestSchema, async () => {
     const tools = Array.from(testHandlers.values()).map(handler => handler.getDefinition());
     return { tools };
-  });
-
-  testServer.setRequestHandler(ListResourcesRequestSchema, async () => {
-    return { resources: [] };
-  });
-
-  testServer.setRequestHandler(ListPromptsRequestSchema, async () => {
-    return { prompts: [] };
   });
 
   testServer.setRequestHandler(CallToolRequestSchema, async request => {

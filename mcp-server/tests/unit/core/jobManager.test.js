@@ -52,7 +52,7 @@ describe('JobManager', () => {
       }
 
       const jobId = 'test-job-123';
-      const jobFn = async (job) => {
+      const jobFn = async job => {
         // Simulate async work
         await new Promise(resolve => setTimeout(resolve, 100));
         return { result: 'success' };
@@ -90,11 +90,15 @@ describe('JobManager', () => {
       jobManager.create(jobId, jobFn);
       const job = jobManager.get(jobId);
 
-      assert.deepEqual(job.progress, {
-        processed: 0,
-        total: 0,
-        rate: 0
-      }, 'Initial progress should be 0/0/0');
+      assert.deepEqual(
+        job.progress,
+        {
+          processed: 0,
+          total: 0,
+          rate: 0
+        },
+        'Initial progress should be 0/0/0'
+      );
     });
 
     it('should execute jobFn in background', async () => {
@@ -104,7 +108,7 @@ describe('JobManager', () => {
 
       const jobId = 'test-job-background';
       let executed = false;
-      const jobFn = async (job) => {
+      const jobFn = async job => {
         await new Promise(resolve => setTimeout(resolve, 10));
         executed = true;
         return { done: true };
@@ -159,7 +163,7 @@ describe('JobManager', () => {
       }
 
       const jobId = 'test-job-complete';
-      const jobFn = async (job) => {
+      const jobFn = async job => {
         job.progress = { processed: 10, total: 10, rate: 5.0 };
         return { updatedFiles: 10, removedFiles: 0 };
       };
@@ -229,7 +233,11 @@ describe('JobManager', () => {
       await new Promise(resolve => setTimeout(resolve, 150));
 
       // Job should be deleted
-      assert.equal(jobManager.get(jobId), undefined, 'Job should be deleted after retention period');
+      assert.equal(
+        jobManager.get(jobId),
+        undefined,
+        'Job should be deleted after retention period'
+      );
     });
 
     it('should use default retentionMs of 300000 (5 minutes)', () => {

@@ -55,24 +55,28 @@ describe('InputBindingAddToolHandler', () => {
 
   describe('validate', () => {
     it('should pass with required parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap',
-        actionName: 'Jump',
-        path: '<Keyboard>/space'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap',
+          actionName: 'Jump',
+          path: '<Keyboard>/space'
+        })
+      );
     });
 
     it('should pass with optional parameters', () => {
-      assert.doesNotThrow(() => handler.validate({
-        assetPath: 'Assets/Input/PlayerInput.inputactions',
-        mapName: 'PlayerMap',
-        actionName: 'Jump',
-        path: '<Keyboard>/space',
-        groups: 'Keyboard&Mouse',
-        interactions: 'press',
-        processors: 'scale'
-      }));
+      assert.doesNotThrow(() =>
+        handler.validate({
+          assetPath: 'Assets/Input/PlayerInput.inputactions',
+          mapName: 'PlayerMap',
+          actionName: 'Jump',
+          path: '<Keyboard>/space',
+          groups: 'Keyboard&Mouse',
+          interactions: 'press',
+          processors: 'scale'
+        })
+      );
     });
   });
 
