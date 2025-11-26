@@ -1,14 +1,18 @@
-# 実装計画: C# LSP統合機能
+# 実装計画: C# LSP統合機能（コードインデックス）
 
-**機能ID**: `SPEC-e757a01f` | **ステータス**: 部分実装完了（軽量スニペット編集は計画中）
+**機能ID**: `SPEC-e757a01f` | **更新日**: 2025-11-26 | **ステータス**: 進行中
+
+**統合SPEC**:
+- SPEC-aa705b2b: コードインデックスビルドのバックグラウンド実行（実装完了）
+- SPEC-eb99c755: Prebuilt better-sqlite3 配布（未実装）
 
 ## 概要
 
-自己完結型のC# Language Server (LSP) を使用した、シンボル検索・参照検索・構造化編集・軽量スニペット編集・リネーム・インデックス管理機能。本機能の大部分は実装済みですが、軽量スニペット編集（US-7）は新規追加機能として計画中です。
+自己完結型のC# Language Server (LSP) を使用した、シンボル検索・参照検索・構造化編集・軽量スニペット編集・リネーム・インデックス管理・バックグラウンドビルド・初回起動高速化機能。
 
 ## 実装状況
 
-### 既存機能（実装完了）
+### 実装完了
 
 - ✅ US-1: シンボル検索
 - ✅ US-2: 参照検索
@@ -16,10 +20,12 @@
 - ✅ US-4: リネーム
 - ✅ US-5: シンボル定義取得
 - ✅ US-6: コードインデックス管理
+- ✅ US-7: 軽量スニペット編集
+- ✅ US-8: バックグラウンドインデックスビルド
 
-### 新規機能（計画中）
+### 未実装
 
-- 🔄 US-7: 軽量スニペット編集
+- ⏳ US-9: 初回起動の高速化（Prebuilt better-sqlite3 配布）
 
 ## 軽量スニペット編集の技術設計
 
@@ -90,9 +96,70 @@
 - [ ] 既存 `script_search` のレスポンス構造確認、アンカー解像度への再利用可能性検証
 - [ ] フォーマッタ（dotnet-format等）呼び出しの必要性評価
 
+## バックグラウンドインデックスビルドの技術設計（実装完了）
+
+### アーキテクチャ
+
+#### 1. JobManagerクラス
+
+メモリ内Mapでジョブを管理するシングルトン:
+
+- `create(jobId, jobFn)`: ジョブ作成＆バックグラウンド実行
+- `get(jobId)`: ジョブ状態取得
+- `cleanup(jobId, retentionMs)`: 自動削除（5分後）
+
+#### 2. バックグラウンド実行パターン
+
+- Promise非同期実行（Worker Threads不要）
+- オブジェクト参照による進捗共有（EventEmitter不要）
+- 1ビルドジョブのみ許可（リソース競合防止）
+
+#### 3. IndexWatcher統合
+
+- JobManagerで実行中ジョブをチェック
+- 手動ビルド実行中は自動ビルドをスキップ
+- ジョブID命名規則: `build-xxx`（手動）、`watcher-xxx`（自動）
+
+### 実装ファイル
+
+- `mcp-server/src/core/jobManager.js`: JobManagerクラス
+- `mcp-server/src/handlers/script/CodeIndexBuildToolHandler.js`: バックグラウンド化
+- `mcp-server/src/handlers/script/CodeIndexStatusToolHandler.js`: buildJob拡張
+- `mcp-server/src/core/indexWatcher.js`: JobManager統合
+
+---
+
+## Prebuilt better-sqlite3 配布の技術設計（未実装）
+
+### アーキテクチャ
+
+#### 1. Prebuiltバイナリ同梱
+
+- npm パッケージに主要プラットフォーム向けバイナリを同梱
+- 対象: linux/darwin/win32 × x64/arm64 × Node18/20/22
+
+#### 2. postinstallスクリプト
+
+- `ensure-better-sqlite3.mjs`: バイナリ検知とフォールバック
+- 同梱バイナリを優先展開（ソースビルドなし）
+- 未対応プラットフォームはWASMフォールバック
+
+#### 3. 環境変数制御
+
+- `UNITY_MCP_SKIP_NATIVE_BUILD=1`: ネイティブビルドスキップ
+- `UNITY_MCP_FORCE_NATIVE=1`: ソースビルド強制
+
+### 実装予定ファイル
+
+- `mcp-server/prebuilds/`: プラットフォーム別バイナリ
+- `mcp-server/scripts/ensure-better-sqlite3.mjs`: postinstallスクリプト
+- `.github/workflows/prebuild.yml`: CI用ビルドワークフロー
+
+---
+
 ## 参考実装
 
 実装詳細については `spec.md` の「参考実装」セクションを参照してください。
 
 ---
-*本ドキュメントは実装完了後に作成され、軽量スニペット編集の追加に伴い更新されました（2025-10-24）*
+*本ドキュメントは2025-10-24に作成され、2025-11-26にSPEC統合に伴い更新されました*

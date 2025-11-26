@@ -1,10 +1,27 @@
-# データモデル - コードインデックスビルドのバックグラウンド実行
+# データモデル - C# LSP統合機能（コードインデックス）
 
-**機能ID**: SPEC-aa705b2b | **日付**: 2025-10-29
+**機能ID**: SPEC-e757a01f | **日付**: 2025-10-17 | **更新**: 2025-11-26
 
 ## エンティティ定義
 
-### BuildJob (新規)
+### Symbol (既存)
+
+C#コード内のシンボル（クラス、メソッド、フィールド等）を表す。
+
+**フィールド**:
+
+| フィールド | 型 | 必須 | 説明 |
+|-----------|-----|------|------|
+| `name` | string | ✓ | シンボル名 |
+| `kind` | enum | ✓ | 種別: `class`/`method`/`field`/`property`等 |
+| `filePath` | string | ✓ | ファイルパス |
+| `line` | number | ✓ | 行番号 |
+| `column` | number | ✓ | 列番号 |
+| `container` | string | - | 親コンテナ名 |
+
+---
+
+### BuildJob (バックグラウンドビルド用)
 
 バックグラウンドで実行中または完了したインデックスビルドジョブを表す。
 
@@ -51,8 +68,6 @@ running ---------> completed
 
 - **手動ビルド**: `build-<timestamp>-<random6chars>`
   - 例: `build-1730188800000-abc123`
-  - `<timestamp>`: `Date.now()`
-  - `<random6chars>`: `Math.random().toString(36).slice(2,8)`
 
 - **自動ビルド（Watcher）**: `watcher-<timestamp>`
   - 例: `watcher-1730188800000`
@@ -96,27 +111,11 @@ running ---------> completed
   completedAt: '2025-10-29T10:05:00Z',
   failedAt: null
 }
-
-// 失敗ジョブ
-{
-  id: 'build-1730188800000-abc123',
-  status: 'failed',
-  progress: {
-    processed: 800,
-    total: 1500,
-    rate: 10.0
-  },
-  result: null,
-  error: 'LSP connection failed: ECONNREFUSED',
-  startedAt: '2025-10-29T10:00:00Z',
-  completedAt: null,
-  failedAt: '2025-10-29T10:02:30Z'
-}
 ```
 
 ---
 
-### IndexStats (既存、変更なし)
+### IndexStats (既存)
 
 プロジェクト全体のコードインデックス統計情報。
 
@@ -127,14 +126,31 @@ running ---------> completed
 | `total` | number | ✓ | 総シンボル数 |
 | `lastIndexedAt` | string | ✓ | 最終更新時刻（ISO 8601） |
 
-**例**:
+---
 
-```javascript
-{
-  total: 15500,
-  lastIndexedAt: '2025-10-29T10:05:00Z'
-}
-```
+### PrebuiltBinary (better-sqlite3配布用)
+
+プラットフォーム別のprebuiltバイナリ情報。
+
+**フィールド**:
+
+| フィールド | 型 | 必須 | 説明 |
+|-----------|-----|------|------|
+| `platform` | enum | ✓ | OS: `linux`/`darwin`/`win32` |
+| `arch` | enum | ✓ | CPU: `x64`/`arm64` |
+| `nodeAbi` | number | ✓ | Node.js ABI番号 (115=18.x, 120=20.x, 131=22.x) |
+| `filename` | string | ✓ | バイナリファイル名 |
+| `checksum` | string | ✓ | SHA256ハッシュ |
+
+**対応プラットフォーム**:
+
+| OS | CPU | Node 18.x | Node 20.x | Node 22.x |
+|----|-----|-----------|-----------|-----------|
+| linux | x64 | ✓ | ✓ | ✓ |
+| linux | arm64 | ✓ | ✓ | ✓ |
+| darwin | x64 | ✓ | ✓ | ✓ |
+| darwin | arm64 | ✓ | ✓ | ✓ |
+| win32 | x64 | ✓ | ✓ | ✓ |
 
 ---
 
@@ -144,13 +160,10 @@ running ---------> completed
 BuildJob 1 ----completes----> 1 IndexStats
                               (result.totalIndexedSymbols → total)
                               (result.lastIndexedAt → lastIndexedAt)
+
+PrebuiltBinary ----loads----> better-sqlite3
+                              (platform+arch+nodeAbi → 使用バイナリ決定)
 ```
-
-**関係の詳細**:
-
-- BuildJobが`completed`状態になると、`result`に保存された統計情報がIndexStatsに反映される
-- IndexStatsはSQLite（code-index.db）に永続化
-- BuildJobはメモリ内のみ（完了5分後に削除）
 
 ---
 
@@ -158,16 +171,7 @@ BuildJob 1 ----completes----> 1 IndexStats
 
 ### BuildJob (メモリ内)
 
-**ストレージ**: メモリ内Map
-
-```javascript
-// jobManager.js
-class JobManager {
-  constructor() {
-    this.jobs = new Map(); // jobId -> BuildJob
-  }
-}
-```
+**ストレージ**: メモリ内Map (`jobManager.js`)
 
 **ライフサイクル**:
 1. ジョブ作成時: Mapに追加
@@ -175,51 +179,32 @@ class JobManager {
 3. 完了/失敗時: 最終状態を保存
 4. 完了5分後: Mapから削除（自動クリーンアップ）
 
-**永続化しない理由**:
-- 短期ジョブ（数十秒〜数分）
-- サーバー再起動は稀
-- シンプルさ優先
+### IndexStats / Symbol (SQLite)
 
-### IndexStats (SQLite)
+**ストレージ**: SQLite（`.unity/cache/code-index/code-index.db`）
 
-**ストレージ**: SQLite（`
+**テーブル**: `files`、`symbols`
 
-.unity/cache/code-index/code-index.db`）
+### PrebuiltBinary (npm package)
 
-**テーブル**: `files`、`symbols`（既存）
+**ストレージ**: npm package内の`prebuilds/`ディレクトリ
 
-**更新タイミング**: BuildJob完了時
-
-**永続化する理由**:
-- 長期保存が必要
-- 複数セッション間で共有
-- 既存の設計を踏襲
-
----
-
-## データフロー
-
+**構造**:
 ```
-1. code_index_build 実行
-   ↓
-2. JobManager.create(jobId, jobFn)
-   ↓
-3. BuildJob作成（status='running'）
-   ↓
-4. バックグラウンドでjobFn実行
-   │ - progress更新（processed++, rate計算）
-   │ - LSPでシンボル取得
-   │ - SQLiteに書き込み
-   ↓
-5a. 成功時: status='completed', result保存
-    ↓
-    IndexStats更新（SQLite）
-    ↓
-    5分後にBuildJob削除
-
-5b. 失敗時: status='failed', error保存
-    ↓
-    5分後にBuildJob削除
+mcp-server/
+├── prebuilds/
+│   ├── linux-x64/
+│   │   └── better_sqlite3.node
+│   ├── linux-arm64/
+│   │   └── better_sqlite3.node
+│   ├── darwin-x64/
+│   │   └── better_sqlite3.node
+│   ├── darwin-arm64/
+│   │   └── better_sqlite3.node
+│   └── win32-x64/
+│       └── better_sqlite3.node
+└── scripts/
+    └── ensure-better-sqlite3.mjs
 ```
 
 ---
@@ -258,34 +243,10 @@ interface BuildJob {
 }
 ```
 
-**バリデーション関数** (実装時):
-
-```javascript
-function validateBuildJob(job) {
-  if (!['running', 'completed', 'failed'].includes(job.status)) {
-    throw new Error(`Invalid status: ${job.status}`);
-  }
-  if (job.progress.processed > job.progress.total) {
-    throw new Error(`processed (${job.progress.processed}) > total (${job.progress.total})`);
-  }
-  if (job.status === 'completed' && !job.result) {
-    throw new Error('result required for completed job');
-  }
-  if (job.status === 'failed' && !job.error) {
-    throw new Error('error required for failed job');
-  }
-  if (job.status === 'running' && (job.result || job.error)) {
-    throw new Error('result/error must be null for running job');
-  }
-}
-```
-
 ---
 
 ## まとめ
 
-- **新規エンティティ**: BuildJob（メモリ内、一時的）
-- **既存エンティティ**: IndexStats（SQLite、永続）
-- **関係**: BuildJob完了 → IndexStats更新
-- **ストレージ戦略**: シンプルさ優先、短期ジョブはメモリ内
-- **検証**: 状態に応じた必須フィールドチェック
+- **シンボル関連**: Symbol, IndexStats（SQLite永続化）
+- **ビルドジョブ**: BuildJob（メモリ内、一時的）
+- **Prebuilt配布**: PrebuiltBinary（npm package同梱）
