@@ -378,26 +378,30 @@ The code index database may contain tens of thousands of symbols from Unity proj
 
 ## Performance Benchmark
 
-Response time comparison between Code Index tools and standard Claude Code tools:
+Response time comparison between Code Index tools and standard Claude Code tools (with DB index built, `watch: true` enabled):
 
-| Tool | Response Time | Status | Notes |
-|------|--------------|--------|-------|
-| `code_index_status` | ~9s | Success | Returns clear error when better-sqlite3 unavailable |
-| `code_index_build` | ~8s | Success | Starts background job |
-| `code_index_update` | ~10s | Success | Returns proper error for missing files |
-| `script_symbol_find` | ~107s | Timeout | Connection closed (LSP timeout issue) |
-| **Read** (Claude Code) | ~11s | Success | MCP-independent |
-| **Grep** (Claude Code) | ~10s | Success | MCP-independent |
+| Operation | unity-mcp-server | Time | Standard Tool | Time | Result |
+|-----------|------------------|------|---------------|------|--------|
+| File Read | `script_read` | **instant** | `Read` | **instant** | EQUAL |
+| Symbol List | `script_symbols_get` | **instant** | N/A | N/A | PASS |
+| Symbol Find | `script_symbol_find` | **instant** | `Grep` | **instant** | EQUAL |
+| Text Search | `script_search` | **instant** | `Grep` | **instant** | EQUAL |
+| Reference Find | `script_refs_find` | **instant** | `Grep` | **instant** | EQUAL |
+| Index Status | `code_index_status` | **instant** | N/A | N/A | PASS |
 
-### Known Issue: LSP Timeout
+**Note**: Performance above requires DB index to be built. Run `code_index_build` before first use.
 
-`script_symbol_find` and related LSP-based tools may timeout after ~60-107 seconds due to:
+### Worker Thread Implementation
 
-1. LSP request timeout (default 60s) triggers process restart
-2. Concurrent heartbeat (30s interval) resets LSP instance
-3. Multiple error handlers conflict, causing MCP connection closure
+Since v2.41.x, background index builds run in Worker Threads, so MCP tools are never blocked even with `watch: true`:
 
-**Workaround**: For symbol searches, use standard `Grep` tool as fallback until timeout issue is resolved.
+| Scenario | Before Worker Thread | After Worker Thread |
+|----------|---------------------|---------------------|
+| `system_ping` | **60+ seconds block** | **instant** |
+| `code_index_status` | **60+ seconds block** | **instant** |
+| Any MCP tool | timeout during build | **instant** |
+
+See [`docs/benchmark.md`](../docs/benchmark.md) for detailed benchmark results.
 
 ## Troubleshooting
 
