@@ -307,6 +307,53 @@ Add to your `claude_desktop_config.json`:
   - `includeTestResults` (bool, default `false`): attaches the latest exported `.unity/test-results/*.json` summary to the response when a test run has completed.
   - `includeFileContent` (bool, default `false`): when combined with `includeTestResults`, also returns the JSON file contents as a string so agents can parse the detailed per-test data without reading the file directly.
 
+## Architecture
+
+### Native Dependencies
+
+Unity MCP Server uses platform-specific native binaries for performance-critical operations:
+
+| Component | Purpose | Distribution | Size per platform |
+|-----------|---------|--------------|-------------------|
+| **better-sqlite3** | Code index database | Bundled in npm package | ~3-5 MB |
+| **csharp-lsp** | C# symbol analysis | Downloaded on first use | ~80 MB |
+
+#### Why Different Distribution Methods?
+
+**better-sqlite3 (bundled)**:
+
+- Small size (~3-5 MB per platform)
+- Prevents MCP server initialization timeout during `npm install` compilation
+- WASM fallback available if native binding fails
+
+**csharp-lsp (downloaded)**:
+
+- Large size (~80 MB per platform, ~480 MB for all 6 platforms)
+- Too large to bundle in npm package (would increase package size 100x)
+- Downloaded from GitHub Release on first use of script editing tools
+
+#### Supported Platforms
+
+| Platform | better-sqlite3 | csharp-lsp |
+|----------|---------------|------------|
+| Linux x64 | ✅ Bundled | ✅ Downloaded (~79 MB) |
+| Linux arm64 | ✅ Bundled | ✅ Downloaded (~86 MB) |
+| macOS x64 | ✅ Bundled | ✅ Downloaded (~80 MB) |
+| macOS arm64 (Apple Silicon) | ✅ Bundled | ✅ Downloaded (~86 MB) |
+| Windows x64 | ✅ Bundled | ✅ Downloaded (~80 MB) |
+| Windows arm64 | ✅ Bundled | ✅ Downloaded (~85 MB) |
+
+#### Fallback Behavior
+
+- **better-sqlite3**: Falls back to sql.js (WASM) if native binding unavailable
+- **csharp-lsp**: No fallback; script editing features require the native binary
+
+#### Storage Locations
+
+- **better-sqlite3**: `<package>/prebuilt/better-sqlite3/<platform>/`
+- **csharp-lsp**: `~/.unity/tools/csharp-lsp/<rid>/`
+- **Code index database**: `<workspace>/.unity/cache/code-index/code-index.db`
+
 ## Requirements
 
 - **Unity**: 2020.3 LTS or newer (Unity 6 supported)
