@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.41.8](https://github.com/akiojin/unity-mcp-server/compare/v2.41.7...v2.41.8) (2025-11-27)
+
+
+### Performance Improvements
+
+* **lsp:** implement csharp-lsp process singleton for performance ([3b813e1](https://github.com/akiojin/unity-mcp-server/commit/3b813e16fdac58659136cb347b55dad579148021))
+* **lsp:** implement csharp-lsp process singleton for performance ([efbe970](https://github.com/akiojin/unity-mcp-server/commit/efbe9703d0ee5e88b151c6a1da7b9b0f665df1ae))
+
 ## [2.41.7](https://github.com/akiojin/unity-mcp-server/compare/v2.41.6...v2.41.7) (2025-11-27)
 
 
