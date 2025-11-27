@@ -8,8 +8,8 @@
 - 各ケースの details には `targetPaths: [<相対パス>...]` を付記（単一でも配列）。
 
 観測不能時の二次検証（エビデンス・エスカレーション）
-- 差分検証: `UnityMCP__get_input_actions_state` で前後比較（actions/maps/bindings の増減）。
-- 構造検証: `UnityMCP__find_ui_elements` 等と併用し、UI の反応/操作可能の変化を確認（必要時）。
+- 差分検証: `input_actions_state_get` で前後比較（actions/maps/bindings の増減）。
+- 構造検証: `find_ui_elements` 等と併用し、UI の反応/操作可能の変化を確認（必要時）。
 - 参照検証: control schemes や devices の有効性/割当変化を確認。
 - なお判定不能時のみ `skip（OBSERVATION_GAP）`。
 
@@ -17,13 +17,13 @@
 - 追加したアクションマップ/アクション/バインディング/スキームは全てテスト終了時に削除し、既存状態に影響を残さない。
 
 チェックリスト（Markdown）
-- [ ] U60-01: get_input_actions_state（存在確認）
+- [ ] U60-01: input_actions_state_get（存在確認）
 - [ ] U60-02: input_action_map_create（LLMTEST_Map）
-- [ ] U60-03: add_input_action（Jump, Button）
-- [ ] U60-04: add_input_binding（<Keyboard>/space）
+- [ ] U60-03: input_action_add（Jump, Button）
+- [ ] U60-04: input_binding_add（<Keyboard>/space）
 - [ ] U60-05: input_binding_composite_create（2D Vector: WASD）
-- [ ] U60-06: manage_control_schemes（Keyboard&Mouse）
-- [ ] U60-07: analyze_input_actions_asset（統計）
+- [ ] U60-06: input_control_schemes_manage（Keyboard&Mouse）
+- [ ] U60-07: input_actions_asset_analyze（統計）
 - [ ] U60-08: remove 系で片付け
 - [ ] U60-E01: 重複バインディングで fail or notes
 - [ ] U60-E02: 不正デバイス/パスで fail
@@ -31,13 +31,13 @@
 
 ## 正常系（アセットが存在する場合）
 
-- U60-01: `get_input_actions_state` → 状態取得
+- U60-01: `input_actions_state_get` → 状態取得
 - U60-02: `input_action_map_create`（`LLMTEST_Map`）→ 作成
-- U60-03: `add_input_action`（`Jump`, Button）→ 追加
-- U60-04: `add_input_binding`（`<Keyboard>/space`）→ 追加
+- U60-03: `input_action_add`（`Jump`, Button）→ 追加
+- U60-04: `input_binding_add`（`<Keyboard>/space`）→ 追加
 - U60-05: `input_binding_composite_create`（2D Vector: WASD）→ 追加
-- U60-06: `manage_control_schemes`（`Keyboard&Mouse`）→ 追加/確認
-- U60-07: `analyze_input_actions_asset` → 統計
+- U60-06: `input_control_schemes_manage`（`Keyboard&Mouse`）→ 追加/確認
+- U60-07: `input_actions_asset_analyze` → 統計
 - U60-08: 片付け（remove 系）→ 正常削除
 
 ## 異常系
