@@ -318,6 +318,22 @@ Unity MCP Server uses platform-specific native binaries for performance-critical
 | **better-sqlite3** | Code index database | Bundled in npm package | ~3-5 MB |
 | **csharp-lsp** | C# symbol analysis | Downloaded on first use | ~80 MB |
 
+#### Why better-sqlite3 over JavaScript-based SQLite?
+
+We chose **better-sqlite3** (native C binding) instead of JavaScript-based alternatives like **sql.js** for the following reasons:
+
+| Aspect | better-sqlite3 (native) | sql.js (WASM/JS) |
+|--------|------------------------|------------------|
+| **Performance** | 10-100x faster for bulk operations | Slower due to WASM overhead |
+| **Memory** | Efficient native memory management | Higher memory usage, GC pressure |
+| **Synchronous API** | Native sync operations, ideal for MCP | Async-only, adds complexity |
+| **Startup time** | Instant module load | ~100-500ms WASM initialization |
+| **Database size** | Handles large indexes efficiently | Performance degrades with size |
+
+The code index database may contain tens of thousands of symbols from Unity projects. Native SQLite provides the performance characteristics needed for responsive symbol searches and incremental updates.
+
+**Trade-off**: Requires platform-specific binaries (bundled for all supported platforms), while sql.js would work everywhere but with unacceptable performance for our use case.
+
 #### Why Different Distribution Methods?
 
 **better-sqlite3 (bundled)**:
@@ -359,6 +375,29 @@ Unity MCP Server uses platform-specific native binaries for performance-critical
 - **Unity**: 2020.3 LTS or newer (Unity 6 supported)
 - **Node.js**: 18.0.0 or newer
 - **MCP Client**: Claude Desktop, Cursor, or compatible client
+
+## Performance Benchmark
+
+Response time comparison between Code Index tools and standard Claude Code tools:
+
+| Tool | Response Time | Status | Notes |
+|------|--------------|--------|-------|
+| `code_index_status` | ~9s | Success | Returns clear error when better-sqlite3 unavailable |
+| `code_index_build` | ~8s | Success | Starts background job |
+| `code_index_update` | ~10s | Success | Returns proper error for missing files |
+| `script_symbol_find` | ~107s | Timeout | Connection closed (LSP timeout issue) |
+| **Read** (Claude Code) | ~11s | Success | MCP-independent |
+| **Grep** (Claude Code) | ~10s | Success | MCP-independent |
+
+### Known Issue: LSP Timeout
+
+`script_symbol_find` and related LSP-based tools may timeout after ~60-107 seconds due to:
+
+1. LSP request timeout (default 60s) triggers process restart
+2. Concurrent heartbeat (30s interval) resets LSP instance
+3. Multiple error handlers conflict, causing MCP connection closure
+
+**Workaround**: For symbol searches, use standard `Grep` tool as fallback until timeout issue is resolved.
 
 ## Troubleshooting
 
