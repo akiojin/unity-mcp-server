@@ -52,7 +52,20 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
     const { name, kind, scope = 'assets', exact = false } = params;
 
     // Check if code index is ready - no fallback to LSP
-    if (!(await this.index.isReady())) {
+    const ready = await this.index.isReady();
+    if (this.index.disabled) {
+      return {
+        success: false,
+        error: 'code_index_unavailable',
+        message:
+          this.index.disableReason ||
+          'Code index is disabled because the SQLite driver could not be loaded.',
+        remediation:
+          'Install native build tools and run "npm rebuild better-sqlite3 --build-from-source", then restart the server.'
+      };
+    }
+
+    if (!ready) {
       // Check if a build job is currently running
       const allJobs = this.jobManager.getAllJobs();
       const buildJob = allJobs.find(

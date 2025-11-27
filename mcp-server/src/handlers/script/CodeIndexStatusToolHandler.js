@@ -30,13 +30,25 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
     const ready = await this.codeIndex.isReady();
     if (this.codeIndex.disabled) {
       return {
-        success: false,
-        error: 'code_index_unavailable',
+        success: true,
+        status: 'degraded',
+        disabled: true,
+        ready: false,
+        totalFiles: 0,
+        indexedFiles: 0,
+        coverage: 0,
         message:
           this.codeIndex.disableReason ||
           'Code index is disabled because the SQLite driver could not be loaded. The server will continue without the symbol index.',
         remediation:
-          'Install native build tools (python3, make, g++) in this environment and run "npm rebuild better-sqlite3 --build-from-source", then restart the server.'
+          'Install native build tools (python3, make, g++) and run "npm rebuild better-sqlite3 --build-from-source", or set UNITY_MCP_SKIP_NATIVE_BUILD=0 to allow native rebuild. After installing, restart unity-mcp-server.',
+        index: {
+          ready: false,
+          disabled: true,
+          reason:
+            this.codeIndex.disableReason ||
+            'better-sqlite3 native binding unavailable; code index is disabled'
+        }
       };
     }
     const buildInProgress = latestBuildJob?.status === 'running';

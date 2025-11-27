@@ -66,7 +66,7 @@ export function ensureBetterSqlite3(options = {}) {
     bindingPath = DEFAULT_BINDING_PATH,
     prebuiltRoot = DEFAULT_PREBUILT_ROOT,
     pkgRoot = PKG_ROOT,
-    skipNative = process.env.UNITY_MCP_SKIP_NATIVE_BUILD !== '0',
+    skipNative = process.env.UNITY_MCP_SKIP_NATIVE_BUILD === '1',
     forceNative = process.env.UNITY_MCP_FORCE_NATIVE === '1',
     skipLegacyFlag = Boolean(process.env.SKIP_SQLITE_REBUILD),
     log = console.log,

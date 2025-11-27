@@ -124,7 +124,19 @@ export class HybridStdioServerTransport {
   }
 
   _readContentLengthMessage() {
-    const headerEndIndex = this._buffer.indexOf(HEADER_END);
+    const { headerEndIndex, separatorLength } = (() => {
+      const crlfIndex = this._buffer.indexOf('\r\n\r\n');
+      const lfIndex = this._buffer.indexOf('\n\n');
+
+      if (crlfIndex === -1 && lfIndex === -1) return { headerEndIndex: -1, separatorLength: 0 };
+      if (crlfIndex === -1) return { headerEndIndex: lfIndex, separatorLength: 2 };
+      if (lfIndex === -1) return { headerEndIndex: crlfIndex, separatorLength: 4 };
+
+      return crlfIndex < lfIndex
+        ? { headerEndIndex: crlfIndex, separatorLength: 4 }
+        : { headerEndIndex: lfIndex, separatorLength: 2 };
+    })();
+
     if (headerEndIndex === -1) {
       return null;
     }
@@ -132,20 +144,20 @@ export class HybridStdioServerTransport {
     const header = this._buffer.toString('utf8', 0, headerEndIndex);
     const match = header.match(HEADER_RE);
     if (!match) {
-      this._buffer = this._buffer.subarray(headerEndIndex + HEADER_END.length);
+      this._buffer = this._buffer.subarray(headerEndIndex + separatorLength);
       this.onerror?.(new Error('Invalid Content-Length header'));
       return null;
     }
 
     const length = Number(match[1]);
-    const totalMessageLength = headerEndIndex + HEADER_END.length + length;
+    const totalMessageLength = headerEndIndex + separatorLength + length;
     if (this._buffer.length < totalMessageLength) {
       return null;
     }
 
     const json = this._buffer.toString(
       'utf8',
-      headerEndIndex + HEADER_END.length,
+      headerEndIndex + separatorLength,
       totalMessageLength
     );
     this._buffer = this._buffer.subarray(totalMessageLength);

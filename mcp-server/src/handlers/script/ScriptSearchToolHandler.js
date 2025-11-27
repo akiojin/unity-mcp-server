@@ -120,7 +120,7 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
         pattern,
         patternType = 'substring',
         flags = [],
-        scope = 'assets',
+        scope = 'all',
         include = '**/*.cs',
         exclude,
         pageSize = 20,
