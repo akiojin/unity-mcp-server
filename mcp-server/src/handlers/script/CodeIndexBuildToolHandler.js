@@ -192,6 +192,9 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
         await new Promise(resolve => setTimeout(resolve, delayStartMs));
       }
 
+      // Yield control to event loop to allow MCP requests to be processed
+      const yieldToEventLoop = () => new Promise(resolve => setImmediate(resolve));
+
       const worker = async () => {
         while (true) {
           const idx = i++;
@@ -233,6 +236,10 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
               );
               lastReportedPercentage = currentPercentage;
             }
+
+            // Yield to event loop after each file to allow MCP requests to be processed
+            // This prevents the index build from blocking other MCP tool calls (US-8.1)
+            await yieldToEventLoop();
 
             if (throttleMs > 0) {
               await new Promise(resolve => setTimeout(resolve, throttleMs));

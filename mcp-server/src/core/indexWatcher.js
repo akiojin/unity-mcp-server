@@ -14,14 +14,20 @@ export class IndexWatcher {
     if (!config.indexing?.watch) return;
     if (this.timer) return;
     const interval = Math.max(2000, Number(config.indexing.intervalMs || 15000));
-    logger.info(`[index] watcher enabled (interval=${interval}ms)`);
-    this.timer = setInterval(() => this.tick(), interval);
-    if (typeof this.timer.unref === 'function') {
-      this.timer.unref();
-    }
-    // Delay initial tick to avoid blocking MCP server initialization
-    // Unity connection and code index operations can be slow on first run
-    const delayedStart = setTimeout(() => this.tick(), 5000);
+    // Initial delay: wait longer to allow MCP server to fully initialize
+    // and first tool calls to complete before starting background indexing
+    const initialDelay = Math.max(30000, Number(config.indexing.initialDelayMs || 30000));
+    logger.info(`[index] watcher enabled (interval=${interval}ms, initialDelay=${initialDelay}ms)`);
+
+    // Delay initial tick significantly to avoid blocking MCP server initialization
+    const delayedStart = setTimeout(() => {
+      this.tick();
+      // Start periodic timer only after first tick
+      this.timer = setInterval(() => this.tick(), interval);
+      if (typeof this.timer.unref === 'function') {
+        this.timer.unref();
+      }
+    }, initialDelay);
     if (typeof delayedStart.unref === 'function') {
       delayedStart.unref();
     }
@@ -64,9 +70,8 @@ export class IndexWatcher {
         const jobId = `watcher-rebuild-${Date.now()}`;
         this.currentWatcherJobId = jobId;
 
-        const { CodeIndexBuildToolHandler } = await import(
-          '../handlers/script/CodeIndexBuildToolHandler.js'
-        );
+        const { CodeIndexBuildToolHandler } =
+          await import('../handlers/script/CodeIndexBuildToolHandler.js');
         const handler = new CodeIndexBuildToolHandler(this.unityConnection);
 
         this.jobManager.create(jobId, async job => {
@@ -109,9 +114,8 @@ export class IndexWatcher {
       const jobId = `watcher-${Date.now()}`;
       this.currentWatcherJobId = jobId;
 
-      const { CodeIndexBuildToolHandler } = await import(
-        '../handlers/script/CodeIndexBuildToolHandler.js'
-      );
+      const { CodeIndexBuildToolHandler } =
+        await import('../handlers/script/CodeIndexBuildToolHandler.js');
       const handler = new CodeIndexBuildToolHandler(this.unityConnection);
 
       // Create the build job through JobManager
