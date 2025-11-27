@@ -10,11 +10,19 @@ const driverStatus = {
   logged: false
 };
 
+// Shared DB connections (singleton pattern for concurrent access)
+const sharedConnections = {
+  writeDb: null,
+  readDb: null,
+  dbPath: null,
+  schemaInitialized: false
+};
+
 export class CodeIndex {
   constructor(unityConnection) {
     this.unityConnection = unityConnection;
     this.projectInfo = new ProjectInfoProvider(unityConnection);
-    this.db = null;
+    this.db = null; // legacy reference, points to writeDb
     this.dbPath = null;
     this.disabled = false; // set true if better-sqlite3 is unavailable
     this.disableReason = null;
@@ -55,9 +63,23 @@ export class CodeIndex {
     fs.mkdirSync(dir, { recursive: true });
     const dbPath = path.join(dir, 'code-index.db');
     this.dbPath = dbPath;
+
+    // Use shared connections for all CodeIndex instances
+    if (sharedConnections.writeDb && sharedConnections.dbPath === dbPath) {
+      this.db = sharedConnections.writeDb;
+      return this.db;
+    }
+
     try {
       if (this._Database) {
-        this.db = new this._Database(dbPath);
+        // Create write connection (default)
+        sharedConnections.writeDb = new this._Database(dbPath);
+        sharedConnections.dbPath = dbPath;
+        this.db = sharedConnections.writeDb;
+
+        // Create separate read-only connection for concurrent reads
+        // readonly: true allows reads even while write transaction is active
+        sharedConnections.readDb = new this._Database(dbPath, { readonly: true });
       } else {
         throw new Error('No database driver available');
       }
@@ -71,6 +93,14 @@ export class CodeIndex {
     }
     this._initSchema();
     return this.db;
+  }
+
+  /**
+   * Get read-only DB connection for queries (non-blocking during writes)
+   * Falls back to write connection if read connection unavailable
+   */
+  _getReadDb() {
+    return sharedConnections.readDb || this.db;
   }
 
   _logDisable(reason) {
@@ -114,7 +144,9 @@ export class CodeIndex {
   async isReady() {
     const db = await this.open();
     if (!db) return false;
-    const row = db.prepare('SELECT COUNT(*) AS c FROM symbols').get();
+    // Use read-only connection for non-blocking check
+    const readDb = this._getReadDb();
+    const row = readDb.prepare('SELECT COUNT(*) AS c FROM symbols').get();
     return (row?.c || 0) > 0;
   }
 
@@ -151,7 +183,9 @@ export class CodeIndex {
   async getFiles() {
     const db = await this.open();
     if (!db) return new Map();
-    const rows = db.prepare('SELECT path, sig FROM files').all();
+    // Use read-only connection for non-blocking read
+    const readDb = this._getReadDb();
+    const rows = readDb.prepare('SELECT path, sig FROM files').all();
     const map = new Map();
     for (const r of rows) map.set(String(r.path), String(r.sig || ''));
     return map;
@@ -206,6 +240,8 @@ export class CodeIndex {
   async querySymbols({ name, kind, scope = 'all', exact = false }) {
     const db = await this.open();
     if (!db) return [];
+    // Use read-only connection for non-blocking query
+    const readDb = this._getReadDb();
     let sql = 'SELECT path,name,kind,container,namespace,line,column FROM symbols WHERE 1=1';
     const params = {};
     if (name) {
@@ -221,7 +257,7 @@ export class CodeIndex {
       sql += ' AND kind = @kind';
       params.kind = kind;
     }
-    const rows = db.prepare(sql).all(params);
+    const rows = readDb.prepare(sql).all(params);
     // Apply path-based scope filter in JS (simpler than CASE in SQL)
     const filtered = rows.filter(r => {
       const p = String(r.path || '').replace(/\\\\/g, '/');
@@ -245,9 +281,11 @@ export class CodeIndex {
   async getStats() {
     const db = await this.open();
     if (!db) return { total: 0, lastIndexedAt: null };
-    const total = db.prepare('SELECT COUNT(*) AS c FROM symbols').get().c || 0;
+    // Use read-only connection for non-blocking stats
+    const readDb = this._getReadDb();
+    const total = readDb.prepare('SELECT COUNT(*) AS c FROM symbols').get().c || 0;
     const last =
-      db.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
+      readDb.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
     return { total, lastIndexedAt: last };
   }
 }
@@ -257,4 +295,19 @@ export function __resetCodeIndexDriverStatusForTest() {
   driverStatus.available = null;
   driverStatus.error = null;
   driverStatus.logged = false;
+  // Also reset shared connections
+  if (sharedConnections.writeDb) {
+    try {
+      sharedConnections.writeDb.close();
+    } catch {}
+  }
+  if (sharedConnections.readDb) {
+    try {
+      sharedConnections.readDb.close();
+    } catch {}
+  }
+  sharedConnections.writeDb = null;
+  sharedConnections.readDb = null;
+  sharedConnections.dbPath = null;
+  sharedConnections.schemaInitialized = false;
 }
