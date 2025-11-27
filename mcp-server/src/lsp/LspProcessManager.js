@@ -51,6 +51,15 @@ export class LspProcessManager {
     if (!this.state.proc || this.state.proc.killed) return;
     const p = this.state.proc;
     this.state.proc = null;
+
+    // Remove all listeners to prevent memory leaks
+    try {
+      if (p.stdout) p.stdout.removeAllListeners();
+      if (p.stderr) p.stderr.removeAllListeners();
+      p.removeAllListeners('error');
+      p.removeAllListeners('close');
+    } catch {}
+
     try {
       // Send LSP shutdown/exit if possible
       const shutdown = obj => {

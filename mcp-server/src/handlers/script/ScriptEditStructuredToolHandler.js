@@ -1,5 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
 export class ScriptEditStructuredToolHandler extends BaseToolHandler {
@@ -91,7 +91,7 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
 
     // Map operations to LSP extensions
     const info = await this.projectInfo.get();
-    if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
+    if (!this.lsp) this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
 
     if (operation === 'replace_body') {
       const resp = await this.lsp.request('mcp/replaceSymbolBody', {

@@ -3,7 +3,7 @@ import { CodeIndex } from '../../core/codeIndex.js';
 import fs from 'fs';
 import path from 'path';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
-import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 import { logger } from '../../core/config.js';
 import { JobManager } from '../../core/jobManager.js';
 
@@ -99,7 +99,7 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
       // Initialize LSP with error handling
       if (!this.lsp) {
         try {
-          this.lsp = new LspRpcClient(info.projectRoot);
+          this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
           logger.info(`[index][${job.id}] LSP initialized for project: ${info.projectRoot}`);
         } catch (lspError) {
           logger.error(`[index][${job.id}] LSP initialization failed: ${lspError.message}`);
