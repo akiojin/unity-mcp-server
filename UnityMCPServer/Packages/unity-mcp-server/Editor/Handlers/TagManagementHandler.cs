@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 #if !UNITY_6000_0_OR_NEWER
 using UnityEditorInternal;
 #endif
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -44,7 +45,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[TagManagementHandler] Error handling {action}: {e.Message}");
+                McpLogger.LogError("TagManagementHandler", $"Error handling {action}: {e.Message}");
                 return new { error = e.Message };
             }
         }
@@ -68,7 +69,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[TagManagementHandler] Error getting tags: {e.Message}");
+                McpLogger.LogError("TagManagementHandler", $"Error getting tags: {e.Message}");
                 return new { error = $"Failed to get tags: {e.Message}" };
             }
         }
@@ -128,7 +129,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[TagManagementHandler] Error adding tag '{tagName}': {e.Message}");
+                McpLogger.LogError("TagManagementHandler", $"Error adding tag '{tagName}': {e.Message}");
                 return new { error = $"Failed to add tag: {e.Message}" };
             }
         }
@@ -162,7 +163,7 @@ namespace UnityMCPServer.Handlers
                 var gameObjectsWithTag = GameObject.FindGameObjectsWithTag(tagName);
                 if (gameObjectsWithTag.Length > 0)
                 {
-                    Debug.LogWarning($"[TagManagementHandler] Removing tag '{tagName}' while {gameObjectsWithTag.Length} GameObjects are still using it");
+                    McpLogger.LogWarning("TagManagementHandler", $"Removing tag '{tagName}' while {gameObjectsWithTag.Length} GameObjects are still using it");
                 }
 
                 // Remove the tag using SerializedObject approach
@@ -196,7 +197,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[TagManagementHandler] Error removing tag '{tagName}': {e.Message}");
+                McpLogger.LogError("TagManagementHandler", $"Error removing tag '{tagName}': {e.Message}");
                 return new { error = $"Failed to remove tag: {e.Message}" };
             }
         }
@@ -248,7 +249,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[TagManagementHandler] Error getting tag usage: {e.Message}");
+                McpLogger.LogError("TagManagementHandler", $"Error getting tag usage: {e.Message}");
                 return new { error = $"Failed to get tag usage: {e.Message}" };
             }
         }

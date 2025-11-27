@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -895,13 +896,13 @@ namespace UnityMCPServer.Handlers
                 result["properties"] = properties;
                 
                 // Debug logging
-                UnityEngine.Debug.Log($"[MCP Debug] GetComponentValues - Properties count: {properties.Count}");
+                McpLogger.Log("SceneAnalysis", $"GetComponentValues - Properties count: {properties.Count}");
                 if (properties.Count > 0)
                 {
                     var firstKey = properties.Keys.First();
-                    UnityEngine.Debug.Log($"[MCP Debug] First property key: {firstKey}");
+                    McpLogger.Log("SceneAnalysis", $"First property key: {firstKey}");
                     var firstValue = properties[firstKey];
-                    UnityEngine.Debug.Log($"[MCP Debug] First property value type: {firstValue?.GetType().Name ?? "null"}");
+                    McpLogger.Log("SceneAnalysis", $"First property value type: {firstValue?.GetType().Name ?? "null"}");
                 }
 
                 // Generate summary with detailed property names for debugging

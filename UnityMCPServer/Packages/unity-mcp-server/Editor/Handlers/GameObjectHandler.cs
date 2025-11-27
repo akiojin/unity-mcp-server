@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
+using UnityMCPServer.Logging;
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCPServer.Handlers
@@ -81,7 +82,7 @@ namespace UnityMCPServer.Handlers
                     }
                     catch (Exception)
                     {
-                        Debug.LogWarning($"Invalid tag: {tag}");
+                        McpLogger.LogWarning("GameObjectHandler", $"Invalid tag: {tag}");
                     }
                 }
                 
@@ -333,7 +334,7 @@ namespace UnityMCPServer.Handlers
                     if (!string.IsNullOrEmpty(tag) && tag != obj.tag)
                     {
                         try { obj.tag = tag; modified = true; }
-                        catch (Exception) { Debug.LogWarning($"Invalid tag: {tag}"); }
+                        catch (Exception) { McpLogger.LogWarning("GameObjectHandler", $"Invalid tag: {tag}"); }
                     }
 
                     int? layer = parameters["layer"]?.ToObject<int>();
@@ -592,7 +593,7 @@ namespace UnityMCPServer.Handlers
                         return new { error = $"GameObject not found at path: {rootPath}" };
                     }
                     
-                    Debug.Log($"[GetHierarchy] Using rootPath={rootPath}, maxObjects={maxObjects}, getting children at depth 0");
+                    McpLogger.Log("GameObjectHandler", $"GetHierarchy: Using rootPath={rootPath}, maxObjects={maxObjects}, getting children at depth 0");
                     
                     // When rootPath is specified, start from its children (depth 0 = direct children)
                     foreach (Transform child in rootObject.transform)
@@ -603,7 +604,7 @@ namespace UnityMCPServer.Handlers
                         // Check if we've hit the object limit
                         if (objectCounter.MaxObjects > 0 && objectCounter.CurrentCount >= objectCounter.MaxObjects)
                         {
-                            Debug.Log($"[GetHierarchy] Hit object limit at {objectCounter.CurrentCount} objects");
+                            McpLogger.Log("GameObjectHandler", $"GetHierarchy: Hit object limit at {objectCounter.CurrentCount} objects");
                             break;
                         }
                         
@@ -611,11 +612,11 @@ namespace UnityMCPServer.Handlers
                         if (node != null)
                         {
                             hierarchy.Add(node);
-                            Debug.Log($"[GetHierarchy] Added child node: {child.name}, Current count: {objectCounter.CurrentCount}");
+                            McpLogger.Log("GameObjectHandler", $"GetHierarchy: Added child node: {child.name}, Current count: {objectCounter.CurrentCount}");
                         }
                         else
                         {
-                            Debug.Log($"[GetHierarchy] Node was null for: {child.name}, Breaking loop");
+                            McpLogger.Log("GameObjectHandler", $"GetHierarchy: Node was null for: {child.name}, Breaking loop");
                             break;
                         }
                     }
@@ -624,12 +625,12 @@ namespace UnityMCPServer.Handlers
                 {
                     // Check if we're in prefab mode
                     var prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
-                    
+
                     if (prefabStage != null)
                     {
                         // In prefab mode, use prefab root
                         GameObject prefabRoot = prefabStage.prefabContentsRoot;
-                        Debug.Log($"[GetHierarchy] Prefab mode - using prefab root: {prefabRoot.name}");
+                        McpLogger.Log("GameObjectHandler", $"GetHierarchy: Prefab mode - using prefab root: {prefabRoot.name}");
                         
                         var node = BuildHierarchyNode(prefabRoot, 0, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly, objectCounter);
                         if (node != null)
@@ -641,7 +642,7 @@ namespace UnityMCPServer.Handlers
                     {
                         // Get root GameObjects from the scene
                         GameObject[] rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
-                        Debug.Log($"[GetHierarchy] No rootPath, using scene roots. maxObjects={maxObjects}, rootObjects.Length={rootObjects.Length}");
+                        McpLogger.Log("GameObjectHandler", $"GetHierarchy: No rootPath, using scene roots. maxObjects={maxObjects}, rootObjects.Length={rootObjects.Length}");
                         
                         foreach (var root in rootObjects)
                         {
@@ -651,19 +652,19 @@ namespace UnityMCPServer.Handlers
                             // Check if we've hit the object limit
                             if (objectCounter.MaxObjects > 0 && objectCounter.CurrentCount >= objectCounter.MaxObjects)
                             {
-                                Debug.Log($"[GetHierarchy] Hit object limit at {objectCounter.CurrentCount} objects");
+                                McpLogger.Log("GameObjectHandler", $"GetHierarchy: Hit object limit at {objectCounter.CurrentCount} objects");
                                 break;
                             }
-                                
+
                             var node = BuildHierarchyNode(root, 0, maxDepth, includeInactive, includeComponents, includeTransform, includeTags, includeLayers, nameOnly, objectCounter);
                             if (node != null)
                             {
                                 hierarchy.Add(node);
-                                Debug.Log($"[GetHierarchy] Added root node: {root.name}, Current count: {objectCounter.CurrentCount}");
+                                McpLogger.Log("GameObjectHandler", $"GetHierarchy: Added root node: {root.name}, Current count: {objectCounter.CurrentCount}");
                             }
                             else
                             {
-                                Debug.Log($"[GetHierarchy] Node was null for: {root.name}, Breaking loop");
+                                McpLogger.Log("GameObjectHandler", $"GetHierarchy: Node was null for: {root.name}, Breaking loop");
                                 break;
                             }
                         }

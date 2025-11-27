@@ -6,6 +6,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -85,7 +86,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[CompilationHandler] Error getting compilation state: {e.Message}");
+                McpLogger.LogError("CompilationHandler", $"Error getting compilation state: {e.Message}");
                 return new { error = $"Failed to get compilation state: {e.Message}" };
             }
         }
@@ -133,7 +134,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[CompilationHandler] SnapshotConsoleMessages failed: {ex.Message}");
+                McpLogger.LogWarning("CompilationHandler", $"SnapshotConsoleMessages failed: {ex.Message}");
             }
             return list;
         }
@@ -167,7 +168,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[CompilationHandler] GetConsoleCounts failed: {ex.Message}");
+                McpLogger.LogWarning("CompilationHandler", $"GetConsoleCounts failed: {ex.Message}");
             }
             return (err, warn, log);
         }
@@ -186,7 +187,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[CompilationHandler] GetLastAssemblyWriteTime failed: {ex.Message}");
+                McpLogger.LogWarning("CompilationHandler", $"GetLastAssemblyWriteTime failed: {ex.Message}");
                 return null;
             }
         }

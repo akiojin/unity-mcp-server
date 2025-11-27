@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEditor.Recorder;
 using UnityEditor.Recorder.Input;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -124,7 +125,7 @@ namespace UnityMCPServer.Handlers
                 RecorderOptions.VerboseMode = true;
                 if (!startedOk)
                 {
-                    Debug.LogError("[VideoCaptureHandler] Recorder did not start (StartRecording returned false)");
+                    McpLogger.LogError("VideoCaptureHandler", "Recorder did not start (StartRecording returned false)");
                 }
                 s_LastCaptureTime = EditorApplication.timeSinceStartup;
                 EditorApplication.update -= OnEditorUpdate;
@@ -151,7 +152,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[VideoCaptureHandler] Start error: {ex.Message}");
+                McpLogger.LogError("VideoCaptureHandler", $"Start error: {ex.Message}");
                 return new { error = $"Failed to start recording: {ex.Message}", code = "E_UNKNOWN" };
             }
         }
@@ -179,7 +180,7 @@ namespace UnityMCPServer.Handlers
                 // stop recorder
                 if (s_RecorderController != null)
                 {
-                    try { s_RecorderController.StopRecording(); } catch (Exception e) { Debug.LogWarning($"[VideoCaptureHandler] Recorder stop warning: {e.Message}"); }
+                    try { s_RecorderController.StopRecording(); } catch (Exception e) { McpLogger.LogWarning("VideoCaptureHandler", $"Recorder stop warning: {e.Message}"); }
                 }
                 s_AutoStopping = false;
 
@@ -198,7 +199,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[VideoCaptureHandler] Stop error: {ex.Message}");
+                McpLogger.LogError("VideoCaptureHandler", $"Stop error: {ex.Message}");
                 return new { error = $"Failed to stop recording: {ex.Message}" };
             }
         }
@@ -226,7 +227,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[VideoCaptureHandler] Status error: {ex.Message}");
+                McpLogger.LogError("VideoCaptureHandler", $"Status error: {ex.Message}");
                 return new { error = $"Failed to get recording status: {ex.Message}" };
             }
         }

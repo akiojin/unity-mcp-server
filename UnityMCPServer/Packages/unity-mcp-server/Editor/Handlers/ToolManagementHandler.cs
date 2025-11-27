@@ -6,6 +6,7 @@ using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -45,7 +46,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[ToolManagementHandler] Error handling {action}: {e.Message}");
+                McpLogger.LogError("ToolManagementHandler", $"Error handling {action}: {e.Message}");
                 return new { error = e.Message };
             }
         }
@@ -87,7 +88,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[ToolManagementHandler] Error getting tools: {e.Message}");
+                McpLogger.LogError("ToolManagementHandler", $"Error getting tools: {e.Message}");
                 return new { error = $"Failed to get tools: {e.Message}" };
             }
         }
@@ -243,7 +244,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[ToolManagementHandler] Error activating tool '{toolName}': {e.Message}");
+                McpLogger.LogError("ToolManagementHandler", $"Error activating tool '{toolName}': {e.Message}");
                 return new { error = $"Failed to activate tool: {e.Message}" };
             }
         }
@@ -303,7 +304,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[ToolManagementHandler] Error deactivating tool '{toolName}': {e.Message}");
+                McpLogger.LogError("ToolManagementHandler", $"Error deactivating tool '{toolName}': {e.Message}");
                 return new { error = $"Failed to deactivate tool: {e.Message}" };
             }
         }
@@ -328,7 +329,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[ToolManagementHandler] Error refreshing tool cache: {e.Message}");
+                McpLogger.LogError("ToolManagementHandler", $"Error refreshing tool cache: {e.Message}");
                 return new { error = $"Failed to refresh tool cache: {e.Message}" };
             }
         }

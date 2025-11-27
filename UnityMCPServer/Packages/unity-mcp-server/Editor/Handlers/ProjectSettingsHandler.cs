@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -89,7 +90,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ProjectSettingsHandler] Error getting project settings: {ex.Message}");
+                McpLogger.LogError("ProjectSettingsHandler", $"Error getting project settings: {ex.Message}");
                 return new { error = $"Failed to get project settings: {ex.Message}" };
             }
         }
@@ -175,7 +176,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ProjectSettingsHandler] Error updating project settings: {ex.Message}");
+                McpLogger.LogError("ProjectSettingsHandler", $"Error updating project settings: {ex.Message}");
                 return new { error = $"Failed to update project settings: {ex.Message}" };
             }
         }

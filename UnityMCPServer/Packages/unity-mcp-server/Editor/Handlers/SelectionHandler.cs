@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -37,7 +38,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[SelectionHandler] Error handling {action}: {e.Message}");
+                McpLogger.LogError("SelectionHandler", $"Error handling {action}: {e.Message}");
                 return new { error = e.Message };
             }
         }
@@ -78,7 +79,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[SelectionHandler] Error getting selection: {e.Message}");
+                McpLogger.LogError("SelectionHandler", $"Error getting selection: {e.Message}");
                 return new { error = $"Failed to get selection: {e.Message}" };
             }
         }
@@ -144,7 +145,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[SelectionHandler] Error setting selection: {e.Message}");
+                McpLogger.LogError("SelectionHandler", $"Error setting selection: {e.Message}");
                 return new { error = $"Failed to set selection: {e.Message}" };
             }
         }
@@ -172,7 +173,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[SelectionHandler] Error clearing selection: {e.Message}");
+                McpLogger.LogError("SelectionHandler", $"Error clearing selection: {e.Message}");
                 return new { error = $"Failed to clear selection: {e.Message}" };
             }
         }
@@ -226,7 +227,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[SelectionHandler] Error getting selection details: {e.Message}");
+                McpLogger.LogError("SelectionHandler", $"Error getting selection details: {e.Message}");
                 return new { error = $"Failed to get selection details: {e.Message}" };
             }
         }

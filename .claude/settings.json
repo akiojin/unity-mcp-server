@@ -151,15 +151,6 @@
         ]
       },
       {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/block-cs-edit-tools.sh"
-          }
-        ]
-      },
-      {
         "matcher": "mcp__serena__*",
         "hooks": [
           {

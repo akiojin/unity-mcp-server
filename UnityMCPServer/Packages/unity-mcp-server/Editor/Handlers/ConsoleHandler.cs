@@ -5,6 +5,7 @@ using System.Reflection;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -61,7 +62,7 @@ namespace UnityMCPServer.Handlers
                 Type logEntriesType = typeof(EditorApplication).Assembly.GetType("UnityEditor.LogEntries");
                 if (logEntriesType == null)
                 {
-                    Debug.LogError("[ConsoleHandler] Could not find internal type UnityEditor.LogEntries");
+                    McpLogger.LogError("ConsoleHandler", "Could not find internal type UnityEditor.LogEntries");
                     return;
                 }
 
@@ -77,7 +78,7 @@ namespace UnityMCPServer.Handlers
                 Type logEntryType = typeof(EditorApplication).Assembly.GetType("UnityEditor.LogEntry");
                 if (logEntryType == null)
                 {
-                    Debug.LogError("[ConsoleHandler] Could not find internal type UnityEditor.LogEntry");
+                    McpLogger.LogError("ConsoleHandler", "Could not find internal type UnityEditor.LogEntry");
                     return;
                 }
 
@@ -89,7 +90,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ConsoleHandler] Failed to initialize reflection: {ex}");
+                McpLogger.LogError("ConsoleHandler", $"Failed to initialize reflection: {ex}");
             }
         }
 
@@ -128,7 +129,7 @@ namespace UnityMCPServer.Handlers
                 {
                     // Note: Unity doesn't provide native selective clearing
                     // This is a placeholder for the response structure
-                    Debug.LogWarning("[ConsoleHandler] Selective log preservation is not fully implemented in Unity's console API");
+                    McpLogger.LogWarning("ConsoleHandler", "Selective log preservation is not fully implemented in Unity's console API");
                 }
 
                 // Clear the console
@@ -157,7 +158,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ConsoleHandler] Error clearing console: {ex}");
+                McpLogger.LogError("ConsoleHandler", $"Error clearing console: {ex}");
                 return new
                 {
                     success = false,
@@ -336,7 +337,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ConsoleHandler] Error reading logs: {ex}");
+                McpLogger.LogError("ConsoleHandler", $"Error reading logs: {ex}");
                 return new
                 {
                     success = false,
@@ -446,10 +447,10 @@ namespace UnityMCPServer.Handlers
             if (_debugModeBits && !string.IsNullOrEmpty(message))
             {
                 // Check if this is one of the problematic assert messages
-                if (message.Contains("InputSystemActions") && 
+                if (message.Contains("InputSystemActions") &&
                     (message.Contains(".Disable() has not been called") || message.Contains("This will cause a leak")))
                 {
-                    Debug.Log($"[ConsoleHandler] Debug - Assert message detected: '{message.Split('\n')[0]}', Mode bits: 0x{mode:X8}");
+                    McpLogger.Log("ConsoleHandler", $"Debug - Assert message detected: '{message.Split('\n')[0]}', Mode bits: 0x{mode:X8}");
                 }
             }
             
@@ -462,7 +463,7 @@ namespace UnityMCPServer.Handlers
                 {
                     if (_debugModeBits)
                     {
-                        Debug.Log($"[ConsoleHandler] Stack trace indicates Assert (UnityEngine.Debug:Assert found), Mode: 0x{mode:X8}");
+                        McpLogger.Log("ConsoleHandler", $"Stack trace indicates Assert (UnityEngine.Debug:Assert found), Mode: 0x{mode:X8}");
                     }
                     return LogType.Assert;
                 }
@@ -476,7 +477,7 @@ namespace UnityMCPServer.Handlers
                 {
                     if (_debugModeBits)
                     {
-                        Debug.Log($"[ConsoleHandler] Message contains Assert stack trace, Mode: 0x{mode:X8}");
+                        McpLogger.Log("ConsoleHandler", $"Message contains Assert stack trace, Mode: 0x{mode:X8}");
                     }
                     return LogType.Assert;
                 }
@@ -486,12 +487,12 @@ namespace UnityMCPServer.Handlers
             if (!string.IsNullOrEmpty(message))
             {
                 // Check for explicit Assert patterns in the message
-                if (message.Contains("UnityEngine.Debug:Assert") || 
+                if (message.Contains("UnityEngine.Debug:Assert") ||
                     (message.Contains("Assertion failed") || message.Contains("Assert(")))
                 {
                     if (_debugModeBits)
                     {
-                        Debug.Log($"[ConsoleHandler] Message pattern indicates Assert, Mode: 0x{mode:X8}");
+                        McpLogger.Log("ConsoleHandler", $"Message pattern indicates Assert, Mode: 0x{mode:X8}");
                     }
                     return LogType.Assert;
                 }
@@ -519,12 +520,12 @@ namespace UnityMCPServer.Handlers
             else if ((mode & (ModeBitError | ModeBitScriptingError)) != 0)
             {
                 // Double check: some Asserts may be misclassified as Errors
-                if (!string.IsNullOrEmpty(message) && 
+                if (!string.IsNullOrEmpty(message) &&
                     (message.Contains("UnityEngine.Debug:Assert") || message.Contains("Assertion")))
                 {
                     if (_debugModeBits)
                     {
-                        Debug.Log($"[ConsoleHandler] Reclassifying Error as Assert based on message, Mode: 0x{mode:X8}");
+                        McpLogger.Log("ConsoleHandler", $"Reclassifying Error as Assert based on message, Mode: 0x{mode:X8}");
                     }
                     return LogType.Assert;
                 }

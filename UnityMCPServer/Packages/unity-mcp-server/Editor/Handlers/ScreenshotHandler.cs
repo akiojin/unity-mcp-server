@@ -3,6 +3,7 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -74,7 +75,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ScreenshotHandler] Error capturing screenshot: {ex.Message}");
+                McpLogger.LogError("ScreenshotHandler", $"Error capturing screenshot: {ex.Message}");
                 return new { error = $"Failed to capture screenshot: {ex.Message}" };
             }
         }
@@ -116,67 +117,67 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                Debug.Log($"[ScreenshotHandler] CaptureGameView called: path={outputPath}, width={width}, height={height}");
+                McpLogger.Log("ScreenshotHandler", $"CaptureGameView called: path={outputPath}, width={width}, height={height}");
                 
                 // Try to capture from main camera if in Play Mode
                 if (EditorApplication.isPlaying && Camera.main != null)
                 {
-                    Debug.Log("[ScreenshotHandler] Using main camera in Play Mode");
+                    McpLogger.Log("ScreenshotHandler", "Using main camera in Play Mode");
                     return CaptureFromCamera(Camera.main, outputPath, width, height, "game", encodeAsBase64);
                 }
                 
                 // Otherwise try to get Game View and capture it
-                Debug.Log("[ScreenshotHandler] Getting Game View window");
+                McpLogger.Log("ScreenshotHandler", "Getting Game View window");
                 var gameViewType = typeof(Editor).Assembly.GetType("UnityEditor.GameView");
                 var gameView = EditorWindow.GetWindow(gameViewType, false);
                 
                 if (gameView == null)
                 {
-                    Debug.LogError("[ScreenshotHandler] Game View not found");
+                    McpLogger.LogError("ScreenshotHandler", "Game View not found");
                     return new { error = "Game View not found. Please open the Game View window." };
                 }
                 
                 // Focus the Game View
                 gameView.Focus();
-                Debug.Log("[ScreenshotHandler] Game View focused");
+                McpLogger.Log("ScreenshotHandler", "Game View focused");
                 
                 // Use reflection to get the Game View's render size
                 var renderSize = GetGameViewRenderSize(gameView);
                 int captureWidth = width > 0 ? width : renderSize.x;
                 int captureHeight = height > 0 ? height : renderSize.y;
-                Debug.Log($"[ScreenshotHandler] Capture size: {captureWidth}x{captureHeight}");
+                McpLogger.Log("ScreenshotHandler", $"Capture size: {captureWidth}x{captureHeight}");
                 
                 // Create RenderTexture and capture
-                Debug.Log("[ScreenshotHandler] Calling CaptureWindowImmediate");
+                McpLogger.Log("ScreenshotHandler", "Calling CaptureWindowImmediate");
                 byte[] imageBytes = CaptureWindowImmediate(captureWidth, captureHeight);
                 
                 if (imageBytes == null || imageBytes.Length == 0)
                 {
-                    Debug.LogError("[ScreenshotHandler] CaptureWindowImmediate returned null or empty data");
+                    McpLogger.LogError("ScreenshotHandler", "CaptureWindowImmediate returned null or empty data");
                     return new { error = "Failed to capture Game View - no image data" };
                 }
                 
-                Debug.Log($"[ScreenshotHandler] Image data captured: {imageBytes.Length} bytes");
+                McpLogger.Log("ScreenshotHandler", $"Image data captured: {imageBytes.Length} bytes");
                 
                 // Ensure output directory exists
                 string directory = Path.GetDirectoryName(outputPath);
                 if (!Directory.Exists(directory))
                 {
-                    Debug.Log($"[ScreenshotHandler] Creating directory: {directory}");
+                    McpLogger.Log("ScreenshotHandler", $"Creating directory: {directory}");
                     Directory.CreateDirectory(directory);
                 }
                 
                 // Save to file
-                Debug.Log($"[ScreenshotHandler] Writing file to: {outputPath}");
+                McpLogger.Log("ScreenshotHandler", $"Writing file to: {outputPath}");
                 File.WriteAllBytes(outputPath, imageBytes);
                 
                 if (!File.Exists(outputPath))
                 {
-                    Debug.LogError($"[ScreenshotHandler] File was not created at: {outputPath}");
+                    McpLogger.LogError("ScreenshotHandler", $"File was not created at: {outputPath}");
                     return new { error = "Failed to capture screenshot - file not created" };
                 }
                 
-                Debug.Log($"[ScreenshotHandler] File created successfully: {outputPath}");
+                McpLogger.Log("ScreenshotHandler", $"File created successfully: {outputPath}");
                 UnityMCPServer.Helpers.DebouncedAssetRefresh.Request();
                 
                 var result = new
@@ -359,7 +360,7 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                Debug.Log("[ScreenshotHandler] CaptureExplorerView called");
+                McpLogger.Log("ScreenshotHandler", "CaptureExplorerView called");
                 
                 // Parse explorer settings
                 JObject targetSettings = explorerSettings?["target"] as JObject;
@@ -403,7 +404,7 @@ namespace UnityMCPServer.Handlers
                                 }
                                 else
                                 {
-                                    Debug.LogWarning($"[ScreenshotHandler] Target GameObject '{targetName}' not found");
+                                    McpLogger.LogWarning("ScreenshotHandler", $"Target GameObject '{targetName}' not found");
                                 }
                             }
                         }
@@ -562,7 +563,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ScreenshotHandler] Error in CaptureExplorerView: {ex.Message}");
+                McpLogger.LogError("ScreenshotHandler", $"Error in CaptureExplorerView: {ex.Message}");
                 return new { error = $"Failed to capture explorer view: {ex.Message}" };
             }
         }
@@ -890,17 +891,17 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                Debug.Log($"[ScreenshotHandler] CaptureWindowImmediate called: {width}x{height}");
+                McpLogger.Log("ScreenshotHandler", $"CaptureWindowImmediate called: {width}x{height}");
                 
                 // Create a render texture for immediate capture
                 RenderTexture renderTexture = new RenderTexture(width, height, 24);
-                Debug.Log("[ScreenshotHandler] RenderTexture created");
+                McpLogger.Log("ScreenshotHandler", "RenderTexture created");
                 
                 // Try to capture from main camera
                 Camera camera = Camera.main;
                 if (camera == null)
                 {
-                    Debug.Log("[ScreenshotHandler] Camera.main is null, looking for alternatives");
+                    McpLogger.Log("ScreenshotHandler", "Camera.main is null, looking for alternatives");
                     // Try to find any active camera
                     camera = Camera.current;
                     if (camera == null)
@@ -909,17 +910,17 @@ namespace UnityMCPServer.Handlers
                         if (cameras.Length > 0)
                         {
                             camera = cameras[0];
-                            Debug.Log($"[ScreenshotHandler] Using first available camera: {camera.name}");
+                            McpLogger.Log("ScreenshotHandler", $"Using first available camera: {camera.name}");
                         }
                     }
                     else
                     {
-                        Debug.Log($"[ScreenshotHandler] Using Camera.current: {camera.name}");
+                        McpLogger.Log("ScreenshotHandler", $"Using Camera.current: {camera.name}");
                     }
                 }
                 else
                 {
-                    Debug.Log($"[ScreenshotHandler] Using Camera.main: {camera.name}");
+                    McpLogger.Log("ScreenshotHandler", $"Using Camera.main: {camera.name}");
                 }
                 
                 if (camera != null)
@@ -928,11 +929,11 @@ namespace UnityMCPServer.Handlers
                     camera.targetTexture = renderTexture;
                     camera.Render();
                     camera.targetTexture = previousTarget;
-                    Debug.Log("[ScreenshotHandler] Camera rendered to texture");
+                    McpLogger.Log("ScreenshotHandler", "Camera rendered to texture");
                 }
                 else
                 {
-                    Debug.LogError("[ScreenshotHandler] No camera available for capture");
+                    McpLogger.LogError("ScreenshotHandler", "No camera available for capture");
                     // No camera available, return null
                     UnityEngine.Object.DestroyImmediate(renderTexture);
                     return null;
@@ -943,7 +944,7 @@ namespace UnityMCPServer.Handlers
                 Texture2D screenshot = new Texture2D(width, height, TextureFormat.RGB24, false);
                 screenshot.ReadPixels(new Rect(0, 0, width, height), 0, 0);
                 screenshot.Apply();
-                Debug.Log("[ScreenshotHandler] Pixels read and applied");
+                McpLogger.Log("ScreenshotHandler", "Pixels read and applied");
                 
                 // Cleanup render texture
                 RenderTexture.active = null;
@@ -955,19 +956,19 @@ namespace UnityMCPServer.Handlers
                 
                 if (imageBytes != null && imageBytes.Length > 0)
                 {
-                    Debug.Log($"[ScreenshotHandler] PNG encoded successfully: {imageBytes.Length} bytes");
+                    McpLogger.Log("ScreenshotHandler", $"PNG encoded successfully: {imageBytes.Length} bytes");
                 }
                 else
                 {
-                    Debug.LogError("[ScreenshotHandler] PNG encoding failed or returned empty data");
+                    McpLogger.LogError("ScreenshotHandler", "PNG encoding failed or returned empty data");
                 }
                 
                 return imageBytes;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ScreenshotHandler] Failed to capture window immediately: {ex.Message}");
-                Debug.LogError($"[ScreenshotHandler] Stack trace: {ex.StackTrace}");
+                McpLogger.LogError("ScreenshotHandler", $"Failed to capture window immediately: {ex.Message}");
+                McpLogger.LogError("ScreenshotHandler", $"Stack trace: {ex.StackTrace}");
                 return null;
             }
         }
@@ -1118,7 +1119,7 @@ namespace UnityMCPServer.Handlers
             // 1. Add outline shaders
             // 2. Change material colors temporarily
             // 3. Add gizmos or wireframe overlays
-            Debug.Log("[ScreenshotHandler] Target highlighting requested but not yet implemented");
+            McpLogger.Log("ScreenshotHandler", "Target highlighting requested but not yet implemented");
         }
         
         /// <summary>
