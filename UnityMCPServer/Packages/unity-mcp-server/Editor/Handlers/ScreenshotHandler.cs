@@ -34,14 +34,14 @@ namespace UnityMCPServer.Handlers
                     return new { error = "Invalid capture mode. Must be 'game', 'scene', or 'window'" };
                 }
                 
-                // 保存先は固定: <workspace>/.unity/capture/screenshot_<mode>_<timestamp>.png
+                // 保存先は固定: <workspace>/.unity/captures/image_<mode>_<timestamp>.png
                 {
                     string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
                     var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
                     var wsParam = parameters["workspaceRoot"]?.ToString();
                     string workspaceRoot = !string.IsNullOrEmpty(wsParam) ? wsParam : ResolveWorkspaceRoot(projectRoot);
-                    var captureDir = Path.Combine(workspaceRoot, ".unity", "capture");
-                    outputPath = Path.Combine(captureDir, $"screenshot_{captureMode}_{timestamp}.png");
+                    var captureDir = Path.Combine(workspaceRoot, ".unity", "captures");
+                    outputPath = Path.Combine(captureDir, $"image_{captureMode}_{timestamp}.png");
                 }
                 
                 // Ensure directory exists (support outside Assets)

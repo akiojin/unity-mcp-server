@@ -659,19 +659,30 @@ git commit -m "feat: add hooks and fix bug and update docs"
 
 #### リリースフロー（feature → develop → main + tag）
 
-1. **featureブランチで開発**（Conventional Commits厳守）  
-   - `finish-feature.sh`でPR作成 → develop向け。  
-   - Required Checks（Markdown/ESLint/Prettier・Commit Message Lint）成功でauto-merge。  
-2. **リリースPR作成（手動）**  
-   - Actionsの`Create Release Branch`を実行 → release-pleaseが`main`向けリリースPRを生成しauto-mergeを有効化。  
-3. **タグ付け・GitHub Release**  
-   - `main`へのマージで`Release`ワークフローが動き、release-pleaseが`vX.Y.Z`タグとGitHub Releaseを作成（対象: mcp-serverとUnityパッケージのバージョン/CHANGELOG）。  
-4. **Publish（タグトリガー）**  
-   - `Publish`ワークフローがcsharp-lspを全RIDでビルドし、manifest＋バイナリをReleaseに添付。  
-   - `mcp-server`をnpm publish。OpenUPMはタグを自動検出。  
-   - 完了後、`main`→`develop`をバックマージ。  
+1. **featureブランチで開発**（Conventional Commits厳守）
+   - `finish-feature.sh`でPR作成 → develop向け。
+   - Required Checks（Markdown/ESLint/Prettier・Commit Message Lint）成功でauto-merge。
+2. **develop→mainマージ**
+   - `/release` コマンドまたは手動で`prepare-release-pr.sh`を実行 → develop→main PRを作成・自動マージ。
+   - mainへのマージで`Release`ワークフローがトリガー。
+3. **release-pleaseによるバージョンアップPR作成**
+   - release-pleaseが`feat:`/`fix:`コミットを検出し、バージョン番号を決定。
+   - main向けにバージョンアップPRを自動作成（`chore(release): X.Y.Z`）。
+   - PR内容: `package.json`のバージョン更新 + `CHANGELOG.md`更新 + Unity Packageバージョン同期。
+   - **重要**: このPRが作成されるのは`skip-github-pull-request: false`の設定による（llm-routerと同じフロー）。
+4. **リリースPRマージ → タグ作成**
+   - バージョンアップPRをマージすると、release-pleaseが`vX.Y.Z`タグとGitHub Releaseを作成。
+   - GitHub Releaseにはrelease-pleaseが生成したリリースノートが添付される。
+5. **Publish（タグトリガー）**
+   - タグpushで`Publish`ワークフローがトリガー。
+   - csharp-lspを全RIDでビルドし、manifest＋バイナリをReleaseに添付。
+   - `mcp-server`をnpm publish。OpenUPMはタグを自動検出。
+   - 完了後、`main`→`develop`をバックマージ。
 
-**重要**: 手動でのバージョン変更・npm publishは禁止（すべて自動化）
+**重要**:
+- 手動でのバージョン変更・npm publishは禁止（すべて自動化）
+- バージョン・CHANGELOGの更新はmainブランチのみで行われる（developでは行わない）
+- release-pleaseが作成するバージョンアップPRを必ずマージすること（マージしないとリリースが完了しない）
 
 **注意事項**:
 - developブランチへのマージ後、すぐにリリースする必要はありません
@@ -848,11 +859,11 @@ README.mdにカバレッジバッジを追加する場合：
   - `Library/PackageCache/**` は自動生成（編集禁止）
   - エディタ拡張のスクショ/動画ハンドラ:
     - `Editor/Handlers/ScreenshotHandler.cs`:
-      - 保存先は常に `<workspace>/.unity/capture/screenshot_<mode>_<timestamp>.png`
+      - 保存先は常に `<workspace>/.unity/captures/image_<mode>_<timestamp>.png`
       - Nodeから受け取る `workspaceRoot` を優先。未受領時のみ `.unity/config.json` を用いてフォールバック解決。
     - `Editor/Handlers/VideoCaptureHandler.cs`:
       - Unity Recorder（必須依存）で mp4/webm へ録画。
-      - 保存先は常に `<workspace>/.unity/capture/recording_<mode>_<timestamp>.(mp4|webm)`。
+      - 保存先は常に `<workspace>/.unity/captures/video_<mode>_<timestamp>.(mp4|webm)`。
       - Nodeから受け取る `workspaceRoot` を優先採用。
 
 - `mcp-server/`（Node製 MCP サーバ）
@@ -871,13 +882,13 @@ README.mdにカバレッジバッジを追加する場合：
   - 成果物: 自己完結バイナリは `~/.unity/tools/csharp-lsp/<rid>/` 配下（Git管理外推奨）。
 
 ### パス解決ポリシー（統一）
-- スクリーンショット/動画の出力先は常にワークスペースルート固定の `./.unity/capture/`。
+- スクリーンショット/動画の出力先は常にワークスペースルート固定の `./.unity/captures/`。
 - Node側が `WORKSPACE_ROOT` を決定し、全Unityコマンドに `workspaceRoot` を付与。
 - Unity側は `workspaceRoot` を優先採用し、未受領時のみ `.unity/config.json` の `project.root` によるフォールバックでワークスペースを探索。
 - `process.cwd()` 変化・環境変数には依存しない。
 
 ### Git 管理
-- `/.unity/capture/` は `.gitignore` に登録（一時成果物の保護）。
+- `/.unity/captures/` は `.gitignore` に登録（一時成果物の保護）。
 - `Library/PackageCache/**` は編集禁止（生成物）。
 
 ### MCPサーバー開発メモ（汎用）

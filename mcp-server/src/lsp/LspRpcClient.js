@@ -64,9 +64,17 @@ export class LspRpcClient {
   }
 
   writeMessage(obj) {
+    if (!this.proc || this.proc.killed) {
+      throw new Error('LSP process not available');
+    }
     const json = JSON.stringify(obj);
     const payload = `Content-Length: ${Buffer.byteLength(json, 'utf8')}\r\n\r\n${json}`;
-    this.proc.stdin.write(payload, 'utf8');
+    try {
+      this.proc.stdin.write(payload, 'utf8');
+    } catch (e) {
+      logger.error(`[csharp-lsp] writeMessage failed: ${e.message}`);
+      throw e;
+    }
   }
 
   async initialize() {

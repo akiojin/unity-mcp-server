@@ -11,7 +11,7 @@ describe('ScreenshotCaptureToolHandler', () => {
     mockConnection = createMockUnityConnection({
       sendCommandResult: {
         success: true,
-        path: '.unity/capture/screenshot_game_20250117_120000.png',
+        path: '.unity/captures/image_game_20250117_120000.png',
         width: 1920,
         height: 1080,
         format: 'PNG'
@@ -145,7 +145,7 @@ describe('ScreenshotCaptureToolHandler', () => {
       mockConnection = createMockUnityConnection({
         sendCommandResult: {
           success: true,
-          path: '.unity/capture/screenshot.png',
+          path: '.unity/captures/image.png',
           base64Data:
             'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
         }
@@ -257,9 +257,9 @@ describe('ScreenshotCaptureToolHandler', () => {
       assert.equal(sentParams.height, 720);
     });
 
-    it('FR-006: should save to workspace .unity/capture directory', async () => {
+    it('FR-006: should save to workspace .unity/captures directory', async () => {
       const result = await handler.execute({});
-      assert.ok(result.path.includes('.unity/capture'));
+      assert.ok(result.path.includes('.unity/captures'));
     });
 
     it('FR-007: should support base64 encoding', async () => {
