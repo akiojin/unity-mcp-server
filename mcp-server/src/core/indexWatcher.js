@@ -19,8 +19,12 @@ export class IndexWatcher {
     if (typeof this.timer.unref === 'function') {
       this.timer.unref();
     }
-    // Initial kick
-    this.tick();
+    // Delay initial tick to avoid blocking MCP server initialization
+    // Unity connection and code index operations can be slow on first run
+    const delayedStart = setTimeout(() => this.tick(), 5000);
+    if (typeof delayedStart.unref === 'function') {
+      delayedStart.unref();
+    }
   }
 
   stop() {

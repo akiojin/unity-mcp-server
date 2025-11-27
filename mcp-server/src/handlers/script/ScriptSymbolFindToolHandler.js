@@ -1,7 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { CodeIndex } from '../../core/codeIndex.js';
-import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
-import { ProjectInfoProvider } from '../../core/projectInfo.js';
+import { JobManager } from '../../core/jobManager.js';
 
 export class ScriptSymbolFindToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
@@ -36,8 +35,7 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
     );
     this.unityConnection = unityConnection;
     this.index = new CodeIndex(unityConnection);
-    this.projectInfo = new ProjectInfoProvider(unityConnection);
-    this.lsp = null;
+    this.jobManager = JobManager.getInstance();
   }
 
   validate(params) {
@@ -52,52 +50,59 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
 
   async execute(params) {
     const { name, kind, scope = 'assets', exact = false } = params;
-    // Prefer persistent index if available
-    let results = [];
-    if (await this.index.isReady()) {
-      const rows = await this.index.querySymbols({ name, kind, scope, exact });
-      results = rows.map(r => ({
-        // Index returns project-relative paths already
-        path: (r.path || '').replace(/\\\\/g, '/'),
-        symbol: {
-          name: r.name,
-          kind: r.kind,
-          namespace: r.ns,
-          container: r.container,
-          startLine: r.line,
-          startColumn: r.column,
-          endLine: r.line,
-          endColumn: r.column
-        }
-      }));
-    } else {
-      const info = await this.projectInfo.get();
-      if (!this.lsp) this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
-      const resp = await this.lsp.request('workspace/symbol', { query: String(name) });
-      const arr = resp?.result || [];
-      const root = String(info.projectRoot || '').replace(/\\\\/g, '/');
-      const rootWithSlash = root.endsWith('/') ? root : root + '/';
-      results = arr.map(s => {
-        const uri = String(s.location?.uri || '');
-        // Normalize to absolute path without scheme
-        const abs = uri.replace('file://', '').replace(/\\\\/g, '/');
-        // Convert to project-relative if under project root
-        const rel = abs.startsWith(rootWithSlash) ? abs.slice(rootWithSlash.length) : abs;
+
+    // Check if code index is ready - no fallback to LSP
+    if (!(await this.index.isReady())) {
+      // Check if a build job is currently running
+      const allJobs = this.jobManager.getAllJobs();
+      const buildJob = allJobs.find(
+        job =>
+          (job.id.startsWith('build-') || job.id.startsWith('watcher-')) && job.status === 'running'
+      );
+
+      if (buildJob) {
+        const progress = buildJob.progress || {};
+        const pct =
+          progress.total > 0 ? Math.round((progress.processed / progress.total) * 100) : 0;
         return {
-          path: rel,
-          symbol: {
-            name: s.name,
-            kind: this.mapKind(s.kind),
-            namespace: null,
-            container: null,
-            startLine: (s.location?.range?.start?.line ?? 0) + 1,
-            startColumn: (s.location?.range?.start?.character ?? 0) + 1,
-            endLine: (s.location?.range?.end?.line ?? 0) + 1,
-            endColumn: (s.location?.range?.end?.character ?? 0) + 1
+          success: false,
+          error: 'index_building',
+          message: `Code index is currently being built. Please wait and retry. Progress: ${pct}% (${progress.processed || 0}/${progress.total || 0})`,
+          jobId: buildJob.id,
+          progress: {
+            processed: progress.processed || 0,
+            total: progress.total || 0,
+            percentage: pct
           }
         };
-      });
+      }
+
+      // No build job running - index not available
+      return {
+        success: false,
+        error: 'index_not_ready',
+        message:
+          'Code index is not built. Run code_index_build first, or wait for auto-build to complete on server startup.',
+        hint: 'Use code_index_status to check index state, or code_index_build to start a build manually.'
+      };
     }
+
+    // DB index is ready - use it
+    const rows = await this.index.querySymbols({ name, kind, scope, exact });
+    let results = rows.map(r => ({
+      // Index returns project-relative paths already
+      path: (r.path || '').replace(/\\\\/g, '/'),
+      symbol: {
+        name: r.name,
+        kind: r.kind,
+        namespace: r.ns,
+        container: r.container,
+        startLine: r.line,
+        startColumn: r.column,
+        endLine: r.line,
+        endColumn: r.column
+      }
+    }));
     // Optional post-filtering: scope and exact name
     if (scope && scope !== 'all') {
       results = results.filter(x => {
@@ -119,24 +124,5 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
       results = results.filter(x => x.symbol && x.symbol.name === target);
     }
     return { success: true, results, total: results.length };
-  }
-
-  mapKind(k) {
-    switch (k) {
-      case 5:
-        return 'class';
-      case 23:
-        return 'struct';
-      case 11:
-        return 'interface';
-      case 10:
-        return 'enum';
-      case 6:
-        return 'method';
-      case 7:
-        return 'property';
-      case 8:
-        return 'field';
-    }
   }
 }
