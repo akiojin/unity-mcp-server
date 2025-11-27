@@ -7,6 +7,7 @@ using Unity.Profiling;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -50,7 +51,7 @@ namespace UnityMCPServer.Handlers
                 var metricsCount = parameters["metrics"]?.ToObject<string[]>()?.Length ?? 0;
                 var maxDurationSec = parameters["maxDurationSec"]?.ToObject<double>() ?? 0;
 
-                Debug.Log($"[ProfilerHandler.Start] Starting profiling session: mode={mode}, recordToFile={recordToFile}, metrics={metricsCount}, maxDuration={maxDurationSec}s");
+                McpLogger.Log("ProfilerHandler", $"Start] Starting profiling session: mode={mode}, recordToFile={recordToFile}, metrics={metricsCount}, maxDuration={maxDurationSec}s");
 
                 // 1. Check if already recording
                 if (s_IsRecording)
@@ -153,7 +154,7 @@ namespace UnityMCPServer.Handlers
                 s_RecordToFile = recordToFile;
                 s_Metrics = metrics;
 
-                Debug.Log($"[ProfilerHandler.Start] Profiling session started successfully: sessionId={s_SessionId}, outputPath={s_OutputPath}");
+                McpLogger.Log("ProfilerHandler", $"Start] Profiling session started successfully: sessionId={s_SessionId}, outputPath={s_OutputPath}");
 
                 // 13. Return response
                 return new
@@ -166,7 +167,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ProfilerHandler.Start] Exception: {ex}");
+                McpLogger.LogError("ProfilerHandler", $"Start] Exception: {ex}");
                 return new
                 {
                     error = $"Failed to start profiling: {ex.Message}",
@@ -182,7 +183,7 @@ namespace UnityMCPServer.Handlers
         {
             try
             {
-                Debug.Log($"[ProfilerHandler.Stop] Stopping profiling session: sessionId={s_SessionId ?? "none"}");
+                McpLogger.Log("ProfilerHandler", $"Stop] Stopping profiling session: sessionId={s_SessionId ?? "none"}");
 
                 var requestedSessionId = parameters["sessionId"]?.ToString();
 
@@ -253,7 +254,7 @@ namespace UnityMCPServer.Handlers
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogError($"[ProfilerHandler.Stop] Failed to save .data file: {ex}");
+                        McpLogger.LogError("ProfilerHandler", $"Stop] Failed to save .data file: {ex}");
                         return new
                         {
                             error = $"Failed to save profiler data: {ex.Message}",
@@ -306,14 +307,14 @@ namespace UnityMCPServer.Handlers
                 s_LastAutoStopped = s_StopIsAuto;
                 s_StopIsAuto = false;
 
-                Debug.Log($"[ProfilerHandler.Stop] Profiling session stopped successfully: sessionId={sessionId}, duration={duration:F2}s, frameCount={frameCount}");
+                McpLogger.Log("ProfilerHandler", $"Stop] Profiling session stopped successfully: sessionId={sessionId}, duration={duration:F2}s, frameCount={frameCount}");
 
                 // 10. Return response
                 return s_LastStopResult;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ProfilerHandler.Stop] Exception: {ex}");
+                McpLogger.LogError("ProfilerHandler", $"Stop] Exception: {ex}");
                 return new
                 {
                     error = $"Failed to stop profiling: {ex.Message}",
@@ -361,7 +362,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ProfilerHandler.GetStatus] Exception: {ex}");
+                McpLogger.LogError("ProfilerHandler", $"GetStatus] Exception: {ex}");
                 return new
                 {
                     error = $"Failed to get status: {ex.Message}",
@@ -481,7 +482,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[ProfilerHandler.GetAvailableMetrics] Exception: {ex}");
+                McpLogger.LogError("ProfilerHandler", $"Exception: {ex}");
                 return new
                 {
                     error = $"Failed to get metrics: {ex.Message}",

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Helpers
 {
@@ -66,7 +67,7 @@ namespace UnityMCPServer.Helpers
             }
             catch (System.Exception e)
             {
-                Debug.LogWarning($"[UnityMCPServer] Failed to get package version: {e.Message}");
+                McpLogger.LogWarning("Response", $"Failed to get package version: {e.Message}");
             }
 
             return "unknown";

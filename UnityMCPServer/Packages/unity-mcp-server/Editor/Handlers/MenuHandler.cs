@@ -4,6 +4,7 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -108,7 +109,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[MenuHandler] Error executing menu operation: {ex}");
+                McpLogger.LogError("MenuHandler", $"Error executing menu operation: {ex}");
                 return new
                 {
                     success = false,
@@ -159,13 +160,13 @@ namespace UnityMCPServer.Handlers
                     if (!executed)
                     {
                         // Menu item exists but couldn't be executed (might be disabled or context-dependent)
-                        Debug.LogWarning($"[MenuHandler] Menu item '{menuPath}' could not be executed - it may be disabled or context-dependent");
+                        McpLogger.LogWarning("MenuHandler", $"Menu item '{menuPath}' could not be executed - it may be disabled or context-dependent");
                     }
                 }
                 catch (Exception ex)
                 {
                     // Menu item might not exist
-                    Debug.LogWarning($"[MenuHandler] Failed to execute menu item '{menuPath}': {ex.Message}");
+                    McpLogger.LogWarning("MenuHandler", $"Failed to execute menu item '{menuPath}': {ex.Message}");
                     menuExists = false;
                     executed = false;
                 }
@@ -207,7 +208,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[MenuHandler] Error executing menu item '{menuPath}': {ex}");
+                McpLogger.LogError("MenuHandler", $"Error executing menu item '{menuPath}': {ex}");
                 return new
                 {
                     success = false,
@@ -446,7 +447,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[MenuHandler] Error getting available menus: {ex}");
+                McpLogger.LogError("MenuHandler", $"Error getting available menus: {ex}");
                 return new
                 {
                     success = false,
@@ -494,7 +495,7 @@ namespace UnityMCPServer.Handlers
             if (!string.IsNullOrEmpty(menuPath))
             {
                 BlacklistedMenus.Add(menuPath);
-                Debug.Log($"[MenuHandler] Added '{menuPath}' to blacklist");
+                McpLogger.Log("MenuHandler", $"Added '{menuPath}' to blacklist");
             }
         }
 
@@ -509,7 +510,7 @@ namespace UnityMCPServer.Handlers
                 bool removed = BlacklistedMenus.Remove(menuPath);
                 if (removed)
                 {
-                    Debug.Log($"[MenuHandler] Removed '{menuPath}' from blacklist");
+                    McpLogger.Log("MenuHandler", $"Removed '{menuPath}' from blacklist");
                 }
                 return removed;
             }

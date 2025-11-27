@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -38,7 +39,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[WindowManagementHandler] Error handling {action}: {e.Message}");
+                McpLogger.LogError("WindowManagementHandler", $"Error handling {action}: {e.Message}");
                 return new { error = e.Message };
             }
         }
@@ -121,7 +122,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[WindowManagementHandler] Error getting windows: {e.Message}");
+                McpLogger.LogError("WindowManagementHandler", $"Error getting windows: {e.Message}");
                 return new { error = $"Failed to get windows: {e.Message}" };
             }
         }
@@ -187,7 +188,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[WindowManagementHandler] Error focusing window '{windowType}': {e.Message}");
+                McpLogger.LogError("WindowManagementHandler", $"Error focusing window '{windowType}': {e.Message}");
                 return new { error = $"Failed to focus window: {e.Message}" };
             }
         }
@@ -281,7 +282,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[WindowManagementHandler] Error getting window state for '{windowType}': {e.Message}");
+                McpLogger.LogError("WindowManagementHandler", $"Error getting window state for '{windowType}': {e.Message}");
                 return new { error = $"Failed to get window state: {e.Message}" };
             }
         }

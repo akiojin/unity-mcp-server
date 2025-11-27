@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -50,7 +51,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[RegistryConfigHandler] Error handling {action}: {e.Message}");
+                McpLogger.LogError("RegistryConfigHandler", $" Error handling {action}: {e.Message}");
                 return new { error = e.Message };
             }
         }
@@ -104,7 +105,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[RegistryConfigHandler] Error listing registries: {e.Message}");
+                McpLogger.LogError("RegistryConfigHandler", $" Error listing registries: {e.Message}");
                 return new { error = $"Failed to list registries: {e.Message}" };
             }
         }
@@ -221,7 +222,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[RegistryConfigHandler] Error adding OpenUPM: {e.Message}");
+                McpLogger.LogError("RegistryConfigHandler", $" Error adding OpenUPM: {e.Message}");
                 return new { error = $"Failed to add OpenUPM registry: {e.Message}" };
             }
         }
@@ -333,7 +334,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[RegistryConfigHandler] Error adding Unity NuGet: {e.Message}");
+                McpLogger.LogError("RegistryConfigHandler", $" Error adding Unity NuGet: {e.Message}");
                 return new { error = $"Failed to add Unity NuGet registry: {e.Message}" };
             }
         }
@@ -392,7 +393,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[RegistryConfigHandler] Error removing registry: {e.Message}");
+                McpLogger.LogError("RegistryConfigHandler", $" Error removing registry: {e.Message}");
                 return new { error = $"Failed to remove registry: {e.Message}" };
             }
         }
@@ -468,7 +469,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[RegistryConfigHandler] Error adding scope: {e.Message}");
+                McpLogger.LogError("RegistryConfigHandler", $" Error adding scope: {e.Message}");
                 return new { error = $"Failed to add scope: {e.Message}" };
             }
         }

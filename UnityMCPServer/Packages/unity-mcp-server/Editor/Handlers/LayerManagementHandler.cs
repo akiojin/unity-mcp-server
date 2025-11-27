@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -48,7 +49,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[LayerManagementHandler] Error handling {action}: {e.Message}");
+                McpLogger.LogError("LayerManagementHandler", $"Error handling {action}: {e.Message}");
                 return new { error = e.Message };
             }
         }
@@ -86,7 +87,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[LayerManagementHandler] Error getting layers: {e.Message}");
+                McpLogger.LogError("LayerManagementHandler", $"Error getting layers: {e.Message}");
                 return new { error = $"Failed to get layers: {e.Message}" };
             }
         }
@@ -166,7 +167,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[LayerManagementHandler] Error adding layer '{layerName}': {e.Message}");
+                McpLogger.LogError("LayerManagementHandler", $"Error adding layer '{layerName}': {e.Message}");
                 return new { error = $"Failed to add layer: {e.Message}" };
             }
         }
@@ -211,7 +212,7 @@ namespace UnityMCPServer.Handlers
                 
                 if (gameObjectsWithLayer.Length > 0)
                 {
-                    Debug.LogWarning($"[LayerManagementHandler] Removing layer '{layerName}' while {gameObjectsWithLayer.Length} GameObjects are still using it");
+                    McpLogger.LogWarning("LayerManagementHandler", $"Removing layer '{layerName}' while {gameObjectsWithLayer.Length} GameObjects are still using it");
                 }
 
                 // Remove the layer
@@ -241,7 +242,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[LayerManagementHandler] Error removing layer '{layerName}': {e.Message}");
+                McpLogger.LogError("LayerManagementHandler", $"Error removing layer '{layerName}': {e.Message}");
                 return new { error = $"Failed to remove layer: {e.Message}" };
             }
         }
@@ -276,7 +277,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[LayerManagementHandler] Error getting layer by name '{layerName}': {e.Message}");
+                McpLogger.LogError("LayerManagementHandler", $"Error getting layer by name '{layerName}': {e.Message}");
                 return new { error = $"Failed to get layer by name: {e.Message}" };
             }
         }
@@ -318,7 +319,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[LayerManagementHandler] Error getting layer by index {layerIndex}: {e.Message}");
+                McpLogger.LogError("LayerManagementHandler", $"Error getting layer by index {layerIndex}: {e.Message}");
                 return new { error = $"Failed to get layer by index: {e.Message}" };
             }
         }

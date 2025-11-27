@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Core.Settings
 {
@@ -36,7 +37,7 @@ namespace UnityMCPServer.Core.Settings
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[UnityMCPSettings] Failed to load settings, using defaults. {e.Message}");
+                McpLogger.LogWarning("UnityMCPSettings", $"Failed to load settings, using defaults. {e.Message}");
             }
             return new UnityMCPSettings();
         }

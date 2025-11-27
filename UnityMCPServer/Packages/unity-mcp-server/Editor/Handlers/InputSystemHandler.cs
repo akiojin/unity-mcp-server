@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 // Conditionally include Input System namespaces only if available
 // This prevents compilation errors when the package is not installed
@@ -55,7 +56,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[InputSystemHandler] Error in SimulateKeyboardInput: {e.Message}");
+                McpLogger.LogError("InputSystemHandler", $"Error in SimulateKeyboardInput: {e.Message}");
                 return new { error = $"Failed to simulate keyboard input: {e.Message}" };
             }
         }
@@ -101,7 +102,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[InputSystemHandler] Error in SimulateMouseInput: {e.Message}");
+                McpLogger.LogError("InputSystemHandler", $"Error in SimulateMouseInput: {e.Message}");
                 return new { error = $"Failed to simulate mouse input: {e.Message}" };
             }
         }
@@ -150,7 +151,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[InputSystemHandler] Error in SimulateGamepadInput: {e.Message}");
+                McpLogger.LogError("InputSystemHandler", $"Error in SimulateGamepadInput: {e.Message}");
                 return new { error = $"Failed to simulate gamepad input: {e.Message}" };
             }
         }
@@ -196,7 +197,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[InputSystemHandler] Error in SimulateTouchInput: {e.Message}");
+                McpLogger.LogError("InputSystemHandler", $"Error in SimulateTouchInput: {e.Message}");
                 return new { error = $"Failed to simulate touch input: {e.Message}" };
             }
         }
@@ -297,7 +298,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[InputSystemHandler] Error in CreateInputSequence: {e.Message}");
+                McpLogger.LogError("InputSystemHandler", $"Error in CreateInputSequence: {e.Message}");
                 return new { error = $"Failed to create input sequence: {e.Message}" };
             }
         }
@@ -323,7 +324,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[InputSystemHandler] Error in GetCurrentInputState: {e.Message}");
+                McpLogger.LogError("InputSystemHandler", $"Error in GetCurrentInputState: {e.Message}");
                 return new { error = $"Failed to get input state: {e.Message}" };
             }
         }
@@ -347,7 +348,7 @@ namespace UnityMCPServer.Handlers
             if (virtualKeyboard == null || !virtualKeyboard.added)
             {
                 virtualKeyboard = InputSystem.AddDevice<Keyboard>("VirtualKeyboard");
-                Debug.Log("[InputSystemHandler] Created virtual keyboard device");
+                McpLogger.Log("InputSystemHandler", " Created virtual keyboard device");
             }
 
             return virtualKeyboard;
@@ -429,7 +430,7 @@ namespace UnityMCPServer.Handlers
             // Add key to pressed keys set
             if (pressedKeys.Add(key))
             {
-                Debug.Log($"[InputSystemHandler] Simulating key press: {keyName} ({keyboard.name})");
+                McpLogger.Log("InputSystemHandler", $"Simulating key press: {keyName} ({keyboard.name})");
                 
                 // Create new keyboard state with all pressed keys
                 var keyboardState = CreateKeyboardState();
@@ -482,7 +483,7 @@ namespace UnityMCPServer.Handlers
             // Remove key from pressed keys set
             if (pressedKeys.Remove(key))
             {
-                Debug.Log($"[InputSystemHandler] Simulating key release: {keyName} ({keyboard.name})");
+                McpLogger.Log("InputSystemHandler", $"Simulating key release: {keyName} ({keyboard.name})");
                 
                 // Create new keyboard state with remaining pressed keys
                 var keyboardState = CreateKeyboardState();
@@ -509,7 +510,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = "text is required" };
             }
             
-            Debug.Log($"[InputSystemHandler] Simulating text input: \"{text}\" ({keyboard.name})");
+            McpLogger.Log("InputSystemHandler", $"Simulating text input: \"{text}\" ({keyboard.name})");
             
             // Use QueueTextEvent for text input (better for UI/TMP)
             foreach (char c in text)
@@ -536,7 +537,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = "keys array is required" };
             }
             
-            Debug.Log($"[InputSystemHandler] Simulating key combo: {string.Join("+", keys)} ({keyboard.name})");
+            McpLogger.Log("InputSystemHandler", $"Simulating key combo: {string.Join("+", keys)} ({keyboard.name})");
             
             var normalizedKeys = new List<string>();
 
@@ -1431,7 +1432,7 @@ namespace UnityMCPServer.Handlers
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError($"[InputSystemHandler] Error executing scheduled release: {e.Message}");
+                        McpLogger.LogError("InputSystemHandler", $"Error executing scheduled release: {e.Message}");
                     }
 
                     scheduledReleases.RemoveAt(i);
