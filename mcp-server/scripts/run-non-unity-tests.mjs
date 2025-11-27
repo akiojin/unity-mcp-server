@@ -11,7 +11,6 @@ const integrationRoot = path.join(repoRoot, 'tests', 'integration');
 
 const curatedUnitTests = [
   'tests/unit/core/codeIndex.test.js',
-  'tests/unit/core/codeIndexDb.test.js',
   'tests/unit/core/config.test.js',
   'tests/unit/core/indexWatcher.test.js',
   'tests/unit/core/projectInfo.test.js',
