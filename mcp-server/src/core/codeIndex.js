@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import { ProjectInfoProvider } from './projectInfo.js';
 import { logger } from './config.js';
-import { createSqliteFallback } from './sqliteFallback.js';
 
 // Shared driver availability state across CodeIndex instances
 const driverStatus = {
@@ -20,8 +19,6 @@ export class CodeIndex {
     this.disabled = false; // set true if better-sqlite3 is unavailable
     this.disableReason = null;
     this._Database = null;
-    this._openFallback = null;
-    this._persistFallback = null;
   }
 
   async _ensureDriver() {
@@ -39,21 +36,13 @@ export class CodeIndex {
       driverStatus.error = null;
       return true;
     } catch (e) {
-      // Try wasm fallback (sql.js) before giving up
-      try {
-        this._openFallback = createSqliteFallback;
-        driverStatus.available = true;
-        driverStatus.error = null;
-        logger?.info?.('[index] falling back to sql.js (WASM) for code index');
-        return true;
-      } catch (fallbackError) {
-        this.disabled = true;
-        this.disableReason = `better-sqlite3 unavailable: ${e?.message || e}. Fallback failed: ${fallbackError?.message || fallbackError}`;
-        driverStatus.available = false;
-        driverStatus.error = this.disableReason;
-        this._logDisable(this.disableReason);
-        return false;
-      }
+      // No fallback - fail fast with clear error
+      this.disabled = true;
+      this.disableReason = `better-sqlite3 native binding unavailable: ${e?.message || e}. Code index features are disabled.`;
+      driverStatus.available = false;
+      driverStatus.error = this.disableReason;
+      this._logDisable(this.disableReason);
+      return false;
     }
   }
 
@@ -69,9 +58,6 @@ export class CodeIndex {
     try {
       if (this._Database) {
         this.db = new this._Database(dbPath);
-      } else if (this._openFallback) {
-        this.db = await this._openFallback(dbPath);
-        this._persistFallback = this.db.persist;
       } else {
         throw new Error('No database driver available');
       }
@@ -122,7 +108,6 @@ export class CodeIndex {
       CREATE INDEX IF NOT EXISTS idx_symbols_kind ON symbols(kind);
       CREATE INDEX IF NOT EXISTS idx_symbols_path ON symbols(path);
     `);
-    if (this._persistFallback) this._persistFallback();
   }
 
   async isReady() {
@@ -158,7 +143,6 @@ export class CodeIndex {
       );
     });
     tx(symbols || []);
-    await this._flushFallback();
     return { total: symbols?.length || 0 };
   }
 
@@ -180,7 +164,6 @@ export class CodeIndex {
       sig || '',
       new Date().toISOString()
     );
-    await this._flushFallback();
   }
 
   async removeFile(pathStr) {
@@ -191,7 +174,6 @@ export class CodeIndex {
       db.prepare('DELETE FROM files WHERE path = ?').run(p);
     });
     tx(pathStr);
-    await this._flushFallback();
   }
 
   async replaceSymbolsForPath(pathStr, rows) {
@@ -218,7 +200,6 @@ export class CodeIndex {
       );
     });
     tx(pathStr, rows || []);
-    await this._flushFallback();
   }
 
   async querySymbols({ name, kind, scope = 'all', exact = false }) {
@@ -267,14 +248,6 @@ export class CodeIndex {
     const last =
       db.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
     return { total, lastIndexedAt: last };
-  }
-
-  async _flushFallback() {
-    if (typeof this._persistFallback === 'function') {
-      try {
-        await this._persistFallback();
-      } catch {}
-    }
   }
 }
 

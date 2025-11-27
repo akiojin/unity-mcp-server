@@ -324,7 +324,7 @@ Unity MCP Server uses platform-specific native binaries for performance-critical
 
 - Small size (~3-5 MB per platform)
 - Prevents MCP server initialization timeout during `npm install` compilation
-- WASM fallback available if native binding fails
+- Code index features disabled with clear error message if native binding fails
 
 **csharp-lsp (downloaded)**:
 
@@ -345,7 +345,7 @@ Unity MCP Server uses platform-specific native binaries for performance-critical
 
 #### Fallback Behavior
 
-- **better-sqlite3**: Falls back to sql.js (WASM) if native binding unavailable
+- **better-sqlite3**: No fallback; code index features disabled with clear error if native binding unavailable
 - **csharp-lsp**: No fallback; script editing features require the native binary
 
 #### Storage Locations
@@ -385,23 +385,16 @@ If you encounter errors related to `better-sqlite3` during installation or start
 
 **Symptom**: Installation fails with `node-gyp` errors, or startup shows "Could not locate the bindings file."
 
-**Cause**: The package includes prebuilt native binaries for supported platforms (Linux/macOS/Windows × x64/arm64 × Node 18/20/22). If your platform isn't supported or the prebuilt fails to load, the system falls back to WASM.
+**Cause**: The package includes prebuilt native binaries for supported platforms (Linux/macOS/Windows × x64/arm64 × Node 18/20/22). If your platform isn't supported or the prebuilt fails to load, code index features will be disabled.
 
-**Solution 1 - Use WASM fallback (recommended for unsupported platforms)**:
-
-```bash
-# Skip native build and use sql.js WASM fallback
-UNITY_MCP_SKIP_NATIVE_BUILD=1 npm install @akiojin/unity-mcp-server
-```
-
-**Solution 2 - Force native rebuild**:
+**Solution - Force native rebuild**:
 
 ```bash
 # Force rebuild from source (requires build tools)
 UNITY_MCP_FORCE_NATIVE=1 npm install @akiojin/unity-mcp-server
 ```
 
-**Note**: WASM fallback is fully functional but may have slightly slower performance for large codebases. Code index features work normally in either mode.
+**Note**: If native binding is unavailable, code index features (`code_index_build`, `code_index_status`, `script_symbol_find`, etc.) will return clear error messages indicating the feature is disabled. Other MCP server features continue to work normally.
 
 ### MCP Client Shows "Capabilities: none"
 
