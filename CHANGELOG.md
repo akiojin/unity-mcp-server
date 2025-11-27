@@ -10,6 +10,34 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.42.0](https://github.com/akiojin/unity-mcp-server/compare/v2.41.8...v2.42.0) (2025-11-27)
+
+
+### Features
+
+* **code-index:** implement Worker Threads for non-blocking index builds (US-10) ([dc55430](https://github.com/akiojin/unity-mcp-server/commit/dc5543053aedc56e0ab90e4bd0da72c1bba72e15))
+
+
+### Bug Fixes
+
+* **code-index:** add busy_timeout to prevent DB lock contention ([402f343](https://github.com/akiojin/unity-mcp-server/commit/402f3431db9cb5d08ac48bfd188a068ccb4a3277))
+* **code-index:** add read/write connection separation for concurrent access ([d4ca06d](https://github.com/akiojin/unity-mcp-server/commit/d4ca06d65030c0714246188549eb24d223c4b9a8))
+* **code-index:** prevent event loop blocking during background index build ([a08cc20](https://github.com/akiojin/unity-mcp-server/commit/a08cc20ab1d72b43c941b972ac44019caf7c8148))
+* **code-index:** reduce watcher concurrency to 1 for non-blocking builds ([666b49e](https://github.com/akiojin/unity-mcp-server/commit/666b49e20309b15be9eb4018aa5066c4bfaba8bd))
+* **code-index:** require DB index for symbol/refs search ([a283b4b](https://github.com/akiojin/unity-mcp-server/commit/a283b4b77fad067893fe671c257122a1f27b1f35))
+* **code-index:** require DB index for symbol/refs search, remove LSP fallback ([7de0399](https://github.com/akiojin/unity-mcp-server/commit/7de03995e78102ab89852754574f7c612043d0bf))
+* **code-index:** use setTimeout(1) for proper event loop yielding ([03248ec](https://github.com/akiojin/unity-mcp-server/commit/03248ec8ae287ce698bab567dc94f82774597a9d))
+* **deps:** add pnpm workspace config for better-sqlite3 hoisting ([8bf2534](https://github.com/akiojin/unity-mcp-server/commit/8bf253401d99278476cb0399fe149bc9ebbfc29a))
+* harden code index fallback and MCP transport ([57d7d60](https://github.com/akiojin/unity-mcp-server/commit/57d7d607855d455a96c060770aa9a0e672223ff3))
+* **lsp:** prevent write after end crash in LspRpcClient ([633bfbc](https://github.com/akiojin/unity-mcp-server/commit/633bfbca40ab750ee307ddf945d2cf1bf86100a7))
+* **mcp-server:** remove WASM fallback and delay initial index watcher tick ([e54213e](https://github.com/akiojin/unity-mcp-server/commit/e54213e9141021032e97931575a43e80eeec0694))
+
+
+### Performance Improvements
+
+* **code-index:** remove expensive file scan from code_index_status ([ac912e2](https://github.com/akiojin/unity-mcp-server/commit/ac912e2253f726f63d0dc373379b0209e86c332e))
+* **code-index:** Worker Thread implementation for non-blocking index builds ([f953608](https://github.com/akiojin/unity-mcp-server/commit/f95360854c7d8063ace06684603d853da041d1f0))
+
 ## [2.41.8](https://github.com/akiojin/unity-mcp-server/compare/v2.41.7...v2.41.8) (2025-11-27)
 
 
