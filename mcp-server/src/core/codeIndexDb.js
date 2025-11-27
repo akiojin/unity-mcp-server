@@ -15,6 +15,7 @@ export function openDb(projectRoot) {
   const dbPath = getDbPath(projectRoot);
   const db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
+  db.pragma('busy_timeout = 5000');
   db.exec(`
     CREATE TABLE IF NOT EXISTS files (
       path TEXT PRIMARY KEY,
