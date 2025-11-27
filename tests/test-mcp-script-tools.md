@@ -10,7 +10,7 @@
 
 チェックリスト（Markdown）
 - [ ] S00-00: ラン初期化（事前 .sln チェックは行わない）
- - [ ] S00-X01: LSP 自動ダウンロード/復旧（バイナリ未配置→自動取得、破損→再取得、英語エラー）
+- [ ] S00-X01: LSP 自動ダウンロード/復旧（バイナリ未配置→自動取得、破損→再取得、英語エラー）
 - [ ] S10-01: script_symbols_get で FinalTestClass/TestMethod11/12 確認
 - [ ] S10-02: script_symbol_find で namePath 補助確定
 - [ ] S10-E01: 存在しないファイルで script_symbols_get は fail
@@ -22,22 +22,22 @@
 - [ ] S30-02: 旧名 refs=0 確認
 - [ ] S30-E01: 既存名への衝突で fail
 - [ ] S30-E02: 曖昧 namePath で applied=false
- - [ ] S30-X01: using エイリアス経由の型参照（終端一致時のみ更新）
- - [ ] S30-X02: ネスト型のリネーム（親コンテナ一致のみ）
- - [ ] S30-X03: ジェネリック型/メソッドの識別子更新（型は横断、メンバーは宣言ファイル内）
- - [ ] S30-X04: オーバーロードの一部のみリネーム（他は未変更）
- - [ ] S30-X05: プロパティ/イベントのメンバーリネーム（宣言ファイル内のみ）
+- [ ] S30-X01: using エイリアス経由の型参照（終端一致時のみ更新）
+- [ ] S30-X02: ネスト型のリネーム（親コンテナ一致のみ）
+- [ ] S30-X03: ジェネリック型/メソッドの識別子更新（型は横断、メンバーは宣言ファイル内）
+- [ ] S30-X04: オーバーロードの一部のみリネーム（他は未変更）
+- [ ] S30-X05: プロパティ/イベントのメンバーリネーム（宣言ファイル内のみ）
 - [ ] S40-01: remove_symbol（TestMethod12）→ 欠落確認
 - [ ] S40-E01: failOnReferences=true でブロック
 - [ ] S40-E02: 存在しないシンボルで fail
- - [ ] S40-X01: 部分クラス内の私有メソッド削除（構文維持）
- - [ ] S40-X02: 属性の削除（影響なし）
- - [ ] S40-X03: インターフェース明示実装メソッド削除は拒否（参照あり）
- - [ ] S40-X04: イベントフィールド削除（参照有無で挙動差）
- - [ ] S40-X05: 未使用 enum メンバー削除
+- [ ] S40-X01: 部分クラス内の私有メソッド削除（構文維持）
+- [ ] S40-X02: 属性の削除（影響なし）
+- [ ] S40-X03: インターフェース明示実装メソッド削除は拒否（参照あり）
+- [ ] S40-X04: イベントフィールド削除（参照有無で挙動差）
+- [ ] S40-X05: 未使用 enum メンバー削除
 - [ ] S50-01: refs_find ページング/トリム（truncated, snippetTruncated）
 - [ ] S50-E01: 極端な上限設定での挙動
- - [ ] S50-X01: コメント/文字列の誤検出抑制とスニペット可読性
+- [ ] S50-X01: コメント/文字列の誤検出抑制とスニペット可読性
 - [ ] S60-01: 要約上限（errors<=30, message<=200, 1000文字+Truncated）
 - [ ] S60-02: preview/diff/text/content が 1000 文字以内＋ Truncated フラグ
 - [ ] S60-E01: 要約不能データで fail
@@ -50,12 +50,12 @@
 - [ ] S90-01: 後片付け（元状態へ完全復元）
 
  出力フォーマット要約（Script系の例: Markdown レポート）
- - 追記先: `tests/.reports/.current-run` のパスを必ず参照し、同一レポートへ追記（新規ファイル作成禁止）
- - チェックリスト行（PASS 例）: `- [x] S20-01 置換適用 — pass (250 ms) restored:true`
- - テスト仕様・所感・操作対象の明記（必須）:
-   - Run ヘッダ: `- テスト仕様: tests/test-mcp-script-tools.md`、`- 所感: <短文>`
-   - 本カテゴリ見出し直後: `- テスト仕様: tests/test-mcp-script-tools.md`、任意で `- 操作対象ファイル: Assets/Scripts/GigaTestFile.cs`
-   - 各ケース details: `targetPaths: [Assets/Scripts/GigaTestFile.cs]`（単一でも配列）
+- 追記先: `tests/.reports/.current-run` のパスを必ず参照し、同一レポートへ追記（新規ファイル作成禁止）
+- チェックリスト行（PASS 例）: `- [x] S20-01 置換適用 — pass (250 ms) restored:true`
+- テスト仕様・所感・操作対象の明記（必須）:
+  - Run ヘッダ: `- テスト仕様: tests/test-mcp-script-tools.md`、`- 所感: <短文>`
+  - 本カテゴリ見出し直後: `- テスト仕様: tests/test-mcp-script-tools.md`、任意で `- 操作対象ファイル: Assets/Scripts/GigaTestFile.cs`
+  - 各ケース details: `targetPaths: [Assets/Scripts/GigaTestFile.cs]`（単一でも配列）
   
   サマリはレポート先頭のテーブルで集計（`tests/RESULTS_FORMAT.md` 参照）。
 
@@ -107,9 +107,9 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 チェックリスト（順に実施）:
 1. レポート/ポインタ初期化（必須）: `tests/.reports/.current-run` へランファイルのパスを書き出す。
-2. UnityMCP ツール到達性: `UnityMCP__script_symbols_get` など最小呼び出しが応答することを確認（0件でも可）。
+2. UnityMCP ツール到達性: `script_symbols_get` など最小呼び出しが応答することを確認（0件でも可）。
 3. パス制約: 以降の `path`/`relative` は必ず `Assets/` または `Packages/` 起点で指定する。
-4. インデックス状況: `code_index_status` でカバレッジを確認し、低ければ（任意）`UnityMCP__code_index_build` を実行して再確認する。
+4. インデックス状況: `code_index_status` でカバレッジを確認し、低ければ（任意）`code_index_build` を実行して再確認する。
 5. 到達性確認: 最小ファイルに対して `script_symbols_get` が成功することを確認（0件でも可）。
 
 ブロック方針:
@@ -117,7 +117,7 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 ## 前提・共通ルール
 
-- 禁止: LSPサーバを直接起動・操作しない。必ず UnityMCP の `script_*` ツールで検証する（例: `UnityMCP__script_symbols_get`, `UnityMCP__script_edit_structured`）。
+- 禁止: LSPサーバを直接起動・操作しない。必ず UnityMCP の `script_*` ツールで検証する（例: `script_symbols_get`, `script_edit_structured`）。
 - パスは必ず `Assets/` または `Packages/` 起点の相対パス
 - `namePath`/`symbolName` は `Outer/Nested/Member` 形式（例: `FinalTestClass/TestMethod12`）を優先
 - 大量診断（CS0234 等）は想定内。適用可否は `applied` で判断し、実ファイルは `script_read` で確認

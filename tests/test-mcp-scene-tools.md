@@ -8,8 +8,8 @@
 - 各ケースの details には `targetPaths: [<相対パス>...]` を付記（単一でも配列）。
 
 観測不能時の二次検証（エビデンス・エスカレーション）
-- 差分検証: `UnityMCP__scene_info_get`/`UnityMCP__get_hierarchy` で実行前後のスナップショットを取得し比較（追加/削除/ロード状態）。
-- 構造検証: `UnityMCP__scene_list` の一覧変化で確認。
+- 差分検証: `scene_info_get`/`gameobject_get_hierarchy` で実行前後のスナップショットを取得し比較（追加/削除/ロード状態）。
+- 構造検証: `scene_list` の一覧変化で確認。
 - 参照検証: 必要に応じて対象シーン名の検索・一致件数で確認。
 - なお判定不能時のみ `skip（OBSERVATION_GAP）`。
 
@@ -18,10 +18,9 @@
 - 作成や保存が安全側で拒否される場合や前提未充足の項目は「skip（理由）」で継続する。
 - 復元は必須。差分が残らない状態に戻せば restored:true とする。
 
-
 前提・共通ルール:
 - 禁止: UnityMCP 以外のコマンド・独自スクリプトで操作しない。
-- 使用ツール: `UnityMCP__scene_create`, `UnityMCP__scene_info_get`, `UnityMCP__scene_list`, `UnityMCP__scene_save`。
+- 使用ツール: `scene_create`, `scene_info_get`, `scene_list`, `scene_save`。
 
 原状回復（必須）・禁止事項:
 - 作成したシーンはテスト内で保存後、必要に応じて削除または閉じる。既存シーンの変更は行わない。

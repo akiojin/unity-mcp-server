@@ -8,8 +8,8 @@
 - 各ケースの details には `targetPaths: [<相対パス>...]` を付記（単一でも配列）。
 
 観測不能時の二次検証（エビデンス・エスカレーション）
-- 差分検証: `UnityMCP__manage_windows(action=get_state)` の前後比較（フォーカス/可視状態/配置）。
-- 構造検証: `UnityMCP__manage_windows(action=get)` の一覧に対象が存在/消失していること。
+- 差分検証: `editor_windows_manage(action=get_state)` の前後比較（フォーカス/可視状態/配置）。
+- 構造検証: `editor_windows_manage(action=get)` の一覧に対象が存在/消失していること。
 - 参照検証: ターゲット windowType の一意/複数性を確認。
 - なお判定不能時のみ `skip（OBSERVATION_GAP）`。
 
@@ -18,26 +18,25 @@
 - 不在ウィンドウ種や未知ツールは `skip（理由）` として継続する。
 - フォーカス等の操作が安全側で拒否される場合も `skip（理由）` とし、復元方針を明記。
 
-
 前提・共通ルール:
 - 禁止: UnityMCP 以外のコマンド・独自スクリプトで操作しない。
-- 使用ツール: `UnityMCP__manage_windows`, `UnityMCP__manage_tools`。
+- 使用ツール: `editor_windows_manage`, `editor_tools_manage`。
 
 原状回復（必須）・禁止事項:
 - フォーカス操作などの状態変更は、終了時に元のウィンドウ状態へ戻すか影響が出ない構成で実行。
 
 チェックリスト（Markdown）
-- [ ] U150-01: manage_windows（action=get, includeHidden=true）
-- [ ] U150-02: manage_tools（action=get）
-- [ ] U150-E01: manage_windows（focus, 不在 windowType）で fail
-- [ ] U150-E02: manage_tools（activate, 不明 toolName）で fail
+- [ ] U150-01: editor_windows_manage（action=get, includeHidden=true）
+- [ ] U150-02: editor_tools_manage（action=get）
+- [ ] U150-E01: editor_windows_manage（focus, 不在 windowType）で fail
+- [ ] U150-E02: editor_tools_manage（activate, 不明 toolName）で fail
 
 ## 正常系
 
-- U150-01: `manage_windows`（`action=get`, `includeHidden=true`）→ 一覧
-- U150-02: `manage_tools`（`action=get`）→ 一覧
+- U150-01: `editor_windows_manage`（`action=get`, `includeHidden=true`）→ 一覧
+- U150-02: `editor_tools_manage`（`action=get`）→ 一覧
 
 ## 異常系
 
-- U150-E01: `manage_windows` フォーカス（存在しない `windowType`）→ `fail`
-- U150-E02: `manage_tools` activate（不明 `toolName`）→ `fail`
+- U150-E01: `editor_windows_manage` フォーカス（存在しない `windowType`）→ `fail`
+- U150-E02: `editor_tools_manage` activate（不明 `toolName`）→ `fail`

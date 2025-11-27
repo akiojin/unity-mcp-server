@@ -8,7 +8,7 @@
 - 各ケースの details には `targetPaths: [<相対パス>...]` を付記（単一でも配列）。
 
 観測不能時の二次検証（エビデンス・エスカレーション）
-- 差分検証: `UnityMCP__get_ui_element_state`/ゲーム状態のスクリーンショット（任意）で操作前後の状態差を確認。
+- 差分検証: `ui_get_element_state`/ゲーム状態のスクリーンショット（任意）で操作前後の状態差を確認。
 - 構造検証: 対象要素の interactable/selected 変化で確認。
 - 参照検証: 期待されたログ/イベント（Console/Animator 等）が出力されるか補助確認。
 - なお判定不能時のみ `skip（OBSERVATION_GAP）`。

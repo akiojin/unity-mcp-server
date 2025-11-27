@@ -8,9 +8,9 @@
 - 各ケースの details には `targetPaths: [<相対パス>...]` を付記（単一でも配列）。
 
 観測不能時の二次検証（エビデンス・エスカレーション）
-- 差分検証: `UnityMCP__analysis_gameobject_details_get` や `UnityMCP__gameobject_get_hierarchy` の前後比較（存在/親子/Transform/タグ/レイヤ）。
-- 構造検証: `UnityMCP__find_gameobject` の一致件数を確認。
-- 参照検証: 参照/依存関係は `UnityMCP__get_object_references` で件数期待を確認。
+- 差分検証: `analysis_gameobject_details_get` や `gameobject_get_hierarchy` の前後比較（存在/親子/Transform/タグ/レイヤ）。
+- 構造検証: `gameobject_find` の一致件数を確認。
+- 参照検証: 参照/依存関係は `analysis_object_references_get` で件数期待を確認。
 - なお判定不能時のみ `skip（OBSERVATION_GAP）`。
 
 原状回復（必須）・禁止事項:
