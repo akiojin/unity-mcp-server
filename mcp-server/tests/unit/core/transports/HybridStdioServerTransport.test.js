@@ -67,6 +67,21 @@ describe('HybridStdioServerTransport', () => {
     assert.ok(output.trimEnd().endsWith('}'));
   });
 
+  it('accepts Content-Length headers terminated with LF only', async () => {
+    const body = JSON.stringify({
+      jsonrpc: '2.0',
+      id: 10,
+      method: 'ping'
+    });
+    stdin.write(`Content-Length: ${Buffer.byteLength(body, 'utf8')}\n\n${body}`);
+
+    await waitForMicrotask();
+
+    assert.equal(received.length, 1);
+    assert.equal(received[0].id, 10);
+    assert.equal(transport.framingMode, 'content-length');
+  });
+
   it('handles chunked Content-Length headers', async () => {
     const body = JSON.stringify({ jsonrpc: '2.0', id: 3, method: 'ping' });
     const chunkA = 'Content-Len';

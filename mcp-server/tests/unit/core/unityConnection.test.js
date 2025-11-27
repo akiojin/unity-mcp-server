@@ -10,8 +10,13 @@ describe('UnityConnection', () => {
   let mockSocket;
   let originalSocket;
   let originalConfig;
+  let originalNodeEnv;
 
   beforeEach(() => {
+    originalNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'test';
+    process.env.UNITY_MCP_ALLOW_TEST_CONNECT = '1';
+
     originalConfig = { ...config.unity };
     config.unity.commandTimeout = 50;
     config.unity.unityHost = 'localhost';
@@ -23,13 +28,8 @@ describe('UnityConnection', () => {
       if (callback) callback();
     });
     mockSocket.destroy = mock.fn(() => {
-      // Simulate what a real socket does - emit close event
-      setImmediate(() => {
-        if (!mockSocket.destroyed) {
-          mockSocket.destroyed = true;
-          mockSocket.emit('close');
-        }
-      });
+      // In tests, avoid cascading close events that race across cases
+      mockSocket.destroyed = true;
     });
     mockSocket.connect = mock.fn((port, host, callback) => {
       // Don't auto-connect in tests
@@ -70,6 +70,8 @@ describe('UnityConnection', () => {
     // Restore original Socket constructor
     net.Socket = originalSocket;
     mock.restoreAll();
+    process.env.NODE_ENV = originalNodeEnv;
+    delete process.env.UNITY_MCP_ALLOW_TEST_CONNECT;
   });
 
   describe('constructor', () => {
@@ -168,6 +170,12 @@ describe('UnityConnection', () => {
 
     it('should throw if not connected', async () => {
       connection.connected = false;
+      // Avoid real reconnect attempts; force a deterministic failure
+      connection.ensureConnected = async () => {
+        const err = new Error('Failed to reconnect');
+        err.code = 'UNITY_RECONNECT_TIMEOUT';
+        throw err;
+      };
 
       await assert.rejects(
         connection.sendCommand('test'),

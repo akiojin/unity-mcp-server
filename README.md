@@ -206,7 +206,7 @@ Installation
 
 You must install the MCP server's dependencies **on the same OS where the server runs** so that native modules such as `better-sqlite3` are built for the correct platform.
 
-> First-time install note (npx): unity-mcp-server now bundles better-sqlite3 prebuilt binaries for linux/darwin/win32 (x64/arm64, Node 18/20/22). `npx @akiojin/unity-mcp-server@latest` completes within seconds without cache warm-up or timeout tweaks. If you are on an unsupported platform we automatically fall back to sql.js; set `UNITY_MCP_FORCE_NATIVE=1` to force a native rebuild, or `UNITY_MCP_SKIP_NATIVE_BUILD=1` to stay on the fallback.
+> First-time install note (npx): unity-mcp-server now bundles better-sqlite3 prebuilt binaries for linux/darwin/win32 (x64/arm64, Node 18/20/22). `npx @akiojin/unity-mcp-server@latest` completes within seconds without cache warm-up or timeout tweaks. If you are on an unsupported platform, code index features will be disabled with a clear error message; set `UNITY_MCP_FORCE_NATIVE=1` to force a native rebuild.
 
 - **General rule**: if your `.mcp.json` uses `"command": "node"` (e.g. `node bin/unity-mcp-server serve`), run `npm install` (or `npm ci`) inside the directory where the package lives _on that machine/container_ before launching the MCP client.
 - **`npx` launch**: the README example above (`npx @akiojin/unity-mcp-server@latest`) downloads dependencies at runtime and works on the supported Node.js versions (18.x / 20.x / 22.x). Node.js 23+ is not supported; the server exits early with a version error.

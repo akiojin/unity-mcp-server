@@ -62,6 +62,22 @@ describe('CodeIndexStatusToolHandler', () => {
       }
     });
 
+    it('should return degraded status when index is disabled', async () => {
+      handler.codeIndex = {
+        disabled: true,
+        disableReason: 'better-sqlite3 native binding unavailable',
+        isReady: async () => false
+      };
+
+      const result = await handler.execute({});
+
+      assert.equal(result.success, true);
+      assert.equal(result.status, 'degraded');
+      assert.equal(result.disabled, true);
+      assert.equal(result.coverage, 0);
+      assert.ok(result.message.includes('native binding'));
+    });
+
     it('should have correct response structure when index is ready', async () => {
       // Mock successful case
       const mockResult = {

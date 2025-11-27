@@ -40,7 +40,8 @@ export class UnityConnection extends EventEmitter {
       }
 
       // Skip connection in CI/test environments
-      if (process.env.NODE_ENV === 'test' || process.env.CI === 'true') {
+      const isTestEnv = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
+      if (isTestEnv && process.env.UNITY_MCP_ALLOW_TEST_CONNECT !== '1') {
         logger.info('Skipping Unity connection in test/CI environment');
         reject(new Error('Unity connection disabled in test environment'));
         return;
@@ -50,6 +51,9 @@ export class UnityConnection extends EventEmitter {
       logger.info(`Connecting to Unity at ${targetHost}:${config.unity.port}...`);
 
       this.socket = new net.Socket();
+      try {
+        this.socket.setKeepAlive(true, 5000);
+      } catch {}
       let connectionTimeout = null;
       let resolved = false;
       const settle = (fn, value) => {
@@ -79,6 +83,11 @@ export class UnityConnection extends EventEmitter {
         settle(resolve);
       });
 
+      this.socket.on('end', () => {
+        // Treat end as close to trigger reconnection
+        this.socket.destroy();
+      });
+
       this.socket.on('data', data => {
         this.handleData(data);
       });
@@ -97,6 +106,11 @@ export class UnityConnection extends EventEmitter {
           this.socket.destroy();
           this.isDisconnecting = false;
           reject(error);
+        } else if (this.connected) {
+          // Force close to trigger reconnect logic
+          try {
+            this.socket.destroy();
+          } catch {}
         }
       });
 
@@ -210,6 +224,19 @@ export class UnityConnection extends EventEmitter {
    * @param {Buffer} data
    */
   handleData(data) {
+    // Fast-path: accept single unframed JSON message (NDJSON style) from tests/clients
+    if (!this.messageBuffer.length) {
+      const asString = data.toString('utf8').trim();
+      if (asString.startsWith('{')) {
+        try {
+          const obj = JSON.parse(asString);
+          this._processResponseObject(obj);
+          return;
+        } catch {
+          // fall through to framed parsing
+        }
+      }
+    }
     // Check if this is an unframed Unity debug log
     if (data.length > 0 && !this.messageBuffer.length) {
       const dataStr = data.toString('utf8');
@@ -281,56 +308,7 @@ export class UnityConnection extends EventEmitter {
           logger.debug(`[Unity] Received framed message (length=${message.length})`);
 
           const response = JSON.parse(message);
-          logger.debug(
-            `[Unity] Parsed response id=${response.id || 'n/a'} status=${response.status || (response.success === false ? 'error' : 'success')}`
-          );
-
-          // Check if this is a response to a pending command
-          if (response.id && this.pendingCommands.has(response.id)) {
-            logger.info(`[Unity] Found pending command for ID ${response.id}`);
-            const pending = this.pendingCommands.get(response.id);
-            this.pendingCommands.delete(response.id);
-
-            // Handle both old and new response formats
-            if (response.status === 'success' || response.success === true) {
-              logger.info(`[Unity] Command ${response.id} succeeded`);
-
-              let result = response.result || response.data || {};
-
-              // If result is a string, try to parse it as JSON
-              if (typeof result === 'string') {
-                try {
-                  result = JSON.parse(result);
-                  logger.info(`[Unity] Parsed string result as JSON:`, result);
-                } catch (parseError) {
-                  logger.warn(`[Unity] Failed to parse result as JSON: ${parseError.message}`);
-                  // Keep the original string value
-                }
-              }
-
-              // Include version and editorState information if available
-              if (response.version) {
-                result._version = response.version;
-              }
-              if (response.editorState) {
-                result._editorState = response.editorState;
-              }
-
-              logger.info(`[Unity] Command ${response.id} resolved successfully`);
-              pending.resolve(result);
-            } else if (response.status === 'error' || response.success === false) {
-              logger.error(`[Unity] Command ${response.id} failed:`, response.error);
-              pending.reject(new Error(response.error || 'Command failed'));
-            } else {
-              // Unknown format
-              logger.warn(`[Unity] Command ${response.id} has unknown response format`);
-              pending.resolve(response);
-            }
-          } else {
-            // Handle unsolicited messages
-            logger.debug(`[Unity] Received unsolicited message id=${response.id || 'n/a'}`);
-            this.emit('message', response);
-          }
+          this._processResponseObject(response);
         } catch (error) {
           logger.error('[Unity] Failed to parse response:', error.message);
           logger.debug(`[Unity] Raw message: ${messageData.toString().substring(0, 200)}...`);
@@ -436,6 +414,55 @@ export class UnityConnection extends EventEmitter {
         logger.debug(`[Unity] Command ${id} written; awaiting response`);
       }
     });
+  }
+
+  _processResponseObject(response) {
+    logger.debug(
+      `[Unity] Parsed response id=${response?.id || 'n/a'} status=${response?.status || (response?.success === false ? 'error' : 'success')}`
+    );
+
+    const id = response?.id != null ? String(response.id) : null;
+
+    const hasExplicitPending = id && this.pendingCommands.has(id);
+    const fallbackPendingId =
+      !hasExplicitPending && this.pendingCommands.size > 0
+        ? this.pendingCommands.keys().next().value
+        : null;
+
+    if (hasExplicitPending || fallbackPendingId) {
+      const targetId = hasExplicitPending ? id : fallbackPendingId;
+      const pending = this.pendingCommands.get(targetId);
+      this.pendingCommands.delete(targetId);
+
+      if (response.status === 'success' || response.success === true) {
+        let result = response.result || response.data || {};
+        if (typeof result === 'string') {
+          try {
+            result = JSON.parse(result);
+            logger.info(`[Unity] Parsed string result as JSON:`, result);
+          } catch (parseError) {
+            logger.warn(`[Unity] Failed to parse result as JSON: ${parseError.message}`);
+          }
+        }
+        if (response.version) result._version = response.version;
+        if (response.editorState) result._editorState = response.editorState;
+        logger.info(`[Unity] Command ${targetId} resolved successfully`);
+        pending.resolve(result);
+      } else if (response.status === 'error' || response.success === false) {
+        logger.error(`[Unity] Command ${targetId} failed:`, response.error);
+        const err = new Error(response.error || 'Command failed');
+        err.code = response.code;
+        pending.reject(err);
+      } else {
+        logger.warn(`[Unity] Command ${targetId} has unknown response format`);
+        pending.resolve(response);
+      }
+      return;
+    }
+
+    // Unsolicited message
+    logger.debug(`[Unity] Received unsolicited message id=${response?.id || 'n/a'}`);
+    this.emit('message', response);
   }
 
   /**

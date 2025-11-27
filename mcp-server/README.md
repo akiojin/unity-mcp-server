@@ -307,11 +307,101 @@ Add to your `claude_desktop_config.json`:
   - `includeTestResults` (bool, default `false`): attaches the latest exported `.unity/test-results/*.json` summary to the response when a test run has completed.
   - `includeFileContent` (bool, default `false`): when combined with `includeTestResults`, also returns the JSON file contents as a string so agents can parse the detailed per-test data without reading the file directly.
 
+## Architecture
+
+### Native Dependencies
+
+Unity MCP Server uses platform-specific native binaries for performance-critical operations:
+
+| Component | Purpose | Distribution | Size per platform |
+|-----------|---------|--------------|-------------------|
+| **better-sqlite3** | Code index database | Bundled in npm package | ~3-5 MB |
+| **csharp-lsp** | C# symbol analysis | Downloaded on first use | ~80 MB |
+
+#### Why better-sqlite3 over JavaScript-based SQLite?
+
+We chose **better-sqlite3** (native C binding) instead of JavaScript-based alternatives like **sql.js** for the following reasons:
+
+| Aspect | better-sqlite3 (native) | sql.js (WASM/JS) |
+|--------|------------------------|------------------|
+| **Performance** | 10-100x faster for bulk operations | Slower due to WASM overhead |
+| **Memory** | Efficient native memory management | Higher memory usage, GC pressure |
+| **Synchronous API** | Native sync operations, ideal for MCP | Async-only, adds complexity |
+| **Startup time** | Instant module load | ~100-500ms WASM initialization |
+| **Database size** | Handles large indexes efficiently | Performance degrades with size |
+
+The code index database may contain tens of thousands of symbols from Unity projects. Native SQLite provides the performance characteristics needed for responsive symbol searches and incremental updates.
+
+**Trade-off**: Requires platform-specific binaries (bundled for all supported platforms), while sql.js would work everywhere but with unacceptable performance for our use case.
+
+#### Why Different Distribution Methods?
+
+**better-sqlite3 (bundled)**:
+
+- Small size (~3-5 MB per platform)
+- Prevents MCP server initialization timeout during `npm install` compilation
+- Code index features disabled with clear error message if native binding fails
+
+**csharp-lsp (downloaded)**:
+
+- Large size (~80 MB per platform, ~480 MB for all 6 platforms)
+- Too large to bundle in npm package (would increase package size 100x)
+- Downloaded from GitHub Release on first use of script editing tools
+
+#### Supported Platforms
+
+| Platform | better-sqlite3 | csharp-lsp |
+|----------|---------------|------------|
+| Linux x64 | ✅ Bundled | ✅ Downloaded (~79 MB) |
+| Linux arm64 | ✅ Bundled | ✅ Downloaded (~86 MB) |
+| macOS x64 | ✅ Bundled | ✅ Downloaded (~80 MB) |
+| macOS arm64 (Apple Silicon) | ✅ Bundled | ✅ Downloaded (~86 MB) |
+| Windows x64 | ✅ Bundled | ✅ Downloaded (~80 MB) |
+| Windows arm64 | ✅ Bundled | ✅ Downloaded (~85 MB) |
+
+#### Fallback Behavior
+
+- **better-sqlite3**: No fallback; code index features disabled with clear error if native binding unavailable
+- **csharp-lsp**: No fallback; script editing features require the native binary
+
+#### Storage Locations
+
+- **better-sqlite3**: `<package>/prebuilt/better-sqlite3/<platform>/`
+- **csharp-lsp**: `~/.unity/tools/csharp-lsp/<rid>/`
+- **Code index database**: `<workspace>/.unity/cache/code-index/code-index.db`
+
 ## Requirements
 
 - **Unity**: 2020.3 LTS or newer (Unity 6 supported)
 - **Node.js**: 18.0.0 or newer
 - **MCP Client**: Claude Desktop, Cursor, or compatible client
+
+## Performance Benchmark
+
+Response time comparison between Code Index tools and standard Claude Code tools (with DB index built, `watch: true` enabled):
+
+| Operation | unity-mcp-server | Time | Standard Tool | Time | Result |
+|-----------|------------------|------|---------------|------|--------|
+| File Read | `script_read` | **instant** | `Read` | **instant** | EQUAL |
+| Symbol List | `script_symbols_get` | **instant** | N/A | N/A | PASS |
+| Symbol Find | `script_symbol_find` | **instant** | `Grep` | **instant** | EQUAL |
+| Text Search | `script_search` | **instant** | `Grep` | **instant** | EQUAL |
+| Reference Find | `script_refs_find` | **instant** | `Grep` | **instant** | EQUAL |
+| Index Status | `code_index_status` | **instant** | N/A | N/A | PASS |
+
+**Note**: Performance above requires DB index to be built. Run `code_index_build` before first use.
+
+### Worker Thread Implementation
+
+Since v2.41.x, background index builds run in Worker Threads, so MCP tools are never blocked even with `watch: true`:
+
+| Scenario | Before Worker Thread | After Worker Thread |
+|----------|---------------------|---------------------|
+| `system_ping` | **60+ seconds block** | **instant** |
+| `code_index_status` | **60+ seconds block** | **instant** |
+| Any MCP tool | timeout during build | **instant** |
+
+See [`docs/benchmark.md`](../docs/benchmark.md) for detailed benchmark results.
 
 ## Troubleshooting
 
@@ -338,23 +428,16 @@ If you encounter errors related to `better-sqlite3` during installation or start
 
 **Symptom**: Installation fails with `node-gyp` errors, or startup shows "Could not locate the bindings file."
 
-**Cause**: The package includes prebuilt native binaries for supported platforms (Linux/macOS/Windows × x64/arm64 × Node 18/20/22). If your platform isn't supported or the prebuilt fails to load, the system falls back to WASM.
+**Cause**: The package includes prebuilt native binaries for supported platforms (Linux/macOS/Windows × x64/arm64 × Node 18/20/22). If your platform isn't supported or the prebuilt fails to load, code index features will be disabled.
 
-**Solution 1 - Use WASM fallback (recommended for unsupported platforms)**:
-
-```bash
-# Skip native build and use sql.js WASM fallback
-UNITY_MCP_SKIP_NATIVE_BUILD=1 npm install @akiojin/unity-mcp-server
-```
-
-**Solution 2 - Force native rebuild**:
+**Solution - Force native rebuild**:
 
 ```bash
 # Force rebuild from source (requires build tools)
 UNITY_MCP_FORCE_NATIVE=1 npm install @akiojin/unity-mcp-server
 ```
 
-**Note**: WASM fallback is fully functional but may have slightly slower performance for large codebases. Code index features work normally in either mode.
+**Note**: If native binding is unavailable, code index features (`code_index_build`, `code_index_status`, `script_symbol_find`, etc.) will return clear error messages indicating the feature is disabled. Other MCP server features continue to work normally.
 
 ### MCP Client Shows "Capabilities: none"
 

@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { CodeIndex } from '../../core/codeIndex.js';
+import { JobManager } from '../../core/jobManager.js';
 import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
@@ -60,6 +61,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
     this.unityConnection = unityConnection;
     this.index = new CodeIndex(unityConnection);
     this.projectInfo = new ProjectInfoProvider(unityConnection);
+    this.jobManager = JobManager.getInstance();
     this.lsp = null;
   }
 
@@ -82,7 +84,56 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
       maxMatchesPerFile = 5
     } = params;
 
-    // LSP拡張へ委譲（mcp/referencesByName）
+    // Check if code index is ready - required for references search
+    const ready = await this.index.isReady();
+    if (this.index.disabled) {
+      return {
+        success: false,
+        error: 'code_index_unavailable',
+        message:
+          this.index.disableReason ||
+          'Code index is disabled because the SQLite driver could not be loaded.',
+        remediation:
+          'Install native build tools and run "npm rebuild better-sqlite3 --build-from-source", then restart the server.'
+      };
+    }
+
+    if (!ready) {
+      // Check if a build job is currently running
+      const allJobs = this.jobManager.getAllJobs();
+      const buildJob = allJobs.find(
+        job =>
+          (job.id.startsWith('build-') || job.id.startsWith('watcher-')) && job.status === 'running'
+      );
+
+      if (buildJob) {
+        const progress = buildJob.progress || {};
+        const pct =
+          progress.total > 0 ? Math.round((progress.processed / progress.total) * 100) : 0;
+        return {
+          success: false,
+          error: 'index_building',
+          message: `Code index is currently being built. Please wait and retry. Progress: ${pct}% (${progress.processed || 0}/${progress.total || 0})`,
+          jobId: buildJob.id,
+          progress: {
+            processed: progress.processed || 0,
+            total: progress.total || 0,
+            percentage: pct
+          }
+        };
+      }
+
+      // No build job running - index not available
+      return {
+        success: false,
+        error: 'index_not_ready',
+        message:
+          'Code index is not built. Run code_index_build first, or wait for auto-build to complete on server startup.',
+        hint: 'Use code_index_status to check index state, or code_index_build to start a build manually.'
+      };
+    }
+
+    // DB index is ready - use LSP for references (LSP requires index for performance)
     const info = await this.projectInfo.get();
     if (!this.lsp) this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
     const resp = await this.lsp.request('mcp/referencesByName', { name: String(name) });

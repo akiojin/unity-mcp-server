@@ -1,7 +1,4 @@
-import fs from 'fs';
-import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { ProjectInfoProvider } from '../../core/projectInfo.js';
 import { JobManager } from '../../core/jobManager.js';
 import { CodeIndex } from '../../core/codeIndex.js';
 
@@ -17,7 +14,6 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
       }
     );
     this.unityConnection = unityConnection;
-    this.projectInfo = new ProjectInfoProvider(unityConnection);
     this.jobManager = JobManager.getInstance();
     this.codeIndex = new CodeIndex(unityConnection);
   }
@@ -34,13 +30,25 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
     const ready = await this.codeIndex.isReady();
     if (this.codeIndex.disabled) {
       return {
-        success: false,
-        error: 'code_index_unavailable',
+        success: true,
+        status: 'degraded',
+        disabled: true,
+        ready: false,
+        totalFiles: 0,
+        indexedFiles: 0,
+        coverage: 0,
         message:
           this.codeIndex.disableReason ||
           'Code index is disabled because the SQLite driver could not be loaded. The server will continue without the symbol index.',
         remediation:
-          'Install native build tools (python3, make, g++) in this environment and run "npm rebuild better-sqlite3 --build-from-source", then restart the server.'
+          'Install native build tools (python3, make, g++) and run "npm rebuild better-sqlite3 --build-from-source", or set UNITY_MCP_SKIP_NATIVE_BUILD=0 to allow native rebuild. After installing, restart unity-mcp-server.',
+        index: {
+          ready: false,
+          disabled: true,
+          reason:
+            this.codeIndex.disableReason ||
+            'better-sqlite3 native binding unavailable; code index is disabled'
+        }
       };
     }
     const buildInProgress = latestBuildJob?.status === 'running';
@@ -52,58 +60,13 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
       };
     }
 
-    let projectInfo;
-    try {
-      projectInfo = await this.projectInfo.get();
-    } catch (error) {
-      return {
-        success: false,
-        error: 'project_info_unavailable',
-        message: error.message || 'Unable to resolve Unity project root.'
-      };
-    }
-
-    const projectRoot = projectInfo.projectRoot.replace(/\\/g, '/');
-    const roots = [
-      path.resolve(projectRoot, 'Assets'),
-      path.resolve(projectRoot, 'Packages'),
-      path.resolve(projectRoot, 'Library/PackageCache')
-    ];
-
-    let totalFiles = 0;
-    const breakdown = { assets: 0, packages: 0, packageCache: 0, other: 0 };
-
-    const visit = targetPath => {
-      try {
-        if (!fs.existsSync(targetPath)) return;
-        const stats = fs.statSync(targetPath);
-        if (stats.isFile()) {
-          if (!targetPath.endsWith('.cs')) return;
-          totalFiles += 1;
-          const normalized = targetPath.replace(/\\/g, '/');
-          const relative = normalized.replace(projectRoot, '').replace(/^\//, '');
-          if (relative.startsWith('Assets/')) breakdown.assets += 1;
-          else if (relative.startsWith('Packages/')) breakdown.packages += 1;
-          else if (relative.includes('Library/PackageCache/')) breakdown.packageCache += 1;
-          else breakdown.other += 1;
-          return;
-        }
-
-        if (stats.isDirectory()) {
-          for (const child of fs.readdirSync(targetPath)) {
-            if (child === 'obj' || child === 'bin' || child.startsWith('.')) continue;
-            visit(path.join(targetPath, child));
-          }
-        }
-      } catch (error) {
-        // Ignore permission errors while traversing; status reporting should not fail because of a single file.
-      }
-    };
-
-    for (const root of roots) visit(root);
-
+    // Use DB stats directly for fast status check - avoid expensive filesystem traversal
     const stats = await this.codeIndex.getStats();
-    const coverage = totalFiles > 0 ? Math.min(1, stats.total / totalFiles) : 0;
+
+    // Estimate total files from DB metadata if available, otherwise use indexed count
+    // The actual file count scan is too slow (6+ minutes for 7000+ files)
+    const totalFiles = stats.totalFilesEstimate || stats.total;
+    const coverage = totalFiles > 0 ? Math.min(1, stats.total / totalFiles) : 1;
 
     const indexInfo = {
       ready,
@@ -134,7 +97,6 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
       totalFiles,
       indexedFiles: stats.total,
       coverage,
-      breakdown,
       index: indexInfo
     };
   }

@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import { ProjectInfoProvider } from './projectInfo.js';
 import { logger } from './config.js';
-import { createSqliteFallback } from './sqliteFallback.js';
 
 // Shared driver availability state across CodeIndex instances
 const driverStatus = {
@@ -11,17 +10,23 @@ const driverStatus = {
   logged: false
 };
 
+// Shared DB connections (singleton pattern for concurrent access)
+const sharedConnections = {
+  writeDb: null,
+  readDb: null,
+  dbPath: null,
+  schemaInitialized: false
+};
+
 export class CodeIndex {
   constructor(unityConnection) {
     this.unityConnection = unityConnection;
     this.projectInfo = new ProjectInfoProvider(unityConnection);
-    this.db = null;
+    this.db = null; // legacy reference, points to writeDb
     this.dbPath = null;
     this.disabled = false; // set true if better-sqlite3 is unavailable
     this.disableReason = null;
     this._Database = null;
-    this._openFallback = null;
-    this._persistFallback = null;
   }
 
   async _ensureDriver() {
@@ -39,21 +44,13 @@ export class CodeIndex {
       driverStatus.error = null;
       return true;
     } catch (e) {
-      // Try wasm fallback (sql.js) before giving up
-      try {
-        this._openFallback = createSqliteFallback;
-        driverStatus.available = true;
-        driverStatus.error = null;
-        logger?.info?.('[index] falling back to sql.js (WASM) for code index');
-        return true;
-      } catch (fallbackError) {
-        this.disabled = true;
-        this.disableReason = `better-sqlite3 unavailable: ${e?.message || e}. Fallback failed: ${fallbackError?.message || fallbackError}`;
-        driverStatus.available = false;
-        driverStatus.error = this.disableReason;
-        this._logDisable(this.disableReason);
-        return false;
-      }
+      // No fallback - fail fast with clear error
+      this.disabled = true;
+      this.disableReason = `better-sqlite3 native binding unavailable: ${e?.message || e}. Code index features are disabled.`;
+      driverStatus.available = false;
+      driverStatus.error = this.disableReason;
+      this._logDisable(this.disableReason);
+      return false;
     }
   }
 
@@ -66,12 +63,23 @@ export class CodeIndex {
     fs.mkdirSync(dir, { recursive: true });
     const dbPath = path.join(dir, 'code-index.db');
     this.dbPath = dbPath;
+
+    // Use shared connections for all CodeIndex instances
+    if (sharedConnections.writeDb && sharedConnections.dbPath === dbPath) {
+      this.db = sharedConnections.writeDb;
+      return this.db;
+    }
+
     try {
       if (this._Database) {
-        this.db = new this._Database(dbPath);
-      } else if (this._openFallback) {
-        this.db = await this._openFallback(dbPath);
-        this._persistFallback = this.db.persist;
+        // Create write connection (default)
+        sharedConnections.writeDb = new this._Database(dbPath);
+        sharedConnections.dbPath = dbPath;
+        this.db = sharedConnections.writeDb;
+
+        // Create separate read-only connection for concurrent reads
+        // readonly: true allows reads even while write transaction is active
+        sharedConnections.readDb = new this._Database(dbPath, { readonly: true });
       } else {
         throw new Error('No database driver available');
       }
@@ -87,6 +95,14 @@ export class CodeIndex {
     return this.db;
   }
 
+  /**
+   * Get read-only DB connection for queries (non-blocking during writes)
+   * Falls back to write connection if read connection unavailable
+   */
+  _getReadDb() {
+    return sharedConnections.readDb || this.db;
+  }
+
   _logDisable(reason) {
     if (driverStatus.logged) return;
     driverStatus.logged = true;
@@ -100,6 +116,7 @@ export class CodeIndex {
     const db = this.db;
     db.exec(`
       PRAGMA journal_mode=WAL;
+      PRAGMA busy_timeout=5000;
       CREATE TABLE IF NOT EXISTS meta (
         key TEXT PRIMARY KEY,
         value TEXT
@@ -122,13 +139,14 @@ export class CodeIndex {
       CREATE INDEX IF NOT EXISTS idx_symbols_kind ON symbols(kind);
       CREATE INDEX IF NOT EXISTS idx_symbols_path ON symbols(path);
     `);
-    if (this._persistFallback) this._persistFallback();
   }
 
   async isReady() {
     const db = await this.open();
     if (!db) return false;
-    const row = db.prepare('SELECT COUNT(*) AS c FROM symbols').get();
+    // Use read-only connection for non-blocking check
+    const readDb = this._getReadDb();
+    const row = readDb.prepare('SELECT COUNT(*) AS c FROM symbols').get();
     return (row?.c || 0) > 0;
   }
 
@@ -158,7 +176,6 @@ export class CodeIndex {
       );
     });
     tx(symbols || []);
-    await this._flushFallback();
     return { total: symbols?.length || 0 };
   }
 
@@ -166,7 +183,9 @@ export class CodeIndex {
   async getFiles() {
     const db = await this.open();
     if (!db) return new Map();
-    const rows = db.prepare('SELECT path, sig FROM files').all();
+    // Use read-only connection for non-blocking read
+    const readDb = this._getReadDb();
+    const rows = readDb.prepare('SELECT path, sig FROM files').all();
     const map = new Map();
     for (const r of rows) map.set(String(r.path), String(r.sig || ''));
     return map;
@@ -180,7 +199,6 @@ export class CodeIndex {
       sig || '',
       new Date().toISOString()
     );
-    await this._flushFallback();
   }
 
   async removeFile(pathStr) {
@@ -191,7 +209,6 @@ export class CodeIndex {
       db.prepare('DELETE FROM files WHERE path = ?').run(p);
     });
     tx(pathStr);
-    await this._flushFallback();
   }
 
   async replaceSymbolsForPath(pathStr, rows) {
@@ -218,12 +235,13 @@ export class CodeIndex {
       );
     });
     tx(pathStr, rows || []);
-    await this._flushFallback();
   }
 
   async querySymbols({ name, kind, scope = 'all', exact = false }) {
     const db = await this.open();
     if (!db) return [];
+    // Use read-only connection for non-blocking query
+    const readDb = this._getReadDb();
     let sql = 'SELECT path,name,kind,container,namespace,line,column FROM symbols WHERE 1=1';
     const params = {};
     if (name) {
@@ -239,7 +257,7 @@ export class CodeIndex {
       sql += ' AND kind = @kind';
       params.kind = kind;
     }
-    const rows = db.prepare(sql).all(params);
+    const rows = readDb.prepare(sql).all(params);
     // Apply path-based scope filter in JS (simpler than CASE in SQL)
     const filtered = rows.filter(r => {
       const p = String(r.path || '').replace(/\\\\/g, '/');
@@ -263,18 +281,12 @@ export class CodeIndex {
   async getStats() {
     const db = await this.open();
     if (!db) return { total: 0, lastIndexedAt: null };
-    const total = db.prepare('SELECT COUNT(*) AS c FROM symbols').get().c || 0;
+    // Use read-only connection for non-blocking stats
+    const readDb = this._getReadDb();
+    const total = readDb.prepare('SELECT COUNT(*) AS c FROM symbols').get().c || 0;
     const last =
-      db.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
+      readDb.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
     return { total, lastIndexedAt: last };
-  }
-
-  async _flushFallback() {
-    if (typeof this._persistFallback === 'function') {
-      try {
-        await this._persistFallback();
-      } catch {}
-    }
   }
 }
 
@@ -283,4 +295,19 @@ export function __resetCodeIndexDriverStatusForTest() {
   driverStatus.available = null;
   driverStatus.error = null;
   driverStatus.logged = false;
+  // Also reset shared connections
+  if (sharedConnections.writeDb) {
+    try {
+      sharedConnections.writeDb.close();
+    } catch {}
+  }
+  if (sharedConnections.readDb) {
+    try {
+      sharedConnections.readDb.close();
+    } catch {}
+  }
+  sharedConnections.writeDb = null;
+  sharedConnections.readDb = null;
+  sharedConnections.dbPath = null;
+  sharedConnections.schemaInitialized = false;
 }
