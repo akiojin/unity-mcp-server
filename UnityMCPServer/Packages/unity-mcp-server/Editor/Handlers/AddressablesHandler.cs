@@ -6,6 +6,7 @@ using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Build;
 using UnityEngine;
+using UnityMCPServer.Logging;
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCPServer.Handlers
@@ -66,7 +67,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] Error handling {action}: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"Error handling {action}: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -145,7 +146,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] AddEntry error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"AddEntry error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -192,7 +193,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] RemoveEntry error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"RemoveEntry error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -242,7 +243,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] SetAddress error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"SetAddress error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -292,7 +293,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] AddLabel error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"AddLabel error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -342,7 +343,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] RemoveLabel error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"RemoveLabel error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -402,7 +403,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] ListEntries error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"ListEntries error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -435,7 +436,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] ListGroups error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"ListGroups error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -483,7 +484,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] CreateGroup error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"CreateGroup error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -530,7 +531,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] RemoveGroup error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"RemoveGroup error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -589,7 +590,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] MoveEntry error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"MoveEntry error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -622,18 +623,18 @@ namespace UnityMCPServer.Handlers
 
                 if (!string.IsNullOrEmpty(result.Error))
                 {
-                    Debug.LogError($"[AddressablesHandler] Build failed: {result.Error}");
+                    McpLogger.LogError("AddressablesHandler", $"Build failed: {result.Error}");
                 }
                 else
                 {
-                    Debug.Log($"[AddressablesHandler] Build completed successfully in {duration:F2}s. Output: {result.OutputPath}");
+                    McpLogger.Log("AddressablesHandler", $"Build completed successfully in {duration:F2}s. Output: {result.OutputPath}");
                 }
 
                 return CreateSuccessResponse(buildData);
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] Build error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"Build error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -647,7 +648,7 @@ namespace UnityMCPServer.Handlers
                 // Clean build cache
                 AddressableAssetSettings.CleanPlayerContent();
 
-                Debug.Log("[AddressablesHandler] Build cache cleared successfully");
+                McpLogger.Log("AddressablesHandler", "Build cache cleared successfully");
 
                 return new Dictionary<string, object>
                 {
@@ -657,7 +658,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] CleanBuild error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"CleanBuild error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -729,7 +730,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] AnalyzeDuplicates error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"AnalyzeDuplicates error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -775,7 +776,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] AnalyzeDependencies error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"AnalyzeDependencies error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }
@@ -867,7 +868,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AddressablesHandler] AnalyzeUnused error: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("AddressablesHandler", $"AnalyzeUnused error: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse(e.Message);
             }
         }

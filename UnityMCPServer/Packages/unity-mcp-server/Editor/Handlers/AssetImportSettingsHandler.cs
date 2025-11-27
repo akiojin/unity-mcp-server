@@ -4,6 +4,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -44,7 +45,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetImportSettingsHandler] Error handling {action}: {e.Message}");
+                McpLogger.LogError("AssetImportSettingsHandler", $"Error handling {action}: {e.Message}");
                 return new { error = e.Message };
             }
         }
@@ -117,7 +118,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetImportSettingsHandler] Error getting import settings for '{assetPath}': {e.Message}");
+                McpLogger.LogError("AssetImportSettingsHandler", $"Error getting import settings for '{assetPath}': {e.Message}");
                 return new { error = $"Failed to get import settings: {e.Message}" };
             }
         }
@@ -225,7 +226,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetImportSettingsHandler] Error modifying import settings for '{assetPath}': {e.Message}");
+                McpLogger.LogError("AssetImportSettingsHandler", $"Error modifying import settings for '{assetPath}': {e.Message}");
                 return new { error = $"Failed to modify import settings: {e.Message}" };
             }
         }
@@ -347,7 +348,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetImportSettingsHandler] Error applying preset '{preset}' to '{assetPath}': {e.Message}");
+                McpLogger.LogError("AssetImportSettingsHandler", $"Error applying preset '{preset}' to '{assetPath}': {e.Message}");
                 return new { error = $"Failed to apply preset: {e.Message}" };
             }
         }
@@ -381,7 +382,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetImportSettingsHandler] Error reimporting '{assetPath}': {e.Message}");
+                McpLogger.LogError("AssetImportSettingsHandler", $"Error reimporting '{assetPath}': {e.Message}");
                 return new { error = $"Failed to reimport asset: {e.Message}" };
             }
         }

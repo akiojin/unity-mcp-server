@@ -2,6 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -32,7 +33,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[PlayModeHandler] Error handling command {command}: {e.Message}\n{e.StackTrace}");
+                McpLogger.LogError("PlayModeHandler", $"Error handling command {command}: {e.Message}\n{e.StackTrace}");
                 return CreateErrorResponse($"Error handling command: {e.Message}");
             }
         }

@@ -7,6 +7,7 @@ using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -50,7 +51,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[PackageManagerHandler] Error handling {action}: {e.Message}");
+                McpLogger.LogError("PackageManagerHandler", $"Error handling {action}: {e.Message}");
                 return new { error = e.Message };
             }
         }
@@ -118,7 +119,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[PackageManagerHandler] Error searching packages: {e.Message}");
+                McpLogger.LogError("PackageManagerHandler", $"Error searching packages: {e.Message}");
                 return new { error = $"Failed to search packages: {e.Message}" };
             }
         }
@@ -179,7 +180,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[PackageManagerHandler] Error listing packages: {e.Message}");
+                McpLogger.LogError("PackageManagerHandler", $"Error listing packages: {e.Message}");
                 return new { error = $"Failed to list packages: {e.Message}" };
             }
         }
@@ -210,7 +211,7 @@ namespace UnityMCPServer.Handlers
                     }
                 }
                 
-                Debug.Log($"[PackageManagerHandler] Installing package: {packageIdentifier}");
+                McpLogger.Log("PackageManagerHandler", $"Installing package: {packageIdentifier}");
                 
                 addRequest = Client.Add(packageIdentifier);
                 
@@ -244,7 +245,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[PackageManagerHandler] Error installing package: {e.Message}");
+                McpLogger.LogError("PackageManagerHandler", $"Error installing package: {e.Message}");
                 return new { error = $"Failed to install package: {e.Message}" };
             }
         }
@@ -263,7 +264,7 @@ namespace UnityMCPServer.Handlers
                     return new { error = "Package name is required" };
                 }
                 
-                Debug.Log($"[PackageManagerHandler] Removing package: {packageName}");
+                McpLogger.Log("PackageManagerHandler", $"Removing package: {packageName}");
                 
                 removeRequest = Client.Remove(packageName);
                 
@@ -292,7 +293,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[PackageManagerHandler] Error removing package: {e.Message}");
+                McpLogger.LogError("PackageManagerHandler", $"Error removing package: {e.Message}");
                 return new { error = $"Failed to remove package: {e.Message}" };
             }
         }
@@ -359,7 +360,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[PackageManagerHandler] Error getting package info: {e.Message}");
+                McpLogger.LogError("PackageManagerHandler", $"Error getting package info: {e.Message}");
                 return new { error = $"Failed to get package info: {e.Message}" };
             }
         }

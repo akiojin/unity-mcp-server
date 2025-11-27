@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
+using UnityMCPServer.Logging;
 using Newtonsoft.Json.Linq;
 
 namespace UnityMCPServer.Handlers
@@ -95,7 +96,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetManagementHandler] Error in CreatePrefab: {e.Message}");
+                McpLogger.LogError("AssetManagementHandler", $"Error in CreatePrefab: {e.Message}");
                 return new { error = $"Failed to create prefab: {e.Message}" };
             }
         }
@@ -186,7 +187,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetManagementHandler] Error in ModifyPrefab: {e.Message}");
+                McpLogger.LogError("AssetManagementHandler", $"Error in ModifyPrefab: {e.Message}");
                 return new { error = $"Failed to modify prefab: {e.Message}" };
             }
         }
@@ -272,7 +273,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetManagementHandler] Error in InstantiatePrefab: {e.Message}");
+                McpLogger.LogError("AssetManagementHandler", $"Error in InstantiatePrefab: {e.Message}");
                 return new { error = $"Failed to instantiate prefab: {e.Message}" };
             }
         }
@@ -376,7 +377,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetManagementHandler] Error in CreateMaterial: {e.Message}");
+                McpLogger.LogError("AssetManagementHandler", $"Error in CreateMaterial: {e.Message}");
                 return new { error = $"Failed to create material: {e.Message}" };
             }
         }
@@ -463,7 +464,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetManagementHandler] Error in ModifyMaterial: {e.Message}");
+                McpLogger.LogError("AssetManagementHandler", $"Error in ModifyMaterial: {e.Message}");
                 return new { error = $"Failed to modify material: {e.Message}" };
             }
         }
@@ -478,7 +479,7 @@ namespace UnityMCPServer.Handlers
                 // Check if property exists
                 if (!material.HasProperty(propertyName))
                 {
-                    Debug.LogWarning($"Material does not have property: {propertyName}");
+                    McpLogger.LogWarning("AssetManagementHandler", $"Material does not have property: {propertyName}");
                     return false;
                 }
 
@@ -556,7 +557,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"Failed to set material property {propertyName}: {e.Message}");
+                McpLogger.LogWarning("AssetManagementHandler", $"Failed to set material property {propertyName}: {e.Message}");
                 return false;
             }
         }
@@ -692,7 +693,7 @@ namespace UnityMCPServer.Handlers
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning($"Failed to set {prop.Name} on {componentType}: {e.Message}");
+                    McpLogger.LogWarning("AssetManagementHandler", $"Failed to set {prop.Name} on {componentType}: {e.Message}");
                 }
             }
         }
@@ -800,7 +801,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetManagementHandler] Error in OpenPrefab: {e.Message}");
+                McpLogger.LogError("AssetManagementHandler", $"Error in OpenPrefab: {e.Message}");
                 return new { error = $"Failed to open prefab: {e.Message}" };
             }
         }
@@ -858,7 +859,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetManagementHandler] Error in ExitPrefabMode: {e.Message}");
+                McpLogger.LogError("AssetManagementHandler", $"Error in ExitPrefabMode: {e.Message}");
                 return new { error = $"Failed to exit prefab mode: {e.Message}" };
             }
         }
@@ -955,7 +956,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[AssetManagementHandler] Error in SavePrefab: {e.Message}");
+                McpLogger.LogError("AssetManagementHandler", $"Error in SavePrefab: {e.Message}");
                 return new { error = $"Failed to save prefab: {e.Message}" };
             }
         }

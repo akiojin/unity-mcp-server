@@ -13,7 +13,7 @@ describe('VideoCaptureForToolHandler', () => {
         success: true,
         recordingId: 'rec-12345',
         status: 'completed',
-        outputPath: '.unity/capture/recording_game_20250117_120000.mp4',
+        outputPath: '.unity/captures/video_game_20250117_120000.mp4',
         duration: 10.0,
         fileSize: 3145728
       }

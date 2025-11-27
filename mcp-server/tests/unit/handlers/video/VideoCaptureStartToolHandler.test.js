@@ -13,7 +13,7 @@ describe('VideoCaptureStartToolHandler', () => {
         success: true,
         recordingId: 'rec-12345',
         status: 'recording',
-        outputPath: '.unity/capture/recording_game_20250117_120000.mp4'
+        outputPath: '.unity/captures/video_game_20250117_120000.mp4'
       }
     });
     handler = new VideoCaptureStartToolHandler(mockConnection);
@@ -107,7 +107,7 @@ describe('VideoCaptureStartToolHandler', () => {
       const result = await handler.execute({});
 
       assert.ok(result.outputPath);
-      assert.ok(result.outputPath.includes('.unity/capture'));
+      assert.ok(result.outputPath.includes('.unity/captures'));
     });
 
     it('should throw error when Unity returns error', async () => {
@@ -189,9 +189,9 @@ describe('VideoCaptureStartToolHandler', () => {
       assert.equal(sentParams.height, 1080);
     });
 
-    it('FR-011: should save to workspace .unity/capture directory', async () => {
+    it('FR-011: should save to workspace .unity/captures directory', async () => {
       const result = await handler.execute({});
-      assert.ok(result.outputPath.includes('.unity/capture'));
+      assert.ok(result.outputPath.includes('.unity/captures'));
     });
 
     it('FR-012: should return recording ID for tracking', async () => {

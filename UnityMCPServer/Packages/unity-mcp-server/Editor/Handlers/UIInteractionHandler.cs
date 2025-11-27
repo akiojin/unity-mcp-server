@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEditor;
 using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
 
 namespace UnityMCPServer.Handlers
 {
@@ -85,7 +86,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[UIInteractionHandler] Error in FindUIElements: {e.Message}");
+                McpLogger.LogError("UIInteractionHandler", $"Error in FindUIElements: {e.Message}");
                 return new { error = $"Failed to find UI elements: {e.Message}" };
             }
         }
@@ -149,7 +150,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[UIInteractionHandler] Error in ClickUIElement: {e.Message}");
+                McpLogger.LogError("UIInteractionHandler", $"Error in ClickUIElement: {e.Message}");
                 return new { error = $"Failed to click UI element: {e.Message}" };
             }
         }
@@ -181,7 +182,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[UIInteractionHandler] Error in GetUIElementState: {e.Message}");
+                McpLogger.LogError("UIInteractionHandler", $"Error in GetUIElementState: {e.Message}");
                 return new { error = $"Failed to get UI element state: {e.Message}" };
             }
         }
@@ -234,7 +235,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[UIInteractionHandler] Error in SetUIElementValue: {e.Message}");
+                McpLogger.LogError("UIInteractionHandler", $"Error in SetUIElementValue: {e.Message}");
                 return new { error = $"Failed to set UI element value: {e.Message}" };
             }
         }
@@ -307,7 +308,7 @@ namespace UnityMCPServer.Handlers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[UIInteractionHandler] Error in SimulateUIInput: {e.Message}");
+                McpLogger.LogError("UIInteractionHandler", $"Error in SimulateUIInput: {e.Message}");
                 return new { error = $"Failed to simulate UI input: {e.Message}" };
             }
         }
