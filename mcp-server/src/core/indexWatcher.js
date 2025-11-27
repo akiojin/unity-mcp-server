@@ -1,5 +1,6 @@
 import { logger, config } from './config.js';
 import { JobManager } from './jobManager.js';
+import { getWorkerPool } from './indexBuildWorkerPool.js';
 
 export class IndexWatcher {
   constructor(unityConnection) {
@@ -8,20 +9,29 @@ export class IndexWatcher {
     this.running = false;
     this.jobManager = JobManager.getInstance();
     this.currentWatcherJobId = null;
+    this.workerPool = getWorkerPool();
+    // FR-061: Use Worker Thread for watcher builds
+    this.useWorkerThread = true;
   }
 
   start() {
     if (!config.indexing?.watch) return;
     if (this.timer) return;
     const interval = Math.max(2000, Number(config.indexing.intervalMs || 15000));
-    logger.info(`[index] watcher enabled (interval=${interval}ms)`);
-    this.timer = setInterval(() => this.tick(), interval);
-    if (typeof this.timer.unref === 'function') {
-      this.timer.unref();
-    }
-    // Delay initial tick to avoid blocking MCP server initialization
-    // Unity connection and code index operations can be slow on first run
-    const delayedStart = setTimeout(() => this.tick(), 5000);
+    // Initial delay: wait longer to allow MCP server to fully initialize
+    // and first tool calls to complete before starting background indexing
+    const initialDelay = Math.max(30000, Number(config.indexing.initialDelayMs || 30000));
+    logger.info(`[index] watcher enabled (interval=${interval}ms, initialDelay=${initialDelay}ms)`);
+
+    // Delay initial tick significantly to avoid blocking MCP server initialization
+    const delayedStart = setTimeout(() => {
+      this.tick();
+      // Start periodic timer only after first tick
+      this.timer = setInterval(() => this.tick(), interval);
+      if (typeof this.timer.unref === 'function') {
+        this.timer.unref();
+      }
+    }, initialDelay);
     if (typeof delayedStart.unref === 'function') {
       delayedStart.unref();
     }
@@ -64,21 +74,10 @@ export class IndexWatcher {
         const jobId = `watcher-rebuild-${Date.now()}`;
         this.currentWatcherJobId = jobId;
 
-        const { CodeIndexBuildToolHandler } = await import(
-          '../handlers/script/CodeIndexBuildToolHandler.js'
-        );
-        const handler = new CodeIndexBuildToolHandler(this.unityConnection);
+        // FR-061: Use Worker Thread for non-blocking builds
+        await this._startWorkerBuild(jobId, info, dbPath);
 
-        this.jobManager.create(jobId, async job => {
-          const params = {
-            concurrency: config.indexing.concurrency || 8,
-            retry: config.indexing.retry || 2,
-            reportPercentage: 10
-          };
-          return await handler._executeBuild(params, job);
-        });
-
-        logger.info(`[index] watcher: started DB rebuild job ${jobId}`);
+        logger.info(`[index] watcher: started DB rebuild job ${jobId} (Worker Thread)`);
         this._monitorJob(jobId);
         return;
       }
@@ -109,22 +108,10 @@ export class IndexWatcher {
       const jobId = `watcher-${Date.now()}`;
       this.currentWatcherJobId = jobId;
 
-      const { CodeIndexBuildToolHandler } = await import(
-        '../handlers/script/CodeIndexBuildToolHandler.js'
-      );
-      const handler = new CodeIndexBuildToolHandler(this.unityConnection);
+      // FR-061: Use Worker Thread for non-blocking builds
+      await this._startWorkerBuild(jobId, info, dbPath);
 
-      // Create the build job through JobManager
-      this.jobManager.create(jobId, async job => {
-        const params = {
-          concurrency: config.indexing.concurrency || 8,
-          retry: config.indexing.retry || 2,
-          reportEvery: config.indexing.reportEvery || 500
-        };
-        return await handler._executeBuild(params, job);
-      });
-
-      logger.info(`[index] watcher: started auto-build job ${jobId}`);
+      logger.info(`[index] watcher: started auto-build job ${jobId} (Worker Thread)`);
 
       // Monitor job completion in background
       // (Job result will be logged when it completes/fails)
@@ -134,6 +121,37 @@ export class IndexWatcher {
     } finally {
       this.running = false;
     }
+  }
+
+  /**
+   * Start a build using Worker Thread pool
+   * @param {string} jobId - Job ID for tracking
+   * @param {Object} info - Project info
+   * @param {string} dbPath - Database file path
+   * @private
+   */
+  async _startWorkerBuild(jobId, info, dbPath) {
+    // Create job in JobManager
+    this.jobManager.create(jobId, async job => {
+      // Initialize progress
+      job.progress = { processed: 0, total: 0, rate: 0 };
+
+      // Subscribe to progress updates from Worker
+      this.workerPool.onProgress(progress => {
+        job.progress = progress;
+      });
+
+      // Execute build in Worker Thread (non-blocking)
+      const result = await this.workerPool.executeBuild({
+        projectRoot: info.projectRoot,
+        dbPath: dbPath,
+        concurrency: config.indexing?.watcherConcurrency || 1,
+        retry: config.indexing?.retry || 2,
+        reportPercentage: 10
+      });
+
+      return result;
+    });
   }
 
   /**

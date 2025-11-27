@@ -234,6 +234,11 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
               lastReportedPercentage = currentPercentage;
             }
 
+            // Yield to event loop after each file to allow MCP requests to be processed
+            // This prevents the index build from blocking other MCP tool calls (US-8.1)
+            // Use setTimeout(1) instead of setImmediate to ensure MCP I/O callbacks get processed
+            await new Promise(resolve => setTimeout(resolve, 1));
+
             if (throttleMs > 0) {
               await new Promise(resolve => setTimeout(resolve, throttleMs));
             }
