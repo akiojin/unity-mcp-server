@@ -408,3 +408,81 @@ Without DB index, LSP-based search times out (60s). This is not a bug - it's the
    ```
    code_index_update paths=["changed/file.cs"]  # Incremental update
    ```
+
+---
+
+## Worker Thread Implementation Performance (FR-056 ~ FR-061)
+
+**Test Date**: 2025-11-27
+**Environment**: Linux (WSL2), Node.js 22.x, Unity Editor connected
+**Configuration**: `watch: true` (background index build enabled)
+
+### Problem Solved
+
+Before Worker Thread implementation, `watch: true` configuration caused MCP tools to become unresponsive (60+ seconds) during background index builds because `better-sqlite3` uses synchronous API that blocks the Node.js event loop.
+
+### Solution
+
+Implemented Worker Threads (Node.js `worker_threads` module) to isolate database operations from the main event loop:
+
+- `IndexBuildWorkerPool`: Manages Worker Thread lifecycle
+- `indexBuildWorker.js`: Runs in separate thread for DB operations
+- `IndexWatcher`: Uses Worker Thread for background builds
+
+### Performance Comparison: unity-mcp-server vs Standard Tools
+
+All tests performed with `watch: true` enabled and **128,030 files** indexed.
+
+#### Read Operations
+
+| Operation | unity-mcp-server Tool | Time | Standard Tool | Time | Result |
+|-----------|----------------------|------|---------------|------|--------|
+| File Read | `script_read` | **instant** | `Read` | **instant** | **EQUAL** |
+| Symbol List | `script_symbols_get` | **instant** | `Read` + parse | N/A | **PASS** (structured) |
+| Index Status | `code_index_status` | **instant** | N/A | N/A | **PASS** |
+
+#### Search Operations
+
+| Operation | unity-mcp-server Tool | Time | Results | Standard Tool | Time | Results |
+|-----------|----------------------|------|---------|---------------|------|---------|
+| Symbol Find | `script_symbol_find` | **instant** | 116 classes | `Grep` | **instant** | 20 files |
+| Text Search | `script_search` | **instant** | 10 files | `Grep` | **instant** | 20 files |
+| Reference Find | `script_refs_find` | **instant** | 34 refs | `Grep` | **instant** | N/A |
+
+#### System Response (Critical Test)
+
+| Operation | Before Worker Thread | After Worker Thread | Improvement |
+|-----------|---------------------|---------------------|-------------|
+| `system_ping` | **60+ seconds block** | **instant** | ✅ **Fixed** |
+| `code_index_status` | **60+ seconds block** | **instant** | ✅ **Fixed** |
+| Any MCP tool | **timeout during build** | **instant** | ✅ **Fixed** |
+
+### Index Statistics
+
+```json
+{
+  "totalFiles": 128030,
+  "indexedFiles": 128030,
+  "coverage": 1.0,
+  "lastIndexedAt": "2025-11-27T12:29:17.779Z"
+}
+```
+
+### Functional Requirements Status
+
+| Requirement | Description | Status |
+|-------------|-------------|--------|
+| FR-056 | Worker Thread Execution | ✅ PASS |
+| FR-057 | <1s ping response during builds | ✅ PASS |
+| FR-058 | Error propagation from Worker | ✅ PASS |
+| FR-059 | Progress notification | ✅ PASS |
+| FR-061 | Watcher uses Worker Thread | ✅ PASS |
+
+### Conclusion
+
+Worker Thread implementation successfully resolved the event loop blocking issue:
+
+1. **All MCP tools respond instantly** even with `watch: true` and background index builds
+2. **128,030 files indexed** with 100% coverage
+3. **No performance degradation** compared to standard Claude Code tools
+4. **Background builds are non-blocking** - users can continue working while index is being built
