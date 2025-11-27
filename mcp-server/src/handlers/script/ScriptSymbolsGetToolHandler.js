@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
+import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 
 export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
@@ -55,8 +56,7 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
       const abs = path.join(info.projectRoot, relPath);
       const st = await fs.stat(abs).catch(() => null);
       if (!st || !st.isFile()) return { error: 'File not found', path: relPath };
-      const { LspRpcClient } = await import('../../lsp/LspRpcClient.js');
-      const lsp = new LspRpcClient(info.projectRoot);
+      const lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
       const uri = 'file://' + abs.replace(/\\\\/g, '/');
       const res = await lsp.request('textDocument/documentSymbol', { textDocument: { uri } });
       const docSymbols = res?.result ?? res ?? [];

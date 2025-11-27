@@ -3,7 +3,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
-import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 
 const MAX_INSTRUCTIONS = 10;
 const MAX_DIFF_CHARS = 80;
@@ -258,7 +258,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
 
   async #validateWithLsp(info, relative, updatedText) {
     if (!this.lsp) {
-      this.lsp = new LspRpcClient(info.projectRoot);
+      this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
     }
     return await this.lsp.validateText(relative, updatedText);
   }

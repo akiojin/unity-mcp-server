@@ -1,6 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { CodeIndex } from '../../core/codeIndex.js';
-import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
 export class ScriptRefsFindToolHandler extends BaseToolHandler {
@@ -84,7 +84,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
 
     // LSP拡張へ委譲（mcp/referencesByName）
     const info = await this.projectInfo.get();
-    if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
+    if (!this.lsp) this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
     const resp = await this.lsp.request('mcp/referencesByName', { name: String(name) });
     let raw = Array.isArray(resp?.result) ? resp.result : [];
 
