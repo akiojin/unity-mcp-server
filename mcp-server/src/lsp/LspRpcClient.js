@@ -67,12 +67,19 @@ export class LspRpcClient {
     if (!this.proc || this.proc.killed) {
       throw new Error('LSP process not available');
     }
+    // Check if stdin is still writable
+    if (!this.proc.stdin || this.proc.stdin.destroyed || this.proc.stdin.writableEnded) {
+      throw new Error('LSP stdin not writable');
+    }
     const json = JSON.stringify(obj);
     const payload = `Content-Length: ${Buffer.byteLength(json, 'utf8')}\r\n\r\n${json}`;
     try {
       this.proc.stdin.write(payload, 'utf8');
     } catch (e) {
       logger.error(`[csharp-lsp] writeMessage failed: ${e.message}`);
+      // Mark process as unavailable to prevent further writes
+      this.proc = null;
+      this.initialized = false;
       throw e;
     }
   }

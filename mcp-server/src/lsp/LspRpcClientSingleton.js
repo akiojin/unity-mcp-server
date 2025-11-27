@@ -57,6 +57,14 @@ export class LspRpcClientSingleton {
     if (heartbeatTimer) return;
     heartbeatTimer = setInterval(async () => {
       if (!instance) return;
+      // Check if process is still alive before attempting heartbeat
+      if (!instance.proc || instance.proc.killed) {
+        logger.warn('[LspRpcClientSingleton] process dead, resetting...');
+        instance = null;
+        currentProjectRoot = null;
+        LspRpcClientSingleton.#stopHeartbeat();
+        return;
+      }
       try {
         // Use workspace/symbol with empty query as a lightweight ping
         await instance.request('workspace/symbol', { query: '' });
