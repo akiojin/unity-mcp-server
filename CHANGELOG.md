@@ -10,6 +10,15 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.41.6](https://github.com/akiojin/unity-mcp-server/compare/v2.41.5...v2.41.6) (2025-11-27)
+
+
+### Bug Fixes
+
+* **lsp:** add error handling and version fallback for csharp-lsp ([8eadc6a](https://github.com/akiojin/unity-mcp-server/commit/8eadc6a60c20e9c4779b3abfb202c12b5040e560))
+* **lsp:** csharp-lsp エラーハンドリング強化とバージョン同期 ([e65b1ac](https://github.com/akiojin/unity-mcp-server/commit/e65b1ac8a0d297377f74b68318aea433c0470758))
+* **lsp:** use manifest.version for VERSION file synchronization ([82f7df1](https://github.com/akiojin/unity-mcp-server/commit/82f7df135febab60eb26cd091bb3eebddce31b68))
+
 ## [2.41.5](https://github.com/akiojin/unity-mcp-server/compare/v2.41.4...v2.41.5) (2025-11-26)
 
 
