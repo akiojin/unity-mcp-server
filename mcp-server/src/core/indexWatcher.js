@@ -76,7 +76,9 @@ export class IndexWatcher {
 
         this.jobManager.create(jobId, async job => {
           const params = {
-            concurrency: config.indexing.concurrency || 8,
+            // Use low concurrency for watcher to avoid blocking event loop
+            // This ensures MCP requests can be processed during background builds
+            concurrency: config.indexing.watcherConcurrency || 1,
             retry: config.indexing.retry || 2,
             reportPercentage: 10
           };
@@ -121,7 +123,9 @@ export class IndexWatcher {
       // Create the build job through JobManager
       this.jobManager.create(jobId, async job => {
         const params = {
-          concurrency: config.indexing.concurrency || 8,
+          // Use low concurrency for watcher to avoid blocking event loop
+          // This ensures MCP requests can be processed during background builds
+          concurrency: config.indexing.watcherConcurrency || 1,
           retry: config.indexing.retry || 2,
           reportEvery: config.indexing.reportEvery || 500
         };
