@@ -7,6 +7,17 @@ This document presents comprehensive performance comparison testing between unit
 **Test Date**: 2025-11-27
 **Environment**: Linux (WSL2), Node.js 22.x, Unity Editor connected
 
+## Grep Baseline Performance
+
+Measured baseline performance using standard `grep` command for comparison:
+
+| Test | Pattern | Time | Results | Files Scanned |
+|------|---------|------|---------|---------------|
+| Class search | `class Response` | **440ms** | 20 lines | 7,119 C# files |
+| Reference search | `Response\.Success` | **688ms** | 30 lines | 7,119 C# files |
+
+**Note**: These measurements represent full project scanning without any indexing. The code index tools aim to achieve <100ms response times after index is built.
+
 ## Test Target Files
 
 Selected medium-sized C# files (100-500 lines) from `UnityMCPServer/Packages/unity-mcp-server/Editor/`:
@@ -325,6 +336,42 @@ The code index tools implement several context compression mechanisms:
 2. **Prebuilt binaries**: Ensure `better-sqlite3` prebuilt binaries are available for all target platforms
 3. **Unified scope**: Allow searching across Assets and Packages simultaneously in `script_search`
 4. **Clear error messages**: When DB index is not available, provide clear guidance to run `code_index_build`
+
+### Implementation: DB Index Requirement (FR-051 ~ FR-055)
+
+As of v2.41.x, the following tools **require DB index** with no LSP fallback:
+
+| Tool | Without Index | With Index Running | With Index Ready |
+|------|--------------|-------------------|------------------|
+| `script_symbol_find` | `index_not_ready` error | `index_building` with progress | Fast DB query |
+| `script_refs_find` | `index_not_ready` error | `index_building` with progress | Fast DB query |
+
+**Error Response Examples**:
+
+```json
+// index_not_ready (no build job running)
+{
+  "success": false,
+  "error": "index_not_ready",
+  "message": "Code index is not built. Run code_index_build first.",
+  "hint": "Use code_index_status to check index state, or code_index_build to start a build manually."
+}
+
+// index_building (build in progress)
+{
+  "success": false,
+  "error": "index_building",
+  "message": "Code index is currently being built. Please wait and retry. Progress: 75% (75/100)",
+  "jobId": "build-1234567890-abc123",
+  "progress": {
+    "processed": 75,
+    "total": 100,
+    "percentage": 75
+  }
+}
+```
+
+This change ensures predictable performance - users always know if they need to wait for index build.
 
 ### Final Verdict
 
