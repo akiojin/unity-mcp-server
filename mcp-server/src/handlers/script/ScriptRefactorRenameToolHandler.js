@@ -1,5 +1,5 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
-import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
 export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
@@ -38,7 +38,7 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
   async execute(params) {
     const { relative, namePath, newName, preview = true } = params;
     const info = await this.projectInfo.get();
-    if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
+    if (!this.lsp) this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
     const resp = await this.lsp.request('mcp/renameByNamePath', {
       relative: String(relative).replace(/\\\\/g, '/'),
       namePath: String(namePath),

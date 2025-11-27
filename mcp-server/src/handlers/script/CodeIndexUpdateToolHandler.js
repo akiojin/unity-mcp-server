@@ -3,7 +3,7 @@ import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 import { CodeIndex } from '../../core/codeIndex.js';
-import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 
 /**
  * Incrementally refresh the persistent code index after local edits.
@@ -60,7 +60,7 @@ export class CodeIndexUpdateToolHandler extends BaseToolHandler {
     const projectRoot = info.projectRoot;
 
     if (!this.lsp) {
-      this.lsp = new LspRpcClient(projectRoot);
+      this.lsp = await LspRpcClientSingleton.getInstance(projectRoot);
     }
 
     const normalized = requested.map(p => this._normalizePath(p, projectRoot));

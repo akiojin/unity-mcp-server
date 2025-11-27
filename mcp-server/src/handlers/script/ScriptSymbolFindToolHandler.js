@@ -1,6 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { CodeIndex } from '../../core/codeIndex.js';
-import { LspRpcClient } from '../../lsp/LspRpcClient.js';
+import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 
 export class ScriptSymbolFindToolHandler extends BaseToolHandler {
@@ -72,7 +72,7 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
       }));
     } else {
       const info = await this.projectInfo.get();
-      if (!this.lsp) this.lsp = new LspRpcClient(info.projectRoot);
+      if (!this.lsp) this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
       const resp = await this.lsp.request('workspace/symbol', { query: String(name) });
       const arr = resp?.result || [];
       const root = String(info.projectRoot || '').replace(/\\\\/g, '/');
