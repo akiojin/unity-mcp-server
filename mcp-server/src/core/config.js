@@ -1,7 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 import findUpPkg from 'find-up';
-const findUpSync = findUpPkg.sync;
+function findUpSyncCompat(matcher, options = {}) {
+  if (typeof matcher === 'function') {
+    let dir = options.cwd || process.cwd();
+    const { root } = path.parse(dir);
+    // walk up until root
+    while (true) {
+      const found = matcher(dir);
+      if (found) return found;
+      if (dir === root) return undefined;
+      dir = path.dirname(dir);
+    }
+  }
+  if (typeof findUpPkg.sync === 'function') return findUpPkg.sync(matcher, options);
+  if (typeof findUpPkg === 'function') return findUpPkg(matcher, options);
+  return undefined;
+}
 
 /**
  * Shallow merge utility (simple objects only)
@@ -86,7 +101,11 @@ const baseConfig = {
     enabled: (process.env.UNITY_MCP_HTTP_ENABLED || 'false').toLowerCase() === 'true',
     host: process.env.UNITY_MCP_HTTP_HOST || '0.0.0.0',
     port: parseInt(process.env.UNITY_MCP_HTTP_PORT || '', 10) || 6401,
-    healthPath: '/healthz'
+    healthPath: '/healthz',
+    allowedHosts: (process.env.UNITY_MCP_HTTP_ALLOWED_HOSTS || 'localhost,127.0.0.1')
+      .split(',')
+      .map(h => h.trim())
+      .filter(h => h.length > 0)
   },
 
   telemetry: {
@@ -168,7 +187,7 @@ function loadExternalConfig() {
   }
   const explicitPath = process.env.UNITY_MCP_CONFIG;
 
-  const projectPath = findUpSync(
+  const projectPath = findUpSyncCompat(
     directory => {
       const candidate = path.resolve(directory, '.unity', 'config.json');
       return fs.existsSync(candidate) ? candidate : undefined;

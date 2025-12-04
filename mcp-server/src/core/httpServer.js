@@ -21,14 +21,22 @@ export function createHttpServer({
   host = '0.0.0.0',
   port = 6401,
   telemetryEnabled = false,
-  healthPath = '/healthz'
+  healthPath = '/healthz',
+  allowedHosts = ['localhost', '127.0.0.1']
 } = {}) {
   const startedAt = Date.now();
   let server;
 
   const listener = async (req, res) => {
     try {
-      const url = new URL(req.url, `http://${req.headers.host}`);
+      const hostHeader = req.headers.host?.split(':')[0];
+      if (allowedHosts && allowedHosts.length && hostHeader && !allowedHosts.includes(hostHeader)) {
+        res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: 'forbidden host' }));
+        return;
+      }
+
+      const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
 
       if (req.method === 'GET' && url.pathname === healthPath) {
         const body = buildHealthResponse({
