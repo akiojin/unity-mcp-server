@@ -1,7 +1,50 @@
 #!/usr/bin/env node
 import { startServer } from '../src/core/server.js';
 
-startServer().catch(error => {
+const args = process.argv.slice(2);
+let httpEnabled = false;
+let httpPort;
+let stdioEnabled = true;
+let telemetryEnabled;
+
+for (let i = 0; i < args.length; i++) {
+  const arg = args[i];
+  switch (arg) {
+    case '--http':
+      httpEnabled = true;
+      if (args[i + 1] && !args[i + 1].startsWith('--')) {
+        httpPort = parseInt(args[i + 1], 10);
+        i++;
+      }
+      break;
+    case '--no-http':
+      httpEnabled = false;
+      break;
+    case '--stdio':
+      stdioEnabled = true;
+      break;
+    case '--no-stdio':
+      stdioEnabled = false;
+      break;
+    case '--telemetry':
+      telemetryEnabled = true;
+      break;
+    case '--no-telemetry':
+      telemetryEnabled = false;
+      break;
+    default:
+      break;
+  }
+}
+
+startServer({
+  http: {
+    enabled: httpEnabled,
+    port: httpPort
+  },
+  telemetry: telemetryEnabled === undefined ? undefined : { enabled: telemetryEnabled },
+  stdioEnabled
+}).catch(error => {
   console.error('Fatal error:', error);
   console.error('Stack trace:', error?.stack);
   process.exit(1);

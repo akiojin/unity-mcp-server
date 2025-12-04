@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { findUpSync } from 'find-up';
+import findUpPkg from 'find-up';
+const findUpSync = findUpPkg.sync;
 
 /**
  * Shallow merge utility (simple objects only)
@@ -80,6 +81,20 @@ const baseConfig = {
     prefix: '[Unity MCP Server]'
   },
 
+  // HTTP transport (off by default)
+  http: {
+    enabled: (process.env.UNITY_MCP_HTTP_ENABLED || 'false').toLowerCase() === 'true',
+    host: process.env.UNITY_MCP_HTTP_HOST || '0.0.0.0',
+    port: parseInt(process.env.UNITY_MCP_HTTP_PORT || '', 10) || 6401,
+    healthPath: '/healthz'
+  },
+
+  telemetry: {
+    enabled: (process.env.UNITY_MCP_TELEMETRY || 'off').toLowerCase() === 'on',
+    destinations: [],
+    fields: []
+  },
+
   // Write queue removed: all edits go through structured Roslyn tools.
 
   // Search-related defaults and engine selection
@@ -145,6 +160,12 @@ function ensureDefaultProjectConfig(baseDir) {
 }
 
 function loadExternalConfig() {
+  if (process.env.NODE_ENV === 'test') {
+    return {};
+  }
+  if (typeof findUpSync !== 'function') {
+    return {};
+  }
   const explicitPath = process.env.UNITY_MCP_CONFIG;
 
   const projectPath = findUpSync(
