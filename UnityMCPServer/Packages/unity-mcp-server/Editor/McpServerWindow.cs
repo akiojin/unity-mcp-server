@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -50,6 +51,7 @@ public class McpServerWindow : EditorWindow
 
         GUILayout.Space(10);
         GUILayout.Label("Samples", EditorStyles.boldLabel);
+        var hasAddressables = Type.GetType("UnityEditor.AddressableAssets.AddressableAssetSettings, Unity.Addressables.Editor") != null;
         if (EditorApplication.isPlaying)
         {
             EditorGUILayout.HelpBox("Play Mode中はサンプル実行をスキップします", MessageType.Info);
@@ -59,6 +61,11 @@ public class McpServerWindow : EditorWindow
         {
             if (GUILayout.Button("Run Sample (Scene)")) SampleWorkflows.RunSceneSample();
             if (GUILayout.Button("Run Sample (Addressables)")) SampleWorkflows.RunAddressablesSample();
+        }
+
+        if (!hasAddressables)
+        {
+            EditorGUILayout.HelpBox("Addressables未導入のため、Addressablesサンプルはスキップされます", MessageType.Info);
         }
 
         GUI.enabled = true;

@@ -225,6 +225,7 @@ Unity Editor GUI (for non-developers)
 - Menu: `MCP Server / Start` → window with Start/Stop, HTTP/Telemetry toggles, port setting.
 - Samples: "Run Sample (Scene)" and "Run Sample (Addressables)" buttons to demo operations.
 - Play Mode guard: buttons are disabled during Play Mode.
+- Addressables packageが未導入の場合、Addressablesサンプルはスキップされる（ウィンドウ上に案内を表示）。
 
 ### MCP Server Environment Setup
 
