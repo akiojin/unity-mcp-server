@@ -110,11 +110,12 @@ See [CLAUDE.md](CLAUDE.md) for the detailed release workflow.
 
 Unity MCP Server has been tested with large-scale Unity projects:
 
-- **C# Files**: 60,000+ files
-- **Code Index Symbols**: 380,000+ symbols
-- **Packages**: UniTask, VContainer, Google Mobile Ads SDK, NuGetForUnity, etc.
+- **C# Files**: 100,000+ files
+- **Code Index Symbols**: 575,000+ symbols
+- **Index Build Speed**: ~950 files/second
+- **Packages**: UniTask, VContainer, UniRx, Google Mobile Ads SDK, NuGetForUnity, etc.
 
-The code index (SQLite-backed) handles large codebases efficiently, enabling symbol search and structured edits across tens of thousands of files.
+The code index (SQLite-backed) handles large codebases efficiently, enabling symbol search and structured edits across hundreds of thousands of files.
 
 Suggested caps
 - Search: `pageSize≤20`, `maxBytes≤64KB`, `snippetContext=1–2`, `maxMatchesPerFile≤5`.
