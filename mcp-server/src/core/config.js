@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import findUpPkg from 'find-up';
+import * as findUpPkg from 'find-up';
 function findUpSyncCompat(matcher, options = {}) {
   if (typeof matcher === 'function') {
     let dir = options.cwd || process.cwd();
@@ -44,7 +44,7 @@ function resolvePackageVersion() {
 
   // When executed from workspace root (monorepo) or inside mcp-server package
   try {
-    const here = findUpSync('package.json', { cwd: process.cwd() });
+    const here = findUpSyncCompat('package.json', { cwd: process.cwd() });
     if (here) candidates.push(here);
   } catch {}
 
@@ -62,8 +62,7 @@ function resolvePackageVersion() {
 /**
  * Base configuration for Unity MCP Server Server
  */
-const envUnityHost =
-  process.env.UNITY_BIND_HOST || process.env.UNITY_HOST || null;
+const envUnityHost = process.env.UNITY_BIND_HOST || process.env.UNITY_HOST || null;
 
 const envMcpHost =
   process.env.UNITY_MCP_HOST || process.env.UNITY_CLIENT_HOST || process.env.UNITY_HOST || null;
