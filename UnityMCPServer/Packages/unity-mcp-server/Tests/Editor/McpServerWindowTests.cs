@@ -19,6 +19,6 @@ public class McpServerWindowTests
         Assert.DoesNotThrow(() => SampleWorkflows.RunAddressablesSample());
         var temp = GameObject.Find("MCP_Sample_Temp");
         if (temp != null) Object.DestroyImmediate(temp);
-        AssetDatabase.Refresh();
+        SampleWorkflows.Cleanup();
     }
 }
