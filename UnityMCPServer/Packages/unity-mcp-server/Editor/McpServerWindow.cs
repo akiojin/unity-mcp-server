@@ -11,6 +11,7 @@ public class McpServerWindow : EditorWindow
     private int httpPort = 6401;
     private string status = "Stopped";
     private readonly System.Collections.Generic.List<(string level, string message)> logs = new();
+    private bool autoScroll = true;
 
     [MenuItem("MCP Server/Start Window")]
     public static void ShowWindow()
@@ -72,6 +73,11 @@ public class McpServerWindow : EditorWindow
 
         GUILayout.Space(10);
         GUILayout.Label("Logs", EditorStyles.boldLabel);
+        using (new EditorGUILayout.HorizontalScope())
+        {
+            autoScroll = EditorGUILayout.ToggleLeft("Auto Scroll", autoScroll, GUILayout.Width(110));
+            if (GUILayout.Button("Clear", GUILayout.Width(80))) logs.Clear();
+        }
         foreach (var (level, line) in logs)
         {
             var style = GUIStyles.Log;
@@ -83,6 +89,12 @@ public class McpServerWindow : EditorWindow
         }
 
         EditorGUILayout.EndScrollView();
+
+        if (autoScroll && Event.current.type == EventType.Repaint)
+        {
+            var r = GUILayoutUtility.GetLastRect();
+            scroll.y = float.MaxValue;
+        }
     }
 
     private Process serverProcess;
