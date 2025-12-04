@@ -202,6 +202,25 @@ Installation
     }
     ```
 
+HTTP mode (for HTTP-only networks)
+```
+npx @akiojin/unity-mcp-server --http 6401 --no-telemetry
+curl http://localhost:6401/healthz
+```
+- `--http [port]` to expose HTTP listener (health: `/healthz`).
+- `--no-telemetry` to ensure no outbound telemetry (default is off).
+- `--no-stdio` to run HTTP-only if needed.
+
+Multi-instance CLI
+```
+unity-mcp-server list-instances --ports=6400,6401 --host=localhost --json
+unity-mcp-server set-active localhost:6401
+```
+
+Unity Editor GUI (for non-developers)
+- Menu: `MCP Server / Start` → window with Start/Stop, HTTP/Telemetry toggles, port setting.
+- Samples: "Run Sample (Scene)" and "Run Sample (Addressables)" buttons to demo operations.
+
 ### MCP Server Environment Setup
 
 You must install the MCP server's dependencies **on the same OS where the server runs** so that native modules such as `better-sqlite3` are built for the correct platform.
