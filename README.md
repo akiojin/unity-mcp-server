@@ -106,6 +106,16 @@ See [CLAUDE.md](CLAUDE.md) for the detailed release workflow.
 - Avoid previews unless necessary: apply directly when safe to reduce payload.
 - Keep image/video resolutions minimal and avoid base64 unless immediately analyzed.
 
+## Scalability
+
+Unity MCP Server has been tested with large-scale Unity projects:
+
+- **C# Files**: 60,000+ files
+- **Code Index Symbols**: 380,000+ symbols
+- **Packages**: UniTask, VContainer, Google Mobile Ads SDK, NuGetForUnity, etc.
+
+The code index (SQLite-backed) handles large codebases efficiently, enabling symbol search and structured edits across tens of thousands of files.
+
 Suggested caps
 - Search: `pageSize≤20`, `maxBytes≤64KB`, `snippetContext=1–2`, `maxMatchesPerFile≤5`.
 - Hierarchy: `nameOnly=true`, `maxObjects 100–500` (details: 10–50).
