@@ -154,9 +154,9 @@ export class LspRpcClient {
       const msg = String((e && e.message) || e);
       const recoverable = /timed out|LSP process exited/i.test(msg);
       if (recoverable && attempt === 1) {
-        // Auto-reinit and retry once
+        // Auto-reinit and retry once with grace period for proper LSP shutdown
         try {
-          await this.mgr.stop(0);
+          await this.mgr.stop(3000);
         } catch {}
         this.proc = null;
         this.initialized = false;
