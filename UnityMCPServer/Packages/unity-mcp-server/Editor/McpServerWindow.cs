@@ -9,6 +9,7 @@ public class McpServerWindow : EditorWindow
     private bool telemetry;
     private int httpPort = 6401;
     private string status = "Stopped";
+    private readonly System.Collections.Generic.List<string> logs = new();
 
     [MenuItem("MCP Server/Start Window")]
     public static void ShowWindow()
@@ -23,6 +24,11 @@ public class McpServerWindow : EditorWindow
         scroll = EditorGUILayout.BeginScrollView(scroll);
 
         GUILayout.Label("Start/Stop", EditorStyles.boldLabel);
+        if (EditorApplication.isPlaying)
+        {
+            EditorGUILayout.HelpBox("Play Mode中はサーバー起動を無効化しています", MessageType.Info);
+            GUI.enabled = false;
+        }
         useHttp = EditorGUILayout.Toggle("HTTP", useHttp);
         if (useHttp)
         {
@@ -40,12 +46,28 @@ public class McpServerWindow : EditorWindow
             if (GUILayout.Button("Stop")) StopServer();
         }
 
+        GUI.enabled = true; // reset
+
         GUILayout.Space(10);
         GUILayout.Label("Samples", EditorStyles.boldLabel);
+        if (EditorApplication.isPlaying)
+        {
+            EditorGUILayout.HelpBox("Play Mode中はサンプル実行をスキップします", MessageType.Info);
+            GUI.enabled = false;
+        }
         using (new EditorGUILayout.HorizontalScope())
         {
             if (GUILayout.Button("Run Sample (Scene)")) SampleWorkflows.RunSceneSample();
             if (GUILayout.Button("Run Sample (Addressables)")) SampleWorkflows.RunAddressablesSample();
+        }
+
+        GUI.enabled = true;
+
+        GUILayout.Space(10);
+        GUILayout.Label("Logs", EditorStyles.boldLabel);
+        foreach (var line in logs)
+        {
+            EditorGUILayout.LabelField(line);
         }
 
         EditorGUILayout.EndScrollView();
@@ -74,8 +96,10 @@ public class McpServerWindow : EditorWindow
 
         serverProcess = Process.Start(psi);
         status = "Starting";
-        serverProcess.OutputDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) UnityEngine.Debug.Log(e.Data); };
-        serverProcess.ErrorDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) UnityEngine.Debug.LogError(e.Data); };
+        serverProcess.OutputDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) AppendLog(e.Data); };
+        serverProcess.ErrorDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) AppendLog("ERR: " + e.Data); };
+        serverProcess.EnableRaisingEvents = true;
+        serverProcess.Exited += (_, __) => { status = "Stopped"; AppendLog("[MCP] process exited"); Repaint(); };
         serverProcess.BeginOutputReadLine();
         serverProcess.BeginErrorReadLine();
         Repaint();
@@ -110,6 +134,18 @@ public class McpServerWindow : EditorWindow
             status = "Stopped";
             Repaint();
         }
+    }
+
+    private void AppendLog(string line)
+    {
+        logs.Add(line);
+        const int maxLines = 50;
+        if (logs.Count > maxLines) logs.RemoveAt(0);
+    }
+
+    private void OnDisable()
+    {
+        StopServer();
     }
 }
     private Vector2 scroll;
