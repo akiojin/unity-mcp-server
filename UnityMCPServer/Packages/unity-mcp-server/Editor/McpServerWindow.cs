@@ -20,6 +20,8 @@ public class McpServerWindow : EditorWindow
 
     private void OnGUI()
     {
+        scroll = EditorGUILayout.BeginScrollView(scroll);
+
         GUILayout.Label("Start/Stop", EditorStyles.boldLabel);
         useHttp = EditorGUILayout.Toggle("HTTP", useHttp);
         if (useHttp)
@@ -37,6 +39,16 @@ public class McpServerWindow : EditorWindow
             if (GUILayout.Button("Start")) StartServer();
             if (GUILayout.Button("Stop")) StopServer();
         }
+
+        GUILayout.Space(10);
+        GUILayout.Label("Samples", EditorStyles.boldLabel);
+        using (new EditorGUILayout.HorizontalScope())
+        {
+            if (GUILayout.Button("Run Sample (Scene)")) SampleWorkflows.RunSceneSample();
+            if (GUILayout.Button("Run Sample (Addressables)")) SampleWorkflows.RunAddressablesSample();
+        }
+
+        EditorGUILayout.EndScrollView();
     }
 
     private Process serverProcess;
@@ -100,3 +112,4 @@ public class McpServerWindow : EditorWindow
         }
     }
 }
+    private Vector2 scroll;
