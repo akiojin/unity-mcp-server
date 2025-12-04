@@ -9,7 +9,7 @@ public class McpServerWindow : EditorWindow
     private bool telemetry;
     private int httpPort = 6401;
     private string status = "Stopped";
-    private readonly System.Collections.Generic.List<string> logs = new();
+    private readonly System.Collections.Generic.List<(string level, string message)> logs = new();
 
     [MenuItem("MCP Server/Start Window")]
     public static void ShowWindow()
@@ -65,9 +65,14 @@ public class McpServerWindow : EditorWindow
 
         GUILayout.Space(10);
         GUILayout.Label("Logs", EditorStyles.boldLabel);
-        foreach (var line in logs)
+        foreach (var (level, line) in logs)
         {
-            EditorGUILayout.LabelField(line);
+            var style = GUIStyles.Log;
+            var color = level == "ERR" ? Color.red : Color.white;
+            var prev = GUI.color;
+            GUI.color = color;
+            EditorGUILayout.LabelField(line, style);
+            GUI.color = prev;
         }
 
         EditorGUILayout.EndScrollView();
@@ -96,8 +101,8 @@ public class McpServerWindow : EditorWindow
 
         serverProcess = Process.Start(psi);
         status = "Starting";
-        serverProcess.OutputDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) AppendLog(e.Data); };
-        serverProcess.ErrorDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) AppendLog("ERR: " + e.Data); };
+        serverProcess.OutputDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) AppendLog("INFO", e.Data); };
+        serverProcess.ErrorDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) AppendLog("ERR", e.Data); };
         serverProcess.EnableRaisingEvents = true;
         serverProcess.Exited += (_, __) => { status = "Stopped"; AppendLog("[MCP] process exited"); Repaint(); };
         serverProcess.BeginOutputReadLine();
@@ -136,9 +141,9 @@ public class McpServerWindow : EditorWindow
         }
     }
 
-    private void AppendLog(string line)
+    private void AppendLog(string level, string line)
     {
-        logs.Add(line);
+        logs.Add((level, line));
         const int maxLines = 50;
         if (logs.Count > maxLines) logs.RemoveAt(0);
     }
