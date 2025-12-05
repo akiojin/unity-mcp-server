@@ -1,8 +1,92 @@
 #!/usr/bin/env node
 import { startServer } from '../src/core/server.js';
+import { listInstances } from '../src/cli/commands/listInstances.js';
+import { setActive } from '../src/cli/commands/setActive.js';
 
-startServer().catch(error => {
-  console.error('Fatal error:', error);
-  console.error('Stack trace:', error?.stack);
-  process.exit(1);
-});
+const args = process.argv.slice(2);
+const command = args[0] && !args[0].startsWith('--') ? args[0] : null;
+const rest = command ? args.slice(1) : args;
+let httpEnabled = false;
+let httpPort;
+let stdioEnabled = true;
+let telemetryEnabled;
+
+for (let i = 0; i < rest.length; i++) {
+  const arg = rest[i];
+  switch (arg) {
+    case '--http':
+      httpEnabled = true;
+      if (args[i + 1] && !args[i + 1].startsWith('--')) {
+        httpPort = parseInt(args[i + 1], 10);
+        i++;
+      }
+      break;
+    case '--no-http':
+      httpEnabled = false;
+      break;
+    case '--stdio':
+      stdioEnabled = true;
+      break;
+    case '--no-stdio':
+      stdioEnabled = false;
+      break;
+    case '--telemetry':
+      telemetryEnabled = true;
+      break;
+    case '--no-telemetry':
+      telemetryEnabled = false;
+      break;
+    default:
+      break;
+  }
+}
+
+async function main() {
+  if (command === 'list-instances') {
+    const portsArg = rest.find(a => a.startsWith('--ports='));
+    const ports = portsArg ? portsArg.replace('--ports=', '').split(',').map(p => Number(p)) : [];
+    const hostArg = rest.find(a => a.startsWith('--host='));
+    const host = hostArg ? hostArg.replace('--host=', '') : 'localhost';
+    const json = rest.includes('--json');
+    const list = await listInstances({ ports, host });
+    if (json) {
+      console.log(JSON.stringify(list, null, 2));
+    } else {
+      for (const e of list) {
+        console.log(`${e.active ? '*' : ' '} ${e.id} ${e.status}`);
+      }
+    }
+    return;
+  }
+
+  if (command === 'set-active') {
+    const id = rest[0];
+    if (!id) {
+      console.error('Usage: unity-mcp-server set-active <host:port>');
+      process.exit(1);
+    }
+    try {
+      const result = await setActive({ id });
+      console.log(JSON.stringify(result, null, 2));
+    } catch (e) {
+      console.error(e.message);
+      process.exit(1);
+    }
+    return;
+  }
+
+  startServer({
+    http: {
+      enabled: httpEnabled,
+      port: httpPort
+    },
+    telemetry: telemetryEnabled === undefined ? undefined : { enabled: telemetryEnabled },
+    stdioEnabled
+  }).catch(error => {
+    console.error('Fatal error:', error);
+    console.error('Stack trace:', error?.stack);
+    process.exit(1);
+  });
+}
+
+main();

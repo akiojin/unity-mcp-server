@@ -48,6 +48,9 @@ export class UnityConnection extends EventEmitter {
       }
 
       const targetHost = config.unity.mcpHost || config.unity.unityHost;
+      console.error(
+        `[unity-mcp-server] Unity TCP connecting to ${targetHost}:${config.unity.port}...`
+      );
       logger.info(`Connecting to Unity at ${targetHost}:${config.unity.port}...`);
 
       this.socket = new net.Socket();
@@ -74,6 +77,7 @@ export class UnityConnection extends EventEmitter {
 
       // Set up event handlers
       this.socket.on('connect', () => {
+        console.error(`[unity-mcp-server] Unity TCP connected successfully`);
         logger.info('Connected to Unity Editor');
         this.connected = true;
         this.reconnectAttempts = 0;
@@ -93,6 +97,7 @@ export class UnityConnection extends EventEmitter {
       });
 
       this.socket.on('error', error => {
+        console.error(`[unity-mcp-server] Unity TCP error: ${error.message}`);
         logger.error('Socket error:', error.message);
         if (this.listenerCount('error') > 0) {
           this.emit('error', error);
@@ -121,9 +126,11 @@ export class UnityConnection extends EventEmitter {
 
         // Check if we're already handling disconnection
         if (this.isDisconnecting || !this.socket) {
+          console.error(`[unity-mcp-server] Unity TCP close event (already disconnecting)`);
           return;
         }
 
+        console.error(`[unity-mcp-server] Unity TCP disconnected`);
         logger.info('Disconnected from Unity Editor');
         this.connected = false;
         this.socket = null;
@@ -240,7 +247,7 @@ export class UnityConnection extends EventEmitter {
     // Check if this is an unframed Unity debug log
     if (data.length > 0 && !this.messageBuffer.length) {
       const dataStr = data.toString('utf8');
-      if (dataStr.startsWith('[Unity MCP Server]') || dataStr.startsWith('[Unity]')) {
+      if (dataStr.startsWith('[unity-mcp-server]') || dataStr.startsWith('[Unity]')) {
         logger.debug(`[Unity] Received unframed debug log: ${dataStr.trim()}`);
         // Don't process unframed logs as messages
         return;
@@ -315,7 +322,7 @@ export class UnityConnection extends EventEmitter {
 
           // Check if this looks like a Unity log message
           const messageStr = messageData.toString();
-          if (messageStr.includes('[Unity MCP Server]')) {
+          if (messageStr.includes('[unity-mcp-server]')) {
             logger.debug('[Unity] Received Unity log message instead of JSON response');
             // Don't treat this as a critical error
           }

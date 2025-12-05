@@ -19,6 +19,48 @@ Unity MCP Server は、LLMクライアントからUnity Editorを自動化しま
 - **TDD**: Red-Green-Refactorサイクル強制; 実装前にテスト作成
 - **テストカバレッジ**: ユニットテスト (80%以上), 統合テスト (クリティカルパス100%)
 
+### セットアップ
+Unity: Package Manager → git URL から追加 → `https://github.com/akiojin/unity-mcp-server.git?path=UnityMCPServer/Packages/unity-mcp-server`
+MCPクライアント設定例 (Claude Desktop):
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- 追加例:
+    ```json
+    {
+      "mcpServers": {
+        "unity-mcp-server": {
+          "command": "npx",
+          "args": ["@akiojin/unity-mcp-server@latest"]
+        }
+      }
+    }
+    ```
+
+### HTTPモード（HTTPのみ許可されたネットワーク向け）
+```
+npx @akiojin/unity-mcp-server --http 6401 --no-telemetry
+curl http://localhost:6401/healthz
+```
+- `--http [port]` で HTTP リスナー起動（ヘルスチェック: `/healthz`）。
+- `--no-telemetry` で外向き送信なしを明示（デフォルトoff）。
+- `--no-stdio` で stdio を無効にし HTTP のみにもできる。
+- Host ヘッダは `localhost` / `127.0.0.1` のみ許可（`UNITY_MCP_HTTP_ALLOWED_HOSTS` で変更可）。
+
+### テレメトリポリシー
+- 既定: off（送信なし）。
+- 明示オン: `--telemetry` または `UNITY_MCP_TELEMETRY=on`。
+
+### マルチインスタンス CLI
+```
+unity-mcp-server list-instances --ports=6400,6401 --host=localhost --json
+unity-mcp-server set-active localhost:6401
+```
+
+### Unity エディタ GUI（非開発者向け）
+- メニュー: `MCP Server / Start` でウィンドウを開き Start/Stop、HTTP/Telemetry トグルとポート設定。
+- サンプル: 「Run Sample (Scene)」「Run Sample (Addressables)」で動作デモを実行。
+- Play Mode中はボタンを無効化。Addressables未導入プロジェクトではサンプルがスキップされる旨を表示。
+
 Spec Kitワークフロー (`/speckit.specify`, `/speckit.plan`, `/speckit.tasks`) も参照してください。
 
 ### Gitフック（Husky）
@@ -564,6 +606,130 @@ Codex の MCP サーバー設定は次のファイルに作成してください
 - UnityのTCPが待受しない: プロジェクトを開き直し／ポート6400の占有を解除。
 - Node.jsが接続できない: Unity稼働確認、FW設定、Unity/Nodeのログ確認。
 - C#の型が見つからない: アセットをリフレッシュし、コンパイル完了まで待機。
+- **npx ENOTEMPTY エラー**: `npx @akiojin/unity-mcp-server@latest` 実行時に `ENOTEMPTY: directory not empty, rename ...` エラーが発生する場合は、npx キャッシュをクリアしてください:
+
+  ```bash
+  # 特定のキャッシュをクリア（エラーメッセージに表示されたパスを使用）
+  rm -rf ~/.npm/_npx/<ハッシュ値>
+  # または全 npx キャッシュをクリア
+  rm -rf ~/.npm/_npx
+  ```
+
+  これは npm/npx のキャッシュ破損の問題であり、unity-mcp-server のバグではありません。
+- **Unity接続失敗**: MCPサーバーはUnity Editorが起動していなくてもクライアント接続を受け付け、動作を開始します。ただし、Unity連携が必要なツール呼び出し（`screenshot_capture`、`gameobject_create`など）は接続エラーになります。サーバーはバックグラウンドで自動的にUnity接続をリトライします。全機能を利用するには、unity-mcp-serverパッケージがインストールされたUnity Editorを起動してください。
+
+### デバッグログ
+
+接続問題をトラブルシューティングするには、詳細ログを有効にしてください:
+
+```bash
+# ログレベルをdebugに設定
+LOG_LEVEL=debug npx @akiojin/unity-mcp-server@latest
+```
+
+利用可能なログレベル: `debug`, `info`（デフォルト）, `warn`
+
+### 起動時の診断情報
+
+サーバーは起動時に診断情報をstderrに出力します:
+
+```
+[unity-mcp-server] Startup config:
+[unity-mcp-server]   Config file: /path/to/.unity/config.json
+[unity-mcp-server]   Unity host: localhost
+[unity-mcp-server]   Unity port: 6400
+[unity-mcp-server]   Workspace root: /path/to/workspace
+[unity-mcp-server] MCP transport connecting...
+[unity-mcp-server] MCP transport connected
+[unity-mcp-server] Unity TCP connecting to localhost:6400...
+[unity-mcp-server] Unity TCP connected successfully
+```
+
+これにより、特にクロスプラットフォーム環境での設定ミスマッチを特定できます。
+
+### WSL2/DockerからWindows上のUnityへの接続
+
+MCPサーバーをWSL2またはDocker内で実行し、Unity EditorがWindows上で動作している場合:
+
+**問題**: WSL2/Docker内の`localhost`はWindowsホストに到達しません。
+
+**解決策**: `host.docker.internal`またはWindowsホストのIPを使用します。
+
+**WSL2/Docker用のClaude Desktop設定（`claude_desktop_config.json`）**:
+
+```json
+{
+  "mcpServers": {
+    "unity-mcp-server": {
+      "command": "npx",
+      "args": ["@akiojin/unity-mcp-server@latest"],
+      "env": {
+        "UNITY_MCP_HOST": "host.docker.internal",
+        "UNITY_PORT": "6400"
+      }
+    }
+  }
+}
+```
+
+**環境変数**:
+
+| 変数 | 説明 | デフォルト |
+|------|------|-----------|
+| `UNITY_MCP_HOST` | MCPサーバーがUnityに接続するためのホスト名 | `localhost` |
+| `UNITY_PORT` | Unity EditorのTCPポート | `6400` |
+| `UNITY_BIND_HOST` | Unityがリッスンするインターフェース（Windows側） | `localhost` |
+
+**Unity Editor設定（Windows）**:
+
+Unity MCP Serverウィンドウ（`MCP Server / Start`）で、ポートが`UNITY_PORT`で設定した値と一致していることを確認してください。デフォルトは6400です。
+
+**WSL2からの接続確認**:
+
+```bash
+# Unityに到達できるか確認
+nc -zv host.docker.internal 6400
+
+# またはホストIPを直接使用
+nc -zv $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}') 6400
+```
+
+### npx初回実行時の遅延
+
+`npx @akiojin/unity-mcp-server@latest`の初回実行時はパッケージのダウンロードに数秒かかります。MCPクライアントがタイムアウトする場合:
+
+**解決策1**: パッケージを事前キャッシュ
+
+```bash
+npx @akiojin/unity-mcp-server@latest --version
+```
+
+**解決策2**: グローバルインストール
+
+```bash
+npm install -g @akiojin/unity-mcp-server
+```
+
+その後、設定を更新してグローバルバイナリを使用:
+
+```json
+{
+  "mcpServers": {
+    "unity-mcp-server": {
+      "command": "unity-mcp-server"
+    }
+  }
+}
+```
+
+### よくある問題
+
+| 症状 | 原因 | 解決策 |
+|------|------|--------|
+| `Connection timeout` | Unity Editor未起動またはホスト/ポート不一致 | Unityが起動中でポートが一致しているか確認 |
+| `ECONNREFUSED` | ファイアウォールがブロックまたはUnityが待受していない | Windowsファイアウォールを確認、Unity MCP Serverが起動しているか確認 |
+| `Unity TCP disconnected`（接続直後に切断） | プロトコル不一致またはUnityがクラッシュ | Unity Consoleでエラーを確認 |
+| `ENOTEMPTY`（npx実行時） | npxキャッシュの破損 | `rm -rf ~/.npm/_npx`を実行して再試行 |
 
 ## リリースプロセス
 

@@ -162,21 +162,53 @@ unityConnection.on('error', error => {
 });
 
 // Initialize server
-export async function startServer() {
+export async function startServer(options = {}) {
   try {
-    // Create transport - no logging before connection
-    const transport = new HybridStdioServerTransport();
+    const runtimeConfig = {
+      ...config,
+      http: { ...config.http, ...(options.http || {}) },
+      telemetry: { ...config.telemetry, ...(options.telemetry || {}) },
+      stdioEnabled: options.stdioEnabled !== undefined ? options.stdioEnabled : true
+    };
 
-    // Connect to transport
-    await server.connect(transport);
+    // Create transport - no logging before connection
+    let transport;
+    if (runtimeConfig.stdioEnabled !== false) {
+      console.error(`[unity-mcp-server] MCP transport connecting...`);
+      transport = new HybridStdioServerTransport();
+      await server.connect(transport);
+      console.error(`[unity-mcp-server] MCP transport connected`);
+    }
 
     // Now safe to log after connection established
     logger.info('MCP server started successfully');
 
+    // Optional HTTP transport
+    let httpServerInstance;
+    if (runtimeConfig.http?.enabled) {
+      const { createHttpServer } = await import('./httpServer.js');
+      httpServerInstance = createHttpServer({
+        handlers,
+        host: runtimeConfig.http.host,
+        port: runtimeConfig.http.port,
+        telemetryEnabled: runtimeConfig.telemetry.enabled,
+        healthPath: runtimeConfig.http.healthPath
+      });
+      try {
+        await httpServerInstance.start();
+      } catch (err) {
+        logger.error(`HTTP server failed to start: ${err.message}`);
+        throw err;
+      }
+    }
+
     // Attempt to connect to Unity
+    console.error(`[unity-mcp-server] Unity connection starting...`);
     try {
       await unityConnection.connect();
+      console.error(`[unity-mcp-server] Unity connection established`);
     } catch (error) {
+      console.error(`[unity-mcp-server] Unity connection failed: ${error.message}`);
       logger.error('Initial Unity connection failed:', error.message);
       logger.info('Unity connection will retry automatically');
     }
@@ -251,14 +283,16 @@ export async function startServer() {
     process.on('SIGINT', async () => {
       logger.info('Shutting down...');
       unityConnection.disconnect();
-      await server.close();
+      if (transport) await server.close();
+      if (httpServerInstance) await httpServerInstance.close();
       process.exit(0);
     });
 
     process.on('SIGTERM', async () => {
       logger.info('Shutting down...');
       unityConnection.disconnect();
-      await server.close();
+      if (transport) await server.close();
+      if (httpServerInstance) await httpServerInstance.close();
       process.exit(0);
     });
   } catch (error) {

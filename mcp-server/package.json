@@ -50,7 +50,7 @@
   "author": "Akio Jinsenji <akio-jinsenji@cloud-creative-studios.com>",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.24.0",
+    "@modelcontextprotocol/sdk": "^1.24.3",
     "better-sqlite3": "^9.4.3",
     "find-up": "^6.3.0"
   },
