@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.42.4](https://github.com/akiojin/unity-mcp-server/compare/v2.42.3...v2.42.4) (2025-12-05)
+
+
+### Bug Fixes
+
+* **mcp-server:** add bootstrap wrapper for early diagnostic logging ([60095e5](https://github.com/akiojin/unity-mcp-server/commit/60095e57cfec3a5e07ca50ce6eb42aeb3e258942))
+* **mcp-server:** add bootstrap wrapper for early diagnostic logging ([73b7479](https://github.com/akiojin/unity-mcp-server/commit/73b7479510e4882beec1431b6f16f861ced2c5ad))
+
 ## [2.42.3](https://github.com/akiojin/unity-mcp-server/compare/v2.42.2...v2.42.3) (2025-12-05)
 
 
