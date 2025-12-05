@@ -12,6 +12,7 @@ public class McpServerWindow : EditorWindow
     private string status = "Stopped";
     private readonly System.Collections.Generic.List<(string level, string message)> logs = new();
     private bool autoScroll = true;
+    private Vector2 scroll;
 
     [MenuItem("MCP Server/Start Window")]
     public static void ShowWindow()
@@ -123,7 +124,7 @@ public class McpServerWindow : EditorWindow
         serverProcess.OutputDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) AppendLog("INFO", e.Data); };
         serverProcess.ErrorDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) AppendLog("ERR", e.Data); };
         serverProcess.EnableRaisingEvents = true;
-        serverProcess.Exited += (_, __) => { status = "Stopped"; AppendLog("[MCP] process exited"); Repaint(); };
+        serverProcess.Exited += (_, __) => { status = "Stopped"; AppendLog("INFO", "[MCP] process exited"); Repaint(); };
         serverProcess.BeginOutputReadLine();
         serverProcess.BeginErrorReadLine();
         Repaint();
@@ -148,7 +149,7 @@ public class McpServerWindow : EditorWindow
 
         try
         {
-            serverProcess.Kill(true);
+            serverProcess.Kill();
             serverProcess.Dispose();
         }
         catch { }
@@ -172,4 +173,3 @@ public class McpServerWindow : EditorWindow
         StopServer();
     }
 }
-    private Vector2 scroll;
