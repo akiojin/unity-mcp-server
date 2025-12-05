@@ -606,6 +606,28 @@ Codex の MCP サーバー設定は次のファイルに作成してください
 - UnityのTCPが待受しない: プロジェクトを開き直し／ポート6400の占有を解除。
 - Node.jsが接続できない: Unity稼働確認、FW設定、Unity/Nodeのログ確認。
 - C#の型が見つからない: アセットをリフレッシュし、コンパイル完了まで待機。
+- **npx ENOTEMPTY エラー**: `npx @akiojin/unity-mcp-server@latest` 実行時に `ENOTEMPTY: directory not empty, rename ...` エラーが発生する場合は、npx キャッシュをクリアしてください:
+
+  ```bash
+  # 特定のキャッシュをクリア（エラーメッセージに表示されたパスを使用）
+  rm -rf ~/.npm/_npx/<ハッシュ値>
+  # または全 npx キャッシュをクリア
+  rm -rf ~/.npm/_npx
+  ```
+
+  これは npm/npx のキャッシュ破損の問題であり、unity-mcp-server のバグではありません。
+- **Unity Editor未起動時の接続タイムアウト**: MCPサーバーはunity-mcp-serverパッケージがインストールされたUnity Editorが起動している必要があります。Unityが起動していない場合、サーバーは30秒後にタイムアウトします。MCPサーバーを起動する前に、パッケージを含むプロジェクトでUnity Editorを開いていることを確認してください。
+
+### デバッグログ
+
+接続問題をトラブルシューティングするには、詳細ログを有効にしてください:
+
+```bash
+# ログレベルをdebugに設定
+LOG_LEVEL=debug npx @akiojin/unity-mcp-server@latest
+```
+
+利用可能なログレベル: `debug`, `info`（デフォルト）, `warn`
 
 ## リリースプロセス
 

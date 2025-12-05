@@ -564,6 +564,28 @@ Example:
 - Unity TCP not listening: reopen project; ensure port 6400 is free.
 - Node.js cannot connect: Unity running? firewall? logs in Unity/Node terminals.
 - C# types missing: refresh assets and wait until compilation completes.
+- **npx ENOTEMPTY error**: If you see `ENOTEMPTY: directory not empty, rename ...` when running `npx @akiojin/unity-mcp-server@latest`, clear the npx cache:
+
+  ```bash
+  # Clear specific cache (replace hash with actual path from error)
+  rm -rf ~/.npm/_npx/<hash>
+  # Or clear all npx cache
+  rm -rf ~/.npm/_npx
+  ```
+
+  This is an npm/npx cache corruption issue, not a unity-mcp-server bug.
+- **Connection timeout without Unity Editor**: The MCP server requires Unity Editor to be running with the unity-mcp-server package installed. If Unity is not running, the server will timeout after 30 seconds. Ensure Unity Editor is open with the project containing the package before starting the MCP server.
+
+### Debug Logging
+
+To troubleshoot connection issues, enable verbose logging:
+
+```bash
+# Set log level to debug
+LOG_LEVEL=debug npx @akiojin/unity-mcp-server@latest
+```
+
+Available log levels: `debug`, `info` (default), `warn`
 
 ## Release Process
 
