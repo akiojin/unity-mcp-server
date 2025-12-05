@@ -12,6 +12,7 @@ public class McpServerWindow : EditorWindow
     private string status = "Stopped";
     private readonly System.Collections.Generic.List<(string level, string message)> logs = new();
     private bool autoScroll = true;
+    private Vector2 scroll;
 
     [MenuItem("MCP Server/Start Window")]
     public static void ShowWindow()
@@ -172,4 +173,3 @@ public class McpServerWindow : EditorWindow
         StopServer();
     }
 }
-    private Vector2 scroll;
