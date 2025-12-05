@@ -64,7 +64,7 @@ if (unityTests.length > 0) {
     console.log(`  - ${rel}`);
   }
   console.log(
-    '[tests] These suites are executed via `pnpm run test:unity` when a Unity Editor is available.'
+    '[tests] These suites are executed via `npm run test:unity --workspace=mcp-server` when a Unity Editor is available.'
   );
 }
 

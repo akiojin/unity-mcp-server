@@ -52,43 +52,43 @@ tests/
 
 ```bash
 # Run all tests
-pnpm test
+npm test --workspace=mcp-server
 
 # Run specific test categories
-pnpm run test:unit
-pnpm run test:integration
-pnpm run test:e2e
-pnpm run test:performance
+npm run test:unit --workspace=mcp-server
+npm run test:integration --workspace=mcp-server
+npm run test:e2e --workspace=mcp-server
+npm run test:performance --workspace=mcp-server
 
 # Run with coverage
-pnpm run test:coverage
-pnpm run test:coverage:full
+npm run test:coverage --workspace=mcp-server
+npm run test:coverage:full --workspace=mcp-server
 
 # Watch mode for development
-pnpm run test:watch
-pnpm run test:watch:all
+npm run test:watch --workspace=mcp-server
+npm run test:watch:all --workspace=mcp-server
 
 # Verbose output
-pnpm run test:verbose
+npm run test:verbose --workspace=mcp-server
 
 # CI/CD friendly
-pnpm run test:ci
+npm run test:ci --workspace=mcp-server
 ```
 
 ### Environment Variables
 
 ```bash
 # Skip integration tests
-SKIP_INTEGRATION=true pnpm test
+SKIP_INTEGRATION=true npm test --workspace=mcp-server
 
 # Skip E2E tests
-SKIP_E2E=true pnpm test
+SKIP_E2E=true npm test --workspace=mcp-server
 
 # Enable verbose logging
-VERBOSE_TEST=true pnpm test
+VERBOSE_TEST=true npm test --workspace=mcp-server
 
 # CI mode (affects test selection)
-CI=true pnpm test
+CI=true npm test --workspace=mcp-server
 ```
 
 ## Test Utilities
