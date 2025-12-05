@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.42.3](https://github.com/akiojin/unity-mcp-server/compare/v2.42.2...v2.42.3) (2025-12-05)
+
+
+### Bug Fixes
+
+* **mcp-server:** add detailed connection debug logs ([1e009ea](https://github.com/akiojin/unity-mcp-server/commit/1e009ea853085ef648b1919fcbaee5cd7aff24d6))
+* **mcp-server:** add detailed connection debug logs ([81b235e](https://github.com/akiojin/unity-mcp-server/commit/81b235e29f00b3688c00d61e1f9af8ccf8686415))
+
 ## [2.42.2](https://github.com/akiojin/unity-mcp-server/compare/v2.42.1...v2.42.2) (2025-12-05)
 
 
