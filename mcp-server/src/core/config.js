@@ -1,6 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import * as findUpPkg from 'find-up';
+
+// Diagnostic log: confirm module loading reached this point
+process.stderr.write('[unity-mcp-server] Config module loading...\n');
+
 function findUpSyncCompat(matcher, options = {}) {
   if (typeof matcher === 'function') {
     let dir = options.cwd || process.cwd();
