@@ -574,7 +574,7 @@ Example:
   ```
 
   This is an npm/npx cache corruption issue, not a unity-mcp-server bug.
-- **Connection timeout without Unity Editor**: The MCP server requires Unity Editor to be running with the unity-mcp-server package installed. If Unity is not running, the server will timeout after 30 seconds. Ensure Unity Editor is open with the project containing the package before starting the MCP server.
+- **Unity connection failed**: The MCP server starts and accepts client connections even if Unity Editor is not running. However, tool calls that require Unity (e.g., `screenshot_capture`, `gameobject_create`) will fail with connection errors. The server automatically retries Unity connection in the background. Start Unity Editor with the unity-mcp-server package installed to enable full functionality.
 
 ### Debug Logging
 
@@ -586,6 +586,108 @@ LOG_LEVEL=debug npx @akiojin/unity-mcp-server@latest
 ```
 
 Available log levels: `debug`, `info` (default), `warn`
+
+### Startup Diagnostics
+
+The server outputs diagnostic information to stderr at startup:
+
+```
+[unity-mcp-server] Startup config:
+[unity-mcp-server]   Config file: /path/to/.unity/config.json
+[unity-mcp-server]   Unity host: localhost
+[unity-mcp-server]   Unity port: 6400
+[unity-mcp-server]   Workspace root: /path/to/workspace
+[unity-mcp-server] MCP transport connecting...
+[unity-mcp-server] MCP transport connected
+[unity-mcp-server] Unity TCP connecting to localhost:6400...
+[unity-mcp-server] Unity TCP connected successfully
+```
+
+This helps identify configuration mismatches, especially in cross-platform environments.
+
+### WSL2/Docker to Windows Unity Connection
+
+When running the MCP server inside WSL2 or Docker while Unity Editor runs on Windows:
+
+**Problem**: `localhost` inside WSL2/Docker does not reach the Windows host.
+
+**Solution**: Use `host.docker.internal` or the Windows host IP.
+
+**Claude Desktop config (`claude_desktop_config.json`) for WSL2/Docker**:
+
+```json
+{
+  "mcpServers": {
+    "unity-mcp-server": {
+      "command": "npx",
+      "args": ["@akiojin/unity-mcp-server@latest"],
+      "env": {
+        "UNITY_MCP_HOST": "host.docker.internal",
+        "UNITY_PORT": "6400"
+      }
+    }
+  }
+}
+```
+
+**Environment variables**:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `UNITY_MCP_HOST` | Hostname the MCP server uses to connect to Unity | `localhost` |
+| `UNITY_PORT` | Unity Editor TCP port | `6400` |
+| `UNITY_BIND_HOST` | Interface Unity listens on (Windows side) | `localhost` |
+
+**Unity Editor settings (Windows)**:
+
+In the Unity MCP Server window (`MCP Server / Start`), ensure the port matches what you set in `UNITY_PORT`. Default is 6400.
+
+**Verifying connectivity from WSL2**:
+
+```bash
+# Check if Unity is reachable
+nc -zv host.docker.internal 6400
+
+# Or using the host IP directly
+nc -zv $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}') 6400
+```
+
+### npx First-Run Delay
+
+The first `npx @akiojin/unity-mcp-server@latest` invocation downloads the package, which may take several seconds. If your MCP client times out:
+
+**Solution 1**: Pre-cache the package
+
+```bash
+npx @akiojin/unity-mcp-server@latest --version
+```
+
+**Solution 2**: Install globally
+
+```bash
+npm install -g @akiojin/unity-mcp-server
+```
+
+Then update your config to use the global binary:
+
+```json
+{
+  "mcpServers": {
+    "unity-mcp-server": {
+      "command": "unity-mcp-server"
+    }
+  }
+}
+```
+
+### Common Issues
+
+| Symptom | Cause | Solution |
+|---------|-------|----------|
+| `Connection timeout` | Unity Editor not running or wrong host/port | Check Unity is running and port matches |
+| `ECONNREFUSED` | Firewall blocking or Unity not listening | Check Windows Firewall, verify Unity MCP Server is started |
+| `Unity TCP disconnected` immediately after connect | Protocol mismatch or Unity crashed | Check Unity Console for errors |
+| `ENOTEMPTY` on npx | Stale npx cache | Run `rm -rf ~/.npm/_npx` and retry |
 
 ## Release Process
 
