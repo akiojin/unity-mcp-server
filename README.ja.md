@@ -19,6 +19,48 @@ Unity MCP Server は、LLMクライアントからUnity Editorを自動化しま
 - **TDD**: Red-Green-Refactorサイクル強制; 実装前にテスト作成
 - **テストカバレッジ**: ユニットテスト (80%以上), 統合テスト (クリティカルパス100%)
 
+### セットアップ
+Unity: Package Manager → git URL から追加 → `https://github.com/akiojin/unity-mcp-server.git?path=UnityMCPServer/Packages/unity-mcp-server`
+MCPクライアント設定例 (Claude Desktop):
+  - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+  - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+  - 追加例:
+    ```json
+    {
+      "mcpServers": {
+        "unity-mcp-server": {
+          "command": "npx",
+          "args": ["@akiojin/unity-mcp-server@latest"]
+        }
+      }
+    }
+    ```
+
+### HTTPモード（HTTPのみ許可されたネットワーク向け）
+```
+npx @akiojin/unity-mcp-server --http 6401 --no-telemetry
+curl http://localhost:6401/healthz
+```
+- `--http [port]` で HTTP リスナー起動（ヘルスチェック: `/healthz`）。
+- `--no-telemetry` で外向き送信なしを明示（デフォルトoff）。
+- `--no-stdio` で stdio を無効にし HTTP のみにもできる。
+- Host ヘッダは `localhost` / `127.0.0.1` のみ許可（`UNITY_MCP_HTTP_ALLOWED_HOSTS` で変更可）。
+
+### テレメトリポリシー
+- 既定: off（送信なし）。
+- 明示オン: `--telemetry` または `UNITY_MCP_TELEMETRY=on`。
+
+### マルチインスタンス CLI
+```
+unity-mcp-server list-instances --ports=6400,6401 --host=localhost --json
+unity-mcp-server set-active localhost:6401
+```
+
+### Unity エディタ GUI（非開発者向け）
+- メニュー: `MCP Server / Start` でウィンドウを開き Start/Stop、HTTP/Telemetry トグルとポート設定。
+- サンプル: 「Run Sample (Scene)」「Run Sample (Addressables)」で動作デモを実行。
+- Play Mode中はボタンを無効化。Addressables未導入プロジェクトではサンプルがスキップされる旨を表示。
+
 Spec Kitワークフロー (`/speckit.specify`, `/speckit.plan`, `/speckit.tasks`) も参照してください。
 
 ### Gitフック（Husky）

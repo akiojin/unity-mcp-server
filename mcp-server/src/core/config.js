@@ -1,6 +1,22 @@
 import fs from 'fs';
 import path from 'path';
-import { findUpSync } from 'find-up';
+import * as findUpPkg from 'find-up';
+function findUpSyncCompat(matcher, options = {}) {
+  if (typeof matcher === 'function') {
+    let dir = options.cwd || process.cwd();
+    const { root } = path.parse(dir);
+    // walk up until root
+    while (true) {
+      const found = matcher(dir);
+      if (found) return found;
+      if (dir === root) return undefined;
+      dir = path.dirname(dir);
+    }
+  }
+  if (typeof findUpPkg.sync === 'function') return findUpPkg.sync(matcher, options);
+  if (typeof findUpPkg === 'function') return findUpPkg(matcher, options);
+  return undefined;
+}
 
 /**
  * Shallow merge utility (simple objects only)
@@ -28,7 +44,7 @@ function resolvePackageVersion() {
 
   // When executed from workspace root (monorepo) or inside mcp-server package
   try {
-    const here = findUpSync('package.json', { cwd: process.cwd() });
+    const here = findUpSyncCompat('package.json', { cwd: process.cwd() });
     if (here) candidates.push(here);
   } catch {}
 
@@ -46,8 +62,7 @@ function resolvePackageVersion() {
 /**
  * Base configuration for Unity MCP Server Server
  */
-const envUnityHost =
-  process.env.UNITY_BIND_HOST || process.env.UNITY_HOST || null;
+const envUnityHost = process.env.UNITY_BIND_HOST || process.env.UNITY_HOST || null;
 
 const envMcpHost =
   process.env.UNITY_MCP_HOST || process.env.UNITY_CLIENT_HOST || process.env.UNITY_HOST || null;
@@ -78,6 +93,24 @@ const baseConfig = {
   logging: {
     level: process.env.LOG_LEVEL || 'info',
     prefix: '[Unity MCP Server]'
+  },
+
+  // HTTP transport (off by default)
+  http: {
+    enabled: (process.env.UNITY_MCP_HTTP_ENABLED || 'false').toLowerCase() === 'true',
+    host: process.env.UNITY_MCP_HTTP_HOST || '0.0.0.0',
+    port: parseInt(process.env.UNITY_MCP_HTTP_PORT || '', 10) || 6401,
+    healthPath: '/healthz',
+    allowedHosts: (process.env.UNITY_MCP_HTTP_ALLOWED_HOSTS || 'localhost,127.0.0.1')
+      .split(',')
+      .map(h => h.trim())
+      .filter(h => h.length > 0)
+  },
+
+  telemetry: {
+    enabled: (process.env.UNITY_MCP_TELEMETRY || 'off').toLowerCase() === 'on',
+    destinations: [],
+    fields: []
   },
 
   // Write queue removed: all edits go through structured Roslyn tools.
@@ -145,9 +178,12 @@ function ensureDefaultProjectConfig(baseDir) {
 }
 
 function loadExternalConfig() {
+  if (typeof findUpSyncCompat !== 'function') {
+    return {};
+  }
   const explicitPath = process.env.UNITY_MCP_CONFIG;
 
-  const projectPath = findUpSync(
+  const projectPath = findUpSyncCompat(
     directory => {
       const candidate = path.resolve(directory, '.unity', 'config.json');
       return fs.existsSync(candidate) ? candidate : undefined;
