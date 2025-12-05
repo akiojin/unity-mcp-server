@@ -107,7 +107,7 @@ sync_props() {
 sync_props "csharp-lsp/Directory.Build.props" "$NEW_VER"
 
 # 変更ファイルをコミット（npmが自動コミットしない場合の保険）
-git add mcp-server/package.json pnpm-lock.yaml \
+git add mcp-server/package.json \
         UnityMCPServer/Packages/unity-mcp-server/package.json \
         csharp-lsp/Directory.Build.props 2>/dev/null || true
 if ! git diff --cached --quiet; then

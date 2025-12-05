@@ -52,7 +52,7 @@
 - `contracts/profiler-start.json`をスキーマとして参照
 
 **検証**:
-- `pnpm run lint`がエラーなく完了
+- `npm run lint --workspace=mcp-server`がエラーなく完了
 - BaseToolHandlerを正しく継承している
 
 **依存関係**: なし [P]
@@ -70,7 +70,7 @@
 - `contracts/profiler-stop.json`をスキーマとして参照
 
 **検証**:
-- `pnpm run lint`がエラーなく完了
+- `npm run lint --workspace=mcp-server`がエラーなく完了
 - BaseToolHandlerを正しく継承している
 
 **依存関係**: なし [P]
@@ -88,7 +88,7 @@
 - `contracts/profiler-status.json`をスキーマとして参照
 
 **検証**:
-- `pnpm run lint`がエラーなく完了
+- `npm run lint --workspace=mcp-server`がエラーなく完了
 - BaseToolHandlerを正しく継承している
 
 **依存関係**: なし [P]
@@ -106,7 +106,7 @@
 - `contracts/profiler-get-metrics.json`をスキーマとして参照
 
 **検証**:
-- `pnpm run lint`がエラーなく完了
+- `npm run lint --workspace=mcp-server`がエラーなく完了
 - BaseToolHandlerを正しく継承している
 
 **依存関係**: なし [P]
@@ -168,7 +168,7 @@
 
 **検証**:
 - テストを実行すると5つすべてが失敗する（RED）
-- `pnpm run test:integration`で実行可能
+- `npm run test:integration --workspace=mcp-server`で実行可能
 
 **依存関係**: T006, T007 [P]
 
@@ -189,7 +189,7 @@
 
 **検証**:
 - テストを実行すると5つすべてが失敗する（RED）
-- `pnpm run test:integration`で実行可能
+- `npm run test:integration --workspace=mcp-server`で実行可能
 
 **依存関係**: T006, T007 [P]
 
@@ -208,7 +208,7 @@
 
 **検証**:
 - テストを実行すると3つすべてが失敗する（RED）
-- `pnpm run test:integration`で実行可能
+- `npm run test:integration --workspace=mcp-server`で実行可能
 
 **依存関係**: T006, T007 [P]
 
@@ -228,7 +228,7 @@
 
 **検証**:
 - テストを実行すると4つすべてが失敗する（RED）
-- `pnpm run test:integration`で実行可能
+- `npm run test:integration --workspace=mcp-server`で実行可能
 
 **依存関係**: T006, T007 [P]
 
@@ -242,7 +242,7 @@
 - テスト失敗の原因が「実装がない」ことであることを確認
 
 **検証**:
-- `pnpm run test:integration -- profiler`で17個のテストすべてが失敗
+- `npm run test:integration --workspace=mcp-server -- --profiler`で17個のテストすべてが失敗
 - エラーメッセージが「機能未実装」または「ハンドラーが空」であることを確認
 
 **依存関係**: T008, T009, T010, T011
@@ -444,8 +444,8 @@
 - カバレッジが80%以上であることを確認
 
 **検証**:
-- `pnpm run test:integration -- profiler`で17個のテストすべてが合格
-- `pnpm run test:coverage`でカバレッジレポート生成
+- `npm run test:integration --workspace=mcp-server -- --profiler`で17個のテストすべてが合格
+- `npm run test:coverage --workspace=mcp-server`でカバレッジレポート生成
 
 **依存関係**: T017, T018, T019, T020
 
@@ -530,7 +530,7 @@
 - モックUnity接続を使用してハンドラーロジックのみテスト
 
 **検証**:
-- `pnpm run test:unit`ですべてのunit testsが合格
+- `npm run test:unit --workspace=mcp-server`ですべてのunit testsが合格
 - カバレッジ80%以上を維持
 
 **依存関係**: T017, T018, T019, T020 [P]
@@ -590,7 +590,7 @@
   4. 既存のVideoCapture/Screenshot機能と同じフォーマットで記載
 
 **検証**:
-- `pnpm run lint:md`がエラーなく完了
+- `npm run lint:md --workspace=mcp-server`がエラーなく完了
 - README.mdがGitHub上で正しくレンダリングされる
 
 **依存関係**: T021 [P]
@@ -634,7 +634,7 @@
 **検証**:
 - すべてのテストが引き続き合格する
 - コードカバレッジが維持される
-- `pnpm run lint`がエラーなく完了
+- `npm run lint --workspace=mcp-server`がエラーなく完了
 
 **依存関係**: T021
 
@@ -725,7 +725,7 @@ Task: "quickstart.md検証実行"
 ### 各タスク後のアクション
 - 実装後、該当するテストを実行して確認
 - コミットメッセージはConventional Commits形式
-- `pnpm run lint`と`pnpm run test`を実行してエラーがないことを確認
+- `npm run lint --workspace=mcp-server`と`npm run test --workspace=mcp-server`を実行してエラーがないことを確認
 
 ### エラー対処
 - テスト失敗時は実装をロールバックして再度RED-GREEN-Refactorサイクル

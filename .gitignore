@@ -50,7 +50,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .npm
-.pnpm-store/
 .yarn-integrity
 *.log
 
@@ -103,7 +102,6 @@ CLAUDE.local.md
 
 csharp-lsp/bin/
 csharp-lsp/out/
-.pnpm-store/
 
 # Claude Code Hook temporary files
 .claude/.last-suggest-timestamp

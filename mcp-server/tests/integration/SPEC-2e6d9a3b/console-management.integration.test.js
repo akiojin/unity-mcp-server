@@ -7,7 +7,7 @@
  * - TCP接続がlocalhost:6400で待機している
  *
  * 実行方法:
- * pnpm run test:integration -- tests/integration/SPEC-2e6d9a3b/*.test.js
+ * npm run test:integration --workspace=mcp-server -- tests/integration/SPEC-2e6d9a3b/*.test.js
  */
 
 import { describe, it, before, after, beforeEach } from 'node:test';

@@ -8,7 +8,7 @@
  * - Unity側にテストが存在する（Packages/unity-mcp-server/Tests/Editor/）
  *
  * 実行方法:
- * pnpm run test:integration -- tests/integration/SPEC-e7c9b50c/*.test.js
+ * npm run test:integration --workspace=mcp-server -- tests/integration/SPEC-e7c9b50c/*.test.js
  */
 
 import { describe, it, before, after, beforeEach } from 'node:test';
