@@ -92,7 +92,7 @@ const baseConfig = {
   // Logging settings
   logging: {
     level: process.env.LOG_LEVEL || 'info',
-    prefix: '[Unity MCP Server]'
+    prefix: '[unity-mcp-server]'
   },
 
   // HTTP transport (off by default)

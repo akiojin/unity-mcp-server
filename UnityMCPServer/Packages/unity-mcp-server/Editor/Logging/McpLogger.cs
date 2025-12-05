@@ -4,11 +4,11 @@ namespace UnityMCPServer.Logging
 {
     /// <summary>
     /// Centralized logging utility for Unity MCP Server.
-    /// All log messages are prefixed with [UnityMCPServer] for easy filtering.
+    /// All log messages are prefixed with [unity-mcp-server] for easy filtering.
     /// </summary>
     public static class McpLogger
     {
-        private const string Prefix = "[UnityMCPServer]";
+        private const string Prefix = "[unity-mcp-server]";
 
         public static void Log(string message)
         {
