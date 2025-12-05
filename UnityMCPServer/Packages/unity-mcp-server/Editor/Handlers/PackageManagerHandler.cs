@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -60,32 +60,37 @@ namespace UnityMCPServer.Handlers
         /// Search for packages in Unity Registry
         /// </summary>
         private static object SearchPackages(JObject parameters)
-        {
+{
             try
             {
                 var keyword = parameters["keyword"]?.ToString();
                 var limit = parameters["limit"]?.ToObject<int>() ?? 20;
-                
+
                 if (string.IsNullOrEmpty(keyword))
                 {
                     return new { error = "Search keyword is required" };
                 }
-                
-                // Unity Package Manager search
-                searchRequest = Client.Search(keyword);
-                
+
+                // Use SearchAll() to get all packages, then filter by keyword
+                // Client.Search(keyword) expects exact package ID match, not keyword search
+                searchRequest = Client.SearchAll();
+
                 // Wait for search to complete (synchronously for MCP)
                 while (!searchRequest.IsCompleted)
                 {
                     System.Threading.Thread.Sleep(10);
                 }
-                
+
                 if (searchRequest.Status == StatusCode.Success)
                 {
                     var results = new List<object>();
-                    var packages = searchRequest.Result.Take(limit);
-                    
-                    foreach (var package in packages)
+
+                    // Filter packages by keyword matching displayName, name, description, or keywords
+                    var filteredPackages = searchRequest.Result
+                        .Where(package => MatchesKeyword(package, keyword))
+                        .Take(limit);
+
+                    foreach (var package in filteredPackages)
                     {
                         results.Add(new
                         {
@@ -99,7 +104,7 @@ namespace UnityMCPServer.Handlers
                             category = DeterminePackageCategory(package)
                         });
                     }
-                    
+
                     return new
                     {
                         success = true,
@@ -114,7 +119,7 @@ namespace UnityMCPServer.Handlers
                 {
                     return new { error = $"Search failed: {searchRequest.Error?.message}" };
                 }
-                
+
                 return new { error = "Search request did not complete successfully" };
             }
             catch (Exception e)
@@ -122,8 +127,36 @@ namespace UnityMCPServer.Handlers
                 McpLogger.LogError("PackageManagerHandler", $"Error searching packages: {e.Message}");
                 return new { error = $"Failed to search packages: {e.Message}" };
             }
+        }        
+
+        /// <summary>
+        /// Check if a package matches the search keyword
+        /// </summary>
+        private static bool MatchesKeyword(UnityEditor.PackageManager.PackageInfo package, string keyword)
+        {
+            var lowerKeyword = keyword.ToLower();
+
+            // Match against displayName
+            if (package.displayName?.ToLower().Contains(lowerKeyword) == true)
+                return true;
+
+            // Match against name (package identifier)
+            if (package.name?.ToLower().Contains(lowerKeyword) == true)
+                return true;
+
+            // Match against description
+            if (package.description?.ToLower().Contains(lowerKeyword) == true)
+                return true;
+
+            // Match against keywords array
+            if (package.keywords != null)
+            {
+                if (package.keywords.Any(k => k.ToLower().Contains(lowerKeyword)))
+                    return true;
+            }
+
+            return false;
         }
-        
         /// <summary>
         /// List installed packages
         /// </summary>
