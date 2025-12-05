@@ -21,6 +21,7 @@ export class UnityConnection extends EventEmitter {
     this.sendQueue = [];
     this.inFlight = 0;
     this.maxInFlight = 1; // process one command at a time by default
+    this.connectedAt = null; // Timestamp when connection was established
   }
 
   /**
@@ -77,8 +78,11 @@ export class UnityConnection extends EventEmitter {
 
       // Set up event handlers
       this.socket.on('connect', () => {
-        console.error(`[unity-mcp-server] Unity TCP connected successfully`);
-        logger.info('Connected to Unity Editor');
+        this.connectedAt = Date.now();
+        console.error(
+          `[unity-mcp-server] Unity TCP connected to ${targetHost}:${config.unity.port}`
+        );
+        logger.info(`Connected to Unity Editor at ${targetHost}:${config.unity.port}`);
         this.connected = true;
         this.reconnectAttempts = 0;
         this.connectPromise = null;
@@ -88,6 +92,12 @@ export class UnityConnection extends EventEmitter {
       });
 
       this.socket.on('end', () => {
+        // Unity closed the connection (FIN received)
+        const duration = this.connectedAt ? Date.now() - this.connectedAt : 0;
+        console.error(
+          `[unity-mcp-server] Unity TCP connection ended by remote (FIN received, duration: ${duration}ms)`
+        );
+        logger.info(`Unity closed connection (FIN received) after ${duration}ms`);
         // Treat end as close to trigger reconnection
         this.socket.destroy();
       });
@@ -130,9 +140,11 @@ export class UnityConnection extends EventEmitter {
           return;
         }
 
-        console.error(`[unity-mcp-server] Unity TCP disconnected`);
-        logger.info('Disconnected from Unity Editor');
+        const duration = this.connectedAt ? Date.now() - this.connectedAt : 0;
+        console.error(`[unity-mcp-server] Unity TCP disconnected (duration: ${duration}ms)`);
+        logger.info(`Disconnected from Unity Editor after ${duration}ms`);
         this.connected = false;
+        this.connectedAt = null;
         this.socket = null;
 
         // Clear message buffer
@@ -231,6 +243,9 @@ export class UnityConnection extends EventEmitter {
    * @param {Buffer} data
    */
   handleData(data) {
+    // Log received data size for debugging connection issues
+    console.error(`[unity-mcp-server] Received ${data.length} bytes from Unity`);
+
     // Fast-path: accept single unframed JSON message (NDJSON style) from tests/clients
     if (!this.messageBuffer.length) {
       const asString = data.toString('utf8').trim();
