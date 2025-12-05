@@ -178,10 +178,7 @@ function ensureDefaultProjectConfig(baseDir) {
 }
 
 function loadExternalConfig() {
-  if (process.env.NODE_ENV === 'test') {
-    return {};
-  }
-  if (typeof findUpSync !== 'function') {
+  if (typeof findUpSyncCompat !== 'function') {
     return {};
   }
   const explicitPath = process.env.UNITY_MCP_CONFIG;
