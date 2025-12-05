@@ -48,6 +48,9 @@ export class UnityConnection extends EventEmitter {
       }
 
       const targetHost = config.unity.mcpHost || config.unity.unityHost;
+      console.error(
+        `[unity-mcp-server] Unity TCP connecting to ${targetHost}:${config.unity.port}...`
+      );
       logger.info(`Connecting to Unity at ${targetHost}:${config.unity.port}...`);
 
       this.socket = new net.Socket();
@@ -74,6 +77,7 @@ export class UnityConnection extends EventEmitter {
 
       // Set up event handlers
       this.socket.on('connect', () => {
+        console.error(`[unity-mcp-server] Unity TCP connected successfully`);
         logger.info('Connected to Unity Editor');
         this.connected = true;
         this.reconnectAttempts = 0;
@@ -93,6 +97,7 @@ export class UnityConnection extends EventEmitter {
       });
 
       this.socket.on('error', error => {
+        console.error(`[unity-mcp-server] Unity TCP error: ${error.message}`);
         logger.error('Socket error:', error.message);
         if (this.listenerCount('error') > 0) {
           this.emit('error', error);
@@ -121,9 +126,11 @@ export class UnityConnection extends EventEmitter {
 
         // Check if we're already handling disconnection
         if (this.isDisconnecting || !this.socket) {
+          console.error(`[unity-mcp-server] Unity TCP close event (already disconnecting)`);
           return;
         }
 
+        console.error(`[unity-mcp-server] Unity TCP disconnected`);
         logger.info('Disconnected from Unity Editor');
         this.connected = false;
         this.socket = null;

@@ -174,8 +174,10 @@ export async function startServer(options = {}) {
     // Create transport - no logging before connection
     let transport;
     if (runtimeConfig.stdioEnabled !== false) {
+      console.error(`[unity-mcp-server] MCP transport connecting...`);
       transport = new HybridStdioServerTransport();
       await server.connect(transport);
+      console.error(`[unity-mcp-server] MCP transport connected`);
     }
 
     // Now safe to log after connection established
@@ -201,9 +203,12 @@ export async function startServer(options = {}) {
     }
 
     // Attempt to connect to Unity
+    console.error(`[unity-mcp-server] Unity connection starting...`);
     try {
       await unityConnection.connect();
+      console.error(`[unity-mcp-server] Unity connection established`);
     } catch (error) {
+      console.error(`[unity-mcp-server] Unity connection failed: ${error.message}`);
       logger.error('Initial Unity connection failed:', error.message);
       logger.info('Unity connection will retry automatically');
     }

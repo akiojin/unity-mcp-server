@@ -301,3 +301,13 @@ if (config.__configLoadError) {
   );
   delete config.__configLoadError;
 }
+
+// Startup debug log: output config info to stderr for troubleshooting
+// This helps diagnose connection issues (especially in WSL2/Docker environments)
+console.error(`[unity-mcp-server] Startup config:`);
+console.error(`[unity-mcp-server]   Config file: ${config.__configPath || '(defaults)'}`);
+console.error(
+  `[unity-mcp-server]   Unity host: ${config.unity.mcpHost || config.unity.unityHost || 'localhost'}`
+);
+console.error(`[unity-mcp-server]   Unity port: ${config.unity.port}`);
+console.error(`[unity-mcp-server]   Workspace root: ${WORKSPACE_ROOT}`);
