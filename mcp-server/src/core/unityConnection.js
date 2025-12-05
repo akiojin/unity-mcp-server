@@ -247,7 +247,7 @@ export class UnityConnection extends EventEmitter {
     // Check if this is an unframed Unity debug log
     if (data.length > 0 && !this.messageBuffer.length) {
       const dataStr = data.toString('utf8');
-      if (dataStr.startsWith('[Unity MCP Server]') || dataStr.startsWith('[Unity]')) {
+      if (dataStr.startsWith('[unity-mcp-server]') || dataStr.startsWith('[Unity]')) {
         logger.debug(`[Unity] Received unframed debug log: ${dataStr.trim()}`);
         // Don't process unframed logs as messages
         return;
@@ -322,7 +322,7 @@ export class UnityConnection extends EventEmitter {
 
           // Check if this looks like a Unity log message
           const messageStr = messageData.toString();
-          if (messageStr.includes('[Unity MCP Server]')) {
+          if (messageStr.includes('[unity-mcp-server]')) {
             logger.debug('[Unity] Received Unity log message instead of JSON response');
             // Don't treat this as a critical error
           }
