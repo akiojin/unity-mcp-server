@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.42.1](https://github.com/akiojin/unity-mcp-server/compare/v2.42.0...v2.42.1) (2025-12-05)
+
+
+### Bug Fixes
+
+* **lsp:** add grace period for LSP process shutdown on timeout recovery ([b11fd9e](https://github.com/akiojin/unity-mcp-server/commit/b11fd9ec61ae8a552c165d40face214bd2a755a1))
+* **lsp:** add grace period for LSP process shutdown on timeout recovery ([636ab9d](https://github.com/akiojin/unity-mcp-server/commit/636ab9d4561afb88cd74b4506258862667adadab))
+
 ## [2.42.0](https://github.com/akiojin/unity-mcp-server/compare/v2.41.8...v2.42.0) (2025-11-27)
 
 

@@ -8,9 +8,9 @@
 - 各ケースの details には `targetPaths: [<相対パス>...]` を付記（単一でも配列）。
 
 観測不能時の二次検証（エビデンス・エスカレーション）
-- 差分検証: `UnityMCP__asset_material_modify` 適用の前後でプロパティ値を比較（事前は `UnityMCP__asset_material_create`/既存読取）。
+- 差分検証: `asset_material_modify` 適用の前後でプロパティ値を比較（事前は `asset_material_create`/既存読取）。
 - 構造検証: マテリアルの shader/keywords 変化を確認。
-- 参照検証: マテリアル参照箇所の増減は `get_object_references` で補助。
+- 参照検証: マテリアル参照箇所の増減は `analysis_object_references_get` で補助。
 - なお判定不能時のみ `skip（OBSERVATION_GAP）`。
 
 原状回復（必須）・禁止事項:
