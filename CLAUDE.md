@@ -659,6 +659,9 @@ git commit -m "feat: add hooks and fix bug and update docs"
 
 #### リリースフロー（feature → develop → main + tag）
 
+**PRターゲットの絶対ルール**
+- featureブランチから作成するPRの宛先は必ず`develop`。`main`への直接PRは禁止（hotfixも`develop`経由でバックポート）。
+
 1. **featureブランチで開発**（Conventional Commits厳守）
    - `finish-feature.sh`でPR作成 → develop向け。
    - Required Checks（Markdown/ESLint/Prettier・Commit Message Lint）成功でauto-merge。
