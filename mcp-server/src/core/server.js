@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import {
+  ListToolsRequestSchema,
+  CallToolRequestSchema,
+  SetLevelRequestSchema
+} from '@modelcontextprotocol/sdk/types.js';
 // Note: filename is lowercase on disk; use exact casing for POSIX filesystems
 import { UnityConnection } from './unityConnection.js';
 import { createHandlers } from '../handlers/index.js';
@@ -24,13 +28,23 @@ const server = new Server(
     capabilities: {
       // Explicitly advertise tool support; some MCP clients expect a non-empty object
       // Setting listChanged enables future push updates if we emit notifications
-      tools: { listChanged: true }
+      tools: { listChanged: true },
+      // Enable MCP logging capability for sendLoggingMessage
+      logging: {}
     }
   }
 );
 
 // Register MCP protocol handlers
 // Note: Do not log here as it breaks MCP protocol initialization
+
+// Handle logging/setLevel request (REQ-6)
+server.setRequestHandler(SetLevelRequestSchema, async request => {
+  const { level } = request.params;
+  logger.setLevel(level);
+  logger.info(`Log level changed to: ${level}`);
+  return {};
+});
 
 // Handle tool listing
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -178,6 +192,9 @@ export async function startServer(options = {}) {
       transport = new HybridStdioServerTransport();
       await server.connect(transport);
       console.error(`[unity-mcp-server] MCP transport connected`);
+
+      // Enable MCP logging notifications (REQ-4)
+      logger.setServer(server);
     }
 
     // Now safe to log after connection established
@@ -228,7 +245,7 @@ export async function startServer(options = {}) {
         process.on('SIGINT', shutdown);
         process.on('SIGTERM', shutdown);
       } catch (e) {
-        logger.warn(`[startup] csharp-lsp start failed: ${e.message}`);
+        logger.warning(`[startup] csharp-lsp start failed: ${e.message}`);
       }
     })();
 
@@ -252,7 +269,7 @@ export async function startServer(options = {}) {
 
         if (!ready) {
           if (index.disabled) {
-            logger.warn(
+            logger.warning(
               `[startup] Code index disabled: ${index.disableReason || 'SQLite native binding missing'}. Skipping auto-build.`
             );
             return;
@@ -269,13 +286,13 @@ export async function startServer(options = {}) {
               `[startup] Code index auto-build started: jobId=${result.jobId}. Use code_index_status to check progress.`
             );
           } else {
-            logger.warn(`[startup] Code index auto-build failed: ${result.message}`);
+            logger.warning(`[startup] Code index auto-build failed: ${result.message}`);
           }
         } else {
           logger.info('[startup] Code index DB already exists. Skipping auto-build.');
         }
       } catch (e) {
-        logger.warn(`[startup] Code index auto-init failed: ${e.message}`);
+        logger.warning(`[startup] Code index auto-init failed: ${e.message}`);
       }
     })();
 

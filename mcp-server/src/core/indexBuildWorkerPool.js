@@ -68,7 +68,7 @@ export class IndexBuildWorkerPool {
               try {
                 cb(message.data);
               } catch (e) {
-                logger.warn(`[worker-pool] Progress callback error: ${e.message}`);
+                logger.warning(`[worker-pool] Progress callback error: ${e.message}`);
               }
             });
 
@@ -102,7 +102,7 @@ export class IndexBuildWorkerPool {
 
         this.worker.on('exit', code => {
           if (code !== 0 && this.worker) {
-            logger.warn(`[worker-pool] Worker exited with code ${code}`);
+            logger.warning(`[worker-pool] Worker exited with code ${code}`);
             this._cleanup();
             reject(new Error(`Worker exited with code ${code}`));
           }

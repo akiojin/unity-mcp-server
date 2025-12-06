@@ -23,7 +23,7 @@ export class LspProcessManager {
         const proc = spawn(bin, { stdio: ['pipe', 'pipe', 'pipe'] });
         proc.on('error', e => logger.error(`[csharp-lsp] process error: ${e.message}`));
         proc.on('close', (code, sig) => {
-          logger.warn(`[csharp-lsp] exited code=${code} signal=${sig || ''}`);
+          logger.warning(`[csharp-lsp] exited code=${code} signal=${sig || ''}`);
           if (this.state.proc === proc) {
             this.state.proc = null;
           }

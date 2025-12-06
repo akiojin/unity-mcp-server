@@ -210,7 +210,9 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
             // This allows build to continue even if some files fail
             if (processed % 50 === 0) {
               // Log occasionally to avoid spam
-              logger.warn(`[index][${job.id}] Skipped file due to error: ${rel} - ${err.message}`);
+              logger.warning(
+                `[index][${job.id}] Skipped file due to error: ${rel} - ${err.message}`
+              );
             }
           } finally {
             processed += 1;

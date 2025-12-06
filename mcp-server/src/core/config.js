@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import * as findUpPkg from 'find-up';
+import { MCPLogger } from './mcpLogger.js';
 
 // Diagnostic log: confirm module loading reached this point
 process.stderr.write('[unity-mcp-server] Config module loading...\n');
@@ -273,30 +274,11 @@ export const WORKSPACE_ROOT = workspaceRoot;
  * Logger utility
  * IMPORTANT: In MCP servers, all stdout output must be JSON-RPC protocol messages.
  * Logging must go to stderr to avoid breaking the protocol.
+ *
+ * MCP SDK-compliant logger with RFC 5424 log levels.
+ * Supports dual output: stderr (developer) + MCP notification (client)
  */
-export const logger = {
-  info: (message, ...args) => {
-    if (['info', 'debug'].includes(config.logging.level)) {
-      console.error(`${config.logging.prefix} ${message}`, ...args);
-    }
-  },
-
-  warn: (message, ...args) => {
-    if (['info', 'debug', 'warn'].includes(config.logging.level)) {
-      console.error(`${config.logging.prefix} WARN: ${message}`, ...args);
-    }
-  },
-
-  error: (message, ...args) => {
-    console.error(`${config.logging.prefix} ERROR: ${message}`, ...args);
-  },
-
-  debug: (message, ...args) => {
-    if (config.logging.level === 'debug') {
-      console.error(`${config.logging.prefix} DEBUG: ${message}`, ...args);
-    }
-  }
-};
+export const logger = new MCPLogger(config);
 
 // Late log if external config failed to load
 if (config.__configLoadError) {
