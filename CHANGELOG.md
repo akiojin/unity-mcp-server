@@ -10,6 +10,35 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.42.4](https://github.com/akiojin/unity-mcp-server/compare/v2.42.3...v2.42.4) (2025-12-05)
+
+
+### Bug Fixes
+
+* **mcp-server:** add bootstrap wrapper for early diagnostic logging ([60095e5](https://github.com/akiojin/unity-mcp-server/commit/60095e57cfec3a5e07ca50ce6eb42aeb3e258942))
+* **mcp-server:** add bootstrap wrapper for early diagnostic logging ([73b7479](https://github.com/akiojin/unity-mcp-server/commit/73b7479510e4882beec1431b6f16f861ced2c5ad))
+
+## [2.42.3](https://github.com/akiojin/unity-mcp-server/compare/v2.42.2...v2.42.3) (2025-12-05)
+
+
+### Bug Fixes
+
+* **mcp-server:** add detailed connection debug logs ([1e009ea](https://github.com/akiojin/unity-mcp-server/commit/1e009ea853085ef648b1919fcbaee5cd7aff24d6))
+* **mcp-server:** add detailed connection debug logs ([81b235e](https://github.com/akiojin/unity-mcp-server/commit/81b235e29f00b3688c00d61e1f9af8ccf8686415))
+
+## [2.42.2](https://github.com/akiojin/unity-mcp-server/compare/v2.42.1...v2.42.2) (2025-12-05)
+
+
+### Bug Fixes
+
+* add startup diagnostics and WSL2/Docker troubleshooting guide ([e4c6259](https://github.com/akiojin/unity-mcp-server/commit/e4c625917e6b82dc1776ffa4761abe2fb025074f))
+* config find-up compatibility ([0a5f2ec](https://github.com/akiojin/unity-mcp-server/commit/0a5f2ecbbeddbd7b529bde898a21596cf0c2931e))
+* editor window compile errors (EditorStyles, AppendLog, Kill overload) ([bbefff5](https://github.com/akiojin/unity-mcp-server/commit/bbefff585a5691ac80c658dc2ff432fe8b89057c))
+* **package:** use SearchAll() for keyword-based package search ([acda256](https://github.com/akiojin/unity-mcp-server/commit/acda2566c19cda04ad2cc927233b0f89082ca103))
+* **package:** use SearchAll() for keyword-based package search ([d88b095](https://github.com/akiojin/unity-mcp-server/commit/d88b0951aca9122a1c30caeb71ab65b3bc508504))
+* place scroll field inside McpServerWindow class ([c612947](https://github.com/akiojin/unity-mcp-server/commit/c6129473c76df035a2ea435893042b67063de41f))
+* Unity editor window compile issues ([a1accc5](https://github.com/akiojin/unity-mcp-server/commit/a1accc54bfa7a9659bbd6ba1181f50b096e32822))
+
 ## [2.42.1](https://github.com/akiojin/unity-mcp-server/compare/v2.42.0...v2.42.1) (2025-12-05)
 
 
