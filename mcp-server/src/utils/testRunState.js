@@ -27,7 +27,7 @@ await (async () => {
     logger.info(`[testRunState] Loaded persisted state from ${runStatePath}`);
   } catch (error) {
     if (error.code !== 'ENOENT') {
-      logger.warn(`[testRunState] Failed to load state from ${runStatePath}: ${error.message}`);
+      logger.warning(`[testRunState] Failed to load state from ${runStatePath}: ${error.message}`);
     }
   }
 })();
@@ -85,6 +85,6 @@ async function persist() {
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(runStatePath, JSON.stringify(state, null, 2) + '\n', 'utf8');
   } catch (error) {
-    logger.warn(`[testRunState] Failed to persist state to ${runStatePath}: ${error.message}`);
+    logger.warning(`[testRunState] Failed to persist state to ${runStatePath}: ${error.message}`);
   }
 }
