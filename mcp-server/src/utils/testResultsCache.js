@@ -30,7 +30,9 @@ export async function persistTestResults(result) {
     await fs.writeFile(filePath, `${JSON.stringify(result, null, 2)}\n`, 'utf8');
     return filePath;
   } catch (error) {
-    logger.warn(`[TestResultsCache] Failed to write test results to ${filePath}: ${error.message}`);
+    logger.warning(
+      `[TestResultsCache] Failed to write test results to ${filePath}: ${error.message}`
+    );
     return null;
   }
 }
@@ -46,7 +48,7 @@ export async function loadCachedTestResults(targetPath) {
     return JSON.parse(data);
   } catch (error) {
     if (error.code !== 'ENOENT') {
-      logger.warn(
+      logger.warning(
         `[TestResultsCache] Failed to read test results from ${filePath}: ${error.message}`
       );
     }
@@ -63,7 +65,7 @@ export async function resetTestResultsCache() {
   try {
     await fs.rm(filePath, { force: true });
   } catch (error) {
-    logger.warn(
+    logger.warning(
       `[TestResultsCache] Failed to reset test results cache ${filePath}: ${error.message}`
     );
   }

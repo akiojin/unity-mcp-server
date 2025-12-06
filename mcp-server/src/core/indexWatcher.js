@@ -54,7 +54,7 @@ export class IndexWatcher {
       const driverOk = await probe._ensureDriver();
       if (!driverOk || probe.disabled) {
         const reason = probe.disableReason || 'SQLite native binding not available';
-        logger.warn(`[index] watcher: code index disabled (${reason}); stopping watcher`);
+        logger.warning(`[index] watcher: code index disabled (${reason}); stopping watcher`);
         this.stop();
         return;
       }
@@ -69,7 +69,7 @@ export class IndexWatcher {
       const dbExists = fs.default.existsSync(dbPath);
 
       if (!dbExists) {
-        logger.warn('[index] watcher: code index DB file not found, triggering full rebuild');
+        logger.warning('[index] watcher: code index DB file not found, triggering full rebuild');
         // Force full rebuild when DB file is missing
         const jobId = `watcher-rebuild-${Date.now()}`;
         this.currentWatcherJobId = jobId;
@@ -117,7 +117,7 @@ export class IndexWatcher {
       // (Job result will be logged when it completes/fails)
       this._monitorJob(jobId);
     } catch (e) {
-      logger.warn(`[index] watcher exception: ${e.message}`);
+      logger.warning(`[index] watcher exception: ${e.message}`);
     } finally {
       this.running = false;
     }
@@ -174,7 +174,7 @@ export class IndexWatcher {
         );
         clearInterval(checkInterval);
       } else if (job.status === 'failed') {
-        logger.warn(`[index] watcher: auto-build failed - ${job.error}`);
+        logger.warning(`[index] watcher: auto-build failed - ${job.error}`);
         clearInterval(checkInterval);
       }
     }, 1000);

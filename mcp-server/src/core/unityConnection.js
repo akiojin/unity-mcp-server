@@ -300,7 +300,7 @@ export class UnityConnection extends EventEmitter {
         }
 
         if (recoveryIndex > 0) {
-          logger.warn(`[Unity] Discarding ${recoveryIndex} bytes of invalid data`);
+          logger.warning(`[Unity] Discarding ${recoveryIndex} bytes of invalid data`);
           this.messageBuffer = this.messageBuffer.slice(recoveryIndex);
           continue;
         } else {
@@ -323,7 +323,7 @@ export class UnityConnection extends EventEmitter {
 
           // Skip non-JSON messages (like debug logs)
           if (!message.trim().startsWith('{')) {
-            logger.warn(`[Unity] Skipping non-JSON message: ${message.substring(0, 50)}...`);
+            logger.warning(`[Unity] Skipping non-JSON message: ${message.substring(0, 50)}...`);
             continue;
           }
 
@@ -359,7 +359,7 @@ export class UnityConnection extends EventEmitter {
     logger.info(`[Unity] enqueue sendCommand: ${type}`, { connected: this.connected });
 
     if (!this.connected) {
-      logger.warn('[Unity] Not connected; waiting for reconnection before sending command');
+      logger.warning('[Unity] Not connected; waiting for reconnection before sending command');
       await this.ensureConnected({
         timeoutMs: config.unity.commandTimeout
       });
@@ -463,7 +463,7 @@ export class UnityConnection extends EventEmitter {
             result = JSON.parse(result);
             logger.info(`[Unity] Parsed string result as JSON:`, result);
           } catch (parseError) {
-            logger.warn(`[Unity] Failed to parse result as JSON: ${parseError.message}`);
+            logger.warning(`[Unity] Failed to parse result as JSON: ${parseError.message}`);
           }
         }
         if (response.version) result._version = response.version;
@@ -476,7 +476,7 @@ export class UnityConnection extends EventEmitter {
         err.code = response.code;
         pending.reject(err);
       } else {
-        logger.warn(`[Unity] Command ${targetId} has unknown response format`);
+        logger.warning(`[Unity] Command ${targetId} has unknown response format`);
         pending.resolve(response);
       }
       return;
