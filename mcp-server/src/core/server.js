@@ -10,7 +10,7 @@ import { UnityConnection } from './unityConnection.js';
 import { createHandlers } from '../handlers/index.js';
 import { config, logger } from './config.js';
 import { IndexWatcher } from './indexWatcher.js';
-import { HybridStdioServerTransport } from './transports/HybridStdioServerTransport.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 // Create Unity connection
 const unityConnection = new UnityConnection();
@@ -189,7 +189,7 @@ export async function startServer(options = {}) {
     let transport;
     if (runtimeConfig.stdioEnabled !== false) {
       console.error(`[unity-mcp-server] MCP transport connecting...`);
-      transport = new HybridStdioServerTransport();
+      transport = new StdioServerTransport();
       await server.connect(transport);
       console.error(`[unity-mcp-server] MCP transport connected`);
 
@@ -261,41 +261,40 @@ export async function startServer(options = {}) {
     process.on('SIGTERM', stopWatch);
 
     // Auto-initialize code index if DB doesn't exist
-    // DISABLED: Investigating Issue #168 - npx timeout with Claude Code
-    // (async () => {
-    //   try {
-    //     const { CodeIndex } = await import('./codeIndex.js');
-    //     const index = new CodeIndex(unityConnection);
-    //     const ready = await index.isReady();
+    (async () => {
+      try {
+        const { CodeIndex } = await import('./codeIndex.js');
+        const index = new CodeIndex(unityConnection);
+        const ready = await index.isReady();
 
-    //     if (!ready) {
-    //       if (index.disabled) {
-    //         logger.warning(
-    //           `[startup] Code index disabled: ${index.disableReason || 'SQLite native binding missing'}. Skipping auto-build.`
-    //         );
-    //         return;
-    //       }
-    //       logger.info('[startup] Code index DB not ready. Starting auto-build...');
-    //       const { CodeIndexBuildToolHandler } = await import(
-    //         '../handlers/script/CodeIndexBuildToolHandler.js'
-    //       );
-    //       const builder = new CodeIndexBuildToolHandler(unityConnection);
-    //       const result = await builder.execute({});
+        if (!ready) {
+          if (index.disabled) {
+            logger.warning(
+              `[startup] Code index disabled: ${index.disableReason || 'SQLite native binding missing'}. Skipping auto-build.`
+            );
+            return;
+          }
+          logger.info('[startup] Code index DB not ready. Starting auto-build...');
+          const { CodeIndexBuildToolHandler } = await import(
+            '../handlers/script/CodeIndexBuildToolHandler.js'
+          );
+          const builder = new CodeIndexBuildToolHandler(unityConnection);
+          const result = await builder.execute({});
 
-    //       if (result.success) {
-    //         logger.info(
-    //           `[startup] Code index auto-build started: jobId=${result.jobId}. Use code_index_status to check progress.`
-    //         );
-    //       } else {
-    //         logger.warning(`[startup] Code index auto-build failed: ${result.message}`);
-    //       }
-    //     } else {
-    //       logger.info('[startup] Code index DB already exists. Skipping auto-build.');
-    //     }
-    //   } catch (e) {
-    //     logger.warning(`[startup] Code index auto-init failed: ${e.message}`);
-    //   }
-    // })();
+          if (result.success) {
+            logger.info(
+              `[startup] Code index auto-build started: jobId=${result.jobId}. Use code_index_status to check progress.`
+            );
+          } else {
+            logger.warning(`[startup] Code index auto-build failed: ${result.message}`);
+          }
+        } else {
+          logger.info('[startup] Code index DB already exists. Skipping auto-build.');
+        }
+      } catch (e) {
+        logger.warning(`[startup] Code index auto-init failed: ${e.message}`);
+      }
+    })();
 
     // Handle shutdown
     process.on('SIGINT', async () => {
