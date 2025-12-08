@@ -10,6 +10,20 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.43.0](https://github.com/akiojin/unity-mcp-server/compare/v2.42.4...v2.43.0) (2025-12-08)
+
+
+### Features
+
+* **mcp-server:** migrate logger to MCP SDK-compliant MCPLogger ([76cd0f4](https://github.com/akiojin/unity-mcp-server/commit/76cd0f472d3ba2ebde7bb655cb54ff341be5b4f4))
+* **mcp-server:** migrate logger to MCP SDK-compliant MCPLogger ([095a0e9](https://github.com/akiojin/unity-mcp-server/commit/095a0e9cf54d8e93a6372f587a285e3716021b9d))
+
+
+### Bug Fixes
+
+* **mcp-server:** unify entry point with dynamic imports for npx compatibility ([c1fc275](https://github.com/akiojin/unity-mcp-server/commit/c1fc275d6d133e096934787bea9ce040fe02fea4))
+* **mcp-server:** unify entry point with dynamic imports for npx compatibility ([b5860da](https://github.com/akiojin/unity-mcp-server/commit/b5860daf8f3274d1c0d575c325867652c0e997e5))
+
 ## [2.42.4](https://github.com/akiojin/unity-mcp-server/compare/v2.42.3...v2.42.4) (2025-12-05)
 
 
