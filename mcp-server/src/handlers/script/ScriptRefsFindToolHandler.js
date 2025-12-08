@@ -94,7 +94,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
           this.index.disableReason ||
           'Code index is disabled because the SQLite driver could not be loaded.',
         remediation:
-          'Install native build tools and run "npm rebuild better-sqlite3 --build-from-source", then restart the server.'
+          'Ensure sql.js is installed by running "npm install sql.js". After installing, restart unity-mcp-server.'
       };
     }
 
