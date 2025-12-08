@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.44.1](https://github.com/akiojin/unity-mcp-server/compare/v2.44.0...v2.44.1) (2025-12-08)
+
+
+### Bug Fixes
+
+* **mcp-server:** replace better-sqlite3 with sql.js for npx compatibility ([b4aabea](https://github.com/akiojin/unity-mcp-server/commit/b4aabea1a3cb1c774f30f81cd294cfb055236f99))
+* **mcp-server:** replace better-sqlite3 with sql.js for npx compatibility ([63fbb8c](https://github.com/akiojin/unity-mcp-server/commit/63fbb8cc3c6c5f80526379f06e08d8dca524e8ab))
+
 ## [2.44.0](https://github.com/akiojin/unity-mcp-server/compare/v2.43.3...v2.44.0) (2025-12-08)
 
 
