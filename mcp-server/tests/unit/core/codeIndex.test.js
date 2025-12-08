@@ -4,14 +4,14 @@ import assert from 'node:assert/strict';
 describe('CodeIndex', () => {
   describe('basic functionality', () => {
     it('should have CodeIndex class definition', async () => {
-      // Dynamic import to handle better-sqlite3 availability
+      // Dynamic import to handle sql.js availability
       try {
         const { CodeIndex } = await import('../../../src/core/codeIndex.js');
         assert.ok(CodeIndex);
         assert.equal(typeof CodeIndex, 'function');
       } catch (e) {
-        // If better-sqlite3 is not available, skip this test
-        assert.ok(true, 'CodeIndex requires better-sqlite3');
+        // If sql.js is not available, skip this test
+        assert.ok(true, 'CodeIndex requires sql.js');
       }
     });
 
@@ -23,21 +23,23 @@ describe('CodeIndex', () => {
         assert.ok(index);
         assert.equal(index.disabled, false);
       } catch (e) {
-        assert.ok(true, 'CodeIndex requires better-sqlite3');
+        assert.ok(true, 'CodeIndex requires sql.js');
       }
     });
   });
 
-  describe('when native binding is missing', () => {
+  describe('when sql.js is unavailable', () => {
     it('disables gracefully and records the reason', async () => {
       const { CodeIndex, __resetCodeIndexDriverStatusForTest } = await import(
         '../../../src/core/codeIndex.js'
       );
 
       mock.method(CodeIndex.prototype, '_ensureDriver', async function () {
-        this._Database = class {
-          constructor() {
-            throw new Error('Could not locate the bindings file. Tried:');
+        this._SQL = {
+          Database: class {
+            constructor() {
+              throw new Error('WASM loading failed');
+            }
           }
         };
         return true;
@@ -49,7 +51,7 @@ describe('CodeIndex', () => {
 
       assert.equal(ready, false);
       assert.equal(index.disabled, true);
-      assert.match(index.disableReason, /bindings file/i);
+      assert.match(index.disableReason, /WASM loading failed/i);
 
       mock.restoreAll();
       __resetCodeIndexDriverStatusForTest();
@@ -62,7 +64,7 @@ describe('CodeIndex', () => {
         const { CodeIndex } = await import('../../../src/core/codeIndex.js');
         assert.ok(CodeIndex);
       } catch (e) {
-        assert.ok(true, 'CodeIndex requires better-sqlite3');
+        assert.ok(true, 'CodeIndex requires sql.js');
       }
     });
   });
