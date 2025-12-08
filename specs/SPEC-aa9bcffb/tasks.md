@@ -40,13 +40,13 @@
 
 ### sql.js互換性契約テスト
 
-- [ ] T005 [P] `packages/fast-sql/tests/contract/database.test.js` にDatabase契約テスト
+- [x] T005 [P] `packages/fast-sql/tests/contract/database.test.js` にDatabase契約テスト
   - `new SQL.Database()` コンストラクタの動作
   - `execSql(sql)` が QueryExecResult[] を返す
   - `run(sql, params)` がパラメータをバインドして実行
   - `close()` がデータベースを閉じる
 
-- [ ] T006 [P] `packages/fast-sql/tests/contract/statement.test.js` にStatement契約テスト
+- [x] T006 [P] `packages/fast-sql/tests/contract/statement.test.js` にStatement契約テスト
   - `prepare(sql)` が Statement を返す
   - `bind(params)` がパラメータをバインド
   - `step()` が行があれば true を返す
@@ -55,13 +55,13 @@
   - `reset()` が状態をリセット
   - `free()` がステートメントを解放
 
-- [ ] T007 [P] `packages/fast-sql/tests/contract/export.test.js` にエクスポート契約テスト
+- [x] T007 [P] `packages/fast-sql/tests/contract/export.test.js` にエクスポート契約テスト
   - `exportDb()` が有効なSQLiteバイナリ (Uint8Array) を返す
   - マジックバイト検証 (`SQLite format 3\0`)
 
 ### 拡張API契約テスト
 
-- [ ] T008 [P] `packages/fast-sql/tests/contract/extended.test.js` に拡張API契約テスト
+- [x] T008 [P] `packages/fast-sql/tests/contract/extended.test.js` に拡張API契約テスト
   - `Database.create(data, options)` が Promise<Database> を返す
   - `bulkInsert(sql, rows)` が挿入件数を返す
   - `transaction(fn)` がロールバックをサポート
@@ -69,18 +69,18 @@
 
 ### 統合テスト
 
-- [ ] T009 [P] `packages/fast-sql/tests/integration/compatibility.test.js` にsql.js互換性統合テスト
+- [x] T009 [P] `packages/fast-sql/tests/integration/compatibility.test.js` にsql.js互換性統合テスト
   - テーブル作成 → 挿入 → クエリ → 削除のフルサイクル
   - PreparedStatement使用パターン
   - トランザクション内での複数操作
 
-- [ ] T010 [P] `packages/fast-sql/tests/integration/migration.test.js` に移行シナリオテスト
+- [x] T010 [P] `packages/fast-sql/tests/integration/migration.test.js` に移行シナリオテスト
   - sql.jsパターンからの移行
   - better-sqlite3パターンからの移行
 
 ### パフォーマンステスト
 
-- [ ] T011 [P] `packages/fast-sql/tests/integration/benchmark.test.js` にベンチマークテスト
+- [x] T011 [P] `packages/fast-sql/tests/integration/benchmark.test.js` にベンチマークテスト
   - 50,000件バルク挿入: 100ms以下（sql.js素126msから20%改善）
   - 同一SQL反復1000回: 10μs以下（sql.js素21μsから50%改善）
   - LIKE検索: 4ms以下（sql.js素5msから20%改善）
