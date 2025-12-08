@@ -45,12 +45,12 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "sql.js": "^1.11.0"
+    "sql.js": "^1.13.0"
   },
   "devDependencies": {
+    "@types/sql.js": "^1.4.9",
     "typescript": "^5.0.0"
   },
-  "peerDependencies": {},
   "publishConfig": {
     "access": "public"
   }
