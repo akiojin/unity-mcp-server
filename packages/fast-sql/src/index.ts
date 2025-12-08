@@ -43,7 +43,10 @@ export type {
   SqliteBackend,
   DatabaseInterface,
   SqlJsStatic,
-  InitFastSqlFn
+  InitFastSqlFn,
+  BackendType,
+  BackendInitOptions,
+  ExtendedDatabaseOptions
 } from './types.js'
 
 // クラスのエクスポート
@@ -54,6 +57,16 @@ export { PragmaOptimizer, DEFAULT_PRAGMA_OPTIONS } from './optimizations/PragmaO
 export { TransactionManager } from './optimizations/TransactionManager.js'
 export { BatchProcessor } from './optimizations/BatchProcessor.js'
 export type { BatchOptions } from './optimizations/BatchProcessor.js'
+
+// バックエンドのエクスポート
+export { SqlJsBackend } from './backend/SqlJsBackend.js'
+export { BetterSqlite3Backend } from './backend/BetterSqlite3Backend.js'
+export {
+  createBackend,
+  detectAvailableBackend,
+  getCurrentBackendType,
+  clearBackendCache
+} from './backend/BackendSelector.js'
 
 // ユーティリティのエクスポート
 export { djb2Hash, sqlHashKey, normalizeSql } from './utils/hash.js'

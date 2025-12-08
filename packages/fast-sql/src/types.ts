@@ -267,7 +267,7 @@ export interface NativeStatement {
 
 /**
  * SQLiteバックエンドのインターフェース。
- * sql.js、wa-sqlite等の異なるバックエンドを抽象化。
+ * sql.js、better-sqlite3等の異なるバックエンドを抽象化。
  */
 export interface SqliteBackend {
   /**
@@ -294,6 +294,39 @@ export interface SqliteBackend {
    * データベースを閉じる。
    */
   close(): void
+
+  /**
+   * バックエンドの種類。
+   */
+  readonly backendType: BackendType
+}
+
+// =============================================================================
+// Backend関連
+// =============================================================================
+
+/**
+ * サポートされているバックエンドの種類。
+ */
+export type BackendType = 'better-sqlite3' | 'sql.js'
+
+/**
+ * バックエンド初期化オプション。
+ */
+export interface BackendInitOptions {
+  /**
+   * 使用するバックエンドを強制指定。
+   * 指定しない場合は自動選択。
+   */
+  forceBackend?: BackendType
+}
+
+/**
+ * 拡張DatabaseOptions（バックエンド選択を含む）。
+ */
+export interface ExtendedDatabaseOptions extends DatabaseOptions {
+  /** バックエンド初期化オプション */
+  backend?: BackendInitOptions
 }
 
 // =============================================================================

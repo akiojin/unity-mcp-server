@@ -14,7 +14,8 @@ import type {
   QueryExecResult,
   BindParams,
   Row,
-  RowObject
+  RowObject,
+  BackendType
 } from '../types.js'
 import { assertBackendOpen, assertStatementNotFreed } from './BackendInterface.js'
 
@@ -44,7 +45,10 @@ interface SqlJsStatement {
   getColumnNames(): string[]
 }
 
-interface SqlJsStatic {
+/**
+ * sql.jsモジュールの型（initSqlJs()の戻り値）。
+ */
+export interface SqlJsStatic {
   Database: new (data?: ArrayLike<number>) => SqlJsDatabase
 }
 
@@ -107,6 +111,7 @@ class SqlJsNativeStatement implements NativeStatement {
  */
 export class SqlJsBackend implements SqliteBackend {
   private _closed = false
+  public readonly backendType: BackendType = 'sql.js'
 
   constructor(
     private readonly db: SqlJsDatabase

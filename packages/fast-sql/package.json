@@ -47,8 +47,12 @@
   "dependencies": {
     "sql.js": "^1.13.0"
   },
+  "optionalDependencies": {
+    "better-sqlite3": "^12.5.0"
+  },
   "devDependencies": {
     "@types/sql.js": "^1.4.9",
+    "@types/better-sqlite3": "^7.6.8",
     "typescript": "^5.0.0"
   },
   "publishConfig": {

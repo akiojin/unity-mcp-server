@@ -4,31 +4,31 @@
  * 最適化済みSQLiteデータベースクラス。
  * sql.js互換APIと拡張APIを提供。
  *
- * NOTE: This file references sql.js Database.exec() method for SQL execution.
- * This is the sql.js API method name, NOT Node.js child_process.exec().
- * sql.js is a JavaScript SQLite implementation compiled from C via Emscripten.
+ * ハイブリッドバックエンド:
+ * - better-sqlite3がインストール済み → ネイティブバックエンド（34倍高速）
+ * - better-sqlite3がない → sql.js（WASMバックエンド、npx互換）
  */
 
 import type {
   DatabaseInterface,
-  DatabaseOptions,
   QueryExecResult,
   BindParams,
   StatementInterface,
   CacheStats,
   SqliteBackend,
-  NativeStatement,
-  Row,
-  RowObject
+  BackendType,
+  ExtendedDatabaseOptions
 } from '../types.js'
 import { Statement } from './Statement.js'
 import { StatementCache } from './StatementCache.js'
 import { PragmaOptimizer } from '../optimizations/PragmaOptimizer.js'
 import { TransactionManager } from '../optimizations/TransactionManager.js'
 import { BatchProcessor } from '../optimizations/BatchProcessor.js'
+import { createBackend, detectAvailableBackend } from '../backend/BackendSelector.js'
+import { SqlJsBackend, type SqlJsStatic } from '../backend/SqlJsBackend.js'
 
 /**
- * sql.jsモジュールの型。
+ * sql.jsモジュールの型（レガシー互換用）。
  */
 interface SqlJsModule {
   Database: new (data?: ArrayLike<number>) => SqlJsDatabaseInstance
@@ -36,35 +36,20 @@ interface SqlJsModule {
 
 /**
  * sql.jsのDatabaseインスタンスの型。
- * The method name 'exec' is sql.js API, not child_process.
  */
 interface SqlJsDatabaseInstance {
-  /** sql.js method to execute SQL (not child_process) */
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   exec(sql: string): Array<{ columns: string[]; values: unknown[][] }>
-  prepare(sql: string): SqlJsStatementInstance
+  prepare(sql: string): unknown
   export(): Uint8Array
   close(): void
 }
 
-/**
- * sql.jsのStatementインスタンスの型。
- */
-interface SqlJsStatementInstance {
-  bind(params?: unknown[] | Record<string, unknown>): boolean
-  step(): boolean
-  get(params?: unknown[] | Record<string, unknown>): unknown[] | undefined
-  getAsObject(params?: unknown[] | Record<string, unknown>): Record<string, unknown> | undefined
-  run(params?: unknown[] | Record<string, unknown>): void
-  reset(): void
-  free(): boolean
-  getColumnNames(): string[]
-}
-
-// sql.jsモジュールを保持（initFastSqlで設定）
+// sql.jsモジュールを保持（initFastSqlで設定、レガシー互換用）
 let sqlJsModule: SqlJsModule | null = null
 
 /**
- * sql.jsモジュールを設定（内部用）。
+ * sql.jsモジュールを設定（内部用、レガシー互換）。
  */
 export function setSqlJsModule(module: SqlJsModule): void {
   sqlJsModule = module
@@ -78,63 +63,12 @@ export function getSqlJsModule(): SqlJsModule | null {
 }
 
 /**
- * sql.jsのDatabaseをSqliteBackendインターフェースに適合させるアダプター。
- */
-class SqlJsBackendAdapter implements SqliteBackend {
-  private _closed = false
-
-  constructor(private readonly db: SqlJsDatabaseInstance) {}
-
-  get closed(): boolean {
-    return this._closed
-  }
-
-  execSql(sql: string): QueryExecResult[] {
-    this.assertOpen('execSql')
-    // Call sql.js Database.exec() - this is sql.js API, not child_process
-    const results = this.db.exec(sql)
-    return results.map(r => ({
-      columns: r.columns,
-      values: r.values as QueryExecResult['values']
-    }))
-  }
-
-  prepare(sql: string): NativeStatement {
-    this.assertOpen('prepare')
-    const stmt = this.db.prepare(sql)
-    return {
-      bind: (params?: BindParams) => stmt.bind(params as unknown[] | Record<string, unknown>),
-      step: () => stmt.step(),
-      get: () => stmt.get() as Row | undefined,
-      getAsObject: () => stmt.getAsObject() as RowObject | undefined,
-      run: (params?: BindParams) => stmt.run(params as unknown[] | Record<string, unknown>),
-      reset: () => stmt.reset(),
-      free: () => stmt.free(),
-      getColumnNames: () => stmt.getColumnNames()
-    }
-  }
-
-  exportDb(): Uint8Array {
-    this.assertOpen('exportDb')
-    return this.db.export()
-  }
-
-  close(): void {
-    if (this._closed) return
-    this._closed = true
-    this.db.close()
-  }
-
-  private assertOpen(method: string): void {
-    if (this._closed) {
-      throw new Error(`Database is closed: cannot call ${method}()`)
-    }
-  }
-}
-
-/**
  * Databaseクラス。
  * sql.js互換APIと拡張APIを提供。
+ *
+ * ハイブリッド実装:
+ * - Database.create() → 自動的に最適なバックエンドを選択
+ * - new Database() → レガシー互換（sql.jsのみ）
  */
 export class Database implements DatabaseInterface {
   private _closed = false
@@ -144,7 +78,8 @@ export class Database implements DatabaseInterface {
   private readonly batchProcessor: BatchProcessor
 
   /**
-   * コンストラクタ（sql.js互換）。
+   * コンストラクタ（sql.js互換、レガシー）。
+   * 新規コードでは Database.create() を使用することを推奨。
    * @param data 既存のデータベースバイナリ（オプション）
    */
   constructor(data?: Uint8Array) {
@@ -152,8 +87,8 @@ export class Database implements DatabaseInterface {
       throw new Error('fast-sql not initialized. Call initFastSql() first.')
     }
 
-    const db = new sqlJsModule.Database(data)
-    this.backend = new SqlJsBackendAdapter(db)
+    // SqlJsModule型をSqlJsStatic型にキャスト（構造は同一）
+    this.backend = SqlJsBackend.create(sqlJsModule as unknown as SqlJsStatic, data)
     this.cache = new StatementCache()
     this.transactionManager = new TransactionManager(this.backend)
     this.batchProcessor = new BatchProcessor(this.backend, this.transactionManager)
@@ -164,17 +99,37 @@ export class Database implements DatabaseInterface {
   }
 
   /**
-   * 非同期ファクトリメソッド（拡張API）。
+   * 非同期ファクトリメソッド（推奨）。
+   * 環境に応じて最適なバックエンドを自動選択。
+   *
    * @param data 既存のデータベースバイナリ（オプション）
-   * @param options データベースオプション
+   * @param options データベースオプション（バックエンド選択を含む）
+   * @returns Databaseインスタンス
+   *
+   * @example
+   * ```typescript
+   * // 自動選択（better-sqlite3があれば使用、なければsql.js）
+   * const db = await Database.create()
+   *
+   * // sql.jsを強制使用
+   * const db = await Database.create(undefined, {
+   *   backend: { forceBackend: 'sql.js' }
+   * })
+   *
+   * // better-sqlite3を強制使用（インストールされていなければエラー）
+   * const db = await Database.create(undefined, {
+   *   backend: { forceBackend: 'better-sqlite3' }
+   * })
+   * ```
    */
-  static async create(data?: Uint8Array, options?: DatabaseOptions): Promise<Database> {
-    if (!sqlJsModule) {
-      throw new Error('fast-sql not initialized. Call initFastSql() first.')
-    }
+  static async create(
+    data?: Uint8Array,
+    options?: ExtendedDatabaseOptions
+  ): Promise<Database> {
+    // バックエンドを作成
+    const backend = await createBackend(options?.backend, data)
 
-    const db = new sqlJsModule.Database(data)
-    const backend = new SqlJsBackendAdapter(db)
+    // 各種マネージャーを初期化
     const cache = new StatementCache(options?.statementCache)
     const transactionManager = new TransactionManager(backend)
     const batchProcessor = new BatchProcessor(backend, transactionManager)
@@ -183,7 +138,7 @@ export class Database implements DatabaseInterface {
     const pragmaOptimizer = new PragmaOptimizer(options?.pragma)
     pragmaOptimizer.apply(backend)
 
-    // インスタンスを直接構築（private constructorを使用）
+    // インスタンスを直接構築
     const instance = Object.create(Database.prototype) as Database
     Object.assign(instance, {
       _closed: false,
@@ -196,8 +151,23 @@ export class Database implements DatabaseInterface {
     return instance
   }
 
+  /**
+   * 利用可能なバックエンドタイプを検出（静的メソッド）。
+   * Databaseインスタンスを作成せずにバックエンドタイプを確認可能。
+   */
+  static async detectBackend(): Promise<BackendType> {
+    return detectAvailableBackend()
+  }
+
   get closed(): boolean {
     return this._closed
+  }
+
+  /**
+   * 現在使用中のバックエンドタイプを取得。
+   */
+  get backendType(): BackendType {
+    return this.backend.backendType
   }
 
   /**

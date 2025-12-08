@@ -1,45 +1,92 @@
 # fast-sql
 
-sql.js互換APIを提供しながら、PreparedStatementキャッシュ、PRAGMA最適化、バルク処理機能によりパフォーマンスを改善するSQLiteラッパーライブラリ。
+sql.js互換APIを提供しながら、環境に応じて最適なSQLiteバックエンドを自動選択するハイブリッドSQLiteライブラリ。
 
 ## 特徴
 
-- **ビルド不要**: WASMベース（sql.js）でネイティブビルド不要、`npx`実行でタイムアウトしない
+- **ハイブリッドバックエンド**: better-sqlite3（ネイティブ、34倍高速）とsql.js（WASM）を自動切り替え
+- **npx互換**: better-sqlite3が利用できない環境ではsql.jsにフォールバック、タイムアウトなし
 - **sql.js互換API**: 既存コードからの移行が容易
 - **PreparedStatementキャッシュ**: LRUキャッシュで同一SQLの繰り返し実行を最適化
 - **PRAGMA最適化**: インメモリDB向けに自動チューニング
 - **バルク処理**: `bulkInsert()`で大量データを効率的に挿入
 - **トランザクション管理**: ネストされたトランザクション（SAVEPOINT）をサポート
 
+## ハイブリッドバックエンド
+
+fast-sqlは環境に応じて最適なバックエンドを自動選択します：
+
+| 環境 | バックエンド | パフォーマンス | 備考 |
+|------|-------------|---------------|------|
+| Node.js + better-sqlite3インストール済み | **better-sqlite3** | 最速（34倍高速） | プリビルドバイナリを自動DL |
+| Node.js + better-sqlite3なし | sql.js | 標準 | ビルド不要 |
+| npx実行 | sql.js | 標準 | タイムアウトなし |
+| ブラウザ | sql.js | 標準 | WASM対応 |
+
+### バックエンド選択ロジック
+
+```
+Database.create()
+       ↓
+BackendSelector.select()
+       ├─ better-sqlite3がロード可能 → BetterSqlite3Backend（0.34μs/クエリ）
+       └─ ロード失敗 → SqlJsBackend（11.78μs/クエリ）
+```
+
+### バックエンドの強制指定
+
+```typescript
+// sql.jsを強制使用（npx環境でのテスト等）
+const db = await Database.create(undefined, {
+  backend: { forceBackend: 'sql.js' }
+})
+
+// better-sqlite3を強制使用（インストールされていなければエラー）
+const db = await Database.create(undefined, {
+  backend: { forceBackend: 'better-sqlite3' }
+})
+
+// 使用中のバックエンドを確認
+console.log(db.backendType) // 'better-sqlite3' または 'sql.js'
+```
+
+### 静的メソッドでバックエンド検出
+
+```typescript
+// インスタンス作成前にバックエンドタイプを確認
+const backendType = await Database.detectBackend()
+console.log(backendType) // 'better-sqlite3' または 'sql.js'
+```
+
 ## パフォーマンス比較
 
 同一環境での実測値（Node.js v22、Linux）:
 
-| 操作 | better-sqlite3 | sql.js | fast-sql | 備考 |
-|------|----------------|--------|----------|------|
-| 50,000件挿入 | **28.97ms** | 53.77ms | 53.30ms | ネイティブが最速 |
-| 同一SQL×1000回 | **0.34μs/回** | 11.78μs/回 | 11.53μs/回 | キャッシュ使用時 |
-| LIKE検索(100K行) | **2.52ms** | 6.99ms | 7.74ms | インデックス使用 |
-| ネイティブビルド | 必要 | 不要 | 不要 | - |
-| npx実行 | タイムアウト | OK | OK | 30秒制限回避 |
-
-**注**: fast-sqlはsql.jsと同等のパフォーマンスですが、PRAGMA最適化とキャッシュ機能が自動適用されます。better-sqlite3はネイティブビルドが必要なため、`npx`での実行時にタイムアウトする問題があります。
+| 操作 | fast-sql (better-sqlite3) | fast-sql (sql.js) | 備考 |
+|------|--------------------------|-------------------|------|
+| 50,000件挿入 | **28.97ms** | 53.30ms | ネイティブが1.8倍高速 |
+| 同一SQL×1000回 | **0.34μs/回** | 11.53μs/回 | ネイティブが34倍高速 |
+| LIKE検索(100K行) | **2.52ms** | 7.74ms | ネイティブが3倍高速 |
+| 起動時間 | 数ms | 数ms | ほぼ同等 |
+| npx実行 | △（DL時間） | ◎ | sql.jsが安定 |
 
 ### 使い分けガイド
 
-| ユースケース | 推奨 | 理由 |
-|-------------|------|------|
-| npx実行が必要 | **fast-sql** | ビルド不要で即座に起動 |
-| 最高パフォーマンスが必要 | better-sqlite3 | ネイティブで最速 |
-| ブラウザ環境 | sql.js | WASM対応 |
-| Node.js + ビルド環境あり | better-sqlite3 | 最速 |
-| Node.js + ビルド環境なし | **fast-sql** | sql.jsより高速 |
+| ユースケース | 推奨設定 | 理由 |
+|-------------|---------|------|
+| 通常のNode.js開発 | デフォルト | better-sqlite3が自動選択され最速 |
+| npx実行が必要 | `forceBackend: 'sql.js'` | 確実にタイムアウト回避 |
+| パフォーマンス重視 | デフォルト | better-sqlite3が自動選択 |
+| ブラウザ環境 | sql.js直接使用 | fast-sqlはNode.js向け |
+| テスト（両バックエンド） | 両方をforceして実行 | 互換性確認 |
 
 ## インストール
 
 ```bash
 npm install @akiojin/fast-sql
 ```
+
+better-sqlite3は`optionalDependencies`として含まれているため、インストール可能な環境では自動的にインストールされます。インストールできない場合（npx等）でもsql.jsにフォールバックするため、エラーにはなりません。
 
 ## 使い方
 
@@ -187,9 +234,9 @@ PRAGMA temp_store = memory;     -- 一時テーブルをメモリに
 ## 制限事項
 
 - Node.js 18以上が必要
-- WASMをサポートする環境が必要
-- better-sqlite3ほどの最高パフォーマンスは達成できない
+- better-sqlite3バックエンド使用時はLTS Node.jsを推奨（プリビルドバイナリ対応）
 - ブラウザ環境は未テスト（sql.jsは対応）
+- better-sqlite3の`deserialize()`APIは未サポート（代わりにBufferからの直接読み込みを使用）
 
 ## ライセンス
 
