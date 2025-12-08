@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.43.2](https://github.com/akiojin/unity-mcp-server/compare/v2.43.1...v2.43.2) (2025-12-08)
+
+
+### Bug Fixes
+
+* **mcp-server:** disable code index auto-build on startup ([6e6ca2c](https://github.com/akiojin/unity-mcp-server/commit/6e6ca2cc25d1e5656bc5f2f89f8a395182a57a7b))
+* **mcp-server:** disable code index auto-build on startup ([35f4965](https://github.com/akiojin/unity-mcp-server/commit/35f4965c7ee7c38ac002c77fe6df564368582ee5))
+
 ## [2.43.1](https://github.com/akiojin/unity-mcp-server/compare/v2.43.0...v2.43.1) (2025-12-08)
 
 
