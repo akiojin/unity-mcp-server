@@ -8,6 +8,21 @@ import assert from 'node:assert'
 
 let Database, detectAvailableBackend, clearBackendCache, getCurrentBackendType, createBackend
 
+/**
+ * Check if better-sqlite3 is available in the current environment.
+ * This is used to conditionally skip tests that require better-sqlite3.
+ */
+async function isBetterSqlite3Available() {
+  try {
+    await import('better-sqlite3')
+    return true
+  } catch {
+    return false
+  }
+}
+
+const betterSqlite3Available = await isBetterSqlite3Available()
+
 describe('BackendSelector', () => {
   beforeEach(async () => {
     const module = await import('../../dist/index.js')
@@ -42,16 +57,35 @@ describe('BackendSelector', () => {
       assert.strictEqual(type1, type2, 'Should return same type on repeated calls')
     })
 
-    it('should return better-sqlite3 when installed', async () => {
-      // In our test environment, better-sqlite3 is installed
-      const backendType = await detectAvailableBackend()
+    it(
+      'should return better-sqlite3 when installed',
+      { skip: !betterSqlite3Available },
+      async () => {
+        // In our test environment, better-sqlite3 is installed
+        const backendType = await detectAvailableBackend()
 
-      assert.strictEqual(
-        backendType,
-        'better-sqlite3',
-        'Should detect better-sqlite3 when installed'
-      )
-    })
+        assert.strictEqual(
+          backendType,
+          'better-sqlite3',
+          'Should detect better-sqlite3 when installed'
+        )
+      }
+    )
+
+    it(
+      'should return sql.js when better-sqlite3 is not installed',
+      { skip: betterSqlite3Available },
+      async () => {
+        // This test runs only when better-sqlite3 is NOT installed
+        const backendType = await detectAvailableBackend()
+
+        assert.strictEqual(
+          backendType,
+          'sql.js',
+          'Should fallback to sql.js when better-sqlite3 is not available'
+        )
+      }
+    )
   })
 
   describe('getCurrentBackendType()', () => {
@@ -100,28 +134,49 @@ describe('BackendSelector', () => {
       backend.close()
     })
 
-    it('should create better-sqlite3 backend when forced', async () => {
-      const backend = await createBackend({ forceBackend: 'better-sqlite3' })
-
-      assert.strictEqual(
-        backend.backendType,
-        'better-sqlite3',
-        'Should create better-sqlite3 backend when forced'
-      )
-
-      backend.close()
-    })
-
-    it('should throw error when forcing unavailable backend', async () => {
-      // This test would fail if better-sqlite3 wasn't installed
-      // We skip the unavailable scenario in this environment
-
-      // Instead, test that forcing an available backend works
-      await assert.doesNotReject(async () => {
+    it(
+      'should create better-sqlite3 backend when forced',
+      { skip: !betterSqlite3Available },
+      async () => {
         const backend = await createBackend({ forceBackend: 'better-sqlite3' })
+
+        assert.strictEqual(
+          backend.backendType,
+          'better-sqlite3',
+          'Should create better-sqlite3 backend when forced'
+        )
+
         backend.close()
-      })
-    })
+      }
+    )
+
+    it(
+      'should throw error when forcing unavailable better-sqlite3',
+      { skip: betterSqlite3Available },
+      async () => {
+        // This test runs only when better-sqlite3 is NOT installed
+        await assert.rejects(
+          async () => {
+            await createBackend({ forceBackend: 'better-sqlite3' })
+          },
+          {
+            message: /better-sqlite3 is not available/
+          }
+        )
+      }
+    )
+
+    it(
+      'should not throw when forcing available backend',
+      { skip: !betterSqlite3Available },
+      async () => {
+        // This test runs only when better-sqlite3 IS installed
+        await assert.doesNotReject(async () => {
+          const backend = await createBackend({ forceBackend: 'better-sqlite3' })
+          backend.close()
+        })
+      }
+    )
   })
 
   describe('Database.create() backend selection', () => {
@@ -136,18 +191,39 @@ describe('BackendSelector', () => {
       db.close()
     })
 
-    it('should use better-sqlite3 by default when available', async () => {
-      const db = await Database.create()
+    it(
+      'should use better-sqlite3 by default when available',
+      { skip: !betterSqlite3Available },
+      async () => {
+        const db = await Database.create()
 
-      // In our environment, better-sqlite3 is installed
-      assert.strictEqual(
-        db.backendType,
-        'better-sqlite3',
-        'Should use better-sqlite3 when available'
-      )
+        // In our environment, better-sqlite3 is installed
+        assert.strictEqual(
+          db.backendType,
+          'better-sqlite3',
+          'Should use better-sqlite3 when available'
+        )
 
-      db.close()
-    })
+        db.close()
+      }
+    )
+
+    it(
+      'should fallback to sql.js when better-sqlite3 is not available',
+      { skip: betterSqlite3Available },
+      async () => {
+        const db = await Database.create()
+
+        // better-sqlite3 is not installed, so should fallback to sql.js
+        assert.strictEqual(
+          db.backendType,
+          'sql.js',
+          'Should fallback to sql.js when better-sqlite3 is not available'
+        )
+
+        db.close()
+      }
+    )
 
     it('should allow forcing sql.js backend', async () => {
       const db = await Database.create(undefined, {
@@ -159,21 +235,29 @@ describe('BackendSelector', () => {
       db.close()
     })
 
-    it('should allow forcing better-sqlite3 backend', async () => {
-      const db = await Database.create(undefined, {
-        backend: { forceBackend: 'better-sqlite3' }
-      })
+    it(
+      'should allow forcing better-sqlite3 backend',
+      { skip: !betterSqlite3Available },
+      async () => {
+        const db = await Database.create(undefined, {
+          backend: { forceBackend: 'better-sqlite3' }
+        })
 
-      assert.strictEqual(db.backendType, 'better-sqlite3', 'Should use better-sqlite3 when forced')
+        assert.strictEqual(
+          db.backendType,
+          'better-sqlite3',
+          'Should use better-sqlite3 when forced'
+        )
 
-      db.close()
-    })
+        db.close()
+      }
+    )
   })
 })
 
 describe('Backend API Compatibility', () => {
-  const runCompatibilityTests = backendType => {
-    describe(`${backendType} backend`, () => {
+  const runCompatibilityTests = (backendType, skipCondition = false) => {
+    describe(`${backendType} backend`, { skip: skipCondition }, () => {
       let db
 
       beforeEach(async () => {
@@ -284,6 +368,8 @@ describe('Backend API Compatibility', () => {
   }
 
   // Run compatibility tests for both backends
-  runCompatibilityTests('sql.js')
-  runCompatibilityTests('better-sqlite3')
+  // sql.js is always available
+  runCompatibilityTests('sql.js', false)
+  // better-sqlite3 tests are skipped when not installed
+  runCompatibilityTests('better-sqlite3', !betterSqlite3Available)
 })

@@ -315,18 +315,22 @@ Unity MCP Server uses the following components for code indexing and analysis:
 
 | Component | Purpose | Distribution | Notes |
 |-----------|---------|--------------|-------|
-| **sql.js** | Code index database | npm dependency | Pure JS/WASM, no native compilation |
+| **fast-sql** | Code index database | npm dependency | Hybrid backend: better-sqlite3 (native) or sql.js (WASM) |
 | **csharp-lsp** | C# symbol analysis | Downloaded on first use | ~80 MB per platform |
 
-#### Why sql.js?
+#### Why fast-sql?
 
-We use **sql.js** (pure JavaScript/WebAssembly SQLite) for the code index database:
+We use **fast-sql** (hybrid SQLite library) for the code index database:
 
-- **Zero native compilation**: Works immediately via `npx` without build tools
-- **Cross-platform**: Same code runs on all Node.js platforms
-- **No installation delays**: Avoids 30+ second native module compilation timeouts
+- **Optimal performance**: Uses better-sqlite3 (native) when available for ~34x faster queries
+- **npx compatible**: Falls back to sql.js (WASM) when native bindings unavailable
+- **Zero native compilation required**: Works immediately via `npx` without build tools
+- **Cross-platform**: Automatic backend selection based on environment
 
-**Trade-off**: sql.js is 1.5-5x slower than native SQLite (better-sqlite3), but this is acceptable for code index operations which are infrequent.
+**Performance comparison** (better-sqlite3 vs sql.js):
+- 50K inserts: 29ms vs 53ms (1.8x faster)
+- 1000 queries: 0.34μs vs 11.78μs (34x faster)
+- LIKE search: 2.5ms vs 7ms (2.8x faster)
 
 #### csharp-lsp Distribution
 
@@ -338,14 +342,14 @@ We use **sql.js** (pure JavaScript/WebAssembly SQLite) for the code index databa
 
 #### Supported Platforms
 
-| Platform | sql.js | csharp-lsp |
-|----------|--------|------------|
-| Linux x64 | ✅ Built-in | ✅ Downloaded (~79 MB) |
-| Linux arm64 | ✅ Built-in | ✅ Downloaded (~86 MB) |
-| macOS x64 | ✅ Built-in | ✅ Downloaded (~80 MB) |
-| macOS arm64 (Apple Silicon) | ✅ Built-in | ✅ Downloaded (~86 MB) |
-| Windows x64 | ✅ Built-in | ✅ Downloaded (~80 MB) |
-| Windows arm64 | ✅ Built-in | ✅ Downloaded (~85 MB) |
+| Platform | fast-sql | csharp-lsp |
+|----------|----------|------------|
+| Linux x64 | ✅ Native (better-sqlite3) | ✅ Downloaded (~79 MB) |
+| Linux arm64 | ✅ Native (better-sqlite3) | ✅ Downloaded (~86 MB) |
+| macOS x64 | ✅ Native (better-sqlite3) | ✅ Downloaded (~80 MB) |
+| macOS arm64 (Apple Silicon) | ✅ Native (better-sqlite3) | ✅ Downloaded (~86 MB) |
+| Windows x64 | ✅ Native (better-sqlite3) | ✅ Downloaded (~80 MB) |
+| Windows arm64 | ✅ WASM fallback (sql.js) | ✅ Downloaded (~85 MB) |
 
 #### Storage Locations
 

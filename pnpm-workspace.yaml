@@ -1,0 +1,6 @@
+packages:
+  - mcp-server
+  - packages/fast-sql
+
+onlyBuiltDependencies:
+  - better-sqlite3
