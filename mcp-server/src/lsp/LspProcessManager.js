@@ -21,22 +21,22 @@ export class LspProcessManager {
         const rid = this.utils.detectRid();
         const bin = await this.utils.ensureLocal(rid);
         const proc = spawn(bin, { stdio: ['pipe', 'pipe', 'pipe'] });
-        proc.on('error', e => logger.error(`[csharp-lsp] process error: ${e.message}`));
+        proc.on('error', e => logger.error(`[unity-mcp-server:lsp] process error: ${e.message}`));
         proc.on('close', (code, sig) => {
-          logger.warning(`[csharp-lsp] exited code=${code} signal=${sig || ''}`);
+          logger.warning(`[unity-mcp-server:lsp] exited code=${code} signal=${sig || ''}`);
           if (this.state.proc === proc) {
             this.state.proc = null;
           }
         });
         proc.stderr.on('data', d => {
           const s = String(d || '').trim();
-          if (s) logger.debug(`[csharp-lsp] ${s}`);
+          if (s) logger.debug(`[unity-mcp-server:lsp] ${s}`);
         });
         this.state.proc = proc;
-        logger.info(`[csharp-lsp] started (pid=${proc.pid})`);
+        logger.info(`[unity-mcp-server:lsp] started (pid=${proc.pid})`);
         return proc;
       } catch (e) {
-        logger.error(`[csharp-lsp] failed to start: ${e.message}`);
+        logger.error(`[unity-mcp-server:lsp] failed to start: ${e.message}`);
         throw e;
       }
     })();
