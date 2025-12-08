@@ -76,7 +76,7 @@ export class LspRpcClient {
     try {
       this.proc.stdin.write(payload, 'utf8');
     } catch (e) {
-      logger.error(`[csharp-lsp] writeMessage failed: ${e.message}`);
+      logger.error(`[unity-mcp-server:lsp] writeMessage failed: ${e.message}`);
       // Mark process as unavailable to prevent further writes
       this.proc = null;
       this.initialized = false;
@@ -161,7 +161,9 @@ export class LspRpcClient {
         this.proc = null;
         this.initialized = false;
         this.buf = Buffer.alloc(0);
-        logger.warning(`[csharp-lsp] recoverable error on ${method}: ${msg}. Retrying once...`);
+        logger.warning(
+          `[unity-mcp-server:lsp] recoverable error on ${method}: ${msg}. Retrying once...`
+        );
         return await this.#requestWithRetry(method, params, attempt + 1);
       }
       // Standardize error message

@@ -90,9 +90,9 @@ export class CSharpLspUtils {
           fs.copyFileSync(legacyVersion, primaryVersion);
         } catch {}
       }
-      logger.info(`[csharp-lsp] migrated legacy binary to ${path.dirname(primary)}`);
+      logger.info(`[unity-mcp-server:lsp] migrated legacy binary to ${path.dirname(primary)}`);
     } catch (e) {
-      logger.warning(`[csharp-lsp] legacy migration failed: ${e.message}`);
+      logger.warning(`[unity-mcp-server:lsp] legacy migration failed: ${e.message}`);
     }
   }
 
@@ -135,7 +135,7 @@ export class CSharpLspUtils {
     // バージョン取得失敗時もバイナリが存在すれば使用
     if (!desired) {
       if (fs.existsSync(p)) {
-        logger.warning('[csharp-lsp] version not found, using existing binary');
+        logger.warning('[unity-mcp-server:lsp] version not found, using existing binary');
         return p;
       }
       throw new Error('mcp-server version not found; cannot resolve LSP tag');
@@ -152,7 +152,9 @@ export class CSharpLspUtils {
       return p;
     } catch (e) {
       if (fs.existsSync(p)) {
-        logger.warning(`[csharp-lsp] download failed, using existing binary: ${e.message}`);
+        logger.warning(
+          `[unity-mcp-server:lsp] download failed, using existing binary: ${e.message}`
+        );
         return p;
       }
       throw e;
@@ -212,7 +214,9 @@ export class CSharpLspUtils {
     try {
       if (process.platform !== 'win32') fs.chmodSync(dest, 0o755);
     } catch {}
-    logger.info(`[csharp-lsp] downloaded: ${path.basename(dest)} @ ${path.dirname(dest)}`);
+    logger.info(
+      `[unity-mcp-server:lsp] downloaded: ${path.basename(dest)} @ ${path.dirname(dest)}`
+    );
     // manifestから実際のバージョンを取得（信頼性の高いソースとして使用）
     const actualVersion = manifest.version || targetVersion;
     return actualVersion;

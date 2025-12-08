@@ -9,6 +9,7 @@ using System.Collections.Generic;
 // Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol / workspace/symbol / mcp/referencesByName / mcp/renameByNamePath / mcp/replaceSymbolBody / mcp/insertBeforeSymbol / mcp/insertAfterSymbol / mcp/removeSymbol
 // This is a lightweight PoC that parses each file independently using Roslyn SyntaxTree.
 
+LspLogger.Info("Starting...");
 var server = new LspServer();
 await server.RunAsync();
 
@@ -38,10 +39,15 @@ sealed class LspServer
                 {
                     if (method == "initialize")
                     {
+                        LspLogger.Debug("initialize");
                         try
                         {
                             var rootUri = root.GetProperty("params").GetProperty("rootUri").GetString();
-                            if (!string.IsNullOrEmpty(rootUri)) _rootDir = Uri2Path(rootUri);
+                            if (!string.IsNullOrEmpty(rootUri))
+                            {
+                                _rootDir = Uri2Path(rootUri);
+                                LspLogger.Info($"rootDir={_rootDir}");
+                            }
                         }
                         catch { }
                         var resp = new
@@ -57,12 +63,14 @@ sealed class LspServer
                     }
                     else if (method == "shutdown")
                     {
+                        LspLogger.Info("shutdown");
                         _shutdownRequested = true;
                         var resp = new { jsonrpc = "2.0", id = id.GetInt32(), result = (object?)null };
                         await WriteMessageAsync(resp);
                     }
                     else if (method == "exit")
                     {
+                        LspLogger.Info("exit");
                         break;
                     }
                     else if (method == "textDocument/documentSymbol")
@@ -182,9 +190,9 @@ sealed class LspServer
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore malformed messages
+                LspLogger.Error($"Failed to process message: {ex.Message}");
             }
         }
     }
@@ -1178,4 +1186,18 @@ private async Task<object> ValidateTextEditsAsync(string relative, string newTex
         public int Column { get; set; }
         public string? Summary { get; set; }
     }
+}
+
+static class LspLogger
+{
+    private const string Prefix = "[unity-mcp-server:lsp]";
+
+    public static void Info(string message) =>
+        Console.Error.WriteLine($"{Prefix} {message}");
+
+    public static void Error(string message) =>
+        Console.Error.WriteLine($"{Prefix} ERROR: {message}");
+
+    public static void Debug(string method) =>
+        Console.Error.WriteLine($"{Prefix} {method}");
 }
