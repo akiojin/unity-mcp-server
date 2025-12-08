@@ -10,6 +10,20 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.44.0](https://github.com/akiojin/unity-mcp-server/compare/v2.43.3...v2.44.0) (2025-12-08)
+
+
+### Features
+
+* **lsp:** add logging to C# LSP server with unified prefix ([189e72e](https://github.com/akiojin/unity-mcp-server/commit/189e72e34fa982c39dc669bcbfe070620adf01b3))
+* **lsp:** add logging to C# LSP server with unified prefix ([8a3b9b5](https://github.com/akiojin/unity-mcp-server/commit/8a3b9b52ce79a04dd095065bc3c2a20c6c082a72))
+
+
+### Bug Fixes
+
+* **mcp-server:** defer handler initialization for npx compatibility ([3637a79](https://github.com/akiojin/unity-mcp-server/commit/3637a79e30d09b1db7d2c2dcc3a9101c34acf4ba))
+* **mcp-server:** defer handler initialization for npx compatibility ([e5c14b1](https://github.com/akiojin/unity-mcp-server/commit/e5c14b1b164329e08b7ceeb3fbaeac404ea1f85f))
+
 ## [2.43.3](https://github.com/akiojin/unity-mcp-server/compare/v2.43.2...v2.43.3) (2025-12-08)
 
 
