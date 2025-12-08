@@ -3,7 +3,7 @@
  *
  * This script runs in a separate thread and performs the heavy lifting of
  * index builds: file scanning, LSP document symbol requests, and SQLite
- * database operations (using sql.js - pure JS/WASM, no native bindings).
+ * database operations (using fast-sql - hybrid backend with better-sqlite3 or sql.js fallback).
  * By running in a Worker Thread, these operations don't block the main event loop.
  *
  * Communication with main thread:
@@ -16,22 +16,20 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// sql.js helper: run SQL statement (wrapper to avoid hook false positive on "exec")
+// fast-sql helper: run SQL statement
 function runSQL(db, sql) {
   return db.run(sql);
 }
 
-// sql.js helper: execute query and return results
+// fast-sql helper: execute query and return results
 function querySQL(db, sql) {
-  // sql.js exec returns array of result sets
-  const fn = db['ex' + 'ec'].bind(db);
-  return fn(sql);
+  return db.execSql(sql);
 }
 
-// Save sql.js database to file
+// Save fast-sql database to file
 function saveDatabase(db, dbPath) {
   try {
-    const data = db.export();
+    const data = db.exportDb();
     const buffer = Buffer.from(data);
     fs.writeFileSync(dbPath, buffer);
   } catch (e) {
@@ -186,13 +184,13 @@ async function runBuild() {
   let db = null;
 
   try {
-    // Dynamic import sql.js in worker thread (pure JS/WASM, no native bindings)
+    // Dynamic import fast-sql in worker thread (hybrid: better-sqlite3 or sql.js fallback)
     let SQL;
     try {
-      const initSqlJs = (await import('sql.js')).default;
-      SQL = await initSqlJs();
+      const initFastSql = (await import('@akiojin/fast-sql')).default;
+      SQL = await initFastSql();
     } catch (e) {
-      throw new Error(`sql.js unavailable in worker: ${e.message}`);
+      throw new Error(`fast-sql unavailable in worker: ${e.message}`);
     }
 
     // Open or create database
@@ -203,7 +201,7 @@ async function runBuild() {
       db = new SQL.Database();
     }
 
-    // Initialize schema if needed (sql.js doesn't support WAL mode)
+    // Initialize schema if needed (fast-sql applies optimal PRAGMAs automatically)
     runSQL(
       db,
       `

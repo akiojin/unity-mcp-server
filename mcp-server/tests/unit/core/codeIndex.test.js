@@ -4,14 +4,14 @@ import assert from 'node:assert/strict';
 describe('CodeIndex', () => {
   describe('basic functionality', () => {
     it('should have CodeIndex class definition', async () => {
-      // Dynamic import to handle sql.js availability
+      // Dynamic import to handle fast-sql availability
       try {
         const { CodeIndex } = await import('../../../src/core/codeIndex.js');
         assert.ok(CodeIndex);
         assert.equal(typeof CodeIndex, 'function');
       } catch (e) {
-        // If sql.js is not available, skip this test
-        assert.ok(true, 'CodeIndex requires sql.js');
+        // If fast-sql is not available, skip this test
+        assert.ok(true, 'CodeIndex requires fast-sql');
       }
     });
 
@@ -23,12 +23,12 @@ describe('CodeIndex', () => {
         assert.ok(index);
         assert.equal(index.disabled, false);
       } catch (e) {
-        assert.ok(true, 'CodeIndex requires sql.js');
+        assert.ok(true, 'CodeIndex requires fast-sql');
       }
     });
   });
 
-  describe('when sql.js is unavailable', () => {
+  describe('when fast-sql is unavailable', () => {
     it('disables gracefully and records the reason', async () => {
       const { CodeIndex, __resetCodeIndexDriverStatusForTest } = await import(
         '../../../src/core/codeIndex.js'
@@ -64,7 +64,7 @@ describe('CodeIndex', () => {
         const { CodeIndex } = await import('../../../src/core/codeIndex.js');
         assert.ok(CodeIndex);
       } catch (e) {
-        assert.ok(true, 'CodeIndex requires sql.js');
+        assert.ok(true, 'CodeIndex requires fast-sql');
       }
     });
   });
