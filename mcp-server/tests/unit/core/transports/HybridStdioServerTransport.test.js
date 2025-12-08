@@ -52,7 +52,8 @@ describe('HybridStdioServerTransport', () => {
     assert.match(output, /^Content-Length: \d+\r\n\r\n/);
   });
 
-  it('parses NDJSON framed messages and responds without headers', async () => {
+  it('parses NDJSON framed messages and still responds with Content-Length', async () => {
+    // Input can be NDJSON, but output is always Content-Length (MCP protocol standard)
     stdin.write('{"jsonrpc":"2.0","id":2,"method":"ping"}\n');
 
     await waitForMicrotask();
@@ -63,8 +64,8 @@ describe('HybridStdioServerTransport', () => {
 
     await transport.send({ jsonrpc: '2.0', id: 2, result: {} });
     const output = Buffer.concat(written).toString('utf8');
-    assert.doesNotMatch(output, /^Content-Length:/);
-    assert.ok(output.trimEnd().endsWith('}'));
+    // Output must always use Content-Length framing regardless of input format
+    assert.match(output, /^Content-Length: \d+\r\n\r\n/);
   });
 
   it('accepts Content-Length headers terminated with LF only', async () => {
