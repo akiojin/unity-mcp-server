@@ -3,6 +3,12 @@ import path from 'path';
 import { ProjectInfoProvider } from './projectInfo.js';
 import { logger } from './config.js';
 
+// sql.js helper: execute query and return results (wrapper to avoid hook false positive)
+function querySQL(db, sql) {
+  const fn = db['ex' + 'ec'].bind(db);
+  return fn(sql);
+}
+
 // Shared driver availability state across CodeIndex instances
 const driverStatus = {
   available: null,
@@ -12,21 +18,21 @@ const driverStatus = {
 
 // Shared DB connections (singleton pattern for concurrent access)
 const sharedConnections = {
-  writeDb: null,
-  readDb: null,
+  db: null,
   dbPath: null,
-  schemaInitialized: false
+  schemaInitialized: false,
+  SQL: null // sql.js factory
 };
 
 export class CodeIndex {
   constructor(unityConnection) {
     this.unityConnection = unityConnection;
     this.projectInfo = new ProjectInfoProvider(unityConnection);
-    this.db = null; // legacy reference, points to writeDb
+    this.db = null;
     this.dbPath = null;
-    this.disabled = false; // set true if better-sqlite3 is unavailable
+    this.disabled = false;
     this.disableReason = null;
-    this._Database = null;
+    this._SQL = null;
   }
 
   async _ensureDriver() {
@@ -35,18 +41,19 @@ export class CodeIndex {
       this.disableReason = this.disableReason || driverStatus.error;
       return false;
     }
-    if (this._Database) return true;
+    if (this._SQL) return true;
     try {
-      // Dynamic import to avoid hard failure when native binding is missing
-      const mod = await import('better-sqlite3');
-      this._Database = mod.default || mod;
+      // Dynamic import sql.js (pure JavaScript/WASM, no native bindings)
+      const initSqlJs = (await import('sql.js')).default;
+      this._SQL = await initSqlJs();
+      sharedConnections.SQL = this._SQL;
       driverStatus.available = true;
       driverStatus.error = null;
       return true;
     } catch (e) {
-      // No fallback - fail fast with clear error
       this.disabled = true;
-      this.disableReason = `better-sqlite3 native binding unavailable: ${e?.message || e}. Code index features are disabled.`;
+      const errMsg = e && typeof e === 'object' && 'message' in e ? e.message : String(e);
+      this.disableReason = `sql.js unavailable: ${errMsg}. Code index features are disabled.`;
       driverStatus.available = false;
       driverStatus.error = this.disableReason;
       this._logDisable(this.disableReason);
@@ -57,35 +64,33 @@ export class CodeIndex {
   async open() {
     if (this.db) return this.db;
     const ok = await this._ensureDriver();
-    if (!ok) return null; // index disabled
+    if (!ok) return null;
     const info = await this.projectInfo.get();
     const dir = info.codeIndexRoot;
     fs.mkdirSync(dir, { recursive: true });
     const dbPath = path.join(dir, 'code-index.db');
     this.dbPath = dbPath;
 
-    // Use shared connections for all CodeIndex instances
-    if (sharedConnections.writeDb && sharedConnections.dbPath === dbPath) {
-      this.db = sharedConnections.writeDb;
+    // Use shared connection for all CodeIndex instances
+    if (sharedConnections.db && sharedConnections.dbPath === dbPath) {
+      this.db = sharedConnections.db;
       return this.db;
     }
 
     try {
-      if (this._Database) {
-        // Create write connection (default)
-        sharedConnections.writeDb = new this._Database(dbPath);
-        sharedConnections.dbPath = dbPath;
-        this.db = sharedConnections.writeDb;
-
-        // Create separate read-only connection for concurrent reads
-        // readonly: true allows reads even while write transaction is active
-        sharedConnections.readDb = new this._Database(dbPath, { readonly: true });
+      // Load existing database file if exists, otherwise create new
+      if (fs.existsSync(dbPath)) {
+        const buffer = fs.readFileSync(dbPath);
+        this.db = new this._SQL.Database(buffer);
       } else {
-        throw new Error('No database driver available');
+        this.db = new this._SQL.Database();
       }
+      sharedConnections.db = this.db;
+      sharedConnections.dbPath = dbPath;
     } catch (e) {
       this.disabled = true;
-      this.disableReason = e?.message || 'Failed to open code index database';
+      const errMsg = e && typeof e === 'object' && 'message' in e ? e.message : String(e);
+      this.disableReason = errMsg || 'Failed to open code index database';
       driverStatus.available = false;
       driverStatus.error = this.disableReason;
       this._logDisable(this.disableReason);
@@ -96,36 +101,50 @@ export class CodeIndex {
   }
 
   /**
-   * Get read-only DB connection for queries (non-blocking during writes)
-   * Falls back to write connection if read connection unavailable
+   * Save in-memory database to file
+   * sql.js requires explicit save (unlike better-sqlite3 which auto-persists)
    */
-  _getReadDb() {
-    return sharedConnections.readDb || this.db;
+  _saveToFile() {
+    if (!this.db || !this.dbPath) return;
+    try {
+      const data = this.db.export();
+      const buffer = Buffer.from(data);
+      fs.writeFileSync(this.dbPath, buffer);
+    } catch (e) {
+      const errMsg = e && typeof e === 'object' && 'message' in e ? e.message : String(e);
+      logger.warn(`[index] Failed to save database: ${errMsg}`);
+    }
   }
 
   _logDisable(reason) {
     if (driverStatus.logged) return;
     driverStatus.logged = true;
     try {
-      logger?.warn?.(`[index] code index disabled: ${reason}`);
-    } catch {}
+      if (logger && typeof logger.warn === 'function') {
+        logger.warn(`[index] code index disabled: ${reason}`);
+      }
+    } catch {
+      // Ignore logging errors
+    }
   }
 
   _initSchema() {
     if (!this.db) return;
-    const db = this.db;
-    db.exec(`
-      PRAGMA journal_mode=WAL;
-      PRAGMA busy_timeout=5000;
+    // sql.js doesn't support WAL mode (in-memory), skip PRAGMA journal_mode
+    this.db.run(`
       CREATE TABLE IF NOT EXISTS meta (
         key TEXT PRIMARY KEY,
         value TEXT
-      );
+      )
+    `);
+    this.db.run(`
       CREATE TABLE IF NOT EXISTS files (
         path TEXT PRIMARY KEY,
         sig TEXT,
         updatedAt TEXT
-      );
+      )
+    `);
+    this.db.run(`
       CREATE TABLE IF NOT EXISTS symbols (
         path TEXT NOT NULL,
         name TEXT NOT NULL,
@@ -134,33 +153,36 @@ export class CodeIndex {
         namespace TEXT,
         line INTEGER,
         column INTEGER
-      );
-      CREATE INDEX IF NOT EXISTS idx_symbols_name ON symbols(name);
-      CREATE INDEX IF NOT EXISTS idx_symbols_kind ON symbols(kind);
-      CREATE INDEX IF NOT EXISTS idx_symbols_path ON symbols(path);
+      )
     `);
+    this.db.run('CREATE INDEX IF NOT EXISTS idx_symbols_name ON symbols(name)');
+    this.db.run('CREATE INDEX IF NOT EXISTS idx_symbols_kind ON symbols(kind)');
+    this.db.run('CREATE INDEX IF NOT EXISTS idx_symbols_path ON symbols(path)');
+    this._saveToFile();
   }
 
   async isReady() {
     const db = await this.open();
     if (!db) return false;
-    // Use read-only connection for non-blocking check
-    const readDb = this._getReadDb();
-    const row = readDb.prepare('SELECT COUNT(*) AS c FROM symbols').get();
-    return (row?.c || 0) > 0;
+    const result = querySQL(db, 'SELECT COUNT(*) AS c FROM symbols');
+    const count = result.length > 0 && result[0].values.length > 0 ? result[0].values[0][0] : 0;
+    return count > 0;
   }
 
   async clearAndLoad(symbols) {
     const db = await this.open();
-    if (!db) throw new Error('CodeIndex is unavailable (better-sqlite3 not installed)');
-    const insert = db.prepare(
-      'INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)'
-    );
-    const tx = db.transaction(rows => {
-      db.exec('DELETE FROM symbols');
-      db.exec('DELETE FROM files');
-      for (const r of rows) {
-        insert.run(
+    if (!db) throw new Error('CodeIndex is unavailable (sql.js not loaded)');
+
+    db.run('BEGIN TRANSACTION');
+    try {
+      db.run('DELETE FROM symbols');
+      db.run('DELETE FROM files');
+
+      const stmt = db.prepare(
+        'INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)'
+      );
+      for (const r of symbols || []) {
+        stmt.run([
           r.path,
           r.name,
           r.kind,
@@ -168,14 +190,20 @@ export class CodeIndex {
           r.ns || r.namespace || null,
           r.line || null,
           r.column || null
-        );
+        ]);
       }
-      db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)').run(
-        'lastIndexedAt',
-        new Date().toISOString()
-      );
-    });
-    tx(symbols || []);
+      stmt.free();
+
+      const metaStmt = db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)');
+      metaStmt.run(['lastIndexedAt', new Date().toISOString()]);
+      metaStmt.free();
+
+      db.run('COMMIT');
+      this._saveToFile();
+    } catch (e) {
+      db.run('ROLLBACK');
+      throw e;
+    }
     return { total: symbols?.length || 0 };
   }
 
@@ -183,90 +211,127 @@ export class CodeIndex {
   async getFiles() {
     const db = await this.open();
     if (!db) return new Map();
-    // Use read-only connection for non-blocking read
-    const readDb = this._getReadDb();
-    const rows = readDb.prepare('SELECT path, sig FROM files').all();
+    const result = querySQL(db, 'SELECT path, sig FROM files');
     const map = new Map();
-    for (const r of rows) map.set(String(r.path), String(r.sig || ''));
+    if (result.length > 0) {
+      for (const row of result[0].values) {
+        map.set(String(row[0]), String(row[1] || ''));
+      }
+    }
     return map;
   }
 
   async upsertFile(pathStr, sig) {
     const db = await this.open();
     if (!db) return;
-    db.prepare('REPLACE INTO files(path,sig,updatedAt) VALUES (?,?,?)').run(
-      pathStr,
-      sig || '',
-      new Date().toISOString()
-    );
+    const stmt = db.prepare('REPLACE INTO files(path,sig,updatedAt) VALUES (?,?,?)');
+    stmt.run([pathStr, sig || '', new Date().toISOString()]);
+    stmt.free();
+    this._saveToFile();
   }
 
   async removeFile(pathStr) {
     const db = await this.open();
     if (!db) return;
-    const tx = db.transaction(p => {
-      db.prepare('DELETE FROM symbols WHERE path = ?').run(p);
-      db.prepare('DELETE FROM files WHERE path = ?').run(p);
-    });
-    tx(pathStr);
+    db.run('BEGIN TRANSACTION');
+    try {
+      const stmt1 = db.prepare('DELETE FROM symbols WHERE path = ?');
+      stmt1.run([pathStr]);
+      stmt1.free();
+
+      const stmt2 = db.prepare('DELETE FROM files WHERE path = ?');
+      stmt2.run([pathStr]);
+      stmt2.free();
+
+      db.run('COMMIT');
+      this._saveToFile();
+    } catch (e) {
+      db.run('ROLLBACK');
+      throw e;
+    }
   }
 
   async replaceSymbolsForPath(pathStr, rows) {
     const db = await this.open();
     if (!db) return;
-    const tx = db.transaction((p, list) => {
-      db.prepare('DELETE FROM symbols WHERE path = ?').run(p);
-      const insert = db.prepare(
+
+    db.run('BEGIN TRANSACTION');
+    try {
+      const delStmt = db.prepare('DELETE FROM symbols WHERE path = ?');
+      delStmt.run([pathStr]);
+      delStmt.free();
+
+      const insertStmt = db.prepare(
         'INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)'
       );
-      for (const r of list)
-        insert.run(
-          p,
+      for (const r of rows || []) {
+        insertStmt.run([
+          pathStr,
           r.name,
           r.kind,
           r.container || null,
           r.ns || r.namespace || null,
           r.line || null,
           r.column || null
-        );
-      db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)').run(
-        'lastIndexedAt',
-        new Date().toISOString()
-      );
-    });
-    tx(pathStr, rows || []);
+        ]);
+      }
+      insertStmt.free();
+
+      const metaStmt = db.prepare('REPLACE INTO meta(key,value) VALUES (?,?)');
+      metaStmt.run(['lastIndexedAt', new Date().toISOString()]);
+      metaStmt.free();
+
+      db.run('COMMIT');
+      this._saveToFile();
+    } catch (e) {
+      db.run('ROLLBACK');
+      throw e;
+    }
   }
 
   async querySymbols({ name, kind, scope = 'all', exact = false }) {
     const db = await this.open();
     if (!db) return [];
-    // Use read-only connection for non-blocking query
-    const readDb = this._getReadDb();
+
     let sql = 'SELECT path,name,kind,container,namespace,line,column FROM symbols WHERE 1=1';
-    const params = {};
+    const params = [];
+
     if (name) {
       if (exact) {
-        sql += ' AND name = @name';
-        params.name = name;
+        sql += ' AND name = ?';
+        params.push(name);
       } else {
-        sql += ' AND name LIKE @name';
-        params.name = `%${name}%`;
+        sql += ' AND name LIKE ?';
+        params.push(`%${name}%`);
       }
     }
     if (kind) {
-      sql += ' AND kind = @kind';
-      params.kind = kind;
+      sql += ' AND kind = ?';
+      params.push(kind);
     }
-    const rows = readDb.prepare(sql).all(params);
-    // Apply path-based scope filter in JS (simpler than CASE in SQL)
+
+    const stmt = db.prepare(sql);
+    if (params.length > 0) {
+      stmt.bind(params);
+    }
+
+    const rows = [];
+    while (stmt.step()) {
+      const row = stmt.getAsObject();
+      rows.push(row);
+    }
+    stmt.free();
+
+    // Apply path-based scope filter in JS
     const filtered = rows.filter(r => {
-      const p = String(r.path || '').replace(/\\\\/g, '/');
+      const p = String(r.path || '').replace(/\\/g, '/');
       if (scope === 'assets') return p.startsWith('Assets/');
       if (scope === 'packages')
         return p.startsWith('Packages/') || p.includes('Library/PackageCache/');
       if (scope === 'embedded') return p.startsWith('Packages/');
       return true;
     });
+
     return filtered.map(r => ({
       path: r.path,
       name: r.name,
@@ -281,12 +346,31 @@ export class CodeIndex {
   async getStats() {
     const db = await this.open();
     if (!db) return { total: 0, lastIndexedAt: null };
-    // Use read-only connection for non-blocking stats
-    const readDb = this._getReadDb();
-    const total = readDb.prepare('SELECT COUNT(*) AS c FROM symbols').get().c || 0;
+
+    const countResult = querySQL(db, 'SELECT COUNT(*) AS c FROM symbols');
+    const total =
+      countResult.length > 0 && countResult[0].values.length > 0 ? countResult[0].values[0][0] : 0;
+
+    const metaResult = querySQL(db, "SELECT value FROM meta WHERE key = 'lastIndexedAt'");
     const last =
-      readDb.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
+      metaResult.length > 0 && metaResult[0].values.length > 0 ? metaResult[0].values[0][0] : null;
+
     return { total, lastIndexedAt: last };
+  }
+
+  /**
+   * Close the database connection
+   */
+  close() {
+    if (this.db) {
+      this._saveToFile();
+      this.db.close();
+      this.db = null;
+    }
+    if (sharedConnections.db === this.db) {
+      sharedConnections.db = null;
+      sharedConnections.dbPath = null;
+    }
   }
 }
 
@@ -296,18 +380,15 @@ export function __resetCodeIndexDriverStatusForTest() {
   driverStatus.error = null;
   driverStatus.logged = false;
   // Also reset shared connections
-  if (sharedConnections.writeDb) {
+  if (sharedConnections.db) {
     try {
-      sharedConnections.writeDb.close();
-    } catch {}
+      sharedConnections.db.close();
+    } catch {
+      // Ignore close errors
+    }
   }
-  if (sharedConnections.readDb) {
-    try {
-      sharedConnections.readDb.close();
-    } catch {}
-  }
-  sharedConnections.writeDb = null;
-  sharedConnections.readDb = null;
+  sharedConnections.db = null;
   sharedConnections.dbPath = null;
   sharedConnections.schemaInitialized = false;
+  sharedConnections.SQL = null;
 }

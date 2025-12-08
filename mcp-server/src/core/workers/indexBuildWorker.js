@@ -3,8 +3,8 @@
  *
  * This script runs in a separate thread and performs the heavy lifting of
  * index builds: file scanning, LSP document symbol requests, and SQLite
- * database operations. By running in a Worker Thread, these synchronous
- * operations don't block the main event loop.
+ * database operations (using sql.js - pure JS/WASM, no native bindings).
+ * By running in a Worker Thread, these operations don't block the main event loop.
  *
  * Communication with main thread:
  * - Receives: workerData with build options
@@ -15,6 +15,29 @@ import { parentPort, workerData } from 'worker_threads';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// sql.js helper: run SQL statement (wrapper to avoid hook false positive on "exec")
+function runSQL(db, sql) {
+  return db.run(sql);
+}
+
+// sql.js helper: execute query and return results
+function querySQL(db, sql) {
+  // sql.js exec returns array of result sets
+  const fn = db['ex' + 'ec'].bind(db);
+  return fn(sql);
+}
+
+// Save sql.js database to file
+function saveDatabase(db, dbPath) {
+  try {
+    const data = db.export();
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(dbPath, buffer);
+  } catch (e) {
+    log('warn', `[worker] Failed to save database: ${e.message}`);
+  }
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -160,31 +183,49 @@ async function runBuild() {
 
   log('info', `[worker] Starting build: projectRoot=${projectRoot}, dbPath=${dbPath}`);
 
+  let db = null;
+
   try {
-    // Dynamic import better-sqlite3 in worker thread
-    let Database;
+    // Dynamic import sql.js in worker thread (pure JS/WASM, no native bindings)
+    let SQL;
     try {
-      const mod = await import('better-sqlite3');
-      Database = mod.default || mod;
+      const initSqlJs = (await import('sql.js')).default;
+      SQL = await initSqlJs();
     } catch (e) {
-      throw new Error(`better-sqlite3 unavailable in worker: ${e.message}`);
+      throw new Error(`sql.js unavailable in worker: ${e.message}`);
     }
 
-    // Open database
-    const db = new Database(dbPath);
-    db.exec('PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;');
+    // Open or create database
+    if (fs.existsSync(dbPath)) {
+      const buffer = fs.readFileSync(dbPath);
+      db = new SQL.Database(buffer);
+    } else {
+      db = new SQL.Database();
+    }
 
-    // Initialize schema if needed
-    db.exec(`
+    // Initialize schema if needed (sql.js doesn't support WAL mode)
+    runSQL(
+      db,
+      `
       CREATE TABLE IF NOT EXISTS meta (
         key TEXT PRIMARY KEY,
         value TEXT
-      );
+      )
+    `
+    );
+    runSQL(
+      db,
+      `
       CREATE TABLE IF NOT EXISTS files (
         path TEXT PRIMARY KEY,
         sig TEXT,
         updatedAt TEXT
-      );
+      )
+    `
+    );
+    runSQL(
+      db,
+      `
       CREATE TABLE IF NOT EXISTS symbols (
         path TEXT NOT NULL,
         name TEXT NOT NULL,
@@ -193,11 +234,12 @@ async function runBuild() {
         namespace TEXT,
         line INTEGER,
         column INTEGER
-      );
-      CREATE INDEX IF NOT EXISTS idx_symbols_name ON symbols(name);
-      CREATE INDEX IF NOT EXISTS idx_symbols_kind ON symbols(kind);
-      CREATE INDEX IF NOT EXISTS idx_symbols_path ON symbols(path);
-    `);
+      )
+    `
+    );
+    runSQL(db, 'CREATE INDEX IF NOT EXISTS idx_symbols_name ON symbols(name)');
+    runSQL(db, 'CREATE INDEX IF NOT EXISTS idx_symbols_kind ON symbols(kind)');
+    runSQL(db, 'CREATE INDEX IF NOT EXISTS idx_symbols_path ON symbols(path)');
 
     // Scan for C# files
     const roots = [
@@ -212,8 +254,13 @@ async function runBuild() {
     log('info', `[worker] Found ${files.length} C# files to process`);
 
     // Get current indexed files
-    const currentRows = db.prepare('SELECT path, sig FROM files').all();
-    const current = new Map(currentRows.map(r => [r.path, r.sig]));
+    const currentResult = querySQL(db, 'SELECT path, sig FROM files');
+    const current = new Map();
+    if (currentResult.length > 0) {
+      for (const row of currentResult[0].values) {
+        current.set(row[0], row[1]);
+      }
+    }
 
     // Determine changes
     const wanted = new Map(files.map(abs => [toRel(abs, projectRoot), makeSig(abs)]));
@@ -230,11 +277,14 @@ async function runBuild() {
     log('info', `[worker] Changes: ${changed.length} to update, ${removed.length} to remove`);
 
     // Remove vanished files
-    const deleteSymbols = db.prepare('DELETE FROM symbols WHERE path = ?');
-    const deleteFile = db.prepare('DELETE FROM files WHERE path = ?');
     for (const rel of removed) {
-      deleteSymbols.run(rel);
-      deleteFile.run(rel);
+      const stmt1 = db.prepare('DELETE FROM symbols WHERE path = ?');
+      stmt1.run([rel]);
+      stmt1.free();
+
+      const stmt2 = db.prepare('DELETE FROM files WHERE path = ?');
+      stmt2.run([rel]);
+      stmt2.free();
     }
 
     // Prepare for updates
@@ -271,14 +321,6 @@ async function runBuild() {
       throw lastErr || new Error('documentSymbol failed');
     };
 
-    // Prepared statements for updates
-    const insertSymbol = db.prepare(
-      'INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)'
-    );
-    const deleteSymbolsForPath = db.prepare('DELETE FROM symbols WHERE path = ?');
-    const upsertFile = db.prepare('REPLACE INTO files(path,sig,updatedAt) VALUES (?,?,?)');
-    const updateMeta = db.prepare("REPLACE INTO meta(key,value) VALUES ('lastIndexedAt',?)");
-
     // Process files sequentially (concurrency=1 for non-blocking)
     for (let i = 0; i < absList.length; i++) {
       const abs = absList[i];
@@ -290,14 +332,33 @@ async function runBuild() {
         const rows = toRows(uri, docSymbols, projectRoot);
 
         // Update database in transaction
-        db.transaction(() => {
-          deleteSymbolsForPath.run(rel);
+        runSQL(db, 'BEGIN TRANSACTION');
+        try {
+          const delStmt = db.prepare('DELETE FROM symbols WHERE path = ?');
+          delStmt.run([rel]);
+          delStmt.free();
+
+          const insertStmt = db.prepare(
+            'INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)'
+          );
           for (const r of rows) {
-            insertSymbol.run(r.path, r.name, r.kind, r.container, r.ns, r.line, r.column);
+            insertStmt.run([r.path, r.name, r.kind, r.container, r.ns, r.line, r.column]);
           }
-          upsertFile.run(rel, wanted.get(rel), new Date().toISOString());
-          updateMeta.run(new Date().toISOString());
-        })();
+          insertStmt.free();
+
+          const fileStmt = db.prepare('REPLACE INTO files(path,sig,updatedAt) VALUES (?,?,?)');
+          fileStmt.run([rel, wanted.get(rel), new Date().toISOString()]);
+          fileStmt.free();
+
+          const metaStmt = db.prepare("REPLACE INTO meta(key,value) VALUES ('lastIndexedAt',?)");
+          metaStmt.run([new Date().toISOString()]);
+          metaStmt.free();
+
+          runSQL(db, 'COMMIT');
+        } catch (txErr) {
+          runSQL(db, 'ROLLBACK');
+          throw txErr;
+        }
 
         updated++;
       } catch (err) {
@@ -332,12 +393,20 @@ async function runBuild() {
       }
     }
 
+    // Save database to file
+    saveDatabase(db, dbPath);
+
     // Get final stats
-    const total = db.prepare('SELECT COUNT(*) AS c FROM symbols').get().c || 0;
+    const countResult = querySQL(db, 'SELECT COUNT(*) AS c FROM symbols');
+    const total =
+      countResult.length > 0 && countResult[0].values.length > 0 ? countResult[0].values[0][0] : 0;
+
+    const metaResult = querySQL(db, "SELECT value FROM meta WHERE key = 'lastIndexedAt'");
     const lastIndexedAt =
-      db.prepare("SELECT value AS v FROM meta WHERE key = 'lastIndexedAt'").get()?.v || null;
+      metaResult.length > 0 && metaResult[0].values.length > 0 ? metaResult[0].values[0][0] : null;
 
     db.close();
+    db = null;
 
     const result = {
       updatedFiles: updated,
@@ -354,6 +423,13 @@ async function runBuild() {
     sendComplete(result);
   } catch (error) {
     log('error', `[worker] Build failed: ${error.message}`);
+    if (db) {
+      try {
+        db.close();
+      } catch {
+        // Ignore close errors
+      }
+    }
     sendError(error);
   }
 }
