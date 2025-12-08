@@ -13,23 +13,23 @@
 
 ## Phase 3.1: セットアップ
 
-- [ ] T001 `packages/fast-sql/` ディレクトリ構造を作成
+- [x] T001 `packages/fast-sql/` ディレクトリ構造を作成
   - `src/core/`, `src/optimizations/`, `src/backend/`, `src/utils/`
   - `tests/contract/`, `tests/integration/`, `tests/unit/`
 
-- [ ] T002 `packages/fast-sql/package.json` を作成
+- [x] T002 `packages/fast-sql/package.json` を作成
   - name: `@akiojin/fast-sql`
   - dependencies: `sql.js`
   - devDependencies: テストツール
   - type: `module`
   - exports: ESM設定
 
-- [ ] T003 [P] `packages/fast-sql/tsconfig.json` を作成
+- [x] T003 [P] `packages/fast-sql/tsconfig.json` を作成
   - target: ES2022
   - module: ESNext
   - moduleResolution: node
 
-- [ ] T004 [P] npm workspaceにfast-sqlを追加
+- [x] T004 [P] npm workspaceにfast-sqlを追加
   - ルート `package.json` の workspaces に追加
 
 ---
