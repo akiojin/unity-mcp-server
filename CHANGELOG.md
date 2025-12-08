@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.43.1](https://github.com/akiojin/unity-mcp-server/compare/v2.43.0...v2.43.1) (2025-12-08)
+
+
+### Bug Fixes
+
+* **mcp-server:** always use Content-Length framing for output ([cfcd023](https://github.com/akiojin/unity-mcp-server/commit/cfcd023048d9bc6c3c758eb666f744c15229471c))
+* **mcp-server:** always use Content-Length framing for output ([4b84975](https://github.com/akiojin/unity-mcp-server/commit/4b84975a7edc4de2911f599aacbff850e4cb1539))
+
 ## [2.43.0](https://github.com/akiojin/unity-mcp-server/compare/v2.42.4...v2.43.0) (2025-12-08)
 
 
