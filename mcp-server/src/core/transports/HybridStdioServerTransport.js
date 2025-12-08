@@ -11,10 +11,6 @@ function encodeContentLength(message) {
   return header + json;
 }
 
-function encodeNdjson(message) {
-  return `${JSON.stringify(message)}\n`;
-}
-
 function parseJson(text) {
   return JSONRPCMessageSchema.parse(JSON.parse(text));
 }
@@ -63,8 +59,9 @@ export class HybridStdioServerTransport {
 
   send(message) {
     return new Promise(resolve => {
-      const payload =
-        this._mode === 'ndjson' ? encodeNdjson(message) : encodeContentLength(message);
+      // Always use Content-Length framing for output (MCP protocol standard)
+      // Input remains hybrid (Content-Length or NDJSON) for client compatibility
+      const payload = encodeContentLength(message);
       if (this._stdout.write(payload)) {
         resolve();
       } else {
