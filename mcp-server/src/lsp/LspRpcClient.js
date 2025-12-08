@@ -161,7 +161,7 @@ export class LspRpcClient {
         this.proc = null;
         this.initialized = false;
         this.buf = Buffer.alloc(0);
-        logger.warn(`[csharp-lsp] recoverable error on ${method}: ${msg}. Retrying once...`);
+        logger.warning(`[csharp-lsp] recoverable error on ${method}: ${msg}. Retrying once...`);
         return await this.#requestWithRetry(method, params, attempt + 1);
       }
       // Standardize error message

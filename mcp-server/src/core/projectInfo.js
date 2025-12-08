@@ -70,7 +70,7 @@ export class ProjectInfoProvider {
           return this.cached;
         }
       } catch (e) {
-        logger.warn(`get_editor_info failed: ${e.message}`);
+        logger.warning(`get_editor_info failed: ${e.message}`);
       }
     }
     if (typeof cfgRootRaw === 'string') {

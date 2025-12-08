@@ -42,7 +42,7 @@ export class LspRpcClientSingleton {
       try {
         await instance.mgr.stop();
       } catch (e) {
-        logger.warn(`[LspRpcClientSingleton] error stopping: ${e.message}`);
+        logger.warning(`[LspRpcClientSingleton] error stopping: ${e.message}`);
       }
       instance = null;
       currentProjectRoot = null;
@@ -59,7 +59,7 @@ export class LspRpcClientSingleton {
       if (!instance) return;
       // Check if process is still alive before attempting heartbeat
       if (!instance.proc || instance.proc.killed) {
-        logger.warn('[LspRpcClientSingleton] process dead, resetting...');
+        logger.warning('[LspRpcClientSingleton] process dead, resetting...');
         instance = null;
         currentProjectRoot = null;
         LspRpcClientSingleton.#stopHeartbeat();
@@ -69,7 +69,7 @@ export class LspRpcClientSingleton {
         // Use workspace/symbol with empty query as a lightweight ping
         await instance.request('workspace/symbol', { query: '' });
       } catch (e) {
-        logger.warn(`[LspRpcClientSingleton] heartbeat failed: ${e.message}, resetting...`);
+        logger.warning(`[LspRpcClientSingleton] heartbeat failed: ${e.message}, resetting...`);
         // Process is dead, reset instance for next request
         instance = null;
         currentProjectRoot = null;

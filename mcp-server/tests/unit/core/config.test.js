@@ -339,47 +339,44 @@ describe('Config', () => {
     });
 
     it('should log debug messages when level is debug', () => {
-      // Temporarily change log level
-      const originalLevel = config.logging.level;
-      config.logging.level = 'debug';
+      // Use setLevel to dynamically change log level
+      logger.setLevel('debug');
 
       logger.debug('Debug message');
       assert.equal(errorOutput.length, 1);
       assert.match(errorOutput[0], /\[unity-mcp-server\] DEBUG: Debug message/);
 
       // Restore original level
-      config.logging.level = originalLevel;
+      logger.setLevel('info');
     });
 
-    it('should log warn messages when level is info', () => {
-      logger.warn('Warning message');
+    it('should log warning messages when level is info', () => {
+      logger.warning('Warning message');
       assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[unity-mcp-server\] WARN: Warning message/);
+      assert.match(errorOutput[0], /\[unity-mcp-server\] WARNING: Warning message/);
     });
 
-    it('should log warn messages when level is warn', () => {
-      // Temporarily change log level
-      const originalLevel = config.logging.level;
-      config.logging.level = 'warn';
+    it('should log warning messages when level is warning', () => {
+      // Use setLevel to dynamically change log level
+      logger.setLevel('warning');
 
-      logger.warn('Warning message');
+      logger.warning('Warning message');
       assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[unity-mcp-server\] WARN: Warning message/);
+      assert.match(errorOutput[0], /\[unity-mcp-server\] WARNING: Warning message/);
 
       // Restore original level
-      config.logging.level = originalLevel;
+      logger.setLevel('info');
     });
 
-    it('should not log info messages when level is warn', () => {
-      // Temporarily change log level
-      const originalLevel = config.logging.level;
-      config.logging.level = 'warn';
+    it('should not log info messages when level is warning', () => {
+      // Use setLevel to dynamically change log level
+      logger.setLevel('warning');
 
       logger.info('Info message');
       assert.equal(errorOutput.length, 0);
 
       // Restore original level
-      config.logging.level = originalLevel;
+      logger.setLevel('info');
     });
 
     it('should handle multiple arguments in logger methods', () => {
@@ -393,20 +390,18 @@ describe('Config', () => {
     });
 
     it('should always log error messages regardless of level', () => {
-      // Test with different log levels
-      const originalLevel = config.logging.level;
-
-      config.logging.level = 'debug';
+      // Test with different log levels using setLevel
+      logger.setLevel('debug');
       logger.error('Error message 1');
       assert.equal(errorOutput.length, 1);
 
       errorOutput.length = 0; // Clear
-      config.logging.level = 'warn';
+      logger.setLevel('warning');
       logger.error('Error message 2');
       assert.equal(errorOutput.length, 1);
 
       // Restore original level
-      config.logging.level = originalLevel;
+      logger.setLevel('info');
     });
 
     it('should handle error objects in logger.error', () => {

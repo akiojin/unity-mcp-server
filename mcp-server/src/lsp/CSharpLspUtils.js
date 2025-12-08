@@ -92,7 +92,7 @@ export class CSharpLspUtils {
       }
       logger.info(`[csharp-lsp] migrated legacy binary to ${path.dirname(primary)}`);
     } catch (e) {
-      logger.warn(`[csharp-lsp] legacy migration failed: ${e.message}`);
+      logger.warning(`[csharp-lsp] legacy migration failed: ${e.message}`);
     }
   }
 
@@ -135,7 +135,7 @@ export class CSharpLspUtils {
     // バージョン取得失敗時もバイナリが存在すれば使用
     if (!desired) {
       if (fs.existsSync(p)) {
-        logger.warn('[csharp-lsp] version not found, using existing binary');
+        logger.warning('[csharp-lsp] version not found, using existing binary');
         return p;
       }
       throw new Error('mcp-server version not found; cannot resolve LSP tag');
@@ -152,7 +152,7 @@ export class CSharpLspUtils {
       return p;
     } catch (e) {
       if (fs.existsSync(p)) {
-        logger.warn(`[csharp-lsp] download failed, using existing binary: ${e.message}`);
+        logger.warning(`[csharp-lsp] download failed, using existing binary: ${e.message}`);
         return p;
       }
       throw e;
