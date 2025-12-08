@@ -19,7 +19,7 @@ let db
 describe('sql.js Compatibility', () => {
   before(async () => {
     try {
-      const module = await import('../../src/index.js')
+      const module = await import('../../dist/index.js')
       initFastSql = module.default || module.initFastSql
       SQL = await initFastSql()
     } catch (e) {

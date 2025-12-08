@@ -19,7 +19,7 @@ let initFastSql
 describe('Extended API Contract', () => {
   before(async () => {
     try {
-      const module = await import('../../src/index.js')
+      const module = await import('../../dist/index.js')
       Database = module.Database
       initFastSql = module.default || module.initFastSql
       await initFastSql() // Initialize WASM
@@ -313,14 +313,19 @@ describe('Extended API Contract', () => {
     })
 
     it('should track cache hits', () => {
-      // First call - cache miss
-      db.prepare('SELECT * FROM test WHERE id = ?').free()
+      // First call - cache miss (do not free, keep in cache)
+      const stmt1 = db.prepare('SELECT * FROM test WHERE id = ?')
 
-      // Second call - cache hit
-      db.prepare('SELECT * FROM test WHERE id = ?').free()
+      // Second call - cache hit (same SQL)
+      const stmt2 = db.prepare('SELECT * FROM test WHERE id = ?')
+
+      // Both should reference the same cached statement
+      assert.strictEqual(stmt1, stmt2, 'Should return same cached statement')
 
       const stats = db.getCacheStats()
       assert.ok(stats.hits >= 1, 'Should have at least 1 hit')
+
+      stmt1.free()
     })
 
     it('should track cache misses', () => {
