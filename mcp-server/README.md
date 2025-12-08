@@ -309,64 +309,46 @@ Add to your `claude_desktop_config.json`:
 
 ## Architecture
 
-### Native Dependencies
+### Dependencies
 
-Unity MCP Server uses platform-specific native binaries for performance-critical operations:
+Unity MCP Server uses the following components for code indexing and analysis:
 
-| Component | Purpose | Distribution | Size per platform |
-|-----------|---------|--------------|-------------------|
-| **better-sqlite3** | Code index database | Bundled in npm package | ~3-5 MB |
-| **csharp-lsp** | C# symbol analysis | Downloaded on first use | ~80 MB |
+| Component | Purpose | Distribution | Notes |
+|-----------|---------|--------------|-------|
+| **sql.js** | Code index database | npm dependency | Pure JS/WASM, no native compilation |
+| **csharp-lsp** | C# symbol analysis | Downloaded on first use | ~80 MB per platform |
 
-#### Why better-sqlite3 over JavaScript-based SQLite?
+#### Why sql.js?
 
-We chose **better-sqlite3** (native C binding) instead of JavaScript-based alternatives like **sql.js** for the following reasons:
+We use **sql.js** (pure JavaScript/WebAssembly SQLite) for the code index database:
 
-| Aspect | better-sqlite3 (native) | sql.js (WASM/JS) |
-|--------|------------------------|------------------|
-| **Performance** | 10-100x faster for bulk operations | Slower due to WASM overhead |
-| **Memory** | Efficient native memory management | Higher memory usage, GC pressure |
-| **Synchronous API** | Native sync operations, ideal for MCP | Async-only, adds complexity |
-| **Startup time** | Instant module load | ~100-500ms WASM initialization |
-| **Database size** | Handles large indexes efficiently | Performance degrades with size |
+- **Zero native compilation**: Works immediately via `npx` without build tools
+- **Cross-platform**: Same code runs on all Node.js platforms
+- **No installation delays**: Avoids 30+ second native module compilation timeouts
 
-The code index database may contain tens of thousands of symbols from Unity projects. Native SQLite provides the performance characteristics needed for responsive symbol searches and incremental updates.
+**Trade-off**: sql.js is 1.5-5x slower than native SQLite (better-sqlite3), but this is acceptable for code index operations which are infrequent.
 
-**Trade-off**: Requires platform-specific binaries (bundled for all supported platforms), while sql.js would work everywhere but with unacceptable performance for our use case.
+#### csharp-lsp Distribution
 
-#### Why Different Distribution Methods?
-
-**better-sqlite3 (bundled)**:
-
-- Small size (~3-5 MB per platform)
-- Prevents MCP server initialization timeout during `npm install` compilation
-- Code index features disabled with clear error message if native binding fails
-
-**csharp-lsp (downloaded)**:
+**csharp-lsp (downloaded on first use)**:
 
 - Large size (~80 MB per platform, ~480 MB for all 6 platforms)
-- Too large to bundle in npm package (would increase package size 100x)
+- Too large to bundle in npm package
 - Downloaded from GitHub Release on first use of script editing tools
 
 #### Supported Platforms
 
-| Platform | better-sqlite3 | csharp-lsp |
-|----------|---------------|------------|
-| Linux x64 | ✅ Bundled | ✅ Downloaded (~79 MB) |
-| Linux arm64 | ✅ Bundled | ✅ Downloaded (~86 MB) |
-| macOS x64 | ✅ Bundled | ✅ Downloaded (~80 MB) |
-| macOS arm64 (Apple Silicon) | ✅ Bundled | ✅ Downloaded (~86 MB) |
-| Windows x64 | ✅ Bundled | ✅ Downloaded (~80 MB) |
-| Windows arm64 | ✅ Bundled | ✅ Downloaded (~85 MB) |
-
-#### Fallback Behavior
-
-- **better-sqlite3**: No fallback; code index features disabled with clear error if native binding unavailable
-- **csharp-lsp**: No fallback; script editing features require the native binary
+| Platform | sql.js | csharp-lsp |
+|----------|--------|------------|
+| Linux x64 | ✅ Built-in | ✅ Downloaded (~79 MB) |
+| Linux arm64 | ✅ Built-in | ✅ Downloaded (~86 MB) |
+| macOS x64 | ✅ Built-in | ✅ Downloaded (~80 MB) |
+| macOS arm64 (Apple Silicon) | ✅ Built-in | ✅ Downloaded (~86 MB) |
+| Windows x64 | ✅ Built-in | ✅ Downloaded (~80 MB) |
+| Windows arm64 | ✅ Built-in | ✅ Downloaded (~85 MB) |
 
 #### Storage Locations
 
-- **better-sqlite3**: `<package>/prebuilt/better-sqlite3/<platform>/`
 - **csharp-lsp**: `~/.unity/tools/csharp-lsp/<rid>/`
 - **Code index database**: `<workspace>/.unity/cache/code-index/code-index.db`
 
@@ -421,23 +403,6 @@ npm cache clean --force
 npm uninstall -g @akiojin/unity-mcp-server
 npm install -g @akiojin/unity-mcp-server
 ```
-
-### Native Module (better-sqlite3) Issues
-
-If you encounter errors related to `better-sqlite3` during installation or startup:
-
-**Symptom**: Installation fails with `node-gyp` errors, or startup shows "Could not locate the bindings file."
-
-**Cause**: The package includes prebuilt native binaries for supported platforms (Linux/macOS/Windows × x64/arm64 × Node 18/20/22). If your platform isn't supported or the prebuilt fails to load, code index features will be disabled.
-
-**Solution - Force native rebuild**:
-
-```bash
-# Force rebuild from source (requires build tools)
-UNITY_MCP_FORCE_NATIVE=1 npm install @akiojin/unity-mcp-server
-```
-
-**Note**: If native binding is unavailable, code index features (`code_index_build`, `code_index_status`, `script_symbol_find`, etc.) will return clear error messages indicating the feature is disabled. Other MCP server features continue to work normally.
 
 ### MCP Client Shows "Capabilities: none"
 

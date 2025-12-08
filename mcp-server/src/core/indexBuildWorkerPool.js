@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
  *
  * This class manages Worker Threads that execute index builds in a separate
  * thread, preventing the main Node.js event loop from being blocked by
- * better-sqlite3's synchronous database operations.
+ * sql.js database operations.
  *
  * Requirements:
  * - FR-056: Execute index build in Worker Thread
