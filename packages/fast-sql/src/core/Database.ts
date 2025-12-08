@@ -230,8 +230,15 @@ export class Database implements DatabaseInterface {
     // キャッシュをチェック
     const cached = this.cache.get(sql)
     if (cached) {
-      cached.reset()
-      return cached
+      // Check if statement was freed externally
+      const stmt = cached as Statement
+      if (stmt.state === 'freed') {
+        // Remove invalid entry and create new
+        this.cache.delete(sql)
+      } else {
+        stmt.reset()
+        return stmt
+      }
     }
 
     // 新規作成
