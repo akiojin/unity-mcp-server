@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.43.3](https://github.com/akiojin/unity-mcp-server/compare/v2.43.2...v2.43.3) (2025-12-08)
+
+
+### Bug Fixes
+
+* **mcp-server:** use official StdioServerTransport for NDJSON output ([fb39266](https://github.com/akiojin/unity-mcp-server/commit/fb392660196f994a4d595e86f27c2529268f840e))
+* **mcp-server:** use official StdioServerTransport for NDJSON output ([b3bb999](https://github.com/akiojin/unity-mcp-server/commit/b3bb999f5733243e0afc7fb49d3a7a05d57cd9cd))
+
 ## [2.43.2](https://github.com/akiojin/unity-mcp-server/compare/v2.43.1...v2.43.2) (2025-12-08)
 
 
