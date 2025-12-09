@@ -3,10 +3,9 @@ import path from 'path';
 import { ProjectInfoProvider } from './projectInfo.js';
 import { logger } from './config.js';
 
-// sql.js helper: execute query and return results (wrapper to avoid hook false positive)
+// fast-sql helper: execute query and return results
 function querySQL(db, sql) {
-  const fn = db['ex' + 'ec'].bind(db);
-  return fn(sql);
+  return db.execSql(sql);
 }
 
 // Shared driver availability state across CodeIndex instances
@@ -43,9 +42,9 @@ export class CodeIndex {
     }
     if (this._SQL) return true;
     try {
-      // Dynamic import sql.js (pure JavaScript/WASM, no native bindings)
-      const initSqlJs = (await import('sql.js')).default;
-      this._SQL = await initSqlJs();
+      // Dynamic import fast-sql (hybrid backend: better-sqlite3 or sql.js fallback)
+      const initFastSql = (await import('@akiojin/fast-sql')).default;
+      this._SQL = await initFastSql();
       sharedConnections.SQL = this._SQL;
       driverStatus.available = true;
       driverStatus.error = null;
@@ -53,7 +52,7 @@ export class CodeIndex {
     } catch (e) {
       this.disabled = true;
       const errMsg = e && typeof e === 'object' && 'message' in e ? e.message : String(e);
-      this.disableReason = `sql.js unavailable: ${errMsg}. Code index features are disabled.`;
+      this.disableReason = `fast-sql unavailable: ${errMsg}. Code index features are disabled.`;
       driverStatus.available = false;
       driverStatus.error = this.disableReason;
       this._logDisable(this.disableReason);
@@ -102,12 +101,12 @@ export class CodeIndex {
 
   /**
    * Save in-memory database to file
-   * sql.js requires explicit save (unlike better-sqlite3 which auto-persists)
+   * fast-sql requires explicit save when using sql.js backend
    */
   _saveToFile() {
     if (!this.db || !this.dbPath) return;
     try {
-      const data = this.db.export();
+      const data = this.db.exportDb();
       const buffer = Buffer.from(data);
       fs.writeFileSync(this.dbPath, buffer);
     } catch (e) {
@@ -130,7 +129,7 @@ export class CodeIndex {
 
   _initSchema() {
     if (!this.db) return;
-    // sql.js doesn't support WAL mode (in-memory), skip PRAGMA journal_mode
+    // fast-sql applies optimal PRAGMAs automatically
     this.db.run(`
       CREATE TABLE IF NOT EXISTS meta (
         key TEXT PRIMARY KEY,
@@ -171,7 +170,7 @@ export class CodeIndex {
 
   async clearAndLoad(symbols) {
     const db = await this.open();
-    if (!db) throw new Error('CodeIndex is unavailable (sql.js not loaded)');
+    if (!db) throw new Error('CodeIndex is unavailable (fast-sql not loaded)');
 
     db.run('BEGIN TRANSACTION');
     try {

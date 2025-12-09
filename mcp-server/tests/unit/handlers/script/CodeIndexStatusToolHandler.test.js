@@ -65,7 +65,7 @@ describe('CodeIndexStatusToolHandler', () => {
     it('should return degraded status when index is disabled', async () => {
       handler.codeIndex = {
         disabled: true,
-        disableReason: 'sql.js could not be loaded',
+        disableReason: 'fast-sql could not be loaded',
         isReady: async () => false
       };
 
@@ -75,7 +75,7 @@ describe('CodeIndexStatusToolHandler', () => {
       assert.equal(result.status, 'degraded');
       assert.equal(result.disabled, true);
       assert.equal(result.coverage, 0);
-      assert.ok(result.message.includes('sql.js'));
+      assert.ok(result.message.includes('fast-sql'));
     });
 
     it('should have correct response structure when index is ready', async () => {

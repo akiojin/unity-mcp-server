@@ -1,0 +1,59 @@
+{
+  "name": "@akiojin/fast-sql",
+  "version": "0.1.0",
+  "description": "High-performance sql.js wrapper with PRAGMA optimization, statement caching, and transaction management",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test tests/**/*.test.js",
+    "test:contract": "node --test tests/contract/*.test.js",
+    "test:integration": "node --test tests/integration/*.test.js",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:benchmark": "node --test tests/integration/benchmark.test.js",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "sqlite",
+    "sql.js",
+    "wasm",
+    "database",
+    "performance",
+    "cache"
+  ],
+  "author": "akiojin",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akiojin/unity-mcp-server.git",
+    "directory": "packages/fast-sql"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.5.0",
+    "sql.js": "^1.13.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/sql.js": "^1.4.9",
+    "typescript": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

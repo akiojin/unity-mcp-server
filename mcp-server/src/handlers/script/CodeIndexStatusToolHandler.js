@@ -39,13 +39,13 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
         coverage: 0,
         message:
           this.codeIndex.disableReason ||
-          'Code index is disabled because sql.js could not be loaded. The server will continue without the symbol index.',
+          'Code index is disabled because fast-sql could not be loaded. The server will continue without the symbol index.',
         remediation:
-          'Ensure sql.js is installed by running "npm install sql.js". After installing, restart unity-mcp-server.',
+          'Ensure fast-sql is properly installed. After reinstalling dependencies, restart unity-mcp-server.',
         index: {
           ready: false,
           disabled: true,
-          reason: this.codeIndex.disableReason || 'sql.js unavailable; code index is disabled'
+          reason: this.codeIndex.disableReason || 'fast-sql unavailable; code index is disabled'
         }
       };
     }
