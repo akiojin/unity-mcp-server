@@ -45,8 +45,10 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "better-sqlite3": "^12.5.0",
     "sql.js": "^1.13.0"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^12.5.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.8",
