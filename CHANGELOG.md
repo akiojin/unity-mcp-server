@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.45.4](https://github.com/akiojin/unity-mcp-server/compare/v2.45.3...v2.45.4) (2025-12-09)
+
+
+### Bug Fixes
+
+* **code-index:** throw error on saveDatabase failure and validate DB file existence ([84273b5](https://github.com/akiojin/unity-mcp-server/commit/84273b5ca059ec2e54e3f3b11d45af3a4a477cae))
+* **code-index:** throw error on saveDatabase failure and validate DB file existence ([909681a](https://github.com/akiojin/unity-mcp-server/commit/909681a3007b07e20b3ec470a9539cb88be65ae3))
+
 ## [2.45.3](https://github.com/akiojin/unity-mcp-server/compare/v2.45.2...v2.45.3) (2025-12-09)
 
 
