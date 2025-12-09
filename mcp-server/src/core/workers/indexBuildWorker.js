@@ -31,9 +31,24 @@ function saveDatabase(db, dbPath) {
   try {
     const data = db.exportDb();
     const buffer = Buffer.from(data);
+
+    // Ensure parent directory exists
+    const dir = path.dirname(dbPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
     fs.writeFileSync(dbPath, buffer);
+
+    // Verify file was written
+    if (!fs.existsSync(dbPath)) {
+      throw new Error('Database file was not created');
+    }
+
+    log('info', `[worker] Database saved successfully: ${dbPath} (${buffer.length} bytes)`);
   } catch (e) {
-    log('warn', `[worker] Failed to save database: ${e.message}`);
+    log('error', `[worker] Failed to save database: ${e.message}`);
+    throw e; // Re-throw to fail the build
   }
 }
 
