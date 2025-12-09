@@ -72,8 +72,17 @@ export class CodeIndex {
 
     // Use shared connection for all CodeIndex instances
     if (sharedConnections.db && sharedConnections.dbPath === dbPath) {
-      this.db = sharedConnections.db;
-      return this.db;
+      // Verify the DB file still exists before returning cached connection
+      if (!fs.existsSync(dbPath)) {
+        // File was deleted or never created, invalidate cache
+        logger.info('[index] DB file missing, invalidating cached connection');
+        sharedConnections.db = null;
+        sharedConnections.dbPath = null;
+        sharedConnections.schemaInitialized = false;
+      } else {
+        this.db = sharedConnections.db;
+        return this.db;
+      }
     }
 
     try {
