@@ -184,22 +184,24 @@ async function runBuild() {
   let db = null;
 
   try {
-    // Dynamic import fast-sql in worker thread (hybrid: better-sqlite3 or sql.js fallback)
-    let SQL;
+    // Dynamic import fast-sql Database class (uses better-sqlite3 when available, sql.js fallback)
+    let Database;
     try {
-      const initFastSql = (await import('@akiojin/fast-sql')).default;
-      SQL = await initFastSql();
+      const fastSql = await import('@akiojin/fast-sql');
+      Database = fastSql.Database;
     } catch (e) {
       throw new Error(`fast-sql unavailable in worker: ${e.message}`);
     }
 
-    // Open or create database
+    // Open or create database using Database.create() for better-sqlite3 support
     if (fs.existsSync(dbPath)) {
       const buffer = fs.readFileSync(dbPath);
-      db = new SQL.Database(buffer);
+      db = await Database.create(buffer);
     } else {
-      db = new SQL.Database();
+      db = await Database.create();
     }
+
+    log('info', `[worker] Using backend: ${db.backendType || 'unknown'}`);
 
     // Initialize schema if needed (fast-sql applies optimal PRAGMAs automatically)
     runSQL(
