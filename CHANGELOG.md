@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.45.2](https://github.com/akiojin/unity-mcp-server/compare/v2.45.1...v2.45.2) (2025-12-09)
+
+
+### Bug Fixes
+
+* **code-index:** use Worker Thread for code_index_build to prevent blocking ([467e2a1](https://github.com/akiojin/unity-mcp-server/commit/467e2a18b8cd5edf5b97aef66ea95449201394b5))
+* **code-index:** use Worker Thread for code_index_build to prevent blocking ([11d54ea](https://github.com/akiojin/unity-mcp-server/commit/11d54ea7dd0674d3dd461880cfa9b3b599313666))
+
 ## [2.45.1](https://github.com/akiojin/unity-mcp-server/compare/v2.45.0...v2.45.1) (2025-12-09)
 
 
