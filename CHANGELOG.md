@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.45.1](https://github.com/akiojin/unity-mcp-server/compare/v2.45.0...v2.45.1) (2025-12-09)
+
+
+### Bug Fixes
+
+* **mcp-server:** resolve fast-sql dependency for npm publish ([10a02db](https://github.com/akiojin/unity-mcp-server/commit/10a02db8c3feaef03e09927bd48fbe3cbefc8472))
+* **mcp-server:** resolve fast-sql dependency for npm publish ([d95e7cb](https://github.com/akiojin/unity-mcp-server/commit/d95e7cb99d4940b11955c6b8cf1a738051f764d8))
+
 ## [2.45.0](https://github.com/akiojin/unity-mcp-server/compare/v2.44.1...v2.45.0) (2025-12-09)
 
 
