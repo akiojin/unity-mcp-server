@@ -201,8 +201,8 @@ jobs:
             dist/**/csharp-lsp-*
             csharp-lsp-manifest.json
 
-  npm-publish:
-    name: Publish to npm
+  npm-publish-fast-sql:
+    name: Publish fast-sql to npm
     needs: build-csharp-lsp
     runs-on: ubuntu-latest
     env:
@@ -222,7 +222,65 @@ jobs:
       - name: Get release tag
         id: tag
         run: |
-          TAG="${{ env.RELEASE_TAG }}"
+          TAG="${RELEASE_TAG}"
+          if [ -z "$TAG" ]; then
+            TAG=$(git describe --tags --abbrev=0)
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Check if fast-sql needs publishing
+        id: check
+        working-directory: packages/fast-sql
+        run: |
+          PKG_NAME=$(node -p "require('./package.json').name")
+          PKG_VER=$(node -p "require('./package.json').version")
+          if npm view "${PKG_NAME}@${PKG_VER}" version 2>/dev/null; then
+            echo "Version $PKG_VER already published, skipping"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version $PKG_VER not found, will publish"
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install dependencies
+        if: steps.check.outputs.skip == 'false'
+        working-directory: packages/fast-sql
+        run: npm install
+
+      - name: Build fast-sql
+        if: steps.check.outputs.skip == 'false'
+        working-directory: packages/fast-sql
+        run: npm run build
+
+      - name: Publish fast-sql to npm
+        if: steps.check.outputs.skip == 'false'
+        working-directory: packages/fast-sql
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
+
+  npm-publish:
+    name: Publish to npm
+    needs: [build-csharp-lsp, npm-publish-fast-sql]
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Get release tag
+        id: tag
+        run: |
+          TAG="${RELEASE_TAG}"
           if [ -z "$TAG" ]; then
             TAG=$(git describe --tags --abbrev=0)
           fi
@@ -230,8 +288,9 @@ jobs:
 
       - name: Verify version matches tag
         working-directory: mcp-server
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
         run: |
-          TAG="${{ steps.tag.outputs.tag }}"
           PKG_VER=$(node -p "require('./package.json').version")
           if [ "v$PKG_VER" != "$TAG" ]; then
             echo "Version mismatch: tag($TAG) != package($PKG_VER)" >&2
@@ -241,9 +300,9 @@ jobs:
       - name: Wait for csharp-lsp manifest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          REPO: ${{ github.repository }}
         run: |
-          TAG="${{ steps.tag.outputs.tag }}"
-          REPO="${{ github.repository }}"
           for i in $(seq 1 60); do
             if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
               NAMES=$(gh release view "$TAG" --repo "$REPO" --json assets --jq '.assets[].name' || true)
@@ -255,6 +314,21 @@ jobs:
             sleep 10
           done
           echo "Manifest not found after 10 minutes" >&2
+          exit 1
+
+      - name: Wait for fast-sql availability
+        run: |
+          FAST_SQL_VER=$(node -p "require('./packages/fast-sql/package.json').version")
+          echo "Waiting for @akiojin/fast-sql@$FAST_SQL_VER to be available..."
+          for i in $(seq 1 30); do
+            if npm view "@akiojin/fast-sql@$FAST_SQL_VER" version 2>/dev/null; then
+              echo "fast-sql $FAST_SQL_VER is available"
+              exit 0
+            fi
+            echo "Attempt $i: not yet available, waiting..."
+            sleep 10
+          done
+          echo "fast-sql not available after 5 minutes" >&2
           exit 1
 
       - name: Install dependencies
