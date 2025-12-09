@@ -10,6 +10,13 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.45.5](https://github.com/akiojin/unity-mcp-server/compare/v2.45.4...v2.45.5) (2025-12-09)
+
+
+### Bug Fixes
+
+* **code-index:** implement inline LSP client for Worker Thread ([89ed79e](https://github.com/akiojin/unity-mcp-server/commit/89ed79ec559853766da91dbeb8803052dd935091))
+
 ## [2.45.4](https://github.com/akiojin/unity-mcp-server/compare/v2.45.3...v2.45.4) (2025-12-09)
 
 
