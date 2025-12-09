@@ -9,11 +9,16 @@
  * Communication with main thread:
  * - Receives: workerData with build options
  * - Sends: progress updates, completion, errors, logs
+ *
+ * IMPORTANT: This worker uses an inline LSP client implementation to avoid
+ * importing main thread modules that may not work correctly in Worker Threads.
  */
 
 import { parentPort, workerData } from 'worker_threads';
+import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { fileURLToPath } from 'url';
 
 // fast-sql helper: run SQL statement
@@ -122,6 +127,224 @@ function makeSig(abs) {
     return '0-0';
   }
 }
+
+// ============================================================================
+// Worker-local LSP Client Implementation
+// ============================================================================
+// This is an inline implementation specifically for Worker Threads.
+// It does NOT share state with main thread and manages its own LSP process.
+
+/**
+ * Detect runtime identifier for csharp-lsp binary
+ */
+function detectRid() {
+  if (process.platform === 'win32') return process.arch === 'arm64' ? 'win-arm64' : 'win-x64';
+  if (process.platform === 'darwin') return process.arch === 'arm64' ? 'osx-arm64' : 'osx-x64';
+  return process.arch === 'arm64' ? 'linux-arm64' : 'linux-x64';
+}
+
+/**
+ * Get csharp-lsp executable name
+ */
+function getExecutableName() {
+  return process.platform === 'win32' ? 'server.exe' : 'server';
+}
+
+/**
+ * Find csharp-lsp binary path
+ */
+function findLspBinary(projectRoot) {
+  const rid = detectRid();
+  const exe = getExecutableName();
+
+  // Check multiple possible locations
+  const candidates = [
+    // Primary: ~/.unity/tools/csharp-lsp/<rid>/server
+    path.join(os.homedir(), '.unity', 'tools', 'csharp-lsp', rid, exe),
+    // Legacy: <workspace>/.unity/tools/csharp-lsp/<rid>/server
+    path.join(projectRoot, '.unity', 'tools', 'csharp-lsp', rid, exe),
+    // Also check parent directories in case projectRoot is nested
+    path.join(projectRoot, '..', '.unity', 'tools', 'csharp-lsp', rid, exe)
+  ];
+
+  for (const p of candidates) {
+    try {
+      const resolved = path.resolve(p);
+      if (fs.existsSync(resolved)) {
+        return resolved;
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Worker-local LSP client class
+ * Manages its own csharp-lsp process independently from main thread
+ */
+class WorkerLspClient {
+  constructor(projectRoot) {
+    this.projectRoot = projectRoot;
+    this.proc = null;
+    this.seq = 1;
+    this.pending = new Map();
+    this.buf = Buffer.alloc(0);
+    this.initialized = false;
+  }
+
+  async start() {
+    const binPath = findLspBinary(this.projectRoot);
+    if (!binPath) {
+      throw new Error(
+        `csharp-lsp binary not found. Expected at ~/.unity/tools/csharp-lsp/${detectRid()}/${getExecutableName()}`
+      );
+    }
+
+    log('info', `[worker-lsp] Starting LSP: ${binPath}`);
+
+    this.proc = spawn(binPath, [], { stdio: ['pipe', 'pipe', 'pipe'] });
+
+    this.proc.on('error', e => {
+      log('error', `[worker-lsp] Process error: ${e.message}`);
+    });
+
+    this.proc.on('close', (code, sig) => {
+      log('info', `[worker-lsp] Process exited: code=${code}, signal=${sig || 'none'}`);
+      // Reject all pending requests
+      for (const [id, p] of this.pending.entries()) {
+        p.reject(new Error('LSP process exited'));
+        this.pending.delete(id);
+      }
+      this.proc = null;
+      this.initialized = false;
+    });
+
+    this.proc.stderr.on('data', d => {
+      const s = String(d || '').trim();
+      if (s) log('debug', `[worker-lsp] stderr: ${s}`);
+    });
+
+    this.proc.stdout.on('data', chunk => this._onData(chunk));
+
+    // Initialize LSP
+    await this._initialize();
+    this.initialized = true;
+    log('info', `[worker-lsp] Initialized successfully`);
+  }
+
+  _onData(chunk) {
+    this.buf = Buffer.concat([this.buf, Buffer.from(chunk)]);
+    while (true) {
+      const headerEnd = this.buf.indexOf('\r\n\r\n');
+      if (headerEnd < 0) break;
+      const header = this.buf.slice(0, headerEnd).toString('utf8');
+      const m = header.match(/Content-Length:\s*(\d+)/i);
+      const len = m ? parseInt(m[1], 10) : 0;
+      const total = headerEnd + 4 + len;
+      if (this.buf.length < total) break;
+      const jsonBuf = this.buf.slice(headerEnd + 4, total);
+      this.buf = this.buf.slice(total);
+      try {
+        const msg = JSON.parse(jsonBuf.toString('utf8'));
+        if (msg.id && this.pending.has(msg.id)) {
+          this.pending.get(msg.id).resolve(msg);
+          this.pending.delete(msg.id);
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }
+
+  _writeMessage(obj) {
+    if (!this.proc || this.proc.killed) {
+      throw new Error('LSP process not available');
+    }
+    const json = JSON.stringify(obj);
+    const payload = `Content-Length: ${Buffer.byteLength(json, 'utf8')}\r\n\r\n${json}`;
+    this.proc.stdin.write(payload, 'utf8');
+  }
+
+  async _initialize() {
+    const id = this.seq++;
+    const req = {
+      jsonrpc: '2.0',
+      id,
+      method: 'initialize',
+      params: {
+        processId: process.pid,
+        rootUri: 'file://' + String(this.projectRoot).replace(/\\/g, '/'),
+        capabilities: {},
+        workspaceFolders: null
+      }
+    };
+
+    const timeoutMs = 60000;
+    const p = new Promise((resolve, reject) => {
+      this.pending.set(id, { resolve, reject });
+      setTimeout(() => {
+        if (this.pending.has(id)) {
+          this.pending.delete(id);
+          reject(new Error(`initialize timed out after ${timeoutMs}ms`));
+        }
+      }, timeoutMs);
+    });
+
+    this._writeMessage(req);
+    await p;
+
+    // Send initialized notification
+    this._writeMessage({ jsonrpc: '2.0', method: 'initialized', params: {} });
+  }
+
+  async request(method, params) {
+    if (!this.proc || this.proc.killed) {
+      throw new Error('LSP process not available');
+    }
+
+    const id = this.seq++;
+    const timeoutMs = 30000;
+
+    const p = new Promise((resolve, reject) => {
+      this.pending.set(id, { resolve, reject });
+      setTimeout(() => {
+        if (this.pending.has(id)) {
+          this.pending.delete(id);
+          reject(new Error(`${method} timed out after ${timeoutMs}ms`));
+        }
+      }, timeoutMs);
+    });
+
+    this._writeMessage({ jsonrpc: '2.0', id, method, params });
+    const resp = await p;
+    return resp?.result ?? resp;
+  }
+
+  stop() {
+    if (this.proc && !this.proc.killed) {
+      try {
+        // Send shutdown/exit
+        this._writeMessage({ jsonrpc: '2.0', id: this.seq++, method: 'shutdown', params: {} });
+        this._writeMessage({ jsonrpc: '2.0', method: 'exit' });
+        this.proc.stdin.end();
+      } catch {
+        // Ignore
+      }
+      setTimeout(() => {
+        if (this.proc && !this.proc.killed) {
+          this.proc.kill('SIGTERM');
+        }
+      }, 1000);
+    }
+  }
+}
+
+// ============================================================================
+// End Worker-local LSP Client
+// ============================================================================
 
 /**
  * Convert LSP symbol kind to string
@@ -309,14 +532,12 @@ async function runBuild() {
     let updated = 0;
     let lastReportedPercentage = 0;
 
-    // Initialize LSP connection
-    // Note: LspRpcClientSingleton is in src/lsp/, not src/core/lsp/
-    let lsp = null;
+    // Initialize Worker-local LSP client
+    // This is independent from main thread's LspRpcClientSingleton
+    const lsp = new WorkerLspClient(projectRoot);
     try {
-      const lspModulePath = path.join(__dirname, '..', '..', 'lsp', 'LspRpcClientSingleton.js');
-      const { LspRpcClientSingleton } = await import(`file://${lspModulePath}`);
-      lsp = await LspRpcClientSingleton.getInstance(projectRoot);
-      log('info', `[worker] LSP initialized`);
+      await lsp.start();
+      log('info', `[worker] Worker-local LSP initialized`);
     } catch (e) {
       throw new Error(`LSP initialization failed: ${e.message}`);
     }
@@ -327,7 +548,7 @@ async function runBuild() {
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
           const res = await lsp.request('textDocument/documentSymbol', { textDocument: { uri } });
-          return res?.result ?? res;
+          return res;
         } catch (err) {
           lastErr = err;
           await new Promise(r => setTimeout(r, 200 * (attempt + 1)));
@@ -407,6 +628,9 @@ async function runBuild() {
         await new Promise(r => setTimeout(r, throttleMs));
       }
     }
+
+    // Stop LSP process
+    lsp.stop();
 
     // Save database to file
     saveDatabase(db, dbPath);
