@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.45.3](https://github.com/akiojin/unity-mcp-server/compare/v2.45.2...v2.45.3) (2025-12-09)
+
+
+### Bug Fixes
+
+* **code-index:** use Database.create() for better-sqlite3 support in Worker Thread ([5002f65](https://github.com/akiojin/unity-mcp-server/commit/5002f65602837d066c03f08c2b05450ce8174f3b))
+* **code-index:** use Database.create() for better-sqlite3 support in Worker Thread ([978e2bc](https://github.com/akiojin/unity-mcp-server/commit/978e2bc2dc97caa0755ba3906a328da81f4cdd1c))
+
 ## [2.45.2](https://github.com/akiojin/unity-mcp-server/compare/v2.45.1...v2.45.2) (2025-12-09)
 
 
