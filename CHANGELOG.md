@@ -10,6 +10,30 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.45.0](https://github.com/akiojin/unity-mcp-server/compare/v2.44.1...v2.45.0) (2025-12-09)
+
+
+### Features
+
+* **fast-sql:** add hybrid backend with better-sqlite3 support ([25ad97b](https://github.com/akiojin/unity-mcp-server/commit/25ad97be46c8c51f9924abafe996a5079ce96f7d))
+* **fast-sql:** implement core fast-sql library ([97d32a0](https://github.com/akiojin/unity-mcp-server/commit/97d32a0411e81c3296987ffa4a0832314d3fab19))
+* **fast-sql:** initialize package structure (T001-T004) ([cdb9152](https://github.com/akiojin/unity-mcp-server/commit/cdb9152ebe520d00a640f1aee9cbafa6878324ce))
+* **fast-sql:** SQLite optimization wrapper library ([ecd3905](https://github.com/akiojin/unity-mcp-server/commit/ecd3905487a30b240fbc9b64f9911a82a52c2386))
+* **mcp-server:** integrate fast-sql hybrid SQLite backend ([d90509a](https://github.com/akiojin/unity-mcp-server/commit/d90509a51f220d68eef9b6de7b0446fd65d110dc))
+* **mcp-server:** integrate fast-sql hybrid SQLite backend ([4e1e399](https://github.com/akiojin/unity-mcp-server/commit/4e1e3990c40c0c3ea2bbee0c4209622a5e859e7f))
+
+
+### Bug Fixes
+
+* **fast-sql:** add cache invalidation for freed statements ([4d0005b](https://github.com/akiojin/unity-mcp-server/commit/4d0005b4e49c6580aca658061ffe515683147668))
+* **mcp-server:** replace better-sqlite3 with sql.js for npx compatibility ([e1c5b27](https://github.com/akiojin/unity-mcp-server/commit/e1c5b2723ae8937d14f4d20d169d45d5ebed1a9f))
+* **mcp-server:** switch from pnpm to npm workspace protocol ([990963f](https://github.com/akiojin/unity-mcp-server/commit/990963f41d25d57f6c7993d5dea7541d3bcbff3b))
+
+
+### Performance Improvements
+
+* **fast-sql:** optimize StatementCache Date.now() calls ([4e353e8](https://github.com/akiojin/unity-mcp-server/commit/4e353e892e351cb2174a665d415360e031ec24e7))
+
 ## [2.44.1](https://github.com/akiojin/unity-mcp-server/compare/v2.44.0...v2.44.1) (2025-12-08)
 
 
