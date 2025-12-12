@@ -1,5 +1,9 @@
 FROM node:22-bookworm
 
+# Build-time auth tokens for GitHub CLI (passed via docker compose build args)
+ARG GH_TOKEN
+ARG GITHUB_TOKEN
+
 RUN apt-get update && apt-get install -y \
     jq \
     ripgrep \
@@ -20,8 +24,15 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install GitHub CLI extensions
-RUN gh extension install twelvelabs/gh-repo-config
+# Install GitHub CLI extensions (requires GH_TOKEN or GITHUB_TOKEN build arg)
+RUN set -e; \
+    TOKEN="${GH_TOKEN:-${GITHUB_TOKEN:-}}"; \
+    if [ -z "$TOKEN" ]; then \
+        echo "GH_TOKEN or GITHUB_TOKEN build arg is required to install gh extensions." >&2; \
+        exit 1; \
+    fi; \
+    GH_TOKEN="$TOKEN" GITHUB_TOKEN="$TOKEN" gh extension install twelvelabs/gh-repo-config; \
+    gh auth logout -h github.com >/dev/null 2>&1 || true
 
 # Install .NET 9 SDK (for C# LSP build) via official install script
 ENV DOTNET_ROOT=/usr/share/dotnet

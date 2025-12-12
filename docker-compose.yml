@@ -1,6 +1,10 @@
 services:
   unity-mcp-server:
-    build: .
+    build:
+      context: .
+      args:
+        GH_TOKEN: ${GH_TOKEN:-}
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     container_name: unity-mcp-server
     volumes:
       - .:/unity-mcp-server
