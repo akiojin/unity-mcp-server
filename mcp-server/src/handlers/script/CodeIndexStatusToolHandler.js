@@ -6,7 +6,7 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'code_index_status',
-      'Report code index status and readiness for symbol/search operations. BEST PRACTICES: Check before heavy symbol operations. Shows total files indexed and coverage percentage. If coverage is low, some symbol operations may be incomplete. Index is automatically built on first use. No parameters needed - lightweight status check.',
+      '[OFFLINE] No Unity connection required. Report code index status and readiness for symbol/search operations. BEST PRACTICES: Check before heavy symbol operations. Shows total files indexed and coverage percentage. If coverage is low, some symbol operations may be incomplete. Index is automatically built on first use. No parameters needed - lightweight status check.',
       {
         type: 'object',
         properties: {},

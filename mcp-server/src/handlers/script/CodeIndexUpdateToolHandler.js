@@ -17,7 +17,7 @@ export class CodeIndexUpdateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'code_index_update',
-      'Refresh code index entries for specific C# files. Use this after modifying files so script editing tools see the latest symbols.',
+      '[OFFLINE] No Unity connection required. Refresh code index entries for specific C# files. Use this after modifying files so script editing tools see the latest symbols.',
       {
         type: 'object',
         properties: {

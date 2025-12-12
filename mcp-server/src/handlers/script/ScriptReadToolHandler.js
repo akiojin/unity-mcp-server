@@ -7,7 +7,7 @@ export class ScriptReadToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'script_read',
-      'Read a C# file with optional line range and payload limits. Files must be under Assets/ or Packages/ and have .cs extension. PRIORITY: Read minimally — locate the target with script_symbols_get and read only the signature area (~30–40 lines). For large files, always pass startLine/endLine and (optionally) maxBytes.',
+      '[OFFLINE] No Unity connection required. Read a C# file with optional line range and payload limits. Files must be under Assets/ or Packages/ and have .cs extension. PRIORITY: Read minimally — locate the target with script_symbols_get and read only the signature area (~30–40 lines). For large files, always pass startLine/endLine and (optionally) maxBytes.',
       {
         type: 'object',
         properties: {

@@ -8,7 +8,7 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'code_index_build',
-      'Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Returns immediately with jobId for background execution. Check progress with code_index_status. Stores DB under .unity/cache/code-index/code-index.db.',
+      '[OFFLINE] No Unity connection required. Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Returns immediately with jobId for background execution. Check progress with code_index_status. Stores DB under .unity/cache/code-index/code-index.db.',
       {
         type: 'object',
         properties: {

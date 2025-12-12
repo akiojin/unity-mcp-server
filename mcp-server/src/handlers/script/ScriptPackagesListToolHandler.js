@@ -8,7 +8,7 @@ export class ScriptPackagesListToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'script_packages_list',
-      'List Unity packages in the project (optionally include built‑in). BEST PRACTICES: Use to discover available packages and their paths. Set includeBuiltIn=false to see only user packages. Returns package IDs, versions, and resolved paths. Embedded packages can be edited directly. Essential for understanding project dependencies.',
+      '[OFFLINE] No Unity connection required. List Unity packages in the project (optionally include built‑in). BEST PRACTICES: Use to discover available packages and their paths. Set includeBuiltIn=false to see only user packages. Returns package IDs, versions, and resolved paths. Embedded packages can be edited directly. Essential for understanding project dependencies.',
       {
         type: 'object',
         properties: {

@@ -8,7 +8,7 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'script_search',
-      'Search C# by substring/regex/glob with pagination and snippet context. PRIORITY: Use to locate symbols/files; avoid full contents. Use returnMode="snippets" (or "metadata") with small snippetContext (1–2). Narrow aggressively via include globs under Assets/** or Packages/** and semantic filters (namespace/container/identifier). Do NOT prefix repository folders.',
+      '[OFFLINE] No Unity connection required. Search C# by substring/regex/glob with pagination and snippet context. PRIORITY: Use to locate symbols/files; avoid full contents. Use returnMode="snippets" (or "metadata") with small snippetContext (1–2). Narrow aggressively via include globs under Assets/** or Packages/** and semantic filters (namespace/container/identifier). Do NOT prefix repository folders.',
       {
         type: 'object',
         properties: {

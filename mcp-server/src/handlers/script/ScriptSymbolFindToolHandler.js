@@ -6,7 +6,7 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'script_symbol_find',
-      'Find symbol definitions by name (class/method/field/property) using the bundled C# LSP. Guidance: prefer narrowing by kind and set exact=true when possible; use scope=assets|packages to avoid large outputs. Use results (container, namespace) to construct container namePath like Outer/Nested/Member for subsequent edit tools.',
+      '[OFFLINE] No Unity connection required. Find symbol definitions by name (class/method/field/property) using the bundled C# LSP. Guidance: prefer narrowing by kind and set exact=true when possible; use scope=assets|packages to avoid large outputs. Use results (container, namespace) to construct container namePath like Outer/Nested/Member for subsequent edit tools.',
       {
         type: 'object',
         properties: {
