@@ -114,12 +114,13 @@ namespace UnityMCPServer.Core
         /// </summary>
         private static void TryLoadConfigAndApply()
         {
+            string projectPath = null;
             try
             {
                 string explicitPath = Environment.GetEnvironmentVariable("UNITY_MCP_CONFIG");
                 // Current Unity project root
                 string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-                string projectPath = Path.GetFullPath(Path.Combine(projectRoot, ".unity", "config.json"));
+                projectPath = Path.GetFullPath(Path.Combine(projectRoot, ".unity", "config.json"));
                 string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
                 string userPath = string.IsNullOrEmpty(homeDir) ? null : Path.Combine(homeDir, ".unity", "config.json");
 
