@@ -1,6 +1,6 @@
-using System.Linq;
 using NUnit.Framework;
-using UnityMCPServer.Core;
+using System.Linq;
+using CoreServer = UnityMCPServer.Core.UnityMCPServer;
 
 namespace UnityMCPServer.Tests.Editor
 {
@@ -9,7 +9,7 @@ namespace UnityMCPServer.Tests.Editor
         [Test]
         public void SuggestAlternativePorts_ShouldReturnNextThreePorts()
         {
-            var ports = UnityMCPServer.SuggestAlternativePortsForTests(6400);
+            var ports = CoreServer.SuggestAlternativePortsForTests(6400);
             Assert.AreEqual(3, ports.Length);
             CollectionAssert.AreEqual(new[] { 6401, 6402, 6403 }, ports);
         }
@@ -17,10 +17,9 @@ namespace UnityMCPServer.Tests.Editor
         [Test]
         public void SuggestAlternativePorts_ShouldCapAtMaxPort()
         {
-            var ports = UnityMCPServer.SuggestAlternativePortsForTests(65534);
+            var ports = CoreServer.SuggestAlternativePortsForTests(65534);
             Assert.IsTrue(ports.All(p => p <= 65535));
             Assert.IsTrue(ports.Length >= 1);
         }
     }
 }
-

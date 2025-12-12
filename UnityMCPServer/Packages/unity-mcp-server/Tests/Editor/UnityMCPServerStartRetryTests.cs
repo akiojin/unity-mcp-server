@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using UnityMCPServer.Core;
+using CoreServer = UnityMCPServer.Core.UnityMCPServer;
 
 namespace UnityMCPServer.Tests.Editor
 {
@@ -8,12 +8,11 @@ namespace UnityMCPServer.Tests.Editor
         [Test]
         public void ComputeStartRetryDelay_ShouldIncreaseAndCap()
         {
-            Assert.AreEqual(500, UnityMCPServer.ComputeStartRetryDelayMsForTests(1));
-            Assert.AreEqual(1000, UnityMCPServer.ComputeStartRetryDelayMsForTests(2));
-            Assert.AreEqual(1500, UnityMCPServer.ComputeStartRetryDelayMsForTests(3));
-            Assert.AreEqual(2000, UnityMCPServer.ComputeStartRetryDelayMsForTests(4));
-            Assert.AreEqual(2000, UnityMCPServer.ComputeStartRetryDelayMsForTests(10));
+            Assert.AreEqual(500, CoreServer.ComputeStartRetryDelayMsForTests(1));
+            Assert.AreEqual(1000, CoreServer.ComputeStartRetryDelayMsForTests(2));
+            Assert.AreEqual(1500, CoreServer.ComputeStartRetryDelayMsForTests(3));
+            Assert.AreEqual(2000, CoreServer.ComputeStartRetryDelayMsForTests(4));
+            Assert.AreEqual(2000, CoreServer.ComputeStartRetryDelayMsForTests(10));
         }
     }
 }
-

@@ -1,6 +1,6 @@
 using NUnit.Framework;
 using UnityEditor;
-using UnityMCPServer.Core;
+using CoreServer = UnityMCPServer.Core.UnityMCPServer;
 
 namespace UnityMCPServer.Tests.Editor
 {
@@ -9,17 +9,16 @@ namespace UnityMCPServer.Tests.Editor
         [Test]
         public void ConsumeReloadPending_ShouldReturnFalseByDefault()
         {
-            EditorPrefs.DeleteKey(UnityMCPServer.ReloadPendingKeyForTests);
-            Assert.IsFalse(UnityMCPServer.ConsumeReloadPendingForTests());
+            EditorPrefs.DeleteKey(CoreServer.ReloadPendingKeyForTests);
+            Assert.IsFalse(CoreServer.ConsumeReloadPendingForTests());
         }
 
         [Test]
         public void ConsumeReloadPending_ShouldReturnTrueAndClear()
         {
-            UnityMCPServer.MarkReloadPendingForTests();
-            Assert.IsTrue(UnityMCPServer.ConsumeReloadPendingForTests());
-            Assert.IsFalse(UnityMCPServer.ConsumeReloadPendingForTests());
+            CoreServer.MarkReloadPendingForTests();
+            Assert.IsTrue(CoreServer.ConsumeReloadPendingForTests());
+            Assert.IsFalse(CoreServer.ConsumeReloadPendingForTests());
         }
     }
 }
-
