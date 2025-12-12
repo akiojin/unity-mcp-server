@@ -58,6 +58,27 @@ namespace UnityMCPServer.Core
         // Client connects via unity.mcpHost (legacy keys still supported). Server bind is independent (unity.unityHost/bindHost).
         private static string currentHost = "localhost"; // for logging only
         private static IPAddress bindAddress = IPAddress.Any; // default: 0.0.0.0
+
+        private const string ReloadPendingKey = "UnityMCP.TcpListener.ReloadPending";
+        internal static string ReloadPendingKeyForTests => ReloadPendingKey;
+
+        private const int MaxStartRetries = 3;
+        private const int BaseStartRetryDelayMs = 500;
+        private const int MaxStartRetryDelayMs = 2000;
+        private static int startRetryAttempts = 0;
+        private static bool startRetryScheduled = false;
+
+        private static string lastConfigPath = null;
+
+        internal static int ComputeStartRetryDelayMsForTests(int attempt)
+        {
+            return ComputeStartRetryDelayMs(attempt);
+        }
+
+        internal static int[] SuggestAlternativePortsForTests(int port)
+        {
+            return SuggestAlternativePorts(port);
+        }
         
         /// <summary>
         /// Static constructor - called when Unity loads
@@ -67,10 +88,19 @@ namespace UnityMCPServer.Core
             McpLogger.Log("Initializing...");
             EditorApplication.update += ProcessCommandQueue;
             EditorApplication.quitting += Shutdown;
+            AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
             
             // Load config and start the TCP listener
             TryLoadConfigAndApply();
-            StartTcpListener();
+            if (ConsumeReloadPending())
+            {
+                // Delay listener startup after reload to avoid port-in-use races.
+                EditorApplication.delayCall += StartTcpListener;
+            }
+            else
+            {
+                StartTcpListener();
+            }
         }
 
         
@@ -144,6 +174,7 @@ namespace UnityMCPServer.Core
                             {
                                 minEditorStateIntervalMs = minMs;
                             }
+                            lastConfigPath = path;
                             McpLogger.Log($"Config loaded from {path}: bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
                             return;
                         }
@@ -155,10 +186,12 @@ namespace UnityMCPServer.Core
                 }
 
                 // No config found; keep default
+                lastConfigPath = projectPath;
                 McpLogger.Log($"No external config found. Using default bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
             }
             catch (Exception ex)
             {
+                lastConfigPath = projectPath;
                 McpLogger.LogWarning($"Config load error: {ex.Message}. Using default bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
             }
         }
@@ -234,6 +267,9 @@ namespace UnityMCPServer.Core
                 cancellationTokenSource = new CancellationTokenSource();
                 tcpListener = new TcpListener(bindAddress, currentPort);
                 tcpListener.Start();
+
+                startRetryAttempts = 0;
+                startRetryScheduled = false;
                 
                 Status = McpStatus.Disconnected;
                 McpLogger.Log($"TCP listener binding on {bindAddress}:{currentPort} (mcpHost={currentHost})");
@@ -248,7 +284,32 @@ namespace UnityMCPServer.Core
                 
                 if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
                 {
-                    McpLogger.LogError($"Port {currentPort} is already in use. Please ensure no other instance is running.");
+                    if (startRetryAttempts < MaxStartRetries)
+                    {
+                        startRetryAttempts++;
+                        int delayMs = ComputeStartRetryDelayMs(startRetryAttempts);
+                        McpLogger.LogWarning($"Port {currentPort} in use; retrying listener start in {delayMs}ms (attempt {startRetryAttempts}/{MaxStartRetries})");
+
+                        if (!startRetryScheduled)
+                        {
+                            startRetryScheduled = true;
+                            _ = Task.Delay(delayMs).ContinueWith(_ =>
+                            {
+                                EditorApplication.delayCall += () =>
+                                {
+                                    startRetryScheduled = false;
+                                    StartTcpListener();
+                                };
+                            });
+                        }
+                    }
+                    else
+                    {
+                        var suggested = SuggestAlternativePorts(currentPort);
+                        var suggestedText = suggested.Length > 0 ? string.Join(", ", suggested) : "(none)";
+                        var configHint = string.IsNullOrEmpty(lastConfigPath) ? "<project>/.unity/config.json" : lastConfigPath;
+                        McpLogger.LogError($"Port {currentPort} is already in use. Suggested ports: {suggestedText}. Edit {configHint} (unity.port) or set UNITY_PORT, then restart Unity.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -261,13 +322,16 @@ namespace UnityMCPServer.Core
         /// <summary>
         /// Stops the TCP listener
         /// </summary>
-        private static void StopTcpListener()
+        private static void StopTcpListener(bool waitForTask = true)
         {
             try
             {
                 cancellationTokenSource?.Cancel();
                 tcpListener?.Stop();
-                listenerTask?.Wait(TimeSpan.FromSeconds(1));
+                if (waitForTask)
+                {
+                    listenerTask?.Wait(TimeSpan.FromSeconds(1));
+                }
                 
                 tcpListener = null;
                 cancellationTokenSource = null;
@@ -280,6 +344,68 @@ namespace UnityMCPServer.Core
             {
                 McpLogger.LogError($"Error stopping TCP listener: {ex}");
             }
+        }
+
+        private static void OnBeforeAssemblyReload()
+        {
+            try
+            {
+                EditorPrefs.SetBool(ReloadPendingKey, true);
+            }
+            catch { }
+
+            // Avoid blocking reload; don't wait for listener task.
+            StopTcpListener(waitForTask: false);
+        }
+
+        private static bool ConsumeReloadPending()
+        {
+            try
+            {
+                bool wasPending = EditorPrefs.GetBool(ReloadPendingKey, false);
+                if (wasPending)
+                {
+                    EditorPrefs.SetBool(ReloadPendingKey, false);
+                }
+                return wasPending;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Test hooks (InternalsVisibleTo UnityMCPServer.Tests)
+        internal static void MarkReloadPendingForTests()
+        {
+            EditorPrefs.SetBool(ReloadPendingKey, true);
+        }
+
+        internal static bool ConsumeReloadPendingForTests()
+        {
+            return ConsumeReloadPending();
+        }
+
+        private static int ComputeStartRetryDelayMs(int attempt)
+        {
+            if (attempt <= 0) attempt = 1;
+            int delay = BaseStartRetryDelayMs * attempt;
+            return Math.Min(delay, MaxStartRetryDelayMs);
+        }
+
+        private static int[] SuggestAlternativePorts(int port)
+        {
+            var list = new List<int>();
+            int candidate = port + 1;
+            while (list.Count < 3 && candidate <= 65535)
+            {
+                if (candidate >= 1024)
+                {
+                    list.Add(candidate);
+                }
+                candidate++;
+            }
+            return list.ToArray();
         }
         
         /// <summary>
@@ -462,6 +588,28 @@ namespace UnityMCPServer.Core
                 throw;
             }
         }
+
+        /// <summary>
+        /// If the incoming command had a sessionId, attach it to the response JSON.
+        /// </summary>
+        private static string AttachSessionIdIfPresent(Command command, string responseJson)
+        {
+            if (command == null || string.IsNullOrEmpty(command.SessionId) || string.IsNullOrEmpty(responseJson))
+            {
+                return responseJson;
+            }
+
+            try
+            {
+                var token = JObject.Parse(responseJson);
+                token["sessionId"] = command.SessionId;
+                return token.ToString(Formatting.None);
+            }
+            catch
+            {
+                return responseJson;
+            }
+        }
         
         /// <summary>
         /// Processes queued commands on the Unity main thread
@@ -511,6 +659,7 @@ namespace UnityMCPServer.Core
                         isUpdating = EditorApplication.isUpdating
                     };
                     response = Response.ErrorResult(command.Id, $"Command '{command.Type}' is blocked during Play Mode", "PLAY_MODE_BLOCKED", state);
+                    response = AttachSessionIdIfPresent(command, response);
                     if (client.Connected)
                     {
                         await SendFramedMessage(client.GetStream(), response, CancellationToken.None);
@@ -1003,6 +1152,8 @@ namespace UnityMCPServer.Core
                     response = Response.AppendWarnings(response, warnings);
                 }
 
+                response = AttachSessionIdIfPresent(command, response);
+
                 // Send response
                 if (client.Connected)
                 {
@@ -1026,6 +1177,7 @@ namespace UnityMCPServer.Core
                                 stackTrace = ex.StackTrace
                             }
                         );
+                        errorResponse = AttachSessionIdIfPresent(command, errorResponse);
                         await SendFramedMessage(client.GetStream(), errorResponse, CancellationToken.None);
                     }
                 }

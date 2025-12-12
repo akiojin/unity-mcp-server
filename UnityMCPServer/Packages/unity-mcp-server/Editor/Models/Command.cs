@@ -27,6 +27,12 @@ namespace UnityMCPServer.Models
         /// </summary>
         [JsonProperty("params")]
         public JObject Parameters { get; set; }
+
+        /// <summary>
+        /// Transport session identifier (optional)
+        /// </summary>
+        [JsonProperty("sessionId")]
+        public string SessionId { get; set; }
         
         /// <summary>
         /// Timestamp when the command was received

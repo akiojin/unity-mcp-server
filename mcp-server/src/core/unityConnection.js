@@ -1,4 +1,5 @@
 import net from 'net';
+import crypto from 'crypto';
 import { EventEmitter } from 'events';
 import { config, logger } from './config.js';
 
@@ -22,6 +23,13 @@ export class UnityConnection extends EventEmitter {
     this.inFlight = 0;
     this.maxInFlight = 1; // process one command at a time by default
     this.connectedAt = null; // Timestamp when connection was established
+    // Heartbeat state
+    this.heartbeatTimer = null;
+    this.heartbeatTimeout = null;
+    this.heartbeatInFlight = false;
+    this.heartbeatMisses = 0;
+    // Transport session
+    this.sessionId = null;
   }
 
   /**
@@ -48,7 +56,13 @@ export class UnityConnection extends EventEmitter {
         return;
       }
 
-      const targetHost = config.unity.mcpHost || config.unity.unityHost;
+      const rawHost = config.unity.mcpHost || config.unity.unityHost || 'localhost';
+      const targetHost = normalizeConnectHost(rawHost);
+      if (targetHost !== rawHost) {
+        logger.warning(
+          `[Unity] mcpHost '${rawHost}' is not a valid connect host; using '${targetHost}'`
+        );
+      }
       console.error(
         `[unity-mcp-server] Unity TCP connecting to ${targetHost}:${config.unity.port}...`
       );
@@ -86,7 +100,9 @@ export class UnityConnection extends EventEmitter {
         this.connected = true;
         this.reconnectAttempts = 0;
         this.connectPromise = null;
+        this.sessionId = generateSessionId();
         this.emit('connected');
+        this._startHeartbeat();
         this._pumpQueue(); // flush any queued commands that arrived during reconnect
         settle(resolve);
       });
@@ -143,6 +159,7 @@ export class UnityConnection extends EventEmitter {
         const duration = this.connectedAt ? Date.now() - this.connectedAt : 0;
         console.error(`[unity-mcp-server] Unity TCP disconnected (duration: ${duration}ms)`);
         logger.info(`Disconnected from Unity Editor after ${duration}ms`);
+        this._stopHeartbeat();
         this.connected = false;
         this.connectedAt = null;
         this.socket = null;
@@ -192,6 +209,8 @@ export class UnityConnection extends EventEmitter {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+
+    this._stopHeartbeat();
 
     if (this.socket) {
       try {
@@ -380,7 +399,12 @@ export class UnityConnection extends EventEmitter {
     if (!task) return;
 
     const id = String(++this.commandId);
-    const command = { id, type: task.type, params: task.params };
+    const command = {
+      id,
+      type: task.type,
+      params: task.params,
+      sessionId: this.sessionId || undefined
+    };
     const json = JSON.stringify(command);
     const messageBuffer = Buffer.from(json, 'utf8');
     const lengthBuffer = Buffer.allocUnsafe(4);
@@ -445,16 +469,24 @@ export class UnityConnection extends EventEmitter {
 
     const id = response?.id != null ? String(response.id) : null;
 
-    const hasExplicitPending = id && this.pendingCommands.has(id);
-    const fallbackPendingId =
-      !hasExplicitPending && this.pendingCommands.size > 0
-        ? this.pendingCommands.keys().next().value
-        : null;
+    if (this.heartbeatInFlight && !id && isPongResponse(response)) {
+      this._markHeartbeatSuccess();
+      return;
+    }
 
-    if (hasExplicitPending || fallbackPendingId) {
-      const targetId = hasExplicitPending ? id : fallbackPendingId;
-      const pending = this.pendingCommands.get(targetId);
-      this.pendingCommands.delete(targetId);
+    const responseSession = response?.sessionId != null ? String(response.sessionId) : null;
+    if (responseSession && this.sessionId && responseSession !== this.sessionId) {
+      logger.warning(
+        `[Unity] Discarding response for stale session ${responseSession} (current ${this.sessionId})`
+      );
+      return;
+    }
+
+    const hasExplicitPending = id && this.pendingCommands.has(id);
+
+    if (hasExplicitPending) {
+      const pending = this.pendingCommands.get(id);
+      this.pendingCommands.delete(id);
 
       if (response.status === 'success' || response.success === true) {
         let result = response.result || response.data || {};
@@ -468,15 +500,15 @@ export class UnityConnection extends EventEmitter {
         }
         if (response.version) result._version = response.version;
         if (response.editorState) result._editorState = response.editorState;
-        logger.info(`[Unity] Command ${targetId} resolved successfully`);
+        logger.info(`[Unity] Command ${id} resolved successfully`);
         pending.resolve(result);
       } else if (response.status === 'error' || response.success === false) {
-        logger.error(`[Unity] Command ${targetId} failed:`, response.error);
+        logger.error(`[Unity] Command ${id} failed:`, response.error);
         const err = new Error(response.error || 'Command failed');
         err.code = response.code;
         pending.reject(err);
       } else {
-        logger.warning(`[Unity] Command ${targetId} has unknown response format`);
+        logger.warning(`[Unity] Command ${id} has unknown response format`);
         pending.resolve(response);
       }
       return;
@@ -485,6 +517,79 @@ export class UnityConnection extends EventEmitter {
     // Unsolicited message
     logger.debug(`[Unity] Received unsolicited message id=${response?.id || 'n/a'}`);
     this.emit('message', response);
+  }
+
+  _startHeartbeat() {
+    const interval = Number(config.unity.heartbeatIntervalMs || 0);
+    if (!interval || interval <= 0) return;
+    if (this.heartbeatTimer) return;
+    this.heartbeatMisses = 0;
+    this.heartbeatTimer = setInterval(() => this._heartbeatTick(), interval);
+  }
+
+  _stopHeartbeat() {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+    if (this.heartbeatTimeout) {
+      clearTimeout(this.heartbeatTimeout);
+      this.heartbeatTimeout = null;
+    }
+    this.heartbeatInFlight = false;
+    this.heartbeatMisses = 0;
+  }
+
+  _heartbeatTick() {
+    if (!this.connected || !this.socket) return;
+    if (this.heartbeatInFlight) return;
+    // Only send when idle to avoid interfering with normal requests.
+    if (this.inFlight > 0 || this.pendingCommands.size > 0 || this.sendQueue.length > 0) return;
+    this._sendHeartbeatPing();
+  }
+
+  _sendHeartbeatPing() {
+    if (!this.socket || !this.connected) return;
+
+    const payload = Buffer.from('ping', 'utf8');
+    const lengthBuffer = Buffer.allocUnsafe(4);
+    lengthBuffer.writeInt32BE(payload.length, 0);
+    const framed = Buffer.concat([lengthBuffer, payload]);
+
+    this.heartbeatInFlight = true;
+
+    try {
+      this.socket.write(framed);
+    } catch (e) {
+      this.heartbeatInFlight = false;
+      this.heartbeatMisses++;
+      return;
+    }
+
+    const timeoutMs = Number(config.unity.heartbeatTimeoutMs || 0) || 2000;
+    if (this.heartbeatTimeout) clearTimeout(this.heartbeatTimeout);
+    this.heartbeatTimeout = setTimeout(() => {
+      if (!this.connected || !this.heartbeatInFlight) return;
+      this.heartbeatInFlight = false;
+      this.heartbeatMisses++;
+      logger.warning(
+        `[Unity] Heartbeat missed (${this.heartbeatMisses}/${config.unity.heartbeatMissThreshold})`
+      );
+      if (this.heartbeatMisses >= Number(config.unity.heartbeatMissThreshold || 3)) {
+        try {
+          this.socket.destroy();
+        } catch {}
+      }
+    }, timeoutMs);
+  }
+
+  _markHeartbeatSuccess() {
+    if (this.heartbeatTimeout) {
+      clearTimeout(this.heartbeatTimeout);
+      this.heartbeatTimeout = null;
+    }
+    this.heartbeatInFlight = false;
+    this.heartbeatMisses = 0;
   }
 
   /**
@@ -544,4 +649,28 @@ export class UnityConnection extends EventEmitter {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, Math.max(0, ms || 0)));
+}
+
+function normalizeConnectHost(host) {
+  const value = (host || '').trim();
+  if (!value) return '127.0.0.1';
+  const lowered = value.toLowerCase();
+  if (lowered === '0.0.0.0' || lowered === '*' || lowered === '::' || lowered === '[::]') {
+    return '127.0.0.1';
+  }
+  return value;
+}
+
+function isPongResponse(response) {
+  const msg =
+    response?.data?.message || response?.result?.message || response?.message || response?.type;
+  return msg === 'pong';
+}
+
+function generateSessionId() {
+  try {
+    return crypto.randomBytes(16).toString('hex');
+  } catch {
+    return String(Date.now());
+  }
 }

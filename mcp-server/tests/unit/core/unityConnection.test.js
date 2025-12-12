@@ -55,6 +55,15 @@ describe('UnityConnection', () => {
       connection.reconnectTimer = null;
     }
 
+    if (connection.heartbeatTimer) {
+      clearInterval(connection.heartbeatTimer);
+      connection.heartbeatTimer = null;
+    }
+    if (connection.heartbeatTimeout) {
+      clearTimeout(connection.heartbeatTimeout);
+      connection.heartbeatTimeout = null;
+    }
+
     if (connection.socket) {
       connection.socket.removeAllListeners();
       connection.socket = null;
@@ -96,6 +105,34 @@ describe('UnityConnection', () => {
 
       // Verify no new socket was created
       assert.equal(connection.socket, null);
+    });
+
+    it('should normalize bind-only mcpHost to localhost', async () => {
+      config.unity.mcpHost = '0.0.0.0';
+
+      const connectPromise = connection.connect();
+      process.nextTick(() => {
+        mockSocket.emit('connect');
+      });
+      await connectPromise;
+
+      assert.equal(mockSocket.connect.mock.calls.length, 1);
+      const [, host] = mockSocket.connect.mock.calls[0].arguments;
+      assert.equal(host, '127.0.0.1');
+    });
+
+    it('should normalize bind-only unityHost when mcpHost is missing', async () => {
+      config.unity.mcpHost = null;
+      config.unity.unityHost = '::';
+
+      const connectPromise = connection.connect();
+      process.nextTick(() => {
+        mockSocket.emit('connect');
+      });
+      await connectPromise;
+
+      const [, host] = mockSocket.connect.mock.calls[0].arguments;
+      assert.equal(host, '127.0.0.1');
     });
 
     it('should create socket and attempt connection', async () => {
@@ -186,27 +223,30 @@ describe('UnityConnection', () => {
     it('should send command with incrementing ID', async () => {
       const sendPromise = connection.sendCommand('system_ping', { echo: 'test' });
 
-      // Verify command was sent
-      assert.equal(mockSocket.write.mock.calls.length, 1);
-      const sentData = mockSocket.write.mock.calls[0].arguments[0];
-      const frameLength = sentData.readInt32BE(0);
-      const payload = sentData.slice(4, 4 + frameLength).toString('utf8');
-      const command = JSON.parse(payload);
+      try {
+        // Verify command was sent
+        assert.equal(mockSocket.write.mock.calls.length, 1);
+        const sentData = mockSocket.write.mock.calls[0].arguments[0];
+        const frameLength = sentData.readInt32BE(0);
+        const payload = sentData.slice(4, 4 + frameLength).toString('utf8');
+        const command = JSON.parse(payload);
 
-      assert.equal(command.id, '1');
-      assert.equal(command.type, 'system_ping');
-      assert.deepEqual(command.params, { echo: 'test' });
-
-      // Simulate response
-      const response = {
-        id: '1',
-        status: 'success',
-        data: { message: 'pong' }
-      };
-      const responseBuffer = Buffer.from(JSON.stringify(response), 'utf8');
-      const responseLength = Buffer.allocUnsafe(4);
-      responseLength.writeInt32BE(responseBuffer.length, 0);
-      mockSocket.emit('data', Buffer.concat([responseLength, responseBuffer]));
+        assert.equal(command.id, '1');
+        assert.equal(command.type, 'system_ping');
+        assert.deepEqual(command.params, { echo: 'test' });
+        assert.ok(typeof command.sessionId === 'string' && command.sessionId.length > 0);
+      } finally {
+        // Simulate response to avoid leaking pending timeouts on failure
+        const response = {
+          id: '1',
+          status: 'success',
+          data: { message: 'pong' }
+        };
+        const responseBuffer = Buffer.from(JSON.stringify(response), 'utf8');
+        const responseLength = Buffer.allocUnsafe(4);
+        responseLength.writeInt32BE(responseBuffer.length, 0);
+        mockSocket.emit('data', Buffer.concat([responseLength, responseBuffer]));
+      }
 
       const result = await sendPromise;
       assert.deepEqual(result, { message: 'pong' });
@@ -245,6 +285,28 @@ describe('UnityConnection', () => {
 
       await assert.rejects(sendPromise, /Unknown command/);
     });
+
+    it('should ignore response from different sessionId', async () => {
+      const sendPromise = connection.sendCommand('system_ping', { echo: 'test' });
+
+      const mismatchResponse = {
+        id: '1',
+        status: 'success',
+        sessionId: 'deadbeefdeadbeefdeadbeefdeadbeef',
+        result: { message: 'pong' }
+      };
+      mockSocket.emit('data', Buffer.from(JSON.stringify(mismatchResponse)));
+
+      await new Promise(r => setTimeout(r, 0));
+      assert.equal(connection.pendingCommands.size, 1);
+
+      for (const [, pending] of connection.pendingCommands) {
+        pending.reject(new Error('Command timeout'));
+      }
+      connection.pendingCommands.clear();
+
+      await assert.rejects(sendPromise, /Command timeout/);
+    });
   });
 
   describe('system_ping', () => {
@@ -269,6 +331,7 @@ describe('UnityConnection', () => {
 
       // Simulate pong response
       const response = {
+        id: '1',
         status: 'success',
         data: { message: 'pong', timestamp: '2025-06-21T10:00:00Z' }
       };
@@ -461,6 +524,45 @@ describe('UnityConnection', () => {
 
       assert.equal(connection.reconnectTimer, originalTimer);
       clearTimeout(connection.reconnectTimer);
+    });
+  });
+
+  describe('heartbeat', () => {
+    beforeEach(async () => {
+      config.unity.heartbeatIntervalMs = 10;
+      config.unity.heartbeatTimeoutMs = 5;
+      config.unity.heartbeatMissThreshold = 2;
+
+      const connectPromise = connection.connect();
+      process.nextTick(() => {
+        mockSocket.emit('connect');
+      });
+      await connectPromise;
+
+      // Make destroy emit close so disconnect flow runs.
+      mockSocket.destroy = mock.fn(() => {
+        mockSocket.destroyed = true;
+        process.nextTick(() => mockSocket.emit('close'));
+      });
+    });
+
+    it('should send framed raw ping during idle', async () => {
+      await new Promise(r => setTimeout(r, 25));
+
+      const writes = mockSocket.write.mock.calls.map(c => c.arguments[0]);
+      assert.ok(writes.length > 0);
+      const last = writes[writes.length - 1];
+      const len = last.readInt32BE(0);
+      const payload = last.slice(4, 4 + len).toString('utf8');
+      assert.equal(payload, 'ping');
+    });
+
+    it('should close and schedule reconnect after heartbeat misses threshold', async () => {
+      // Never respond with pong => heartbeat should fail.
+      await new Promise(r => setTimeout(r, 60));
+
+      assert.ok(mockSocket.destroy.mock.calls.length >= 1);
+      assert.notEqual(connection.reconnectTimer, null);
     });
   });
 

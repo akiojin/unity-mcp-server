@@ -84,7 +84,11 @@ const baseConfig = {
     reconnectDelay: 1000,
     maxReconnectDelay: 30000,
     reconnectBackoffMultiplier: 2,
-    commandTimeout: 30000
+    commandTimeout: 30000,
+    // Heartbeat / liveness probe
+    heartbeatIntervalMs: Number(process.env.UNITY_HEARTBEAT_INTERVAL_MS || 10000),
+    heartbeatTimeoutMs: Number(process.env.UNITY_HEARTBEAT_TIMEOUT_MS || 2000),
+    heartbeatMissThreshold: Number(process.env.UNITY_HEARTBEAT_MISS_THRESHOLD || 3)
   },
 
   // Server settings
