@@ -10,6 +10,36 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.46.0](https://github.com/akiojin/unity-mcp-server/compare/v2.45.5...v2.46.0) (2025-12-13)
+
+
+### Features
+
+* **code-index:** add [OFFLINE] tag to tool descriptions for LLM awareness ([902ac07](https://github.com/akiojin/unity-mcp-server/commit/902ac07a3dc8b4c8807e2e2fd4b28a055889793a))
+* **code-index:** add [OFFLINE] tag to tool descriptions for LLM awareness ([f747a51](https://github.com/akiojin/unity-mcp-server/commit/f747a5192404989ae0358faff7b3d4123c6e6bae))
+
+
+### Bug Fixes
+
+* gh extension インストール時のトークン受け渡し ([f22218e](https://github.com/akiojin/unity-mcp-server/commit/f22218ebc0eaeea174e71e3a7922533cc4d9c829))
+* initialized後に重い初期化を延期 ([fc43435](https://github.com/akiojin/unity-mcp-server/commit/fc434352227d27a9fdb36ae1d23455973ac0e5a9))
+* **mcp-server:** initialized後に重い初期化を延期 ([dfd52fe](https://github.com/akiojin/unity-mcp-server/commit/dfd52fe9b28319f69bff7803f881b061378f0758))
+* **mcp-server:** 起動10秒タイムアウトを解消 ([ea02c62](https://github.com/akiojin/unity-mcp-server/commit/ea02c62a2ed4890e61a708a82d8962df7310b122))
+* **mcp-server:** 起動10秒タイムアウトを解消 ([88b4ef4](https://github.com/akiojin/unity-mcp-server/commit/88b4ef4503c13ea4dab11b23eea0fc72d4c33d54))
+* **mcp-server:** 起動時のtools/listを高速化 ([afaee8c](https://github.com/akiojin/unity-mcp-server/commit/afaee8c22a4bddeb18ac9362458b07bce2bac53d))
+* **monorepo:** add postinstall script and improve error messages ([d132b16](https://github.com/akiojin/unity-mcp-server/commit/d132b1695153fb2db79cb7f48e9de570fa8fd5b6))
+* **monorepo:** add postinstall script to build local packages ([8ed1478](https://github.com/akiojin/unity-mcp-server/commit/8ed1478901fdd8f7dec2f1330e99976d621d1d6c))
+* **script-tools:** improve file not found error messages ([a975c11](https://github.com/akiojin/unity-mcp-server/commit/a975c1145356ac6477299aae3efdede2bb616090))
+* **script-tools:** replace LSP with file-based search in script_refs_find ([cc99ee0](https://github.com/akiojin/unity-mcp-server/commit/cc99ee0e15e4ff7e0fb25ed3da905d9d1c85c375))
+* **script-tools:** replace LSP with file-based search in script_refs_find ([b74f081](https://github.com/akiojin/unity-mcp-server/commit/b74f081fb8e4b4c85a2461b74150c68e538cf19b))
+* 起動時のtools/listを高速化 ([0e179bc](https://github.com/akiojin/unity-mcp-server/commit/0e179bc76a5406fffb55e37a4513617f4e0bd9eb))
+
+
+### Performance Improvements
+
+* **code-index:** comprehensive performance optimization ([c02a48f](https://github.com/akiojin/unity-mcp-server/commit/c02a48f95c251b9ba945c83ce3578b70209f8585))
+* **code-index:** comprehensive performance optimization ([d43a087](https://github.com/akiojin/unity-mcp-server/commit/d43a08798415cf80cc8c5e246b2cff2a8b416fd0))
+
 ## [2.45.5](https://github.com/akiojin/unity-mcp-server/compare/v2.45.4...v2.45.5) (2025-12-09)
 
 
