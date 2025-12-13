@@ -55,7 +55,14 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
       }
       const abs = path.join(info.projectRoot, relPath);
       const st = await fs.stat(abs).catch(() => null);
-      if (!st || !st.isFile()) return { error: 'File not found', path: relPath };
+      if (!st || !st.isFile()) {
+        return {
+          error: 'File not found',
+          path: relPath,
+          resolvedPath: abs,
+          hint: `Verify the file exists at: ${abs}. Path must be relative to Unity project root (e.g., "Assets/Scripts/Foo.cs" or "Packages/com.example/Runtime/Bar.cs").`
+        };
+      }
       const lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
       const uri = 'file://' + abs.replace(/\\\\/g, '/');
       const res = await lsp.request('textDocument/documentSymbol', { textDocument: { uri } });
