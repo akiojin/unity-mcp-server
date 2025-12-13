@@ -79,7 +79,14 @@ export class ScriptReadToolHandler extends BaseToolHandler {
 
       const abs = info.projectRoot + '/' + norm;
       const stat = await fs.stat(abs).catch(() => null);
-      if (!stat || !stat.isFile()) return { error: 'File not found', path: norm };
+      if (!stat || !stat.isFile()) {
+        return {
+          error: 'File not found',
+          path: norm,
+          resolvedPath: abs,
+          hint: `Verify the file exists at: ${abs}. Path must be relative to Unity project root (e.g., "Assets/Scripts/Foo.cs" or "Packages/com.example/Runtime/Bar.cs").`
+        };
+      }
 
       const data = await fs.readFile(abs, 'utf8');
       const lines = data.split('\n');
