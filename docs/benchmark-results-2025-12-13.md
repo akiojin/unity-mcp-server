@@ -4,13 +4,66 @@
 
 | Property | Value |
 |----------|-------|
-| Date | 2025-12-13T08:27:30+00:00 |
+| Date | 2025-12-13 |
 | Platform | Linux 6.6.87.2-microsoft-standard-WSL2 (x86_64) |
 | Node.js | v22.21.1 |
 | Unity MCP Server | v2.42.4 |
 | C# Files (unity-mcp-server package) | 68 files |
 | Total Indexed Files | 128,040 files |
 | Index Coverage | 100% |
+
+## Optimization Summary (v2.42.4+)
+
+### Speed Optimizations
+
+| Optimization | Implementation | Expected Improvement |
+|-------------|----------------|---------------------|
+| Composite SQLite Indexes | `idx_symbols_name_kind`, `idx_symbols_path_name` | **5-10x** faster multi-condition queries |
+| SQL Scope Filter | Integrated into WHERE clause | Eliminates JS post-filtering |
+| Batch Transactions | 100 files per transaction | **95%** reduction in commits |
+| Batch DELETE | `DELETE WHERE path IN (...)` | **N倍** faster file removal |
+| LRU Query Cache | `lru-cache` (500 queries, 5min TTL) | **80%** reduction for repeated queries |
+| SQLite PRAGMA | `cache_size=64MB`, `temp_store=MEMORY` | Faster read/write operations |
+
+### Response Size Optimizations
+
+| Tool | Optimization | Size Reduction |
+|------|-------------|----------------|
+| `script_symbol_find` | pathTable + fileId reference | **60%** |
+| `script_refs_find` | pathTable + fileId reference | **62%** |
+| `script_symbols_get` | Remove endLine/endColumn | **50%** |
+| **Overall** | Null field omission | **47%** |
+
+### Output Format Changes
+
+**Before (v2.42.3)**:
+
+```json
+{
+  "results": [
+    { "path": "Assets/Scripts/Player.cs", "symbol": { "name": "Foo", "startLine": 10, "endLine": 10 } },
+    { "path": "Assets/Scripts/Player.cs", "symbol": { "name": "Bar", "startLine": 20, "endLine": 20 } }
+  ]
+}
+```
+
+**After (v2.42.4+)**:
+
+```json
+{
+  "pathTable": ["Assets/Scripts/Player.cs"],
+  "results": [
+    { "fileId": 0, "symbol": { "name": "Foo", "line": 10 } },
+    { "fileId": 0, "symbol": { "name": "Bar", "line": 20 } }
+  ]
+}
+```
+
+**Benefits**:
+
+- Path strings deduplicated via `pathTable` (typical 60%+ reduction)
+- Redundant `endLine`/`endColumn` removed (always equals start for symbols)
+- Null fields omitted from output
 
 ## Summary: Code Index vs Standard Tools
 
@@ -224,3 +277,137 @@ Some tools may timeout if C# LSP is slow:
 4. **Non-blocking**: Worker Thread isolation ensures responsiveness
 
 **Recommendation**: Always run `code_index_build` when starting a new project to enable fast symbol operations.
+
+## Technical Implementation Details
+
+### SQLite Composite Indexes
+
+```sql
+-- Added for multi-condition queries
+CREATE INDEX IF NOT EXISTS idx_symbols_name_kind ON symbols(name, kind);
+CREATE INDEX IF NOT EXISTS idx_symbols_path_name ON symbols(path, name);
+```
+
+**Query Optimization**:
+
+- `WHERE name = ? AND kind = ?` uses `idx_symbols_name_kind`
+- `WHERE path LIKE 'Assets/%' AND name LIKE '%Foo%'` uses `idx_symbols_path_name`
+
+### Batch Transaction Processing
+
+```javascript
+// Before: 1 transaction per file (5000 transactions for 5000 files)
+for (file of files) {
+  db.run('BEGIN'); // ❌ Slow
+  insertSymbols(file);
+  db.run('COMMIT');
+}
+
+// After: 100 files per transaction (50 transactions for 5000 files)
+const TX_BATCH_SIZE = 100;
+for (batch of chunk(files, TX_BATCH_SIZE)) {
+  db.run('BEGIN'); // ✅ Fast
+  for (file of batch) insertSymbols(file);
+  db.run('COMMIT');
+}
+```
+
+### LRU Cache Configuration
+
+```javascript
+import { LRUCache } from 'lru-cache';
+
+// Query result cache
+const queryCache = new LRUCache({
+  max: 500,           // Max 500 cached queries
+  ttl: 1000 * 60 * 5  // 5 minute TTL
+});
+
+// Stats cache (shorter TTL)
+const statsCache = new LRUCache({
+  max: 1,
+  ttl: 1000 * 60      // 1 minute TTL
+});
+```
+
+### PRAGMA Optimization
+
+```javascript
+this.db.run('PRAGMA cache_size = 16000');    // 64MB cache
+this.db.run('PRAGMA temp_store = MEMORY');   // Faster temp operations
+this.db.run('PRAGMA synchronous = NORMAL');  // Balanced safety/speed
+```
+
+## Test Coverage
+
+### Unit Tests (68 tests passing)
+
+| Test Suite | Tests | Coverage |
+|------------|-------|----------|
+| `codeIndex.test.js` | 6 | CodeIndex class, driver handling |
+| `config.test.js` | 18 | Configuration loading, logging |
+| `indexWatcher.test.js` | 8 | File watching, DB detection |
+| `projectInfo.test.js` | 7 | Project info resolution |
+| `server.test.js` | 11 | Handler registration, tool execution |
+| `CodeIndexStatusToolHandler.test.js` | 18 | Status reporting, build job tracking |
+
+### Integration Tests
+
+| Test | Description | Status |
+|------|-------------|--------|
+| `code-index-background.test.js` | Background build isolation | ✅ |
+| Handler execution tests | All 107 handlers | ✅ |
+
+### CI Pipeline
+
+```bash
+# Pre-commit hooks
+- ESLint on staged JS files
+- Prettier formatting
+- commitlint validation
+
+# Pre-push hooks
+- npm run test:ci (68 tests)
+
+# GitHub Actions
+- Markdown/ESLint/Prettier checks
+- Commit message linting
+- Full test suite
+```
+
+## Migration Guide
+
+### Breaking Changes in v2.42.4+
+
+1. **`script_symbol_find` output format**:
+   - Old: `results[].path` (string)
+   - New: `pathTable[]` + `results[].fileId` (number)
+
+2. **`script_refs_find` output format**:
+   - Old: `results[].path` (string)
+   - New: `pathTable[]` + `results[].fileId` (number)
+
+3. **`script_symbols_get` output format**:
+   - Old: `symbols[].startLine`, `symbols[].endLine`
+   - New: `symbols[].line`, `symbols[].column`
+
+### Client Adaptation
+
+```javascript
+// Before
+const filePath = result.path;
+
+// After
+const filePath = response.pathTable[result.fileId];
+```
+
+## Files Modified
+
+| File | Changes |
+|------|---------|
+| `mcp-server/src/core/CodeIndex.js` | Composite indexes, LRU cache, PRAGMA |
+| `mcp-server/src/core/workers/indexBuildWorker.js` | Batch transactions, batch DELETE |
+| `mcp-server/src/handlers/script/ScriptSymbolFindToolHandler.js` | pathTable output |
+| `mcp-server/src/handlers/script/ScriptRefsFindToolHandler.js` | pathTable output |
+| `mcp-server/src/handlers/script/ScriptSymbolsGetToolHandler.js` | Simplified output |
+| `mcp-server/package.json` | Added `lru-cache` dependency |
