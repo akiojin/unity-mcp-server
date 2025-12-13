@@ -16,7 +16,8 @@
       "anonymous": "always",
       "named": "never",
       "asyncArrow": "always"
-    }]
+    }],
+    "semi": "off"
   },
   "ignorePatterns": [
     "node_modules/",
