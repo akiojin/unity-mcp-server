@@ -5,7 +5,7 @@
  * This module implements a deferred initialization pattern to ensure
  * npx compatibility. The MCP transport connection is established FIRST,
  * before loading handlers and other heavy dependencies, to avoid
- * Claude Code's 30-second timeout.
+ * client startup timeouts (NFR: startup <= 10s).
  *
  * Initialization order:
  * 1. MCP SDK imports (minimal, fast)
