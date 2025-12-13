@@ -10,6 +10,129 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [2.45.5](https://github.com/akiojin/unity-mcp-server/compare/v2.45.4...v2.45.5) (2025-12-09)
+
+
+### Bug Fixes
+
+* **code-index:** implement inline LSP client for Worker Thread ([89ed79e](https://github.com/akiojin/unity-mcp-server/commit/89ed79ec559853766da91dbeb8803052dd935091))
+
+## [2.45.4](https://github.com/akiojin/unity-mcp-server/compare/v2.45.3...v2.45.4) (2025-12-09)
+
+
+### Bug Fixes
+
+* **code-index:** throw error on saveDatabase failure and validate DB file existence ([84273b5](https://github.com/akiojin/unity-mcp-server/commit/84273b5ca059ec2e54e3f3b11d45af3a4a477cae))
+* **code-index:** throw error on saveDatabase failure and validate DB file existence ([909681a](https://github.com/akiojin/unity-mcp-server/commit/909681a3007b07e20b3ec470a9539cb88be65ae3))
+
+## [2.45.3](https://github.com/akiojin/unity-mcp-server/compare/v2.45.2...v2.45.3) (2025-12-09)
+
+
+### Bug Fixes
+
+* **code-index:** use Database.create() for better-sqlite3 support in Worker Thread ([5002f65](https://github.com/akiojin/unity-mcp-server/commit/5002f65602837d066c03f08c2b05450ce8174f3b))
+* **code-index:** use Database.create() for better-sqlite3 support in Worker Thread ([978e2bc](https://github.com/akiojin/unity-mcp-server/commit/978e2bc2dc97caa0755ba3906a328da81f4cdd1c))
+
+## [2.45.2](https://github.com/akiojin/unity-mcp-server/compare/v2.45.1...v2.45.2) (2025-12-09)
+
+
+### Bug Fixes
+
+* **code-index:** use Worker Thread for code_index_build to prevent blocking ([467e2a1](https://github.com/akiojin/unity-mcp-server/commit/467e2a18b8cd5edf5b97aef66ea95449201394b5))
+* **code-index:** use Worker Thread for code_index_build to prevent blocking ([11d54ea](https://github.com/akiojin/unity-mcp-server/commit/11d54ea7dd0674d3dd461880cfa9b3b599313666))
+
+## [2.45.1](https://github.com/akiojin/unity-mcp-server/compare/v2.45.0...v2.45.1) (2025-12-09)
+
+
+### Bug Fixes
+
+* **mcp-server:** resolve fast-sql dependency for npm publish ([10a02db](https://github.com/akiojin/unity-mcp-server/commit/10a02db8c3feaef03e09927bd48fbe3cbefc8472))
+* **mcp-server:** resolve fast-sql dependency for npm publish ([d95e7cb](https://github.com/akiojin/unity-mcp-server/commit/d95e7cb99d4940b11955c6b8cf1a738051f764d8))
+
+## [2.45.0](https://github.com/akiojin/unity-mcp-server/compare/v2.44.1...v2.45.0) (2025-12-09)
+
+
+### Features
+
+* **fast-sql:** add hybrid backend with better-sqlite3 support ([25ad97b](https://github.com/akiojin/unity-mcp-server/commit/25ad97be46c8c51f9924abafe996a5079ce96f7d))
+* **fast-sql:** implement core fast-sql library ([97d32a0](https://github.com/akiojin/unity-mcp-server/commit/97d32a0411e81c3296987ffa4a0832314d3fab19))
+* **fast-sql:** initialize package structure (T001-T004) ([cdb9152](https://github.com/akiojin/unity-mcp-server/commit/cdb9152ebe520d00a640f1aee9cbafa6878324ce))
+* **fast-sql:** SQLite optimization wrapper library ([ecd3905](https://github.com/akiojin/unity-mcp-server/commit/ecd3905487a30b240fbc9b64f9911a82a52c2386))
+* **mcp-server:** integrate fast-sql hybrid SQLite backend ([d90509a](https://github.com/akiojin/unity-mcp-server/commit/d90509a51f220d68eef9b6de7b0446fd65d110dc))
+* **mcp-server:** integrate fast-sql hybrid SQLite backend ([4e1e399](https://github.com/akiojin/unity-mcp-server/commit/4e1e3990c40c0c3ea2bbee0c4209622a5e859e7f))
+
+
+### Bug Fixes
+
+* **fast-sql:** add cache invalidation for freed statements ([4d0005b](https://github.com/akiojin/unity-mcp-server/commit/4d0005b4e49c6580aca658061ffe515683147668))
+* **mcp-server:** replace better-sqlite3 with sql.js for npx compatibility ([e1c5b27](https://github.com/akiojin/unity-mcp-server/commit/e1c5b2723ae8937d14f4d20d169d45d5ebed1a9f))
+* **mcp-server:** switch from pnpm to npm workspace protocol ([990963f](https://github.com/akiojin/unity-mcp-server/commit/990963f41d25d57f6c7993d5dea7541d3bcbff3b))
+
+
+### Performance Improvements
+
+* **fast-sql:** optimize StatementCache Date.now() calls ([4e353e8](https://github.com/akiojin/unity-mcp-server/commit/4e353e892e351cb2174a665d415360e031ec24e7))
+
+## [2.44.1](https://github.com/akiojin/unity-mcp-server/compare/v2.44.0...v2.44.1) (2025-12-08)
+
+
+### Bug Fixes
+
+* **mcp-server:** replace better-sqlite3 with sql.js for npx compatibility ([b4aabea](https://github.com/akiojin/unity-mcp-server/commit/b4aabea1a3cb1c774f30f81cd294cfb055236f99))
+* **mcp-server:** replace better-sqlite3 with sql.js for npx compatibility ([63fbb8c](https://github.com/akiojin/unity-mcp-server/commit/63fbb8cc3c6c5f80526379f06e08d8dca524e8ab))
+
+## [2.44.0](https://github.com/akiojin/unity-mcp-server/compare/v2.43.3...v2.44.0) (2025-12-08)
+
+
+### Features
+
+* **lsp:** add logging to C# LSP server with unified prefix ([189e72e](https://github.com/akiojin/unity-mcp-server/commit/189e72e34fa982c39dc669bcbfe070620adf01b3))
+* **lsp:** add logging to C# LSP server with unified prefix ([8a3b9b5](https://github.com/akiojin/unity-mcp-server/commit/8a3b9b52ce79a04dd095065bc3c2a20c6c082a72))
+
+
+### Bug Fixes
+
+* **mcp-server:** defer handler initialization for npx compatibility ([3637a79](https://github.com/akiojin/unity-mcp-server/commit/3637a79e30d09b1db7d2c2dcc3a9101c34acf4ba))
+* **mcp-server:** defer handler initialization for npx compatibility ([e5c14b1](https://github.com/akiojin/unity-mcp-server/commit/e5c14b1b164329e08b7ceeb3fbaeac404ea1f85f))
+
+## [2.43.3](https://github.com/akiojin/unity-mcp-server/compare/v2.43.2...v2.43.3) (2025-12-08)
+
+
+### Bug Fixes
+
+* **mcp-server:** use official StdioServerTransport for NDJSON output ([fb39266](https://github.com/akiojin/unity-mcp-server/commit/fb392660196f994a4d595e86f27c2529268f840e))
+* **mcp-server:** use official StdioServerTransport for NDJSON output ([b3bb999](https://github.com/akiojin/unity-mcp-server/commit/b3bb999f5733243e0afc7fb49d3a7a05d57cd9cd))
+
+## [2.43.2](https://github.com/akiojin/unity-mcp-server/compare/v2.43.1...v2.43.2) (2025-12-08)
+
+
+### Bug Fixes
+
+* **mcp-server:** disable code index auto-build on startup ([6e6ca2c](https://github.com/akiojin/unity-mcp-server/commit/6e6ca2cc25d1e5656bc5f2f89f8a395182a57a7b))
+* **mcp-server:** disable code index auto-build on startup ([35f4965](https://github.com/akiojin/unity-mcp-server/commit/35f4965c7ee7c38ac002c77fe6df564368582ee5))
+
+## [2.43.1](https://github.com/akiojin/unity-mcp-server/compare/v2.43.0...v2.43.1) (2025-12-08)
+
+
+### Bug Fixes
+
+* **mcp-server:** always use Content-Length framing for output ([cfcd023](https://github.com/akiojin/unity-mcp-server/commit/cfcd023048d9bc6c3c758eb666f744c15229471c))
+* **mcp-server:** always use Content-Length framing for output ([4b84975](https://github.com/akiojin/unity-mcp-server/commit/4b84975a7edc4de2911f599aacbff850e4cb1539))
+
+## [2.43.0](https://github.com/akiojin/unity-mcp-server/compare/v2.42.4...v2.43.0) (2025-12-08)
+
+
+### Features
+
+* **mcp-server:** migrate logger to MCP SDK-compliant MCPLogger ([76cd0f4](https://github.com/akiojin/unity-mcp-server/commit/76cd0f472d3ba2ebde7bb655cb54ff341be5b4f4))
+* **mcp-server:** migrate logger to MCP SDK-compliant MCPLogger ([095a0e9](https://github.com/akiojin/unity-mcp-server/commit/095a0e9cf54d8e93a6372f587a285e3716021b9d))
+
+
+### Bug Fixes
+
+* **mcp-server:** unify entry point with dynamic imports for npx compatibility ([c1fc275](https://github.com/akiojin/unity-mcp-server/commit/c1fc275d6d133e096934787bea9ce040fe02fea4))
+* **mcp-server:** unify entry point with dynamic imports for npx compatibility ([b5860da](https://github.com/akiojin/unity-mcp-server/commit/b5860daf8f3274d1c0d575c325867652c0e997e5))
+
 ## [2.42.4](https://github.com/akiojin/unity-mcp-server/compare/v2.42.3...v2.42.4) (2025-12-05)
 
 
