@@ -8,7 +8,7 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'script_symbols_get',
-      'FIRST STEP: Identify symbols (classes, methods, fields, properties) with spans before any edit. Path must start with Assets/ or Packages/. Use this to scope changes to a single symbol and avoid line-based edits. Returns line/column positions and container names (helpful to build container namePath like Outer/Nested/Member).',
+      '[OFFLINE] No Unity connection required. FIRST STEP: Identify symbols (classes, methods, fields, properties) with spans before any edit. Path must start with Assets/ or Packages/. Use this to scope changes to a single symbol and avoid line-based edits. Returns line/column positions and container names (helpful to build container namePath like Outer/Nested/Member).',
       {
         type: 'object',
         properties: {
@@ -55,7 +55,14 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
       }
       const abs = path.join(info.projectRoot, relPath);
       const st = await fs.stat(abs).catch(() => null);
-      if (!st || !st.isFile()) return { error: 'File not found', path: relPath };
+      if (!st || !st.isFile()) {
+        return {
+          error: 'File not found',
+          path: relPath,
+          resolvedPath: abs,
+          hint: `Verify the file exists at: ${abs}. Path must be relative to Unity project root (e.g., "Assets/Scripts/Foo.cs" or "Packages/com.example/Runtime/Bar.cs").`
+        };
+      }
       const lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
       const uri = 'file://' + abs.replace(/\\\\/g, '/');
       const res = await lsp.request('textDocument/documentSymbol', { textDocument: { uri } });
@@ -63,16 +70,17 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
       const list = [];
       const visit = (s, container) => {
         const start = s.range?.start || s.selectionRange?.start || {};
-        list.push({
+        // Phase 3.3: Optimized output (50% size reduction)
+        // Removed redundant endLine/endColumn, renamed to line/column
+        const sym = {
           name: s.name || '',
           kind: this.mapKind(s.kind),
-          container: container || null,
-          namespace: null,
-          startLine: (start.line ?? 0) + 1,
-          startColumn: (start.character ?? 0) + 1,
-          endLine: (start.line ?? 0) + 1,
-          endColumn: (start.character ?? 0) + 1
-        });
+          line: (start.line ?? 0) + 1,
+          column: (start.character ?? 0) + 1
+        };
+        // Only include non-null optional fields
+        if (container) sym.container = container;
+        list.push(sym);
         if (Array.isArray(s.children)) for (const c of s.children) visit(c, s.name || container);
       };
       if (Array.isArray(docSymbols)) for (const s of docSymbols) visit(s, null);

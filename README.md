@@ -6,144 +6,92 @@ English | [日本語](README.ja.md)
 
 Unity MCP Server lets LLM-based clients automate the Unity Editor. It focuses on reliable, scriptable workflows with a simple interface and zero or low-configuration setup.
 
-### Feature Specifications
-
-- **All Features**: [`specs/`](specs/) - 15 features documented with SDD format (including Unity Test Execution)
-
-### Development Process
-
-This project follows **Spec-Driven Development (SDD)** and **Test-Driven Development (TDD)** methodologies:
-
-- **Development Constitution**: [`memory/constitution.md`](memory/constitution.md) - Core development principles and requirements
-- **Developer Guide**: [`CLAUDE.md`](CLAUDE.md) - Workflow, guidelines, and Spec Kit integration
-- **TDD**: Red-Green-Refactor cycle enforced; tests written before implementation
-- **Test Coverage**: Unit tests (80%+), Integration tests (100% critical paths)
-
-See also: Spec Kit workflow (`/speckit.specify`, `/speckit.plan`, `/speckit.tasks`) for structured feature development.
-
-### Git Hooks (Husky)
-
-This project uses [Husky](https://typicode.github.io/husky/) to enforce code quality and commit message standards through Git hooks:
-
-- **commit-msg**: Validates commit messages against [Conventional Commits](https://www.conventionalcommits.org/) using commitlint
-- **pre-commit**: Runs ESLint, Prettier, and markdownlint on staged files
-- **pre-push**: Executes test suite before pushing to remote
-- **post-merge**: Notifies when package.json changes require dependency updates
-
-#### Bypassing Hooks
-
-In emergency situations, you can skip hooks with `--no-verify`:
-
-```bash
-git commit --no-verify -m "emergency fix"
-git push --no-verify
-```
-
-**Note**: Use this sparingly. Hooks exist to maintain code quality and prevent CI failures.
-
-#### Hook Configuration
-
-- Commitlint: `.commitlintrc.json` (Conventional Commits rules)
-- ESLint: `.eslintrc.json` (JavaScript code style)
-- Prettier: `.prettierrc.json` (code formatting)
-- Markdownlint: `.markdownlint.json` (Markdown rules)
-
-See [CLAUDE.md](CLAUDE.md) for detailed development guidelines.
-
-### Spec Kit (SDD) Conventions
-
-- Spec Kit CLI v0.0.78 is installed under `.specify/` (scripts, templates, memory).
-- Use `uvx --from git+https://github.com/github/spec-kit.git specify check` to verify the CLI and templates are up to date.
-- Feature IDs always follow the `SPEC-[0-9a-f]{8}` pattern (e.g., `SPEC-1a2b3c4d`). The helper script skips git branch creation and stores the active feature in `.specify/.current-feature`.
-- Templates are localized to Japanese; edit `/.specify/templates/*.md` when updating specs/plan/tasks/agent guides.
-- Legacy wrappers remain in `scripts/` and delegate to the new `.specify/scripts/bash/` implementations for backward compatibility.
-
-### C# Editing Policy (Important)
-
-- All C# symbol/search/structured edits are performed via a self-contained C# Language Server (LSP) bundled in this repo; no Unity communication is involved.
-- Existing `script_*` tools call the LSP under the hood, so edits are robust to Unity compilation/domain reload.
-- Risky line-based patch/pattern replace tools were removed.
-
-For Contributors
-
-Developer note: the LSP is self-contained and auto-provisioned by the MCP server (fixed-version by tag). No .NET SDK is required for end users.
-
-Common usage (MCP tools)
-
-- Symbols: `script_symbol_find { "name": "ClassName", "kind": "class" }`
-- References: `script_refs_find { "name": "MethodName" }`
-- Replace body (preflight→apply):
-  - `script_edit_structured { "operation": "replace_body", "path": "Packages/.../File.cs", "symbolName": "Class/Method", "newText": "{ /* ... */ }", "preview": true }`
-  - then set `"preview": false` to apply if errors are empty
-- Insert after class:
-  - `script_edit_structured { "operation": "insert_after", "path": "...", "symbolName": "ClassName", "kind": "class", "newText": "\nprivate void X(){}\n", "preview": false }`
-- Snippet tweaks (guard removal / condition swap):
-  - `script_edit_snippet { "path": "Assets/Scripts/Foo.cs", "preview": true, "instructions": [{ "operation": "delete", "anchor": { "type": "text", "target": "        if (value == null) return;\n" } }] }`
-
-Run `AssetDatabase.Refresh` in Unity manually only when needed.
-
-Performance
-
-- The server starts and keeps a persistent LSP process by default to avoid cold starts.
-
-## Automated Release Management
-
-This project uses **release-please (manifest mode)** + GitHub Actions for automated releases:
-
-1) `Create Release Branch` (manual): release-please opens a release PR against `main` and is auto-merged.  
-2) `Release` (push to `main` or manual): release-please tags `vX.Y.Z` and creates the GitHub Release (version scope: `mcp-server` and Unity package via extra-files).  
-3) `Publish` (tag `v*`): builds csharp-lsp for linux/win/macos (x64/arm64), uploads binaries+manifest, publishes `mcp-server` to npm, lets OpenUPM auto-detect, then backmerges `main` → `develop`.  
-4) Versioning follows Conventional Commits; required checks (Test & Coverage, Package, Markdown/ESLint/Prettier, Commit Message Lint) must pass for branch protection.
-
-See [CLAUDE.md](CLAUDE.md) for the detailed release workflow.
-
-## LLM Optimization Principles
-
-- Prefer small responses: enable paging and set conservative limits.
-- Use snippets: avoid full file reads; favor short context windows (1–2 lines).
-- Scope aggressively: restrict by `Assets/` or `Packages/`, kind, and exact names.
-- Favor summaries: rely on tool-side summarized payloads where available.
-- Avoid previews unless necessary: apply directly when safe to reduce payload.
-- Keep image/video resolutions minimal and avoid base64 unless immediately analyzed.
-
-Suggested caps
-- Search: `pageSize≤20`, `maxBytes≤64KB`, `snippetContext=1–2`, `maxMatchesPerFile≤5`.
-- Hierarchy: `nameOnly=true`, `maxObjects 100–500` (details: 10–50).
-- Script read: 30–40 lines around the target; set `maxBytes`.
-- Structured edits: responses are summarized (errors ≤30, message ≤200 chars; large text ≤1000 chars).
-
-## Safe Structured Edit Playbook
-
-1) Locate symbols: `script_symbols_get` or `script_symbol_find` (prefer `kind` and `exact`).
-   - Use project-relative paths under `Assets/` or `Packages/` only.
-   - Use results’ container to build `namePath` like `Outer/Nested/Member`.
-2) Inspect minimal code: `script_read` with 30–40 lines around the symbol.
-3) Edit safely:
-   - Use `script_edit_snippet` for ≤80-character changes anchored to exact text (null guard removal, condition tweaks, small insertions). The tool validates via the bundled LSP (Roslyn-backed) diagnostics and rolls back on errors.
-   - Use `script_edit_structured` for class/namespace-level insertions and method body replacements. Insert targets must be class/namespace symbols; `replace_body` must include braces and be self-contained.
-   - Use `preview=true` only when risk is high; otherwise apply directly to reduce payload.
-4) Optional refactor/remove: `script_refactor_rename`, `script_remove_symbol` with preflight.
-5) Verify: compile state and, if needed, targeted `script_read` again.
-
 ## What It Can Do
 
-- Editor automation: create/modify scenes, GameObjects, components, prefabs, materials
-- UI automation: locate and interact with UI, validate UI state
-- Input simulation: keyboard/mouse/gamepad/touch for playmode testing (Input System only)
-- Visual capture: deterministic screenshots from Game/Scene/Explorer/Window views, optional analysis
-- Code base awareness: safe structured edits and accurate symbol/search powered by the bundled C# LSP
-- Project control: read/update selected project/editor settings; read logs, monitor compilation
-- **Addressables management**: register/organize assets, manage groups, build automation, dependency analysis
+- **Editor automation**: Create/modify scenes, GameObjects, components, prefabs, materials
+- **UI automation**: Locate and interact with UI, validate UI state
+- **Input simulation**: Keyboard/mouse/gamepad/touch for playmode testing (Input System only)
+- **Visual capture**: Deterministic screenshots from Game/Scene/Explorer/Window views
+- **Code base awareness**: Safe structured edits and accurate symbol/search powered by bundled C# LSP
+- **Project control**: Read/update project/editor settings; read logs, monitor compilation
+- **Addressables management**: Register/organize assets, manage groups, build automation
 
-## Unity–MCP Connection
+## Performance
 
-- Host/Port: Unity package opens a TCP server on `UNITY_HOST`/`UNITY_PORT` (default `localhost:6400`).
-- Flow: Open Unity project → package starts listening → your MCP client launches the Node server → Node connects to Unity.
-- Config: See Configuration section (`project.root`, `project.codeIndexRoot`, `UNITY_MCP_CONFIG`).
-- Timeouts/Retry: Exponential backoff with `reconnectDelay`/`maxReconnectDelay`/`reconnectBackoffMultiplier`.
-- Troubleshooting: Ensure Unity is running, port 6400 is free, and host/port match.
+Code index tools outperform standard file operations:
 
-Architecture
+| Operation | Code Index Tool | Standard Tool | Advantage |
+|-----------|----------------|---------------|-----------|
+| Symbol lookup | `script_symbol_find` | `grep` | **Instant** vs 350ms |
+| Reference search | `script_refs_find` | `grep` | **Structured** results |
+| Code search | `script_search` | `grep` | **3-5x smaller** responses |
+
+Key benefits:
+
+- **128,040 files indexed** with 100% coverage
+- **Non-blocking** background index builds (Worker Threads)
+- **LLM-optimized** output with pagination and size limits
+
+> For detailed benchmarks, see [docs/benchmark-results-2025-12-13.md](docs/benchmark-results-2025-12-13.md)
+
+## Requirements
+
+- Unity 2020.3 LTS or newer
+- Node.js 18.x / 20.x / 22.x LTS (23+ not supported)
+- Claude Desktop or another MCP-compatible client
+
+## Installation
+
+### Unity Package
+
+Package Manager → Add from git URL:
+
+```
+https://github.com/akiojin/unity-mcp-server.git?path=UnityMCPServer/Packages/unity-mcp-server
+```
+
+Or via OpenUPM:
+
+```bash
+openupm add com.akiojin.unity-mcp-server
+```
+
+### MCP Client Configuration
+
+Configure your MCP client (Claude Desktop example):
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "unity-mcp-server": {
+      "command": "npx",
+      "args": ["@akiojin/unity-mcp-server@latest"]
+    }
+  }
+}
+```
+
+### HTTP Mode (for HTTP-only networks)
+
+```bash
+npx @akiojin/unity-mcp-server --http 6401 --no-telemetry
+curl http://localhost:6401/healthz
+```
+
+## Quick Start
+
+1. **Install the Unity package** (Git URL or OpenUPM)
+2. **Configure your MCP client** with the JSON above
+3. **Open your Unity project** (package starts TCP listener on port 6400)
+4. **Launch your MCP client** (it connects to the Node server)
+5. **Test the connection** with `system_ping`
+
+> Tip: `npx @akiojin/unity-mcp-server@latest` downloads and runs the latest build without cloning.
+
+## Architecture
 
 ```
 ┌────────────────┐        JSON-RPC (MCP)        ┌──────────────────────┐
@@ -160,208 +108,19 @@ Architecture
                                                    └───────────────────┘
 ```
 
-Sequence
+## Configuration
 
-```mermaid
-sequenceDiagram
-    participant Client as MCP Client
-    participant Node as MCP Server (Node)
-    participant Unity as Unity Editor
+Configuration is optional; defaults work without any config file.
 
-    Client->>Node: Connect / request (tool call)
-    Node->>Unity: JSON-RPC over TCP (command)
-    Unity-->>Node: Result / progress / logs
-    Node-->>Client: Response
-    alt Disconnect / timeout
-        Node->>Node: Exponential backoff
-        Node->>Unity: Reconnect
-    end
-```
+### Config File Location
 
-## Setup
+Config is loaded in this order:
 
-- Unity 2020.3 LTS or newer
-- Node.js 18.x / 20.x / 22.x LTS (the server refuses to start on newer majors)
-  - Since v2.44.0, no native modules are required (uses sql.js), so any supported Node.js version works instantly.
-- Claude Desktop or another MCP-compatible client
+1. `UNITY_MCP_CONFIG` environment variable (absolute path)
+2. Nearest `./.unity/config.json` walking up from CWD
+3. `~/.unity/config.json` (user global)
 
-Installation
-- In Unity: Package Manager → Add from git URL → `https://github.com/akiojin/unity-mcp-server.git?path=UnityMCPServer/Packages/unity-mcp-server`
-- Configure MCP client (Claude Desktop example):
-  - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-  - Windows: `%APPDATA%\\Claude\\claude_desktop_config.json`
-  - Add:
-    ```json
-    {
-      "mcpServers": {
-        "unity-mcp-server": {
-          "command": "npx",
-          "args": ["@akiojin/unity-mcp-server@latest"]
-        }
-      }
-    }
-    ```
-
-HTTP mode (for HTTP-only networks)
-```
-npx @akiojin/unity-mcp-server --http 6401 --no-telemetry
-curl http://localhost:6401/healthz
-```
-- `--http [port]` to expose HTTP listener (health: `/healthz`).
-- `--no-telemetry` to ensure no outbound telemetry (default is off).
-- `--no-stdio` to run HTTP-only if needed.
-
-Telemetry policy
-- Default: off (no outbound telemetry). `--no-telemetry` makes it explicit.
-- Opt-in: `--telemetry` or `UNITY_MCP_TELEMETRY=on`.
-
-Multi-instance CLI
-```
-unity-mcp-server list-instances --ports=6400,6401 --host=localhost --json
-unity-mcp-server set-active localhost:6401
-```
-
-Unity Editor GUI (for non-developers)
-- Menu: `MCP Server / Start` → window with Start/Stop, HTTP/Telemetry toggles, port setting.
-- Samples: "Run Sample (Scene)" and "Run Sample (Addressables)" buttons to demo operations.
-- Play Mode guard: buttons are disabled during Play Mode.
-- Addressables packageが未導入の場合、Addressablesサンプルはスキップされる（ウィンドウ上に案内を表示）。
-
-### MCP Server Environment Setup
-
-You must install the MCP server's dependencies **on the same OS where the server runs**.
-
-> **Note (v2.44.0+)**: unity-mcp-server now uses **sql.js** (WASM-based SQLite) instead of native modules. `npx @akiojin/unity-mcp-server@latest` starts instantly without native compilation. The code index runs with WASM on any platform—no platform-specific binaries needed.
-
-- **General rule**: if your `.mcp.json` uses `"command": "node"` (e.g. `node bin/unity-mcp-server serve`), run `npm install` (or `npm ci`) inside the directory where the package lives _on that machine/container_ before launching the MCP client.
-- **`npx` launch**: the README example above (`npx @akiojin/unity-mcp-server@latest`) downloads dependencies at runtime and works on the supported Node.js versions (18.x / 20.x / 22.x). Node.js 23+ is not supported; the server exits early with a version error.
-- **Avoid sharing `node_modules` across operating systems** (Windows ↔ Linux/macOS). Native binaries compiled for one platform cannot be reused on another.
-
-Environment-specific notes:
-
-- **Windows (PowerShell / Command Prompt)**
-  - Install Node.js 20.x or 22.x LTS (18.x also works if you prefer). Newer major versions (23+) are unsupported.
-  - In your workspace: change into the installed package directory (for repo clones: `cd C:\path\to\unity-mcp-server\mcp-server`) then run `npm ci`.
-  - Point `.mcp.json` to `node` or keep using `npx` once dependencies exist.
-
-- **Windows Subsystem for Linux (WSL)**
-  - Keep the repository on the Linux filesystem (e.g. `/home/<user>/unity-mcp-server`).
-  - Use Node.js 20.x or 22.x inside WSL (18.x also works).
-  - Run `npm ci` inside the installed package directory (for repo clones: `/home/<user>/unity-mcp-server/mcp-server`).
-
-- **Docker / Linux containers**
-  - Base your image on Node.js 20.x or 22.x (18.x also works). Images with newer Node versions (23+) are unsupported and will fail fast.
-  - During the image build run `npm ci --workspace=mcp-server` (or `npm ci` inside the package directory) so the container has platform-matched dependencies.
-  - Do not bind-mount a host `node_modules` directory into the container.
-
-- **macOS**
-  - Install Node.js 20.x or 22.x (e.g. `brew install node@22` / `node@20` and add it to `PATH`). Node 18.x also works; newer majors (23+) are unsupported.
-  - Run `npm ci` wherever the package is installed (for repo clones: `cd ~/unity-mcp-server/mcp-server && npm ci`).
-
-After installation you can verify the server with `node mcp-server/bin/unity-mcp-server --version`. If sql.js (WASM) fails to load, the code index features will be disabled with a clear error message; other MCP tools will continue to work.
-
-## Usage Workflow
-
-1. **Install the Unity package.** Use the Git URL listed above or, once OpenUPM is configured, run `openupm add com.akiojin.unity-mcp-server` inside your project.
-2. **Register OpenUPM scopes when needed.** Installing via Git does not require extra setup, but installing from OpenUPM or letting the MCP registry tool manage packages does. See [Adding the OpenUPM scoped registry](#adding-the-openupm-scoped-registry).
-3. **Install Node dependencies.** In a local clone run `npm ci --workspace=mcp-server` (or `cd mcp-server && npm ci`). When launching with `npx`, dependencies are resolved for you.
-4. **Launch the MCP server.**
-
-   ```bash
-   npm ci --workspace=mcp-server            # once per machine/OS image
-   node mcp-server/bin/unity-mcp-server     # foreground session
-   # or: npm --workspace=mcp-server run dev # auto-restarts on file changes
-   ```
-
-5. **Point your MCP client at the server.** Update `claude_desktop_config.json` (or your client's equivalent) so `Unity MCP Server` appears in the tool list.
-6. **Smoke-test the round trip.** With Unity open, call `system_ping` or `package_registry_config` to confirm the transport, then proceed with higher-level tools (scene, script, screenshot, etc.).
-
-> Tip: `npx @akiojin/unity-mcp-server@latest` downloads and runs the latest published build without cloning this repository; only use the clone when you plan to modify the code.
-
-## Adding the OpenUPM Scoped Registry
-
-Unity does not know about OpenUPM by default. Add the scoped registry whenever:
-
-- You plan to install `com.akiojin.unity-mcp-server` (or other packages) from OpenUPM/the `openupm` CLI.
-- You want to use the MCP `package_registry_config` tool to add/remove package scopes automatically.
-
-The reference project under `UnityMCPServer/` already ships with a working example (`ProjectSettings/PackageManagerSettings.asset` and `Packages/manifest.json`), but your own Unity projects must opt in.
-
-### Option A — Project Settings / `Packages/manifest.json`
-
-1. Open Unity and navigate to `Edit ▸ Project Settings… ▸ Package Manager`.
-2. Under **Scoped Registries**, click **+**.
-3. Use the following values (add only the scopes you need; at minimum include `com.akiojin` or the full package ID):
-   - **Name**: `OpenUPM`
-   - **URL**: `https://package.openupm.com`
-   - **Scopes**: `com.akiojin`, `com.akiojin.unity-mcp-server`, plus any other vendor scopes you rely on (`com.cysharp`, `com.neuecc`, `jp.keijiro`, etc.).
-4. Click **Apply**. Unity writes the same data to `Packages/manifest.json`, so keep the file under version control.
-
-**Example snippet**
-
-```json
-"scopedRegistries": [
-  {
-    "name": "OpenUPM",
-    "url": "https://package.openupm.com",
-    "scopes": [
-      "com.akiojin",
-      "com.akiojin.unity-mcp-server",
-      "com.cysharp",
-      "com.neuecc",
-      "jp.keijiro"
-    ]
-  }
-]
-```
-
-Run `openupm add com.akiojin.unity-mcp-server` after the registry is present if you prefer the CLI; it updates `manifest.json` for you.
-
-### Option B — Use the MCP registry tool
-
-1. Launch Unity and start the Node MCP server.
-2. From your MCP client, call the `package_registry_config` tool (some clients display it as `UnityMCP__package_registry_config` / `UnityMCP__registry_config`).
-3. Supply the `add_openupm` action and any custom scopes:
-
-```json
-{
-  "action": "add_openupm",
-  "autoAddPopular": true,
-  "scopes": ["com.akiojin"]
-}
-```
-
-The tool updates `Packages/manifest.json`, ensures the registry exists (creating or merging scopes), and requests an AssetDatabase refresh so the Package Manager picks up the change.
-
-### Configuration (.unity/config.json)
-
-Configuration is optional; defaults work without any config. When present, the server loads configuration in this order:
-
-- `UNITY_MCP_CONFIG` (absolute path to a JSON file)
-- Nearest `./.unity/config.json` discovered by walking up from the current working directory
-- `~/.unity/config.json` (user-global)
-
-Notes:
-- The server derives a fixed `WORKSPACE_ROOT` from the discovered `.unity/config.json` location and uses it consistently (independent of later `process.cwd()` changes).
-- Relative paths in the config should be written relative to this workspace root.
-- `~` and environment variable expansion are not applied to path values.
-
-Common keys:
-- `project.root`: Unity project root directory (contains `Assets/`).
-- `project.codeIndexRoot`: Code Index output directory (default: `<workspaceRoot>/.unity/cache/code-index`).
-
-Examples:
-
-```json
-{
-  "project": {
-    "root": "/absolute/path/to/UnityProject",
-    "codeIndexRoot": "/absolute/path/to/workspace/.unity/cache/code-index"
-  }
-}
-```
-
-Team-friendly (relative) example — recommended when the repo layout is stable:
+### Example Configuration
 
 ```json
 {
@@ -372,248 +131,103 @@ Team-friendly (relative) example — recommended when the repo layout is stable:
 }
 ```
 
-Tip: Prefer `UNITY_MCP_CONFIG=/absolute/path/to/config.json` to make discovery explicit.
+### Key Settings
 
-#### Configuration Keys
+| Key | Default | Description |
+|-----|---------|-------------|
+| `project.root` | auto-detect | Unity project root (contains `Assets/`) |
+| `unity.port` | `6400` | Unity Editor TCP port |
+| `unity.mcpHost` | `localhost` | Host for MCP server to connect to Unity |
+| `logging.level` | `info` | Log level: `debug`, `info`, `warn` |
 
-| Key | Type | Default | Description | Allowed values |
-| --- | --- | --- | --- | --- |
-| `project.root` | string | auto-detect (Unity connection or nearest directory with `Assets/`) | Unity project root directory. Relative paths resolve from process CWD. | — |
-| `project.codeIndexRoot` | string | `<workspaceRoot>/.unity/cache/code-index` | Code Index storage root. | — |
-| `unity.unityHost` | string | `process.env.UNITY_UNITY_HOST` &#124; `process.env.UNITY_BIND_HOST` &#124; `process.env.UNITY_HOST` &#124; `localhost` | Host/interface where the Unity Editor listens for MCP commands. | — |
-| `unity.mcpHost` | string | `process.env.UNITY_MCP_HOST` &#124; `process.env.UNITY_CLIENT_HOST` &#124; `unity.unityHost` | Hostname/IP the Node MCP server uses when connecting to Unity. e.g. `host.docker.internal` inside Docker. | — |
-| `unity.bindHost` | string | `process.env.UNITY_BIND_HOST` &#124; `unity.unityHost` | Legacy alias for the Unity listener interface. Kept for backwards compatibility. | — |
-| `unity.host` | string | legacy | Legacy alias retained for compatibility; resolves the same as `unity.unityHost`. | — |
-| `unity.port` | number | `process.env.UNITY_PORT` or `6400` | Port of Unity Editor TCP server. | — |
-| `unity.reconnectDelay` | number (ms) | `1000` | Initial delay before reconnect attempts. | — |
-| `unity.maxReconnectDelay` | number (ms) | `30000` | Maximum backoff delay between reconnect attempts. | — |
-| `unity.reconnectBackoffMultiplier` | number | `2` | Exponential backoff multiplier for reconnects. | — |
-| `unity.commandTimeout` | number (ms) | `30000` | Timeout for individual Unity commands. | — |
-| `server.name` | string | `unity-mcp-server` | Server name exposed via MCP. | — |
-| `server.version` | string | `0.1.0` | Server version string. | — |
-| `server.description` | string | `MCP server for Unity Editor integration` | Human-readable description. | — |
-| `logging.level` | string | `process.env.LOG_LEVEL` or `info` | Log verbosity for stderr logging. | `debug`, `info`, `warn` |
-| `logging.prefix` | string | `[Unity MCP Server]` | Log prefix used in stderr. | — |
-| `search.defaultDetail` | string | `process.env.SEARCH_DEFAULT_DETAIL` or `compact` | Default return detail for search; `compact` maps to `snippets`. | `compact`, `metadata`, `snippets`, `full` |
-| `search.engine` | string | `process.env.SEARCH_ENGINE` or `naive` | Search engine implementation. | `naive` (treesitter planned) |
+See the full configuration reference in [docs/development.md](docs/development.md).
 
-### Workspace Directory (`.unity/`)
-- `config.json` is the only file intended for version control; keep it alongside your repo to define the workspace root.
-- Everything else under `.unity/` (e.g., `cache/`, `tools/`) is generated at runtime and should remain untracked.
-- The Code Index database now lives at `.unity/cache/code-index/` next to other transient assets.
+## Available Tools
 
-Tip: when Unity runs on your host machine and the MCP server runs inside Docker, keep `unity.unityHost` as `localhost` (Unity listens locally) and set `unity.mcpHost` to `host.docker.internal` so the container can reach the editor.
-## Screenshot System
+### System Tools
 
-- Capture Game View, Scene View, Explorer（AI-framed）, or a specific Editor window.
-- Modes: `game` | `scene` | `explorer` | `window`.
-- Options:
-  - Resolution: `width`/`height` (or in explorer: `camera.width`/`camera.height`).
-  - UI Overlay: `includeUI` for Game View.
-  - Explorer framing: `explorerSettings.camera.*` (autoFrame, FOV, near/far clip, position/rotation, padding).
-  - Display aids: `explorerSettings.display.*` (highlightTarget, showBounds, showColliders, showGizmos, backgroundColor, layers).
-  - Target focus: `explorerSettings.target.*` (gameObject/tag/area/position, includeChildren).
-  - Output: always saved to `<workspace>/.unity/capture/screenshot_<mode>_<timestamp>.png`. Set `encodeAsBase64=true` only when you need inline analysis.
-  - The Node server always includes `workspaceRoot` when commanding Unity; Unity prioritizes it and falls back to `.unity/config.json` only if missing.
-- Analysis: optional UI detection and content summary.
+- `system_ping` - Test connection
+- `system_refresh_assets` - Refresh Unity assets
 
-Sequence
+### GameObject Tools
 
-```mermaid
-sequenceDiagram
-    participant Client as MCP Client
-    participant Node as MCP Server (Node)
-    participant Unity as Unity Editor
+- `gameobject_create` - Create GameObjects
+- `gameobject_find` - Find by name/tag/layer
+- `gameobject_modify` - Modify properties
+- `gameobject_delete` - Delete GameObjects
+- `gameobject_get_hierarchy` - Get scene hierarchy
 
-    Client->>Node: Request screenshot (mode/options)
-    Node->>Unity: Capture command with parameters
-    Unity->>Unity: Configure camera/render settings
-    Unity-->>Node: Image data (file path or base64)
-    Node-->>Client: Return result (and optional analysis)
-```
+### Scene Tools
 
-## Input Simulation
+- `scene_create`, `scene_load`, `scene_save`, `scene_list`, `scene_info_get`
 
-- Supported: Unity Input System only (new Input System package).
-- Not supported: Legacy Input Manager (Project Settings → Input Manager).
-- Capabilities: simulate keyboard, mouse, gamepad, and touch input for playmode testing and UI interaction.
-- Tip: Ensure your project uses Input System; otherwise simulated input will not affect gameplay.
+### Component Tools
 
-## Profiler Performance Measurement
+- `component_add`, `component_remove`, `component_modify`, `component_list`
 
-Unity Profiler integration via MCP tools for performance analysis and optimization.
+### Script Tools
 
-### Available Tools
+- `script_read` - Read C# files
+- `script_search` - Search code
+- `script_symbols_get` - Get file symbols
+- `script_symbol_find` - Find symbols by name
+- `script_refs_find` - Find references
+- `script_edit_structured` - Structured code editing
+- `script_edit_snippet` - Small code edits
 
-- **`profiler_start`**: Start profiling session with configurable modes (normal/deep)
-- **`profiler_stop`**: Stop profiling and save `.data` file
-- **`profiler_status`**: Get current profiling session status
-- **`profiler_get_metrics`**: Query available metrics or current metric values
+### Screenshot Tools
 
-### Features
+- `screenshot_capture` - Capture Game/Scene/Explorer/Window views
+- `screenshot_analyze` - Analyze captured images
 
-- **Recording Modes**: Normal (standard profiling) and Deep (detailed analysis with higher overhead)
-- **File Output**: Save profiling data to `.data` files in `.unity/capture/` for analysis in Unity Profiler Window
-- **Real-time Metrics**: Query current performance metrics without file output
-- **Auto-stop**: Automatically stop profiling after specified duration
-- **Selective Metrics**: Record specific metrics (e.g., 'System Used Memory', 'Draw Calls Count')
+### Input Tools
 
-### Example Usage
+- `input_keyboard`, `input_mouse`, `input_gamepad`, `input_touch`
 
-```javascript
-// Start profiling session (normal mode, save to file)
-await client.callTool('profiler_start', {
-  mode: 'normal',
-  recordToFile: true,
-  maxDurationSec: 60  // Auto-stop after 60 seconds
-});
+### Profiler Tools
 
-// Get current status
-const status = await client.callTool('profiler_status', {});
-// Returns: { isRecording: true, sessionId, startedAt, elapsedSec, remainingSec }
+- `profiler_start`, `profiler_stop`, `profiler_status`, `profiler_get_metrics`
 
-// Stop profiling
-const result = await client.callTool('profiler_stop', {});
-// Returns: { sessionId, outputPath, duration, frameCount, metrics }
-```
+### Other Tools
 
-### Output
-
-- **File Location**: `.unity/capture/profiler_{sessionId}_{timestamp}.data`
-- **Format**: Unity Profiler binary format (`.data`)
-- **Analysis**: Open `.data` files in Unity Editor → Window → Analysis → Profiler
-
-## C# Language Server (LSP)
-
-The project bundles a self-contained C# Language Server (LSP). The MCP server auto-downloads and manages its lifecycle. `script_*` tools talk to the LSP under the hood:
-
-- Index: scans all `.cs` with `documentSymbol` and persists to SQLite (`.unity/cache/code-index`)
-- Find symbols/references: `workspace/symbol` + LSP extensions
-- Edits: rename/replace/insert/remove via LSP extensions
-- Safety: structured edits, preview/apply options, no blind line-based patches
-
-**Auto-Download/Update**: LSP binary is auto-fetched per runtime (no .NET SDK required). Version is pinned to MCP server version.
-
-**Recovery**: If LSP exits unexpectedly, client auto-retries once. For corrupted downloads, delete `mcp-server/bin/csharp-lsp*` and retry.
-
-Tests
-
-- Script tools tests are consolidated in `tests/test-mcp-script-tools.md` (Japanese, MCP ツール前提)。
-- Additional indexing scenario: `tests/natural-language/indexing-incremental.md`.
-
-Indexing Settings
-
-- The MCP server can periodically refresh the SQLite index (incremental) when enabled.
-- Configure via environment variables (or `.unity/config.json` overrides):
-  - `INDEX_WATCH=true` to enable periodic updates (default: false)
-  - `INDEX_WATCH_INTERVAL_MS=15000` polling interval (default: 15000)
-  - `INDEX_CONCURRENCY=8` max concurrent LSP requests (default: 8)
-  - `INDEX_RETRY=2` per-file documentSymbol retry attempts (default: 2)
-  - `INDEX_REPORT_EVERY=500` progress log interval in files (default: 500)
-
-Sequence
-
-```mermaid
-sequenceDiagram
-    participant Client as MCP Client
-    participant Node as MCP Server (Index/Tools)
-    participant LSP as C# LSP (self-contained)
-    participant Unity as Unity Editor
-    participant Index as Code Index
-
-    Client->>Node: Edit or search request
-    alt Edit flow
-        Node->>LSP: Edit request (replace/insert/rename)
-        LSP-->>Node: Workspace edits
-        Node->>Unity: Apply changes
-        Unity->>Unity: Refresh / compile
-        Node->>Index: Update SQLite index for changed files (incremental)
-    else Search flow
-        Node->>Index: Load symbols if present
-        Index-->>Node: Symbols / metadata
-        Node->>LSP: Query (workspace/symbol, references)
-        LSP-->>Node: Results
-    end
-    Node-->>Client: Result (edits confirmed or search hits)
-```
-
-## Other Clients
-
-### Codex CLI
-
-Configure MCP servers for Codex by creating a config file:
-
-- macOS/Linux: `~/.codex/servers.json`
-- Windows: `%USERPROFILE%\.codex\servers.json`
-
-Example:
-
-```json
-{
-  "mcpServers": {
-    "unity-mcp-server": {
-      "command": "npx",
-      "args": ["@akiojin/unity-mcp-server@latest"]
-    }
-  }
-}
-```
+- `console_read`, `console_clear` - Unity console
+- `test_run`, `test_get_status` - Run Unity tests
+- `package_manage` - Manage Unity packages
+- `addressables_manage`, `addressables_build` - Addressables management
 
 ## Troubleshooting
 
-- Unity TCP not listening: reopen project; ensure port 6400 is free.
-- Node.js cannot connect: Unity running? firewall? logs in Unity/Node terminals.
-- C# types missing: refresh assets and wait until compilation completes.
-- **npx ENOTEMPTY error**: If you see `ENOTEMPTY: directory not empty, rename ...` when running `npx @akiojin/unity-mcp-server@latest`, clear the npx cache:
+### Connection Issues
 
-  ```bash
-  # Clear specific cache (replace hash with actual path from error)
-  rm -rf ~/.npm/_npx/<hash>
-  # Or clear all npx cache
-  rm -rf ~/.npm/_npx
-  ```
+| Symptom | Cause | Solution |
+|---------|-------|----------|
+| `Connection timeout` | Unity not running | Start Unity Editor |
+| `ECONNREFUSED` | Port blocked | Check firewall, verify port 6400 |
+| `Unity TCP disconnected` | Protocol mismatch | Check Unity Console for errors |
 
-  This is an npm/npx cache corruption issue, not a unity-mcp-server bug.
-- **Unity connection failed**: The MCP server starts and accepts client connections even if Unity Editor is not running. However, tool calls that require Unity (e.g., `screenshot_capture`, `gameobject_create`) will fail with connection errors. The server automatically retries Unity connection in the background. Start Unity Editor with the unity-mcp-server package installed to enable full functionality.
+### npx Issues
+
+**ENOTEMPTY error**:
+
+```bash
+rm -rf ~/.npm/_npx
+```
+
+**First-run delay**: Pre-cache the package:
+
+```bash
+npx @akiojin/unity-mcp-server@latest --version
+```
 
 ### Debug Logging
 
-To troubleshoot connection issues, enable verbose logging:
-
 ```bash
-# Set log level to debug
 LOG_LEVEL=debug npx @akiojin/unity-mcp-server@latest
 ```
 
-Available log levels: `debug`, `info` (default), `warn`
+### WSL2/Docker to Windows Unity
 
-### Startup Diagnostics
-
-The server outputs diagnostic information to stderr at startup:
-
-```
-[unity-mcp-server] Startup config:
-[unity-mcp-server]   Config file: /path/to/.unity/config.json
-[unity-mcp-server]   Unity host: localhost
-[unity-mcp-server]   Unity port: 6400
-[unity-mcp-server]   Workspace root: /path/to/workspace
-[unity-mcp-server] MCP transport connecting...
-[unity-mcp-server] MCP transport connected
-[unity-mcp-server] Unity TCP connecting to localhost:6400...
-[unity-mcp-server] Unity TCP connected successfully
-```
-
-This helps identify configuration mismatches, especially in cross-platform environments.
-
-### WSL2/Docker to Windows Unity Connection
-
-When running the MCP server inside WSL2 or Docker while Unity Editor runs on Windows:
-
-**Problem**: `localhost` inside WSL2/Docker does not reach the Windows host.
-
-**Solution**: Use `host.docker.internal` or the Windows host IP.
-
-**Claude Desktop config (`claude_desktop_config.json`) for WSL2/Docker**:
+Use `host.docker.internal` to connect from WSL2/Docker:
 
 ```json
 {
@@ -630,130 +244,62 @@ When running the MCP server inside WSL2 or Docker while Unity Editor runs on Win
 }
 ```
 
-**Environment variables**:
+## OpenUPM Scoped Registry
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `UNITY_MCP_HOST` | Hostname the MCP server uses to connect to Unity | `localhost` |
-| `UNITY_PORT` | Unity Editor TCP port | `6400` |
-| `UNITY_BIND_HOST` | Interface Unity listens on (Windows side) | `localhost` |
+To use OpenUPM packages, add the scoped registry to your project:
 
-**Unity Editor settings (Windows)**:
+### Via Project Settings
 
-In the Unity MCP Server window (`MCP Server / Start`), ensure the port matches what you set in `UNITY_PORT`. Default is 6400.
+1. `Edit > Project Settings > Package Manager`
+2. Under **Scoped Registries**, click **+**
+3. Add:
+   - **Name**: `OpenUPM`
+   - **URL**: `https://package.openupm.com`
+   - **Scopes**: `com.akiojin`, `com.akiojin.unity-mcp-server`
 
-**Verifying connectivity from WSL2**:
-
-```bash
-# Check if Unity is reachable
-nc -zv host.docker.internal 6400
-
-# Or using the host IP directly
-nc -zv $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}') 6400
-```
-
-### npx First-Run Delay
-
-The first `npx @akiojin/unity-mcp-server@latest` invocation downloads the package, which may take several seconds. If your MCP client times out:
-
-**Solution 1**: Pre-cache the package
-
-```bash
-npx @akiojin/unity-mcp-server@latest --version
-```
-
-**Solution 2**: Install globally
-
-```bash
-npm install -g @akiojin/unity-mcp-server
-```
-
-Then update your config to use the global binary:
+### Via manifest.json
 
 ```json
-{
-  "mcpServers": {
-    "unity-mcp-server": {
-      "command": "unity-mcp-server"
-    }
+"scopedRegistries": [
+  {
+    "name": "OpenUPM",
+    "url": "https://package.openupm.com",
+    "scopes": ["com.akiojin", "com.akiojin.unity-mcp-server"]
   }
-}
+]
 ```
 
-### Common Issues
+## Repository Structure
 
-| Symptom | Cause | Solution |
-|---------|-------|----------|
-| `Connection timeout` | Unity Editor not running or wrong host/port | Check Unity is running and port matches |
-| `ECONNREFUSED` | Firewall blocking or Unity not listening | Check Windows Firewall, verify Unity MCP Server is started |
-| `Unity TCP disconnected` immediately after connect | Protocol mismatch or Unity crashed | Check Unity Console for errors |
-| `ENOTEMPTY` on npx | Stale npx cache | Run `rm -rf ~/.npm/_npx` and retry |
+```
+.unity/
+├── config.json      # Workspace settings
+└── capture/         # Screenshots/videos (git-ignored)
 
-## Release Process
+UnityMCPServer/
+├── Packages/unity-mcp-server/  # UPM package (source)
+└── Assets/                     # Samples only
 
-### Automated Release Flow (release-please)
+mcp-server/          # Node MCP server
 
-1. **Feature → develop**  
-   - Work on `feature/SPEC-xxxxxxxx`, Conventional Commits必須。`finish-feature.sh`でPR作成→developにauto-merge（必須チェック: Markdown/ESLint/Prettier, Commit Message Lint）。  
-2. **リリースPR（手動トリガー）**  
-   - Actionsの`Create Release Branch`を実行すると release-please が `main` 向けリリースPRを生成し、自動マージを有効化。  
-3. **タグ＆GitHub Release**  
-   - `main` へのマージで `Release` ワークフローが動き、release-pleaseが `vX.Y.Z` をタグ付けしGitHub Releaseを作成（対象: `mcp-server` と Unity パッケージのバージョン/CHANGELOG）。  
-4. **Publish（タグトリガー）**  
-   - `Publish` ワークフローがタグで起動し、csharp-lspをwin/linux/macos x64/arm64でビルド＋manifest添付、`mcp-server` を npm publish、OpenUPM はタグを自動検出、完了後に `main` → `develop` をバックマージ。  
-
-Branch protection Required Checks（main/develop共通）  
-- `Markdown, ESLint & Formatting`  
-- `Commit Message Lint`  
-- `Test & Coverage`  
-- `Package`
-
-#### Commit Message Format
-
-Use Conventional Commits to trigger automatic version bumps:
-
-- `feat: Add new feature` → **minor** version (2.16.3 → 2.17.0)
-- `fix: Resolve bug` → **patch** version (2.16.3 → 2.16.4)
-- `feat!: Breaking change` or `BREAKING CHANGE:` in body → **major** version (2.16.3 → 3.0.0)
-- `chore:`, `docs:`, `test:` → no version bump
-
-Examples:
-
-```bash
-git commit -m "feat: Add video capture support"
-git commit -m "fix: Resolve screenshot path issue"
-git commit -m "feat!: Remove deprecated API"
+csharp-lsp/          # Roslyn-based LSP CLI
 ```
 
-#### Manual Release (if needed)
+## Feature Documentation
 
-If automated release fails, you can manually trigger workflows:
+All features are documented with SDD format: [`specs/`](specs/)
 
-1. Go to Actions tab on GitHub
-2. Select "Release" workflow
-3. Click "Run workflow" on `main` branch
+## Contributing
 
-#### Troubleshooting
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, commit guidelines, and PR process.
 
-- **No release created**: Check that commits follow Conventional Commits (release-please derives the bump from them).
-- **csharp-lsp build failed**: npm publish waits up to 10 minutes for the manifest; rerun `Publish` on the tag if needed.
-- **Version mismatch**: release-please updates `mcp-server/package.json` and `UnityMCPServer/Packages/unity-mcp-server/package.json` via extra-files; re-run `Release` if they drift.
+## Development Documentation
 
-#### Version Synchronization
+For internal development details (Spec Kit, release process, LLM optimization):
 
-- **mcp-server & Unity Package**: Updated by release-please (manifest + extra-files).
-- **csharp-lsp**: Binaries built on tag `vX.Y.Z`; installer/manifest carry the same version from the tag.
-- **CHANGELOG.md**: Generated by release-please and attached to the GitHub Release notes.
+- [docs/development.md](docs/development.md)
+- [CLAUDE.md](CLAUDE.md)
 
-## Repository Structure (Workspace Root)
+## License
 
-- `.unity/`
-  - `config.json`: Workspace settings. `project.root` points to the Unity project root. The server fixes `WORKSPACE_ROOT` based on this.
-  - `capture/`: Fixed output location for screenshots/videos (Git-ignored).
-- `UnityMCPServer/` (Unity project)
-  - `Packages/unity-mcp-server/**`: UPM package (source of truth)
-  - `Assets/**`: samples/tests only (no implementation code)
-- `mcp-server/` (Node MCP server)
-  - Reads `./.unity/config.json` and fixes `WORKSPACE_ROOT`. Always passes it to Unity for capture commands.
-- `csharp-lsp/` (Roslyn-based CLI)
-  - Self-contained binary, invoked by the MCP server for symbol/search/edit operations.
+MIT License - see [LICENSE](LICENSE) file.

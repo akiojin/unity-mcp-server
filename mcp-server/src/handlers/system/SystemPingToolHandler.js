@@ -1,5 +1,6 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { CATEGORIES, SCOPES } from '../base/categories.js';
+import { OFFLINE_TOOLS, OFFLINE_TOOLS_HINT } from '../../constants/offlineTools.js';
 
 /**
  * Handler for the system_ping tool
@@ -37,24 +38,36 @@ export class SystemPingToolHandler extends BaseToolHandler {
    * @returns {Promise<object>} Ping result
    */
   async execute(params) {
-    // Ensure connected
-    if (!this.unityConnection.isConnected()) {
-      await this.unityConnection.connect();
+    try {
+      // Ensure connected
+      if (!this.unityConnection.isConnected()) {
+        await this.unityConnection.connect();
+      }
+
+      // Send ping command with optional message
+      const result = await this.unityConnection.sendCommand('ping', {
+        message: params.message || 'ping'
+      });
+
+      // Format the result for the response
+      return {
+        success: true,
+        message: result.message,
+        echo: result.echo || params.message || 'ping',
+        timestamp: result.timestamp || new Date().toISOString(),
+        unityVersion: result.unityVersion,
+        version: result._version || result.version,
+        editorState: result._editorState || result.editorState
+      };
+    } catch (error) {
+      // Return offline tools information when connection fails
+      return {
+        success: false,
+        error: 'unity_connection_failed',
+        message: error.message || 'Failed to connect to Unity Editor',
+        offlineToolsAvailable: OFFLINE_TOOLS,
+        hint: OFFLINE_TOOLS_HINT
+      };
     }
-
-    // Send ping command with optional message
-    const result = await this.unityConnection.sendCommand('ping', {
-      message: params.message || 'ping'
-    });
-
-    // Format the result for the response
-    return {
-      message: result.message,
-      echo: result.echo || params.message || 'ping',
-      timestamp: result.timestamp || new Date().toISOString(),
-      unityVersion: result.unityVersion,
-      version: result._version || result.version,
-      editorState: result._editorState || result.editorState
-    };
   }
 }

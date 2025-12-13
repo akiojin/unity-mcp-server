@@ -7,7 +7,7 @@ export class ScriptReadToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'script_read',
-      'Read a C# file with optional line range and payload limits. Files must be under Assets/ or Packages/ and have .cs extension. PRIORITY: Read minimally — locate the target with script_symbols_get and read only the signature area (~30–40 lines). For large files, always pass startLine/endLine and (optionally) maxBytes.',
+      '[OFFLINE] No Unity connection required. Read a C# file with optional line range and payload limits. Files must be under Assets/ or Packages/ and have .cs extension. PRIORITY: Read minimally — locate the target with script_symbols_get and read only the signature area (~30–40 lines). For large files, always pass startLine/endLine and (optionally) maxBytes.',
       {
         type: 'object',
         properties: {
@@ -79,7 +79,14 @@ export class ScriptReadToolHandler extends BaseToolHandler {
 
       const abs = info.projectRoot + '/' + norm;
       const stat = await fs.stat(abs).catch(() => null);
-      if (!stat || !stat.isFile()) return { error: 'File not found', path: norm };
+      if (!stat || !stat.isFile()) {
+        return {
+          error: 'File not found',
+          path: norm,
+          resolvedPath: abs,
+          hint: `Verify the file exists at: ${abs}. Path must be relative to Unity project root (e.g., "Assets/Scripts/Foo.cs" or "Packages/com.example/Runtime/Bar.cs").`
+        };
+      }
 
       const data = await fs.readFile(abs, 'utf8');
       const lines = data.split('\n');

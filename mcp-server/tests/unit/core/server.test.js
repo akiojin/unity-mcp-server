@@ -78,9 +78,8 @@ describe('Server', () => {
       });
 
       // Import and test the handler directly
-      const { SystemPingToolHandler } = await import(
-        '../../../src/handlers/system/SystemPingToolHandler.js'
-      );
+      const { SystemPingToolHandler } =
+        await import('../../../src/handlers/system/SystemPingToolHandler.js');
       const pingHandler = new SystemPingToolHandler(unityConnection);
 
       const result = await pingHandler.handle({ message: 'test' });
@@ -90,9 +89,8 @@ describe('Server', () => {
     });
 
     it('should handle gameobject_create with validation', async () => {
-      const { GameObjectCreateToolHandler } = await import(
-        '../../../src/handlers/gameobject/GameObjectCreateToolHandler.js'
-      );
+      const { GameObjectCreateToolHandler } =
+        await import('../../../src/handlers/gameobject/GameObjectCreateToolHandler.js');
       const handler = new GameObjectCreateToolHandler(unityConnection);
 
       // Test validation error
@@ -190,9 +188,8 @@ describe('Server', () => {
 
   describe('Unity connection handling', () => {
     it('should handle Unity connection errors gracefully', async () => {
-      const { SystemPingToolHandler } = await import(
-        '../../../src/handlers/system/SystemPingToolHandler.js'
-      );
+      const { SystemPingToolHandler } =
+        await import('../../../src/handlers/system/SystemPingToolHandler.js');
       const handler = new SystemPingToolHandler(unityConnection);
 
       unityConnection.sendCommand.mock.mockImplementation(async () => {
@@ -201,18 +198,21 @@ describe('Server', () => {
 
       const result = await handler.handle({});
 
-      assert.equal(result.status, 'error');
-      assert.equal(result.error, 'Unity not responding');
-      assert.equal(result.code, 'TOOL_ERROR');
+      // SystemPingToolHandler now catches errors internally and returns
+      // success with offline tools information
+      assert.equal(result.status, 'success');
+      assert.equal(result.result.success, false);
+      assert.equal(result.result.error, 'unity_connection_failed');
+      assert.ok(Array.isArray(result.result.offlineToolsAvailable));
+      assert.ok(result.result.hint);
     });
 
     it('should connect to Unity if not connected', async () => {
       unityConnection.isConnected.mock.mockImplementation(() => false);
       unityConnection.connect = mock.fn(async () => {});
 
-      const { SystemPingToolHandler } = await import(
-        '../../../src/handlers/system/SystemPingToolHandler.js'
-      );
+      const { SystemPingToolHandler } =
+        await import('../../../src/handlers/system/SystemPingToolHandler.js');
       const handler = new SystemPingToolHandler(unityConnection);
 
       unityConnection.sendCommand.mock.mockImplementation(async () => ({
