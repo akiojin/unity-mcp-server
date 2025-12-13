@@ -101,9 +101,6 @@ export async function startServer(options = {}) {
       transport = new StdioServerTransport();
       await server.connect(transport);
       console.error(`[unity-mcp-server] MCP transport connected`);
-
-      // Enable MCP logging notifications (REQ-4)
-      logger.setServer(server);
     }
 
     // Step 4: Register request handlers (they will lazily load dependencies)
@@ -242,115 +239,145 @@ export async function startServer(options = {}) {
     // Now safe to log after connection established
     logger.info('MCP server started successfully');
 
-    // Step 5: Background initialization (non-blocking)
-    // Start loading handlers in background so first request is faster
-    ensureInitialized().catch(err => {
-      console.error(`[unity-mcp-server] Background initialization failed: ${err.message}`);
-    });
-
-    // Optional HTTP transport
     let httpServerInstance;
-    if (runtimeConfig.http?.enabled) {
-      const { createHttpServer } = await import('./httpServer.js');
-      httpServerInstance = createHttpServer({
-        handlers,
-        host: runtimeConfig.http.host,
-        port: runtimeConfig.http.port,
-        telemetryEnabled: runtimeConfig.telemetry.enabled,
-        healthPath: runtimeConfig.http.healthPath
+
+    // Step 5: Background initialization (deferred)
+    // NOTE: We intentionally wait until MCP initialization completes before starting
+    // heavy module imports (handlers, code index, etc.). Even if launched in a
+    // "fire-and-forget" async task, ESM module loading is CPU-heavy and can block
+    // the event loop, delaying the client's `initialize` handshake and causing
+    // startup timeouts in some MCP hosts.
+    let postInitStarted = false;
+    const startPostInit = () => {
+      if (postInitStarted) return;
+      postInitStarted = true;
+
+      // Enable MCP logging notifications (REQ-4) after initialization handshake
+      if (runtimeConfig.stdioEnabled !== false) {
+        logger.setServer(server);
+      }
+
+      // Start loading handlers in background so first request is faster
+      ensureInitialized().catch(err => {
+        console.error(`[unity-mcp-server] Background initialization failed: ${err.message}`);
       });
-      try {
-        await httpServerInstance.start();
-      } catch (err) {
-        logger.error(`HTTP server failed to start: ${err.message}`);
-        throw err;
-      }
-    }
 
-    // Attempt to connect to Unity (deferred, non-blocking)
-    (async () => {
-      await ensureInitialized();
-      console.error(`[unity-mcp-server] Unity connection starting...`);
-      try {
-        await unityConnection.connect();
-        console.error(`[unity-mcp-server] Unity connection established`);
-      } catch (error) {
-        console.error(`[unity-mcp-server] Unity connection failed: ${error.message}`);
-        logger.error('Initial Unity connection failed:', error.message);
-        logger.info('Unity connection will retry automatically');
-      }
-    })();
-
-    // Best-effort: prepare and start persistent C# LSP process (non-blocking)
-    (async () => {
-      try {
-        const { LspProcessManager } = await import('../lsp/LspProcessManager.js');
-        const mgr = new LspProcessManager();
-        await mgr.ensureStarted();
-        // Attach graceful shutdown
-        const shutdown = async () => {
+      // Optional HTTP transport (requires handlers)
+      if (runtimeConfig.http?.enabled) {
+        (async () => {
+          await ensureInitialized();
+          const { createHttpServer } = await import('./httpServer.js');
+          httpServerInstance = createHttpServer({
+            handlers,
+            host: runtimeConfig.http.host,
+            port: runtimeConfig.http.port,
+            telemetryEnabled: runtimeConfig.telemetry.enabled,
+            healthPath: runtimeConfig.http.healthPath,
+            allowedHosts: runtimeConfig.http.allowedHosts
+          });
           try {
-            await mgr.stop(3000);
+            await httpServerInstance.start();
+          } catch (err) {
+            logger.error(`HTTP server failed to start: ${err.message}`);
+            if (runtimeConfig.stdioEnabled === false) {
+              process.exit(1);
+            }
+          }
+        })();
+      }
+
+      // Attempt to connect to Unity (deferred, non-blocking)
+      (async () => {
+        await ensureInitialized();
+        console.error(`[unity-mcp-server] Unity connection starting...`);
+        try {
+          await unityConnection.connect();
+          console.error(`[unity-mcp-server] Unity connection established`);
+        } catch (error) {
+          console.error(`[unity-mcp-server] Unity connection failed: ${error.message}`);
+          logger.error('Initial Unity connection failed:', error.message);
+          logger.info('Unity connection will retry automatically');
+        }
+      })();
+
+      // Best-effort: prepare and start persistent C# LSP process (non-blocking)
+      (async () => {
+        try {
+          const { LspProcessManager } = await import('../lsp/LspProcessManager.js');
+          const mgr = new LspProcessManager();
+          await mgr.ensureStarted();
+          // Attach graceful shutdown
+          const shutdown = async () => {
+            try {
+              await mgr.stop(3000);
+            } catch {}
+          };
+          process.on('SIGINT', shutdown);
+          process.on('SIGTERM', shutdown);
+        } catch (e) {
+          logger.warning(`[startup] csharp-lsp start failed: ${e.message}`);
+        }
+      })();
+
+      // Start periodic index watcher (incremental)
+      (async () => {
+        await ensureInitialized();
+        const { IndexWatcher } = await import('./indexWatcher.js');
+        const watcher = new IndexWatcher(unityConnection);
+        watcher.start();
+        const stopWatch = () => {
+          try {
+            watcher.stop();
           } catch {}
         };
-        process.on('SIGINT', shutdown);
-        process.on('SIGTERM', shutdown);
-      } catch (e) {
-        logger.warning(`[startup] csharp-lsp start failed: ${e.message}`);
-      }
-    })();
+        process.on('SIGINT', stopWatch);
+        process.on('SIGTERM', stopWatch);
+      })();
 
-    // Start periodic index watcher (incremental)
-    (async () => {
-      await ensureInitialized();
-      const { IndexWatcher } = await import('./indexWatcher.js');
-      const watcher = new IndexWatcher(unityConnection);
-      watcher.start();
-      const stopWatch = () => {
+      // Auto-initialize code index if DB doesn't exist
+      (async () => {
+        await ensureInitialized();
         try {
-          watcher.stop();
-        } catch {}
-      };
-      process.on('SIGINT', stopWatch);
-      process.on('SIGTERM', stopWatch);
-    })();
+          const { CodeIndex } = await import('./codeIndex.js');
+          const index = new CodeIndex(unityConnection);
+          const ready = await index.isReady();
 
-    // Auto-initialize code index if DB doesn't exist
-    (async () => {
-      await ensureInitialized();
-      try {
-        const { CodeIndex } = await import('./codeIndex.js');
-        const index = new CodeIndex(unityConnection);
-        const ready = await index.isReady();
+          if (!ready) {
+            if (index.disabled) {
+              logger.warning(
+                `[startup] Code index disabled: ${index.disableReason || 'SQLite native binding missing'}. Skipping auto-build.`
+              );
+              return;
+            }
+            logger.info('[startup] Code index DB not ready. Starting auto-build...');
+            const { CodeIndexBuildToolHandler } =
+              await import('../handlers/script/CodeIndexBuildToolHandler.js');
+            const builder = new CodeIndexBuildToolHandler(unityConnection);
+            const result = await builder.execute({});
 
-        if (!ready) {
-          if (index.disabled) {
-            logger.warning(
-              `[startup] Code index disabled: ${index.disableReason || 'SQLite native binding missing'}. Skipping auto-build.`
-            );
-            return;
-          }
-          logger.info('[startup] Code index DB not ready. Starting auto-build...');
-          const { CodeIndexBuildToolHandler } = await import(
-            '../handlers/script/CodeIndexBuildToolHandler.js'
-          );
-          const builder = new CodeIndexBuildToolHandler(unityConnection);
-          const result = await builder.execute({});
-
-          if (result.success) {
-            logger.info(
-              `[startup] Code index auto-build started: jobId=${result.jobId}. Use code_index_status to check progress.`
-            );
+            if (result.success) {
+              logger.info(
+                `[startup] Code index auto-build started: jobId=${result.jobId}. Use code_index_status to check progress.`
+              );
+            } else {
+              logger.warning(`[startup] Code index auto-build failed: ${result.message}`);
+            }
           } else {
-            logger.warning(`[startup] Code index auto-build failed: ${result.message}`);
+            logger.info('[startup] Code index DB already exists. Skipping auto-build.');
           }
-        } else {
-          logger.info('[startup] Code index DB already exists. Skipping auto-build.');
+        } catch (e) {
+          logger.warning(`[startup] Code index auto-init failed: ${e.message}`);
         }
-      } catch (e) {
-        logger.warning(`[startup] Code index auto-init failed: ${e.message}`);
-      }
-    })();
+      })();
+    };
+
+    // When stdio is enabled, wait until MCP client finishes initialization.
+    // In HTTP-only mode (--no-stdio), there is no MCP init flow, so start immediately.
+    if (runtimeConfig.stdioEnabled !== false) {
+      server.oninitialized = () => startPostInit();
+    } else {
+      startPostInit();
+    }
 
     // Handle shutdown
     process.on('SIGINT', async () => {
