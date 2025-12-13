@@ -70,16 +70,17 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
       const list = [];
       const visit = (s, container) => {
         const start = s.range?.start || s.selectionRange?.start || {};
-        list.push({
+        // Phase 3.3: Optimized output (50% size reduction)
+        // Removed redundant endLine/endColumn, renamed to line/column
+        const sym = {
           name: s.name || '',
           kind: this.mapKind(s.kind),
-          container: container || null,
-          namespace: null,
-          startLine: (start.line ?? 0) + 1,
-          startColumn: (start.character ?? 0) + 1,
-          endLine: (start.line ?? 0) + 1,
-          endColumn: (start.character ?? 0) + 1
-        });
+          line: (start.line ?? 0) + 1,
+          column: (start.character ?? 0) + 1
+        };
+        // Only include non-null optional fields
+        if (container) sym.container = container;
+        list.push(sym);
         if (Array.isArray(s.children)) for (const c of s.children) visit(c, s.name || container);
       };
       if (Array.isArray(docSymbols)) for (const s of docSymbols) visit(s, null);

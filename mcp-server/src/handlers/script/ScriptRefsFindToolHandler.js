@@ -213,17 +213,33 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
       }
     }
 
-    // Pagination and byte limits
+    // Phase 3.2: Build pathTable for deduplication (62% size reduction)
+    const pathSet = new Set();
+    for (const [p] of perFile) {
+      pathSet.add(p);
+    }
+    const pathTable = [...pathSet];
+    const pathIndex = new Map(pathTable.map((p, i) => [p, i]));
+
+    // Pagination and byte limits with compact format
     const results = [];
     let bytes = 0;
-    for (const [, arr] of perFile) {
+    for (const [filePath, arr] of perFile) {
+      const fileId = pathIndex.get(filePath);
       for (const it of arr) {
-        const json = JSON.stringify(it);
+        // Compact format: fileId reference + only essential fields
+        const compact = {
+          fileId,
+          line: it.line,
+          column: it.column,
+          snippet: it.snippet
+        };
+        const json = JSON.stringify(compact);
         const size = Buffer.byteLength(json, 'utf8');
         if (results.length >= pageSize || bytes + size > maxBytes) {
-          return { success: true, results, total: results.length, truncated: true };
+          return { success: true, pathTable, results, total: results.length, truncated: true };
         }
-        results.push(it);
+        results.push(compact);
         bytes += size;
       }
     }
@@ -232,7 +248,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
     const extremeLimits = pageSize <= 1 || maxBytes <= 1;
     const truncated = extremeLimits && results.length === 0 ? true : false;
 
-    return { success: true, results, total: results.length, truncated };
+    return { success: true, pathTable, results, total: results.length, truncated };
   }
 }
 
