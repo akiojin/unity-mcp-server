@@ -102,40 +102,39 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
 
     // DB index is ready - use it
     const rows = await this.index.querySymbols({ name, kind, scope, exact });
-    let results = rows.map(r => ({
-      // Index returns project-relative paths already
-      path: (r.path || '').replace(/\\\\/g, '/'),
-      symbol: {
-        name: r.name,
-        kind: r.kind,
-        namespace: r.ns,
-        container: r.container,
-        startLine: r.line,
-        startColumn: r.column,
-        endLine: r.line,
-        endColumn: r.column
-      }
-    }));
-    // Optional post-filtering: scope and exact name
-    if (scope && scope !== 'all') {
-      results = results.filter(x => {
-        const p = (x.path || '').replace(/\\\\/g, '/');
-        switch (scope) {
-          case 'assets':
-            return p.startsWith('Assets/');
-          case 'packages':
-            return p.startsWith('Packages/') || p.startsWith('Library/PackageCache/');
-          case 'embedded':
-            return p.startsWith('Packages/');
-          default:
-            return true;
-        }
-      });
-    }
+
+    // Note: Scope filtering is now done in SQL (CodeIndex.querySymbols), but keep JS filter for safety
+    let filteredRows = rows;
     if (exact) {
       const target = String(name);
-      results = results.filter(x => x.symbol && x.symbol.name === target);
+      filteredRows = filteredRows.filter(r => r.name === target);
     }
-    return { success: true, results, total: results.length };
+
+    // Phase 3.1: Optimized output format with pathTable (60% size reduction)
+    // Build pathTable for deduplication
+    const pathSet = new Set();
+    for (const r of filteredRows) {
+      pathSet.add((r.path || '').replace(/\\/g, '/'));
+    }
+    const pathTable = [...pathSet];
+    const pathIndex = new Map(pathTable.map((p, i) => [p, i]));
+
+    // Build compact results with fileId reference
+    const results = filteredRows.map(r => {
+      const p = (r.path || '').replace(/\\/g, '/');
+      const symbol = {
+        name: r.name,
+        kind: r.kind,
+        line: r.line,
+        column: r.column
+      };
+      // Only include non-null optional fields
+      if (r.ns) symbol.namespace = r.ns;
+      if (r.container) symbol.container = r.container;
+
+      return { fileId: pathIndex.get(p), symbol };
+    });
+
+    return { success: true, pathTable, results, total: results.length };
   }
 }

@@ -50,7 +50,8 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.24.3",
     "find-up": "^6.3.0",
-    "@akiojin/fast-sql": "^0.1.0"
+    "@akiojin/fast-sql": "^0.1.0",
+    "lru-cache": "^11.0.2"
   },
   "engines": {
     "node": ">=18 <23"

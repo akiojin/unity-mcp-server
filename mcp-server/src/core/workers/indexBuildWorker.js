@@ -514,15 +514,23 @@ async function runBuild() {
 
     log('info', `[worker] Changes: ${changed.length} to update, ${removed.length} to remove`);
 
-    // Remove vanished files
-    for (const rel of removed) {
-      const stmt1 = db.prepare('DELETE FROM symbols WHERE path = ?');
-      stmt1.run([rel]);
-      stmt1.free();
+    // Remove vanished files - optimized batch delete (Phase 2.2)
+    if (removed.length > 0) {
+      // SQLite has a limit on compound expressions, batch in groups of 500
+      const BATCH_SIZE = 500;
+      for (let i = 0; i < removed.length; i += BATCH_SIZE) {
+        const batch = removed.slice(i, i + BATCH_SIZE);
+        const placeholders = batch.map(() => '?').join(',');
 
-      const stmt2 = db.prepare('DELETE FROM files WHERE path = ?');
-      stmt2.run([rel]);
-      stmt2.free();
+        const stmt1 = db.prepare(`DELETE FROM symbols WHERE path IN (${placeholders})`);
+        stmt1.run(batch);
+        stmt1.free();
+
+        const stmt2 = db.prepare(`DELETE FROM files WHERE path IN (${placeholders})`);
+        stmt2.run(batch);
+        stmt2.free();
+      }
+      log('info', `[worker] Removed ${removed.length} files in batches`);
     }
 
     // Prepare for updates
@@ -557,7 +565,57 @@ async function runBuild() {
       throw lastErr || new Error('documentSymbol failed');
     };
 
-    // Process files sequentially (concurrency=1 for non-blocking)
+    // Phase 2.1 & 2.3: Process files with batched transactions
+    // Collect LSP results, then write in batched transactions to reduce overhead
+    const TX_BATCH_SIZE = 100; // Files per transaction
+    let pendingWrites = []; // { rel, rows, sig }
+
+    const flushPendingWrites = () => {
+      if (pendingWrites.length === 0) return;
+
+      runSQL(db, 'BEGIN TRANSACTION');
+      try {
+        // Batch delete old symbols for all pending files
+        const pathsToDelete = pendingWrites.map(w => w.rel);
+        const delPlaceholders = pathsToDelete.map(() => '?').join(',');
+        const delStmt = db.prepare(`DELETE FROM symbols WHERE path IN (${delPlaceholders})`);
+        delStmt.run(pathsToDelete);
+        delStmt.free();
+
+        // Batch insert all symbols
+        const insertStmt = db.prepare(
+          'INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)'
+        );
+        for (const { rows } of pendingWrites) {
+          for (const r of rows) {
+            insertStmt.run([r.path, r.name, r.kind, r.container, r.ns, r.line, r.column]);
+          }
+        }
+        insertStmt.free();
+
+        // Batch update file signatures
+        const fileStmt = db.prepare('REPLACE INTO files(path,sig,updatedAt) VALUES (?,?,?)');
+        const now = new Date().toISOString();
+        for (const { rel, sig } of pendingWrites) {
+          fileStmt.run([rel, sig, now]);
+        }
+        fileStmt.free();
+
+        // Update meta once per batch
+        const metaStmt = db.prepare("REPLACE INTO meta(key,value) VALUES ('lastIndexedAt',?)");
+        metaStmt.run([now]);
+        metaStmt.free();
+
+        runSQL(db, 'COMMIT');
+        updated += pendingWrites.length;
+      } catch (txErr) {
+        runSQL(db, 'ROLLBACK');
+        log('error', `[worker] Batch write failed: ${txErr.message}`);
+      }
+      pendingWrites = [];
+    };
+
+    // Process files sequentially (LSP requests), batch DB writes
     for (let i = 0; i < absList.length; i++) {
       const abs = absList[i];
       const rel = toRel(abs, projectRoot);
@@ -567,36 +625,13 @@ async function runBuild() {
         const docSymbols = await requestWithRetry(uri);
         const rows = toRows(uri, docSymbols, projectRoot);
 
-        // Update database in transaction
-        runSQL(db, 'BEGIN TRANSACTION');
-        try {
-          const delStmt = db.prepare('DELETE FROM symbols WHERE path = ?');
-          delStmt.run([rel]);
-          delStmt.free();
+        // Queue for batch write
+        pendingWrites.push({ rel, rows, sig: wanted.get(rel) });
 
-          const insertStmt = db.prepare(
-            'INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)'
-          );
-          for (const r of rows) {
-            insertStmt.run([r.path, r.name, r.kind, r.container, r.ns, r.line, r.column]);
-          }
-          insertStmt.free();
-
-          const fileStmt = db.prepare('REPLACE INTO files(path,sig,updatedAt) VALUES (?,?,?)');
-          fileStmt.run([rel, wanted.get(rel), new Date().toISOString()]);
-          fileStmt.free();
-
-          const metaStmt = db.prepare("REPLACE INTO meta(key,value) VALUES ('lastIndexedAt',?)");
-          metaStmt.run([new Date().toISOString()]);
-          metaStmt.free();
-
-          runSQL(db, 'COMMIT');
-        } catch (txErr) {
-          runSQL(db, 'ROLLBACK');
-          throw txErr;
+        // Flush when batch is full
+        if (pendingWrites.length >= TX_BATCH_SIZE) {
+          flushPendingWrites();
         }
-
-        updated++;
       } catch (err) {
         // Log occasionally to avoid spam
         if (processed % 50 === 0) {
@@ -628,6 +663,9 @@ async function runBuild() {
         await new Promise(r => setTimeout(r, throttleMs));
       }
     }
+
+    // Flush remaining pending writes
+    flushPendingWrites();
 
     // Stop LSP process
     lsp.stop();
