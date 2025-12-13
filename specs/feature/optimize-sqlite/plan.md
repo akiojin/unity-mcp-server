@@ -233,4 +233,4 @@ ios/ または android/
 - [ ] 複雑さの逸脱を文書化済み
 
 ---
-*憲章 v2.1.1 に基づく - `/memory/constitution.md` 参照*
+*憲章 v1.0.0 に基づく - `/docs/constitution.md` 参照*

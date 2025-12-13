@@ -4,6 +4,8 @@ import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { UnityConnection } from '../../../src/core/unityConnection.js';
+import { config } from '../../../src/core/config.js';
+import { CodeIndex } from '../../../src/core/codeIndex.js';
 import { ScriptReadToolHandler } from '../../../src/handlers/script/ScriptReadToolHandler.js';
 import { ScriptSearchToolHandler } from '../../../src/handlers/script/ScriptSearchToolHandler.js';
 import { ScriptSymbolsGetToolHandler } from '../../../src/handlers/script/ScriptSymbolsGetToolHandler.js';
@@ -24,16 +26,20 @@ function setupTempUnityProject() {
   // simple file in Assets too
   const abs2 = path.join(root, 'Assets', 'Test.cs');
   writeFileSync(abs2, 'class A { void X(){} }', 'utf8');
-  process.env.UNITY_PROJECT_ROOT = root;
+  config.project = {
+    ...(config.project || {}),
+    root,
+    codeIndexRoot: path.join(root, '.unity', 'cache', 'code-index')
+  };
   return { root, relPkg: rel };
 }
 
-const originalUnityProjectRoot = process.env.UNITY_PROJECT_ROOT;
+const originalProject = config.project ? { ...config.project } : null;
 test.afterEach(async () => {
-  if (originalUnityProjectRoot === undefined) {
-    delete process.env.UNITY_PROJECT_ROOT;
+  if (originalProject === null) {
+    delete config.project;
   } else {
-    process.env.UNITY_PROJECT_ROOT = originalUnityProjectRoot;
+    config.project = { ...originalProject };
   }
   const mgr = new LspProcessManager();
   await mgr.stop(0);
@@ -83,6 +89,21 @@ test('script_symbols_get (local) returns symbols for Symbols.cs', async () => {
 test('script_symbol_find (local) finds classes in packages', async () => {
   const env = setupTempUnityProject();
   const u = new UnityConnection();
+
+  // script_symbol_find requires an initialized code index (SQLite DB).
+  const index = new CodeIndex(u);
+  await index.clearAndLoad([
+    {
+      path: env.relPkg,
+      name: 'Symbol',
+      kind: 'class',
+      container: null,
+      ns: 'Demo',
+      line: 1,
+      column: 1
+    }
+  ]);
+
   const handler = new ScriptSymbolFindToolHandler(u);
   const res = await handler.execute({
     name: 'Symbol',

@@ -1,4 +1,5 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import * as findUpPkg from 'find-up';
 import { MCPLogger } from './mcpLogger.js';
@@ -67,20 +68,13 @@ function resolvePackageVersion() {
 /**
  * Base configuration for Unity MCP Server Server
  */
-const envUnityHost = process.env.UNITY_BIND_HOST || process.env.UNITY_HOST || null;
-
-const envMcpHost =
-  process.env.UNITY_MCP_HOST || process.env.UNITY_CLIENT_HOST || process.env.UNITY_HOST || null;
-
-const envBindHost = process.env.UNITY_BIND_HOST || null;
-
 const baseConfig = {
   // Unity connection settings
   unity: {
-    unityHost: envUnityHost,
-    mcpHost: envMcpHost,
-    bindHost: envBindHost,
-    port: parseInt(process.env.UNITY_PORT || '', 10) || 6400,
+    unityHost: null,
+    mcpHost: null,
+    bindHost: null,
+    port: 6400,
     reconnectDelay: 1000,
     maxReconnectDelay: 30000,
     reconnectBackoffMultiplier: 2,
@@ -96,24 +90,21 @@ const baseConfig = {
 
   // Logging settings
   logging: {
-    level: process.env.LOG_LEVEL || 'info',
+    level: 'info',
     prefix: '[unity-mcp-server]'
   },
 
   // HTTP transport (off by default)
   http: {
-    enabled: (process.env.UNITY_MCP_HTTP_ENABLED || 'false').toLowerCase() === 'true',
-    host: process.env.UNITY_MCP_HTTP_HOST || '0.0.0.0',
-    port: parseInt(process.env.UNITY_MCP_HTTP_PORT || '', 10) || 6401,
+    enabled: false,
+    host: '0.0.0.0',
+    port: 6401,
     healthPath: '/healthz',
-    allowedHosts: (process.env.UNITY_MCP_HTTP_ALLOWED_HOSTS || 'localhost,127.0.0.1')
-      .split(',')
-      .map(h => h.trim())
-      .filter(h => h.length > 0)
+    allowedHosts: ['localhost', '127.0.0.1']
   },
 
   telemetry: {
-    enabled: (process.env.UNITY_MCP_TELEMETRY || 'off').toLowerCase() === 'on',
+    enabled: false,
     destinations: [],
     fields: []
   },
@@ -123,13 +114,13 @@ const baseConfig = {
   // Search-related defaults and engine selection
   search: {
     // detail alias: 'compact' maps to returnMode 'snippets'
-    defaultDetail: (process.env.SEARCH_DEFAULT_DETAIL || 'compact').toLowerCase(), // compact|metadata|snippets|full
-    engine: (process.env.SEARCH_ENGINE || 'naive').toLowerCase() // naive|treesitter (future)
+    defaultDetail: 'compact', // compact|metadata|snippets|full
+    engine: 'naive' // naive|treesitter (future)
   },
 
   // LSP client defaults
   lsp: {
-    requestTimeoutMs: Number(process.env.LSP_REQUEST_TIMEOUT_MS || 60000)
+    requestTimeoutMs: 60000
   },
 
   // Indexing (code index) settings
@@ -137,95 +128,48 @@ const baseConfig = {
     // Enable periodic incremental index updates (polling watcher)
     watch: true,
     // Polling interval (ms)
-    intervalMs: Number(process.env.INDEX_WATCH_INTERVAL_MS || 15000),
+    intervalMs: 15000,
     // Build options
-    concurrency: Number(process.env.INDEX_CONCURRENCY || 8),
-    retry: Number(process.env.INDEX_RETRY || 2),
-    reportEvery: Number(process.env.INDEX_REPORT_EVERY || 500)
+    concurrency: 8,
+    retry: 2,
+    reportEvery: 500
   }
 };
 
 /**
- * External config resolution (no legacy compatibility):
- * Priority:
- * 1) UNITY_MCP_CONFIG (explicit file path)
- * 2) ./.unity/config.json (project-local)
- * 3) ~/.unity/config.json (user-global)
- * If none found, create ./.unity/config.json with defaults.
+ * External config resolution:
+ * - Uses the nearest `.unity/config.json` found by walking up from the current working directory.
+ * - Intentionally ignores `~/.unity/config.json` (user-global).
  */
-function ensureDefaultProjectConfig(baseDir) {
-  const dir = path.resolve(baseDir, '.unity');
-  const file = path.join(dir, 'config.json');
-
-  try {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    if (!fs.existsSync(file)) {
-      const inferredRoot = fs.existsSync(path.join(baseDir, 'Assets')) ? baseDir : '';
-      const defaultConfig = {
-        unity: {
-          unityHost: 'localhost',
-          mcpHost: 'localhost',
-          port: 6400
-        },
-        project: {
-          root: inferredRoot ? inferredRoot.replace(/\\/g, '/') : ''
-        }
-      };
-      fs.writeFileSync(file, `${JSON.stringify(defaultConfig, null, 2)}\n`, 'utf8');
-    }
-    return file;
-  } catch (error) {
-    return null;
-  }
-}
-
 function loadExternalConfig() {
   if (typeof findUpSyncCompat !== 'function') {
     return {};
   }
-  const explicitPath = process.env.UNITY_MCP_CONFIG;
+  let userGlobalPath = null;
+  try {
+    const homeDir = os.homedir();
+    userGlobalPath = homeDir ? path.resolve(homeDir, '.unity', 'config.json') : null;
+  } catch {}
 
   const projectPath = findUpSyncCompat(
     directory => {
       const candidate = path.resolve(directory, '.unity', 'config.json');
+      if (userGlobalPath && path.resolve(candidate) === userGlobalPath) return undefined;
       return fs.existsSync(candidate) ? candidate : undefined;
     },
     { cwd: process.cwd() }
   );
-  const homeDir = process.env.HOME || process.env.USERPROFILE || '';
-  const userPath = homeDir ? path.resolve(homeDir, '.unity', 'config.json') : null;
 
-  const candidates = [explicitPath, projectPath, userPath].filter(Boolean);
-  for (const p of candidates) {
-    try {
-      if (p && fs.existsSync(p)) {
-        const raw = fs.readFileSync(p, 'utf8');
-        const json = JSON.parse(raw);
-        const out = json && typeof json === 'object' ? json : {};
-        out.__configPath = p;
-        return out;
-      }
-    } catch (e) {
-      return { __configLoadError: `${p}: ${e.message}` };
-    }
+  if (!projectPath) return {};
+  try {
+    const raw = fs.readFileSync(projectPath, 'utf8');
+    const json = JSON.parse(raw);
+    const out = json && typeof json === 'object' ? json : {};
+    out.__configPath = projectPath;
+    return out;
+  } catch (e) {
+    return { __configLoadError: `${projectPath}: ${e.message}` };
   }
-  const fallbackPath = ensureDefaultProjectConfig(process.cwd());
-  if (fallbackPath && fs.existsSync(fallbackPath)) {
-    try {
-      const raw = fs.readFileSync(fallbackPath, 'utf8');
-      const json = JSON.parse(raw);
-      const out = json && typeof json === 'object' ? json : {};
-      out.__configPath = fallbackPath;
-      out.__configGenerated = true;
-      return out;
-    } catch (e) {
-      return { __configLoadError: `${fallbackPath}: ${e.message}` };
-    }
-  }
-  return {};
 }
 
 const external = loadExternalConfig();
@@ -234,22 +178,22 @@ export const config = merge(baseConfig, external);
 const normalizeUnityConfig = () => {
   const unityConfig = config.unity || (config.unity = {});
 
-  // Legacy aliases coming from config files or env vars
+  // Legacy aliases coming from config files
   const legacyHost = unityConfig.host;
   const legacyClientHost = unityConfig.clientHost;
   const legacyBindHost = unityConfig.bindHost;
 
   if (!unityConfig.unityHost) {
-    unityConfig.unityHost = legacyBindHost || legacyHost || envUnityHost || 'localhost';
+    unityConfig.unityHost = legacyBindHost || legacyHost || 'localhost';
   }
 
   if (!unityConfig.mcpHost) {
-    unityConfig.mcpHost = legacyClientHost || envMcpHost || legacyHost || unityConfig.unityHost;
+    unityConfig.mcpHost = legacyClientHost || legacyHost || unityConfig.unityHost;
   }
 
   // Keep bindHost for backwards compatibility with legacy code paths
   if (!unityConfig.bindHost) {
-    unityConfig.bindHost = legacyBindHost || envBindHost || unityConfig.unityHost;
+    unityConfig.bindHost = legacyBindHost || unityConfig.unityHost;
   }
 
   // Maintain legacy properties so older handlers keep working
@@ -291,7 +235,7 @@ if (config.__configLoadError) {
 // Startup debug log: output config info to stderr for troubleshooting
 // This helps diagnose connection issues (especially in WSL2/Docker environments)
 console.error(`[unity-mcp-server] Startup config:`);
-console.error(`[unity-mcp-server]   Config file: ${config.__configPath || '(defaults)'}`);
+console.error(`[unity-mcp-server]   Config file: ${config.__configPath || '(not found)'}`);
 console.error(
   `[unity-mcp-server]   Unity host: ${config.unity.mcpHost || config.unity.unityHost || 'localhost'}`
 );

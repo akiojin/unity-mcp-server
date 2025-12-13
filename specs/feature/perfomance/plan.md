@@ -559,4 +559,4 @@ profiler_get_metrics({
 - [x] 複雑さの逸脱を文書化済み（違反なし）
 
 ---
-*憲章 v1.0.0 に基づく - `.specify/memory/constitution.md` 参照*
+*憲章 v1.0.0 に基づく - `/docs/constitution.md` 参照*

@@ -762,4 +762,4 @@ Task: "quickstart.md検証実行"
 
 ---
 
-*TDD厳守 - 憲章 v1.0.0 に基づく - `.specify/memory/constitution.md` 参照*
+*TDD厳守 - 憲章 v1.0.0 に基づく - `/docs/constitution.md` 参照*

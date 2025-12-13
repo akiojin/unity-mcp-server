@@ -328,4 +328,4 @@ interface CacheStats {
 
 ---
 
-*憲章 v1.0.0 に基づく - `/memory/constitution.md` 参照*
+*憲章 v1.0.0 に基づく - `/docs/constitution.md` 参照*

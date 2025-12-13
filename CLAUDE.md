@@ -175,7 +175,7 @@ cd .worktrees/SPEC-0d5d84f9/
   3. E2E tests → 主要ユーザーワークフロー
   4. Unit tests → 個別機能、80%以上のカバレッジ
 
-**詳細は [`memory/constitution.md`](memory/constitution.md) を参照**
+**詳細は [`docs/constitution.md`](docs/constitution.md) を参照**
 
 ### SDD (Spec-Driven Development) 規約
 
@@ -213,7 +213,7 @@ cd .worktrees/SPEC-0d5d84f9/
 
 **憲章準拠**:
 
-- すべての実装は [`memory/constitution.md`](memory/constitution.md) に準拠
+- すべての実装は [`docs/constitution.md`](docs/constitution.md) に準拠
 - TDD、ハンドラーアーキテクチャ、LLM最適化は妥協不可
 
 ## コミュニケーションガイドライン

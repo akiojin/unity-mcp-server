@@ -77,80 +77,64 @@ namespace UnityMCPServer.Core
 
         /// <summary>
         /// Load external configuration and apply port if present.
-        /// Priority:
-        /// 1) UNITY_MCP_CONFIG (explicit file path)
-        /// 2) ./.unity/config.json (project-local)
-        /// 3) ~/.unity/config.json (user-global)
+        /// Looks for `.unity/config.json` from the Unity project root, then walks up parent directories.
+        /// Intentionally ignores `~/.unity/config.json` (user-global).
         /// </summary>
         private static void TryLoadConfigAndApply()
         {
             try
             {
-                string explicitPath = Environment.GetEnvironmentVariable("UNITY_MCP_CONFIG");
                 // Current Unity project root
                 string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-                string projectPath = Path.GetFullPath(Path.Combine(projectRoot, ".unity", "config.json"));
                 string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                string userPath = string.IsNullOrEmpty(homeDir) ? null : Path.Combine(homeDir, ".unity", "config.json");
+                string userGlobalConfigPath = string.IsNullOrEmpty(homeDir) ? null : Path.Combine(homeDir, ".unity", "config.json");
 
-                // Also search ancestors (最大3階層) で .unity/config.json を探索（最初に見つかったものを採用）
-                string ancestorPath = FindAncestorConfigSimple(projectRoot, maxLevels: 3);
+                // Search `.unity/config.json` upwards from the Unity project root (最大10階層)
+                string configPath = FindAncestorConfigSimple(projectRoot, excludedConfigPath: userGlobalConfigPath, maxLevels: 10);
 
-                // Build candidates in priority order:
-                // 1) UNITY_MCP_CONFIG (explicit)
-                // 2) <UnityProject>/.unity/config.json
-                // 3) Ancestor workspace <workspace>/.unity/config.json that points to this project via project.root
-                // 4) ~/.unity/config.json
-                var candidates = new[] { explicitPath, projectPath, ancestorPath, userPath }
-                    .Where(p => !string.IsNullOrEmpty(p))
-                    .ToArray();
-
-                foreach (var path in candidates)
+                if (!string.IsNullOrEmpty(configPath) && File.Exists(configPath))
                 {
                     try
                     {
-                        if (File.Exists(path))
+                        var jsonText = File.ReadAllText(configPath);
+                        var json = JObject.Parse(jsonText);
+
+                        // Expect structure: { "unity": { "port": 6400, "unityHost": "localhost", "mcpHost": "host.docker.internal" } }
+                        var portToken = json.SelectToken("unity.port");
+                        if (portToken != null && int.TryParse(portToken.ToString(), out int port) && port > 0 && port < 65536)
                         {
-                            var jsonText = File.ReadAllText(path);
-                            var json = JObject.Parse(jsonText);
-
-                            // Expect structure: { "unity": { "port": 6400, "unityHost": "localhost", "mcpHost": "host.docker.internal" } }
-                            var portToken = json.SelectToken("unity.port");
-                            if (portToken != null && int.TryParse(portToken.ToString(), out int port) && port > 0 && port < 65536)
-                            {
-                                currentPort = port;
-                            }
-                            // mcpHost は Node 側が接続に使用するホスト。旧 clientHost/host をフォールバックで利用。
-                            var clientTargetToken = json.SelectToken("unity.mcpHost")
-                                ?? json.SelectToken("unity.clientHost")
-                                ?? json.SelectToken("unity.host");
-                            if (clientTargetToken != null)
-                            {
-                                var host = clientTargetToken.ToString();
-                                if (!string.IsNullOrWhiteSpace(host)) currentHost = host.Trim();
-                            }
-
-                            // unityHost（旧 bindHost/host）は Unity が待ち受けるインターフェース。
-                            var bindToken = json.SelectToken("unity.unityHost")
-                                ?? json.SelectToken("unity.bindHost")
-                                ?? json.SelectToken("unity.host");
-                            if (bindToken != null)
-                            {
-                                var bh = bindToken.ToString();
-                                if (!string.IsNullOrWhiteSpace(bh)) bindAddress = ResolveBindAddress(bh.Trim());
-                            }
-                            var minIntToken = json.SelectToken("unity.minEditorStateIntervalMs");
-                            if (minIntToken != null && int.TryParse(minIntToken.ToString(), out var minMs) && minMs >= 0 && minMs <= 10000)
-                            {
-                                minEditorStateIntervalMs = minMs;
-                            }
-                            McpLogger.Log($"Config loaded from {path}: bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
-                            return;
+                            currentPort = port;
                         }
+                        // mcpHost は Node 側が接続に使用するホスト。旧 clientHost/host をフォールバックで利用。
+                        var clientTargetToken = json.SelectToken("unity.mcpHost")
+                            ?? json.SelectToken("unity.clientHost")
+                            ?? json.SelectToken("unity.host");
+                        if (clientTargetToken != null)
+                        {
+                            var host = clientTargetToken.ToString();
+                            if (!string.IsNullOrWhiteSpace(host)) currentHost = host.Trim();
+                        }
+
+                        // unityHost（旧 bindHost/host）は Unity が待ち受けるインターフェース。
+                        var bindToken = json.SelectToken("unity.unityHost")
+                            ?? json.SelectToken("unity.bindHost")
+                            ?? json.SelectToken("unity.host");
+                        if (bindToken != null)
+                        {
+                            var bh = bindToken.ToString();
+                            if (!string.IsNullOrWhiteSpace(bh)) bindAddress = ResolveBindAddress(bh.Trim());
+                        }
+                        var minIntToken = json.SelectToken("unity.minEditorStateIntervalMs");
+                        if (minIntToken != null && int.TryParse(minIntToken.ToString(), out var minMs) && minMs >= 0 && minMs <= 10000)
+                        {
+                            minEditorStateIntervalMs = minMs;
+                        }
+                        McpLogger.Log($"Config loaded from {configPath}: bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
+                        return;
                     }
                     catch (Exception ex)
                     {
-                        McpLogger.LogWarning($"Failed to load config '{path}': {ex.Message}");
+                        McpLogger.LogWarning($"Failed to load config '{configPath}': {ex.Message}");
                     }
                 }
 
@@ -164,10 +148,10 @@ namespace UnityMCPServer.Core
         }
 
         /// <summary>
-        /// Walk up parent directories from the Unity project root (最大 maxLevels=3)
-        /// and return the first found <dir>/.unity/config.json. Returns null if none.
+        /// Walk up parent directories from the Unity project root (最大 maxLevels)
+        /// and return the first found <dir>/.unity/config.json (excluding user-global). Returns null if none.
         /// </summary>
-        private static string FindAncestorConfigSimple(string projectRoot, int maxLevels = 3)
+        private static string FindAncestorConfigSimple(string projectRoot, string excludedConfigPath = null, int maxLevels = 10)
         {
             try
             {
@@ -178,7 +162,20 @@ namespace UnityMCPServer.Core
                     if (parent == null) break;
                     dir = parent.FullName;
                     var configPath = Path.Combine(dir, ".unity", "config.json");
-                    if (File.Exists(configPath)) return configPath;
+                    if (File.Exists(configPath))
+                    {
+                        if (!string.IsNullOrEmpty(excludedConfigPath))
+                        {
+                            try
+                            {
+                                var a = Path.GetFullPath(configPath);
+                                var b = Path.GetFullPath(excludedConfigPath);
+                                if (string.Equals(a, b, StringComparison.OrdinalIgnoreCase)) continue;
+                            }
+                            catch { }
+                        }
+                        return configPath;
+                    }
                 }
             }
             catch { }
