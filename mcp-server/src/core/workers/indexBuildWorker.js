@@ -153,19 +153,12 @@ function getExecutableName() {
 /**
  * Find csharp-lsp binary path
  */
-function findLspBinary(projectRoot) {
+function findLspBinary() {
   const rid = detectRid();
   const exe = getExecutableName();
 
-  // Check multiple possible locations
-  const candidates = [
-    // Primary: ~/.unity/tools/csharp-lsp/<rid>/server
-    path.join(os.homedir(), '.unity', 'tools', 'csharp-lsp', rid, exe),
-    // Legacy: <workspace>/.unity/tools/csharp-lsp/<rid>/server
-    path.join(projectRoot, '.unity', 'tools', 'csharp-lsp', rid, exe),
-    // Also check parent directories in case projectRoot is nested
-    path.join(projectRoot, '..', '.unity', 'tools', 'csharp-lsp', rid, exe)
-  ];
+  // Single location: ~/.unity/tools/csharp-lsp/<rid>/server
+  const candidates = [path.join(os.homedir(), '.unity', 'tools', 'csharp-lsp', rid, exe)];
 
   for (const p of candidates) {
     try {
@@ -196,7 +189,7 @@ class WorkerLspClient {
   }
 
   async start() {
-    const binPath = findLspBinary(this.projectRoot);
+    const binPath = findLspBinary();
     if (!binPath) {
       throw new Error(
         `csharp-lsp binary not found. Expected at ~/.unity/tools/csharp-lsp/${detectRid()}/${getExecutableName()}`
