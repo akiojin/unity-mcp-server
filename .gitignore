@@ -108,3 +108,5 @@ csharp-lsp/out/
 
 # Generated test files for code index scalability testing
 UnityMCPServer/Assets/Scripts/Generated/
+UnityMCPServer/Assets/Scripts/Generated.meta
+UnityMCPServer/UnityMCPServer.slnx
