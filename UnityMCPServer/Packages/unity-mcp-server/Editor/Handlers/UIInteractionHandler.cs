@@ -762,6 +762,72 @@ namespace UnityMCPServer.Handlers
             return !string.IsNullOrEmpty(controlId);
         }
 
+        private static List<UITK.VisualElement> CollectUiToolkitElements(UITK.VisualElement root)
+        {
+            var results = new List<UITK.VisualElement>();
+            if (root == null) return results;
+
+            var stack = new Stack<UITK.VisualElement>();
+            stack.Push(root);
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                if (current == null) continue;
+
+                results.Add(current);
+
+                try
+                {
+                    foreach (var child in current.hierarchy.Children())
+                    {
+                        if (child == null) continue;
+                        stack.Push(child);
+                    }
+                }
+                catch
+                {
+                    // Some panels may not be ready yet
+                }
+            }
+
+            return results;
+        }
+
+        private static List<UITK.VisualElement> FindUiToolkitElementsByName(UITK.VisualElement root, string elementName)
+        {
+            var matches = new List<UITK.VisualElement>();
+            if (root == null) return matches;
+            if (string.IsNullOrEmpty(elementName)) return matches;
+
+            var stack = new Stack<UITK.VisualElement>();
+            stack.Push(root);
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                if (current == null) continue;
+
+                if (string.Equals(current.name, elementName, StringComparison.Ordinal))
+                {
+                    matches.Add(current);
+                }
+
+                try
+                {
+                    foreach (var child in current.hierarchy.Children())
+                    {
+                        if (child == null) continue;
+                        stack.Push(child);
+                    }
+                }
+                catch
+                {
+                    // Some panels may not be ready yet
+                }
+            }
+
+            return matches;
+        }
+
         private static IEnumerable<object> FindUiToolkitElements(string elementType, string tagFilter, string namePattern, bool includeInactive, string uiDocumentFilter)
         {
             var results = new List<object>();
@@ -783,15 +849,7 @@ namespace UnityMCPServer.Handlers
 
                 var docPath = GetGameObjectPath(doc.gameObject);
                 List<UITK.VisualElement> all;
-                try
-                {
-                    all = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root).ToList();
-                }
-                catch
-                {
-                    // Some panels may not be ready yet
-                    continue;
-                }
+                all = CollectUiToolkitElements(root);
 
                 foreach (var ve in all)
                 {
@@ -944,7 +1002,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = $"UIDocument at {uiDocumentPath} has no rootVisualElement (panel not ready)" };
             }
 
-            var matches = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root, name: elementName).ToList();
+            var matches = FindUiToolkitElementsByName(root, elementName);
             if (matches.Count == 0)
             {
                 return new { error = $"UI Toolkit element not found: {elementName}" };
@@ -1153,7 +1211,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = $"UIDocument at {uiDocumentPath} has no rootVisualElement (panel not ready)" };
             }
 
-            var matches = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root, name: elementName).ToList();
+            var matches = FindUiToolkitElementsByName(root, elementName);
             if (matches.Count == 0)
             {
                 return new { error = $"UI Toolkit element not found: {elementName}" };
@@ -1256,7 +1314,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = $"UIDocument at {uiDocumentPath} has no rootVisualElement (panel not ready)" };
             }
 
-            var matches = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root, name: elementName).ToList();
+            var matches = FindUiToolkitElementsByName(root, elementName);
             if (matches.Count == 0)
             {
                 return new { error = $"UI Toolkit element not found: {elementName}" };
@@ -1538,7 +1596,7 @@ namespace UnityMCPServer.Handlers
                 {
                     return new { error = $"UIDocument at {uiDocumentPath} has no rootVisualElement (panel not ready)" };
                 }
-                var matches = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root, name: uiElementName).ToList();
+                var matches = FindUiToolkitElementsByName(root, uiElementName);
                 var element = matches.Count > 0 ? matches[0] : null;
                 if (element == null)
                 {
