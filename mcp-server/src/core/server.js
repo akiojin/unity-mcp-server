@@ -5,22 +5,16 @@
  * This module implements a deferred initialization pattern to ensure
  * npx compatibility. The MCP transport connection is established FIRST,
  * before loading handlers and other heavy dependencies, to avoid
- * Claude Code's 30-second timeout.
+ * MCP client startup timeouts (NFR: startup <= 10s).
  *
  * Initialization order:
- * 1. MCP SDK imports (minimal, fast)
- * 2. Transport connection (must complete before timeout)
+ * 1. Stdio JSON-RPC listener (fast, no heavy deps)
+ * 2. Initialization handshake (must complete before timeout)
  * 3. Handler loading (deferred, after connection)
  * 4. Unity connection (deferred, non-blocking)
  */
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import {
-  ListToolsRequestSchema,
-  CallToolRequestSchema,
-  SetLevelRequestSchema
-} from '@modelcontextprotocol/sdk/types.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import fs from 'node:fs';
+import { StdioRpcServer } from './stdioRpcServer.js';
 
 // Deferred state - will be initialized after transport connection
 let unityConnection = null;
@@ -98,7 +92,7 @@ async function ensureInitialized() {
 export async function startServer(options = {}) {
   try {
     // Step 1: Load minimal config for server metadata
-    // We need server name/version before creating the Server instance
+    // (config import is lightweight; avoid importing the MCP TS SDK on startup)
     const { config: serverConfig, logger: serverLogger } = await import('./config.js');
     config = serverConfig;
     logger = serverLogger;
@@ -110,22 +104,22 @@ export async function startServer(options = {}) {
       stdioEnabled: options.stdioEnabled !== undefined ? options.stdioEnabled : true
     };
 
-    // Step 2: Create MCP server with minimal configuration
-    const server = new Server(
-      {
-        name: config.server.name,
-        version: config.server.version
-      },
-      {
-        capabilities: {
-          // Explicitly advertise tool support; some MCP clients expect a non-empty object
-          // Setting listChanged enables future push updates if we emit notifications
-          tools: { listChanged: true },
-          // Enable MCP logging capability for sendLoggingMessage
-          logging: {}
-        }
-      }
-    );
+    // Step 2: Create a lightweight stdio MCP server (no TS SDK import)
+    const server =
+      runtimeConfig.stdioEnabled === false
+        ? null
+        : new StdioRpcServer({
+            serverInfo: {
+              name: config.server.name,
+              version: config.server.version
+            },
+            capabilities: {
+              // Advertise tool support with listChanged enabled for future push updates
+              tools: { listChanged: true },
+              // Enable MCP logging capability for notifications/message
+              logging: {}
+            }
+          });
 
     let httpServerInstance;
 
@@ -267,7 +261,7 @@ export async function startServer(options = {}) {
 
     // For stdio MCP, wait for notifications/initialized AND the initial tools/list
     // to avoid blocking startup tool discovery in clients with short timeouts.
-    if (runtimeConfig.stdioEnabled !== false) {
+    if (server) {
       server.oninitialized = () => {
         mcpInitComplete = true;
         if (postInitRequested) {
@@ -276,26 +270,17 @@ export async function startServer(options = {}) {
       };
     }
 
-    // Step 3: Connect transport FIRST (critical for npx timeout avoidance)
-    let transport;
-    if (runtimeConfig.stdioEnabled !== false) {
-      console.error(`[unity-mcp-server] MCP transport connecting...`);
-      transport = new StdioServerTransport();
-      await server.connect(transport);
-      console.error(`[unity-mcp-server] MCP transport connected`);
-    }
-
-    // Step 4: Register request handlers (they will lazily load dependencies)
+    // Step 3: Register request handlers (they will lazily load dependencies)
     // Handle logging/setLevel request (REQ-6)
-    server.setRequestHandler(SetLevelRequestSchema, async request => {
-      const { level } = request.params;
+    server?.setRequestHandler('logging/setLevel', async request => {
+      const { level } = request.params || {};
       logger.setLevel(level);
       logger.info(`Log level changed to: ${level}`);
       return {};
     });
 
     // Handle tool listing
-    server.setRequestHandler(ListToolsRequestSchema, async () => {
+    server?.setRequestHandler('tools/list', async () => {
       const manifestTools = readToolManifest();
       if (manifestTools) {
         logger.info(`[MCP] Returning ${manifestTools.length} tool definitions`);
@@ -329,10 +314,10 @@ export async function startServer(options = {}) {
     });
 
     // Handle tool execution
-    server.setRequestHandler(CallToolRequestSchema, async request => {
+    server?.setRequestHandler('tools/call', async request => {
       await ensureInitialized();
 
-      const { name, arguments: args } = request.params;
+      const { name, arguments: args } = request.params || {};
       const requestTime = Date.now();
 
       logger.info(
@@ -425,6 +410,13 @@ export async function startServer(options = {}) {
       }
     });
 
+    // Step 4: Start stdio listener (critical for short client timeouts)
+    if (server) {
+      console.error(`[unity-mcp-server] MCP transport connecting...`);
+      await server.start();
+      console.error(`[unity-mcp-server] MCP transport connected`);
+    }
+
     // Now safe to log after connection established
     logger.info('MCP server started successfully');
 
@@ -438,7 +430,7 @@ export async function startServer(options = {}) {
     process.on('SIGINT', async () => {
       logger.info('Shutting down...');
       if (unityConnection) unityConnection.disconnect();
-      if (transport) await server.close();
+      if (server) await server.close();
       if (httpServerInstance) await httpServerInstance.close();
       process.exit(0);
     });
@@ -446,7 +438,7 @@ export async function startServer(options = {}) {
     process.on('SIGTERM', async () => {
       logger.info('Shutting down...');
       if (unityConnection) unityConnection.disconnect();
-      if (transport) await server.close();
+      if (server) await server.close();
       if (httpServerInstance) await httpServerInstance.close();
       process.exit(0);
     });
@@ -462,9 +454,16 @@ export const main = startServer;
 
 // Export for testing
 export async function createServer(customConfig) {
-  // For testing, we need to load dependencies synchronously
-  const { config: defaultConfig } = await import('./config.js');
+  // For testing, keep using the official MCP SDK to validate compatibility.
+  const [{ config: defaultConfig }, sdkServerModule, sdkTypesModule] = await Promise.all([
+    import('./config.js'),
+    import('@modelcontextprotocol/sdk/server/index.js'),
+    import('@modelcontextprotocol/sdk/types.js')
+  ]);
+
   const actualConfig = customConfig || defaultConfig;
+  const { Server } = sdkServerModule;
+  const { ListToolsRequestSchema, CallToolRequestSchema } = sdkTypesModule;
 
   const { UnityConnection } = await import('./unityConnection.js');
   const { createHandlers } = await import('../handlers/index.js');

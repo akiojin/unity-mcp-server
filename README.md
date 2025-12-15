@@ -12,9 +12,27 @@ Unity MCP Server lets LLM-based clients automate the Unity Editor. It focuses on
 - **UI automation**: Locate and interact with UI, validate UI state
 - **Input simulation**: Keyboard/mouse/gamepad/touch for playmode testing (Input System only)
 - **Visual capture**: Deterministic screenshots from Game/Scene/Explorer/Window views
-- **Code base awareness**: Safe structured edits and accurate symbol/search powered by bundled C# LSP
+- **Code base awareness**: Safe structured edits and accurate symbol/search powered by bundled C# LSP (no `.sln` file required)
 - **Project control**: Read/update project/editor settings; read logs, monitor compilation
 - **Addressables management**: Register/organize assets, manage groups, build automation
+
+## Performance
+
+Code index tools outperform standard file operations:
+
+| Operation | Code Index Tool | Standard Tool | Advantage |
+|-----------|----------------|---------------|-----------|
+| Symbol lookup | `script_symbol_find` | `grep` | **Instant** vs 350ms |
+| Reference search | `script_refs_find` | `grep` | **Structured** results |
+| Code search | `script_search` | `grep` | **3-5x smaller** responses |
+
+Key benefits:
+
+- **128,040 files indexed** with 100% coverage
+- **Non-blocking** background index builds (Worker Threads)
+- **LLM-optimized** output with pagination and size limits
+
+> For detailed benchmarks, see [docs/benchmark-results-2025-12-13.md](docs/benchmark-results-2025-12-13.md)
 
 ## Requirements
 
