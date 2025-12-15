@@ -699,7 +699,7 @@ namespace UnityMCPServer.Core
                         response = Response.SuccessResult(command.Id, findUIResult);
                         break;
                     case "click_ui_element":
-                        var clickUIResult = UIInteractionHandler.ClickUIElement(command.Parameters);
+                        var clickUIResult = await UIInteractionHandler.ClickUIElement(command.Parameters);
                         response = Response.SuccessResult(command.Id, clickUIResult);
                         break;
                     case "get_ui_element_state":
@@ -711,7 +711,7 @@ namespace UnityMCPServer.Core
                         response = Response.SuccessResult(command.Id, setUIValueResult);
                         break;
                     case "simulate_ui_input":
-                        var simulateUIResult = UIInteractionHandler.SimulateUIInput(command.Parameters);
+                        var simulateUIResult = await UIInteractionHandler.SimulateUIInput(command.Parameters);
                         response = Response.SuccessResult(command.Id, simulateUIResult);
                         break;
                     // Input System commands
