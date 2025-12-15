@@ -105,3 +105,8 @@ csharp-lsp/out/
 # Claude Code Hook temporary files
 .claude/.last-suggest-timestamp
 .claude/.last-session-id
+
+# Generated test files for code index scalability testing
+UnityMCPServer/Assets/Scripts/Generated/
+UnityMCPServer/Assets/Scripts/Generated.meta
+UnityMCPServer/UnityMCPServer.slnx

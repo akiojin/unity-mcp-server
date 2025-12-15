@@ -28,7 +28,7 @@ describe('UIFindElementsToolHandler', () => {
     it('should have correct description', () => {
       assert.strictEqual(
         handler.description,
-        'Find UI elements in Unity scene by type, tag, or name'
+        'Find UI elements by component type, tag, or name pattern.'
       );
     });
   });
@@ -40,7 +40,7 @@ describe('UIFindElementsToolHandler', () => {
       assert.strictEqual(definition.name, 'ui_find_elements');
       assert.strictEqual(
         definition.description,
-        'Find UI elements in Unity scene by type, tag, or name'
+        'Find UI elements by component type, tag, or name pattern.'
       );
       assert.strictEqual(definition.inputSchema.type, 'object');
       assert(definition.inputSchema.properties.elementType);
@@ -48,6 +48,7 @@ describe('UIFindElementsToolHandler', () => {
       assert(definition.inputSchema.properties.namePattern);
       assert(definition.inputSchema.properties.includeInactive);
       assert(definition.inputSchema.properties.canvasFilter);
+      assert(definition.inputSchema.properties.uiSystem);
       assert.equal(definition.inputSchema.required, undefined);
     });
   });
@@ -92,7 +93,8 @@ describe('UIFindElementsToolHandler', () => {
           tagFilter: undefined,
           namePattern: undefined,
           includeInactive: false,
-          canvasFilter: undefined
+          canvasFilter: undefined,
+          uiSystem: undefined
         }
       ]);
 
@@ -127,7 +129,8 @@ describe('UIFindElementsToolHandler', () => {
         tagFilter: undefined,
         namePattern: undefined,
         includeInactive: false,
-        canvasFilter: undefined
+        canvasFilter: undefined,
+        uiSystem: undefined
       });
 
       assert.deepStrictEqual(result, mockResponse);
@@ -169,7 +172,8 @@ describe('UIFindElementsToolHandler', () => {
         tagFilter: undefined,
         namePattern: undefined,
         includeInactive: true,
-        canvasFilter: undefined
+        canvasFilter: undefined,
+        uiSystem: undefined
       });
 
       assert.deepStrictEqual(result, mockResponse);
@@ -184,6 +188,26 @@ describe('UIFindElementsToolHandler', () => {
       await handler.execute({});
 
       assert.strictEqual(mockUnityConnection.connect.mock.calls.length, 1);
+    });
+
+    it('should forward uiSystem filter when provided', async () => {
+      const mockResponse = { elements: [], count: 0 };
+      mockUnityConnection.sendCommand.mock.mockImplementationOnce(() =>
+        Promise.resolve(mockResponse)
+      );
+
+      const result = await handler.execute({ elementType: 'Button', uiSystem: 'uitk' });
+
+      assert.deepStrictEqual(mockUnityConnection.sendCommand.mock.calls[0].arguments[1], {
+        elementType: 'Button',
+        tagFilter: undefined,
+        namePattern: undefined,
+        includeInactive: false,
+        canvasFilter: undefined,
+        uiSystem: 'uitk'
+      });
+
+      assert.deepStrictEqual(result, mockResponse);
     });
 
     it('should handle Unity errors', async () => {
@@ -233,7 +257,7 @@ describe('UIFindElementsToolHandler', () => {
       assert.strictEqual(result.status, 'error');
       assert.strictEqual(result.error, 'Connection failed');
       assert.strictEqual(result.code, 'TOOL_ERROR');
-      assert.strictEqual(result.details.tool, 'find_ui_elements');
+      assert.strictEqual(result.details.tool, 'ui_find_elements');
     });
   });
 });

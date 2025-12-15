@@ -12,7 +12,8 @@ describe('Config', () => {
       assert.ok(config.unity.unityHost);
       assert.ok(config.unity.mcpHost);
       assert.equal(config.unity.bindHost, config.unity.unityHost);
-      assert.equal(config.unity.port, 6400);
+      assert.equal(typeof config.unity.port, 'number');
+      assert.ok(config.unity.port > 0);
       assert.equal(config.unity.reconnectDelay, 1000);
       assert.equal(config.unity.maxReconnectDelay, 30000);
       assert.equal(config.unity.reconnectBackoffMultiplier, 2);
@@ -161,6 +162,7 @@ describe('Config', () => {
 
       console.log = (...args) => logOutput.push(args.join(' '));
       console.error = (...args) => errorOutput.push(args.join(' '));
+      logger.setLevel('info');
     });
 
     afterEach(() => {

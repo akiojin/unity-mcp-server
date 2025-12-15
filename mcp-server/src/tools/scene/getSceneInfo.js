@@ -57,10 +57,10 @@ export async function getSceneInfoHandler(unityConnection, args) {
     }
 
     // Send command to Unity
-    const result = await unityConnection.sendCommand('scene_info_get', args);
+    const result = await unityConnection.sendCommand('get_scene_info', args);
 
-    // Handle Unity response
-    if (result.status === 'error') {
+    // Unity returns errors as { error: "..." } payloads (still wrapped in a success response)
+    if (result && result.error) {
       return {
         content: [
           {
@@ -77,7 +77,7 @@ export async function getSceneInfoHandler(unityConnection, args) {
       content: [
         {
           type: 'text',
-          text: result.result.summary || `Scene information retrieved`
+          text: result?.summary || `Scene information retrieved`
         }
       ],
       isError: false

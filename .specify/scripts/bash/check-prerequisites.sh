@@ -43,39 +43,39 @@ for arg in "$@"; do
             ;;
         --help|-h)
             cat << 'EOF'
-Usage: check-prerequisites.sh [OPTIONS]
+Usage: check-prerequisites.sh [オプション]
 
-Consolidated prerequisite checking for Spec-Driven Development workflow.
+Speckit（Spec駆動開発）ワークフロー向けの前提条件チェックを行います。
 
-OPTIONS:
-  --json              Output in JSON format
-  --require-tasks     Require tasks.md to exist (for implementation phase)
-  --include-tasks     Include tasks.md in AVAILABLE_DOCS list
-  --paths-only        Only output path variables (no prerequisite validation)
-  --help, -h          Show this help message
+オプション:
+  --json              JSON形式で出力
+  --require-tasks     tasks.md を必須にする（実装フェーズ向け）
+  --include-tasks     AVAILABLE_DOCS に tasks.md を含める
+  --paths-only        パス情報のみ出力（検証は行わない）
+  --help, -h          ヘルプを表示
 
-EXAMPLES:
-  # Check task prerequisites (plan.md required)
+例:
+  # plan.md の存在を確認（tasks.md は必須にしない）
   ./check-prerequisites.sh --json
   
-  # Check implementation prerequisites (plan.md + tasks.md required)
+  # plan.md と tasks.md の存在を確認
   ./check-prerequisites.sh --json --require-tasks --include-tasks
   
-  # Get feature paths only (no validation)
+  # パス情報のみ取得（検証なし）
   ./check-prerequisites.sh --paths-only
   
 EOF
             exit 0
             ;;
         *)
-            echo "ERROR: Unknown option '$arg'. Use --help for usage information." >&2
+            echo "ERROR: 不明なオプション '$arg' です。--help を参照してください。" >&2
             exit 1
             ;;
     esac
 done
 
 # Source common functions
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
 # Get feature paths and validate branch
@@ -86,11 +86,11 @@ check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 if $PATHS_ONLY; then
     if $JSON_MODE; then
         # Minimal JSON paths payload (no validation performed)
-        printf '{"REPO_ROOT":"%s","BRANCH":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASKS":"%s"}\n' \
-            "$REPO_ROOT" "$CURRENT_BRANCH" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASKS"
+        printf '{"REPO_ROOT":"%s","FEATURE_ID":"%s","BRANCH":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASKS":"%s"}\n' \
+            "$REPO_ROOT" "$CURRENT_BRANCH" "$CURRENT_BRANCH" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASKS"
     else
         echo "REPO_ROOT: $REPO_ROOT"
-        echo "BRANCH: $CURRENT_BRANCH"
+        echo "FEATURE_ID: $CURRENT_BRANCH"
         echo "FEATURE_DIR: $FEATURE_DIR"
         echo "FEATURE_SPEC: $FEATURE_SPEC"
         echo "IMPL_PLAN: $IMPL_PLAN"
@@ -101,21 +101,21 @@ fi
 
 # Validate required directories and files
 if [[ ! -d "$FEATURE_DIR" ]]; then
-    echo "ERROR: Feature directory not found: $FEATURE_DIR" >&2
-    echo "Run /speckit.specify first to create the feature structure." >&2
+    echo "ERROR: 要件ディレクトリが見つかりません: $FEATURE_DIR" >&2
+    echo "先に /speckit.specify を実行して要件ディレクトリを作成してください。" >&2
     exit 1
 fi
 
 if [[ ! -f "$IMPL_PLAN" ]]; then
-    echo "ERROR: plan.md not found in $FEATURE_DIR" >&2
-    echo "Run /speckit.plan first to create the implementation plan." >&2
+    echo "ERROR: plan.md が見つかりません: $FEATURE_DIR" >&2
+    echo "先に /speckit.plan を実行して実装計画を作成してください。" >&2
     exit 1
 fi
 
 # Check for tasks.md if required
 if $REQUIRE_TASKS && [[ ! -f "$TASKS" ]]; then
-    echo "ERROR: tasks.md not found in $FEATURE_DIR" >&2
-    echo "Run /speckit.tasks first to create the task list." >&2
+    echo "ERROR: tasks.md が見つかりません: $FEATURE_DIR" >&2
+    echo "先に /speckit.tasks を実行してタスクリストを作成してください。" >&2
     exit 1
 fi
 

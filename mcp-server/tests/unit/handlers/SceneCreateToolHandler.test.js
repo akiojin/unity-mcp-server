@@ -10,14 +10,11 @@ describe('SceneCreateToolHandler', () => {
   beforeEach(() => {
     sendCommandSpy = mock.fn(() =>
       Promise.resolve({
-        status: 'success',
-        result: {
-          sceneName: 'TestScene',
-          path: 'Assets/Scenes/TestScene.unity',
-          sceneIndex: -1,
-          isLoaded: true,
-          summary: 'Created and loaded scene "TestScene" at "Assets/Scenes/TestScene.unity"'
-        }
+        sceneName: 'TestScene',
+        path: 'Assets/Scenes/TestScene.unity',
+        sceneIndex: -1,
+        isLoaded: true,
+        summary: 'Created and loaded scene "TestScene" at "Assets/Scenes/TestScene.unity"'
       })
     );
 
@@ -36,7 +33,10 @@ describe('SceneCreateToolHandler', () => {
   it('should have correct tool definition', () => {
     const definition = handler.getDefinition();
     assert.equal(definition.name, 'scene_create');
-    assert.equal(definition.description, 'Create a new scene in Unity');
+    assert.equal(
+      definition.description,
+      'Create a new scene (optionally load it and add to build settings).'
+    );
     assert.ok(definition.inputSchema);
     assert.ok(definition.inputSchema.properties.sceneName);
     assert.ok(definition.inputSchema.properties.path);
@@ -74,14 +74,11 @@ describe('SceneCreateToolHandler', () => {
 
     sendCommandSpy.mock.mockImplementation(() =>
       Promise.resolve({
-        status: 'success',
-        result: {
-          sceneName: 'MyLevel',
-          path: 'Assets/Levels/MyLevel.unity',
-          sceneIndex: 3,
-          isLoaded: false,
-          summary: 'Created scene "MyLevel" at "Assets/Levels/MyLevel.unity" (not loaded)'
-        }
+        sceneName: 'MyLevel',
+        path: 'Assets/Levels/MyLevel.unity',
+        sceneIndex: 3,
+        isLoaded: false,
+        summary: 'Created scene "MyLevel" at "Assets/Levels/MyLevel.unity" (not loaded)'
       })
     );
 
@@ -131,7 +128,6 @@ describe('SceneCreateToolHandler', () => {
   it('should handle Unity error response', async () => {
     sendCommandSpy.mock.mockImplementation(() =>
       Promise.resolve({
-        status: 'error',
         error: 'Scene already exists'
       })
     );

@@ -275,6 +275,26 @@ mcp__unity-mcp-server__input_mouse({
 
 ## UI Automation
 
+### elementPath（uGUI / UI Toolkit / IMGUI）
+
+`ui_find_elements` の戻り値 `path`（= `elementPath`）は、UIシステムごとに形式が異なります。
+
+- uGUI: `/Canvas/...`（GameObject階層パス）
+- UI Toolkit: `uitk:<UIDocumentのGameObjectパス>#<VisualElement.name>`
+  - 例: `uitk:/UITK/UIDocument#UITK_Button`
+- IMGUI: `imgui:<controlId>`（OnGUI側で登録されたID）
+  - 例: `imgui:IMGUI/Button`
+
+検証用シーン:
+- uGUI: `UnityMCPServer/Assets/Scenes/MCP_UI_UGUI_TestScene.unity`
+- UI Toolkit: `UnityMCPServer/Assets/Scenes/MCP_UI_UITK_TestScene.unity`
+- IMGUI: `UnityMCPServer/Assets/Scenes/MCP_UI_IMGUI_TestScene.unity`
+- uGUI/UI Toolkit/IMGUI 同居: `UnityMCPServer/Assets/Scenes/MCP_UI_AllSystems_TestScene.unity`
+  - 注: UI は `McpAllUiSystemsTestBootstrap` が Play Mode 開始時に生成するため、Edit Mode では見えない
+- MCP経由E2Eテスト（シーンロード→Play Mode→ui_* ツール呼び出し）:
+  - stdio / tools/call: `node --test mcp-server/tests/e2e/ui-automation-mcp-protocol.test.js`
+  - UnityConnection直結: `node --test mcp-server/tests/e2e/ui-automation-scenes.test.js`
+
 ### UI要素検索
 
 ```javascript
@@ -303,6 +323,18 @@ mcp__unity-mcp-server__ui_find_elements({
 mcp__unity-mcp-server__ui_click_element({
   elementPath: "/Canvas/StartButton"
 })
+
+// UI Toolkit（UIDocument配下のVisualElementをnameで指定）
+mcp__unity-mcp-server__ui_click_element({
+  elementPath: "uitk:/UITK/UIDocument#UITK_Button"
+})
+
+// IMGUI（OnGUI側で登録されたcontrolIdを指定）
+mcp__unity-mcp-server__ui_click_element({
+  elementPath: "imgui:IMGUI/Button"
+})
+
+// 注: UI Toolkit / IMGUI は holdDuration / position を無視（警告で返却）
 
 // 右クリック
 mcp__unity-mcp-server__ui_click_element({

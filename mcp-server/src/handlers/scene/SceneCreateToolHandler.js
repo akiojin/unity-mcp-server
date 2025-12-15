@@ -64,17 +64,16 @@ export class SceneCreateToolHandler extends BaseToolHandler {
     // Send command to Unity
     const result = await this.unityConnection.sendCommand('create_scene', params);
 
-    // Check for Unity-side errors
-    if (result.status === 'error') {
+    // Unity returns errors as { error: "..." } payloads (still wrapped in a success response)
+    if (result && result.error) {
       const error = new Error(result.error);
       error.code = 'UNITY_ERROR';
       throw error;
     }
 
-    // Handle undefined or null results from Unity
-    if (result.result === undefined || result.result === null) {
+    // Handle undefined or null results from Unity (best-effort)
+    if (result === undefined || result === null) {
       return {
-        status: 'success',
         sceneName: params.sceneName,
         path: params.path || 'Assets/Scenes/',
         loadScene: params.loadScene !== false,
@@ -83,6 +82,6 @@ export class SceneCreateToolHandler extends BaseToolHandler {
       };
     }
 
-    return result.result;
+    return result;
   }
 }

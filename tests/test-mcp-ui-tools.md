@@ -21,6 +21,11 @@
 前提・共通ルール:
 - 禁止: UnityMCP 以外のコマンド・独自スクリプトで操作しない。
 - 使用ツール: `ui_find_elements`, `ui_get_element_state`, `ui_click_element`, `ui_set_element_value`。
+- 推奨シーン: `UnityMCPServer/Assets/Scenes/MCP_UI_AllSystems_TestScene.unity`（uGUI/UI Toolkit/IMGUI を同時に検証可能）
+- 代表 `elementPath` 例:
+  - uGUI: `/Canvas/UGUI_Panel/UGUI_Button`
+  - UI Toolkit: `uitk:/UITK/UIDocument#UITK_Button`
+  - IMGUI: `imgui:IMGUI/Button`
 
 原状回復（必須）・禁止事項:
 - 値設定やトグル変更を行った場合は、終了時に元の値に戻す。テスト専用 UI を対象にすることが望ましい。

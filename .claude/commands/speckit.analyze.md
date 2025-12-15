@@ -1,184 +1,41 @@
 ---
-description: Perform a non-destructive cross-artifact consistency and quality analysis across spec.md, plan.md, and tasks.md after task generation.
+description: tasks生成後に、spec/plan/tasks の整合性と品質を横断分析します（読み取り専用・非破壊）。
 ---
 
-## User Input
+## ユーザー入力
 
 ```text
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty).
+空でない場合、続行する前にユーザー入力を考慮する**必要があります**。
 
-## Goal
+## 目的
 
-Identify inconsistencies, duplications, ambiguities, and underspecified items across the three core artifacts (`spec.md`, `plan.md`, `tasks.md`) before implementation. This command MUST run only after `/speckit.tasks` has successfully produced a complete `tasks.md`.
+実装前に、`spec.md`・`plan.md`・`tasks.md` の間で矛盾/重複/曖昧さ/抜け漏れがないかを検出し、修正方針を提示します。
 
-## Operating Constraints
+## 重要な制約
 
-**STRICTLY READ-ONLY**: Do **not** modify any files. Output a structured analysis report. Offer an optional remediation plan (user must explicitly approve before any follow-up editing commands would be invoked manually).
+- **厳密に読み取り専用**: ファイルを編集しない。分析レポートのみ出力する。
+- **憲章優先**: `docs/constitution.md`（または `.specify/memory/constitution.md`）と矛盾する場合は最優先で指摘する。
 
-**Constitution Authority**: The project constitution (`docs/constitution.md`) is **non-negotiable** within this analysis scope. Constitution conflicts are automatically CRITICAL and require adjustment of the spec, plan, or tasks—not dilution, reinterpretation, or silent ignoring of the principle. If a principle itself needs to change, that must occur in a separate, explicit constitution update outside `/speckit.analyze`.
+## 実行手順
 
-## Execution Steps
+1. リポジトリルートから `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` を実行し、`FEATURE_DIR` を取得します（絶対パス）。
 
-### 1. Initialize Analysis Context
+2. `FEATURE_DIR` から以下を読み込みます:
+   - spec.md, plan.md, tasks.md（必須）
+   - 憲章（docs/constitution.md / .specify/memory/constitution.md）
 
-Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` once from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS. Derive absolute paths:
+3. 検出観点（例）:
+   - 要件に対してタスクが割り当てられていない（Coverageギャップ）
+   - タスクがどの要件/ストーリーにも紐づいていない（Unmapped tasks）
+   - 同義・重複要件（Duplication）
+   - 曖昧語（"高速" "安全" など）の定量化不足（Ambiguity）
+   - 用語揺れ/データ定義の不一致（Terminology drift）
+   - 憲章MUST違反（Constitution conflict）
 
-- SPEC = FEATURE_DIR/spec.md
-- PLAN = FEATURE_DIR/plan.md
-- TASKS = FEATURE_DIR/tasks.md
-
-Abort with an error message if any required file is missing (instruct the user to run missing prerequisite command).
-For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
-
-### 2. Load Artifacts (Progressive Disclosure)
-
-Load only the minimal necessary context from each artifact:
-
-**From spec.md:**
-
-- Overview/Context
-- Functional Requirements
-- Non-Functional Requirements
-- User Stories
-- Edge Cases (if present)
-
-**From plan.md:**
-
-- Architecture/stack choices
-- Data Model references
-- Phases
-- Technical constraints
-
-**From tasks.md:**
-
-- Task IDs
-- Descriptions
-- Phase grouping
-- Parallel markers [P]
-- Referenced file paths
-
-**From constitution:**
-
-- Load `docs/constitution.md` for principle validation
-
-### 3. Build Semantic Models
-
-Create internal representations (do not include raw artifacts in output):
-
-- **Requirements inventory**: Each functional + non-functional requirement with a stable key (derive slug based on imperative phrase; e.g., "User can upload file" → `user-can-upload-file`)
-- **User story/action inventory**: Discrete user actions with acceptance criteria
-- **Task coverage mapping**: Map each task to one or more requirements or stories (inference by keyword / explicit reference patterns like IDs or key phrases)
-- **Constitution rule set**: Extract principle names and MUST/SHOULD normative statements
-
-### 4. Detection Passes (Token-Efficient Analysis)
-
-Focus on high-signal findings. Limit to 50 findings total; aggregate remainder in overflow summary.
-
-#### A. Duplication Detection
-
-- Identify near-duplicate requirements
-- Mark lower-quality phrasing for consolidation
-
-#### B. Ambiguity Detection
-
-- Flag vague adjectives (fast, scalable, secure, intuitive, robust) lacking measurable criteria
-- Flag unresolved placeholders (TODO, TKTK, ???, `<placeholder>`, etc.)
-
-#### C. Underspecification
-
-- Requirements with verbs but missing object or measurable outcome
-- User stories missing acceptance criteria alignment
-- Tasks referencing files or components not defined in spec/plan
-
-#### D. Constitution Alignment
-
-- Any requirement or plan element conflicting with a MUST principle
-- Missing mandated sections or quality gates from constitution
-
-#### E. Coverage Gaps
-
-- Requirements with zero associated tasks
-- Tasks with no mapped requirement/story
-- Non-functional requirements not reflected in tasks (e.g., performance, security)
-
-#### F. Inconsistency
-
-- Terminology drift (same concept named differently across files)
-- Data entities referenced in plan but absent in spec (or vice versa)
-- Task ordering contradictions (e.g., integration tasks before foundational setup tasks without dependency note)
-- Conflicting requirements (e.g., one requires Next.js while other specifies Vue)
-
-### 5. Severity Assignment
-
-Use this heuristic to prioritize findings:
-
-- **CRITICAL**: Violates constitution MUST, missing core spec artifact, or requirement with zero coverage that blocks baseline functionality
-- **HIGH**: Duplicate or conflicting requirement, ambiguous security/performance attribute, untestable acceptance criterion
-- **MEDIUM**: Terminology drift, missing non-functional task coverage, underspecified edge case
-- **LOW**: Style/wording improvements, minor redundancy not affecting execution order
-
-### 6. Produce Compact Analysis Report
-
-Output a Markdown report (no file writes) with the following structure:
-
-## Specification Analysis Report
-
-| ID | Category | Severity | Location(s) | Summary | Recommendation |
-|----|----------|----------|-------------|---------|----------------|
-| A1 | Duplication | HIGH | spec.md:L120-134 | Two similar requirements ... | Merge phrasing; keep clearer version |
-
-(Add one row per finding; generate stable IDs prefixed by category initial.)
-
-**Coverage Summary Table:**
-
-| Requirement Key | Has Task? | Task IDs | Notes |
-|-----------------|-----------|----------|-------|
-
-**Constitution Alignment Issues:** (if any)
-
-**Unmapped Tasks:** (if any)
-
-**Metrics:**
-
-- Total Requirements
-- Total Tasks
-- Coverage % (requirements with >=1 task)
-- Ambiguity Count
-- Duplication Count
-- Critical Issues Count
-
-### 7. Provide Next Actions
-
-At end of report, output a concise Next Actions block:
-
-- If CRITICAL issues exist: Recommend resolving before `/speckit.implement`
-- If only LOW/MEDIUM: User may proceed, but provide improvement suggestions
-- Provide explicit command suggestions: e.g., "Run /speckit.specify with refinement", "Run /speckit.plan to adjust architecture", "Manually edit tasks.md to add coverage for 'performance-metrics'"
-
-### 8. Offer Remediation
-
-Ask the user: "Would you like me to suggest concrete remediation edits for the top N issues?" (Do NOT apply them automatically.)
-
-## Operating Principles
-
-### Context Efficiency
-
-- **Minimal high-signal tokens**: Focus on actionable findings, not exhaustive documentation
-- **Progressive disclosure**: Load artifacts incrementally; don't dump all content into analysis
-- **Token-efficient output**: Limit findings table to 50 rows; summarize overflow
-- **Deterministic results**: Rerunning without changes should produce consistent IDs and counts
-
-### Analysis Guidelines
-
-- **NEVER modify files** (this is read-only analysis)
-- **NEVER hallucinate missing sections** (if absent, report them accurately)
-- **Prioritize constitution violations** (these are always CRITICAL)
-- **Use examples over exhaustive rules** (cite specific instances, not generic patterns)
-- **Report zero issues gracefully** (emit success report with coverage statistics)
-
-## Context
-
-$ARGUMENTS
+4. Markdownの分析レポートを出力します（ファイル書き込みなし）:
+   - 指摘ID、カテゴリ、深刻度（CRITICAL/HIGH/MEDIUM/LOW）、場所、要約、推奨対応
+   - 要件→タスクのカバレッジ要約
+   - 次の推奨アクション（CRITICALがあれば実装前に修正推奨）
