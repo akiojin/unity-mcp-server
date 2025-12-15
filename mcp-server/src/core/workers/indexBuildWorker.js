@@ -15,7 +15,7 @@
  */
 
 import { parentPort, workerData } from 'worker_threads';
-import { spawn } from 'child_process';
+import { spawn, execFile } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -105,6 +105,111 @@ function walkCs(root, files, seen) {
   } catch {
     // Ignore errors
   }
+}
+
+/**
+ * Fast file enumeration using OS native commands (find on Unix, PowerShell on Windows)
+ * Falls back to walkCs on failure
+ * @param {string[]} roots - Array of root directories to scan
+ * @returns {Promise<string[]>} Array of absolute C# file paths
+ */
+async function fastWalkCs(roots) {
+  const isWindows = process.platform === 'win32';
+  const allFiles = [];
+  const seen = new Set();
+
+  for (const root of roots) {
+    if (!fs.existsSync(root)) {
+      log('info', `[worker] Skipping non-existent root: ${root}`);
+      continue;
+    }
+
+    log('info', `[worker] Scanning ${path.basename(root)}...`);
+    const startTime = Date.now();
+
+    try {
+      const files = await new Promise((resolve, reject) => {
+        if (isWindows) {
+          // Windows: Use PowerShell (secure - no shell interpretation)
+          execFile(
+            'powershell',
+            [
+              '-NoProfile',
+              '-Command',
+              `Get-ChildItem -Path '${root.replace(/'/g, "''")}' -Recurse -Include *.cs -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName`
+            ],
+            { maxBuffer: 50 * 1024 * 1024 }, // 50MB buffer for large projects
+            (error, stdout) => {
+              if (error) {
+                reject(error);
+                return;
+              }
+              const files = stdout
+                .split('\r\n')
+                .map(f => f.trim())
+                .filter(f => f && f.endsWith('.cs'));
+              resolve(files);
+            }
+          );
+        } else {
+          // Unix: Use find command (secure - no shell interpretation)
+          execFile(
+            'find',
+            [
+              root,
+              '-name',
+              '*.cs',
+              '-type',
+              'f',
+              '-not',
+              '-path',
+              '*/obj/*',
+              '-not',
+              '-path',
+              '*/bin/*',
+              '-not',
+              '-path',
+              '*/.*'
+            ],
+            { maxBuffer: 50 * 1024 * 1024 }, // 50MB buffer for large projects
+            (error, stdout) => {
+              if (error) {
+                reject(error);
+                return;
+              }
+              const files = stdout
+                .split('\n')
+                .map(f => f.trim())
+                .filter(f => f && f.endsWith('.cs'));
+              resolve(files);
+            }
+          );
+        }
+      });
+
+      const elapsed = Date.now() - startTime;
+      log('info', `[worker] Found ${files.length} files in ${path.basename(root)} (${elapsed}ms)`);
+
+      // Add unique files
+      for (const f of files) {
+        if (!seen.has(f)) {
+          seen.add(f);
+          allFiles.push(f);
+        }
+      }
+    } catch (e) {
+      // Fallback to walkCs on error
+      log(
+        'warn',
+        `[worker] Fast scan failed for ${path.basename(root)}: ${e.message}. Using fallback.`
+      );
+      const fallbackFiles = [];
+      walkCs(root, fallbackFiles, seen);
+      allFiles.push(...fallbackFiles);
+    }
+  }
+
+  return allFiles;
 }
 
 /**
@@ -406,7 +511,8 @@ async function runBuild() {
     concurrency: _concurrency = 1, // Reserved for future parallel processing
     throttleMs = 0,
     retry = 2,
-    reportPercentage = 10
+    reportPercentage = 10,
+    excludePackageCache = false
   } = workerData;
   void _concurrency; // Explicitly mark as intentionally unused
 
@@ -473,15 +579,18 @@ async function runBuild() {
     runSQL(db, 'CREATE INDEX IF NOT EXISTS idx_symbols_path ON symbols(path)');
 
     // Scan for C# files
-    const roots = [
-      path.resolve(projectRoot, 'Assets'),
-      path.resolve(projectRoot, 'Packages'),
-      path.resolve(projectRoot, 'Library/PackageCache')
-    ];
-    const files = [];
-    const seen = new Set();
-    for (const r of roots) walkCs(r, files, seen);
+    // Build roots list based on excludePackageCache option
+    const roots = [path.resolve(projectRoot, 'Assets'), path.resolve(projectRoot, 'Packages')];
+    if (!excludePackageCache) {
+      roots.push(path.resolve(projectRoot, 'Library/PackageCache'));
+    }
+    log(
+      'info',
+      `[worker] Scanning roots: ${roots.map(r => path.basename(r)).join(', ')}${excludePackageCache ? ' (PackageCache excluded)' : ''}`
+    );
 
+    // Use fast find command when available, fallback to walkCs
+    const files = await fastWalkCs(roots);
     log('info', `[worker] Found ${files.length} C# files to process`);
 
     // Get current indexed files
