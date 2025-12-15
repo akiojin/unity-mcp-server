@@ -195,6 +195,45 @@ See the full configuration reference in [docs/development.md](docs/development.m
 - `package_manage` - Manage Unity packages
 - `addressables_manage`, `addressables_build` - Addressables management
 
+## Claude Code Skills
+
+This package includes Claude Code skills that provide workflow-oriented guidance for effectively using the 108+ tools.
+
+### Available Skills
+
+| Skill | Description | Triggers |
+|-------|-------------|----------|
+| `unity-csharp-editing` | C# script editing, search, refactoring with TDD workflow | "C# edit", "script search", "refactoring" |
+| `unity-scene-management` | Scene, GameObject, Component management | "scene create", "GameObject", "component add" |
+| `unity-playmode-testing` | PlayMode control, input simulation, UI automation | "playmode", "input simulate", "UI click" |
+| `unity-asset-management` | Prefab, Material, Addressables management | "prefab create", "material", "Addressables" |
+
+### Installation
+
+Install as a Claude Code plugin from GitHub:
+
+```bash
+# In Claude Code CLI
+/install akiojin/unity-mcp-server
+```
+
+Or manually copy the `.claude/skills/` directory to your project.
+
+### Usage
+
+Skills activate automatically when you mention related keywords. You can also invoke them directly:
+
+```
+# Ask about C# editing workflow
+"How do I edit Unity C# scripts?"
+
+# Ask about scene management
+"Create a new scene with basic lighting"
+
+# Ask about testing
+"How do I simulate keyboard input in playmode?"
+```
+
 ## Troubleshooting
 
 ### Connection Issues

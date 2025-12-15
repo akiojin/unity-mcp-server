@@ -193,6 +193,45 @@ curl http://localhost:6401/healthz
 - `package_manage` - Unityパッケージ管理
 - `addressables_manage`, `addressables_build` - Addressables管理
 
+## Claude Code スキル
+
+このパッケージには、108以上のツールを効果的に使用するためのワークフロー指向のClaude Codeスキルが含まれています。
+
+### 利用可能なスキル
+
+| スキル | 説明 | トリガーキーワード |
+|--------|------|-------------------|
+| `unity-csharp-editing` | C#スクリプト編集、検索、TDDワークフローでのリファクタリング | "C#編集", "スクリプト検索", "リファクタリング" |
+| `unity-scene-management` | シーン、GameObject、コンポーネント管理 | "シーン作成", "GameObject", "コンポーネント追加" |
+| `unity-playmode-testing` | プレイモード制御、入力シミュレーション、UI自動化 | "プレイモード", "入力シミュレーション", "UIクリック" |
+| `unity-asset-management` | プレハブ、マテリアル、Addressables管理 | "プレハブ作成", "マテリアル", "Addressables" |
+
+### インストール
+
+Claude Code CLIからGitHubプラグインとしてインストール:
+
+```bash
+# Claude Code CLIで実行
+/install akiojin/unity-mcp-server
+```
+
+または、`.claude/skills/` ディレクトリを手動でプロジェクトにコピーしてください。
+
+### 使い方
+
+関連キーワードを含むメッセージで自動的にスキルがアクティブになります。直接呼び出すこともできます:
+
+```
+# C#編集ワークフローについて質問
+「Unity C#スクリプトの編集方法は？」
+
+# シーン管理について質問
+「基本的なライティングを含む新しいシーンを作成して」
+
+# テストについて質問
+「プレイモードでキーボード入力をシミュレートするには？」
+```
+
 ## トラブルシューティング
 
 ### 接続の問題
