@@ -83,6 +83,113 @@
 | `script_refs_find` | 20参照 (4KB) | `grep` | 全行 | **3倍小さい** |
 | `script_search` | 7ファイル、スニペット (5KB) | `grep` | 全行 | **3倍小さい** |
 
+## Serena MCP との比較
+
+### 重要: Serena の C# サポート要件
+
+Serena は公式に C# をサポートしていますが、**`.sln`ファイルが必要**です：
+
+> `csharp: Requires the presence of a .sln file in the project folder.`
+> — Serena 公式ドキュメント
+
+Unity プロジェクトでは `.sln` ファイルは Unity Editor が IDE を検出した際に自動生成されるため、
+純粋な UPM パッケージ開発環境では `.sln` が存在しない場合があります。
+
+### テスト環境
+
+- **テストファイル**: `UnityMCPServer/Packages/unity-mcp-server/Editor/Helpers/Response.cs` (357行)
+- **Serena 設定**: `languages: [csharp, typescript]`
+- **`.sln` ファイル**: なし（C# LSP が起動失敗）
+- **結果**: Serena は TypeScript フォールバックで C# を解析
+
+### 比較結果サマリー
+
+| 操作 | コードインデックス | Serena MCP | 内蔵ツール | 結果 |
+|------|------------------|------------|-----------|------|
+| シンボル検索 | ✅ 構造化シンボル | ❌ 空の結果* | ✅ 生テキスト | **コードインデックス勝利** |
+| 参照検索 | ✅ 22参照（スニペット付き） | ❌ 未対応* | ✅ 109行（生テキスト） | **コードインデックス勝利** |
+| ファイル読み取り | ✅ 200行 (8KB) | ✅ 357行 (14KB) | ✅ 357行 (14KB) | **コードインデックス勝利**（圧縮） |
+| シンボル一覧 | ✅ 15シンボル（正確） | ⚠️ 部分的（誤認識あり）* | N/A | **コードインデックス勝利** |
+
+*注: `.sln` ファイルがあれば Serena の C# サポートは改善される可能性があります。
+
+### Serena の C# 解析の問題点（.sln なし環境）
+
+`.sln` ファイルがない環境では、Serena は TypeScript パーサーでフォールバック解析を行うため：
+
+1. **`find_symbol` が機能しない**: C# シンボル検索で空の結果を返す
+2. **`using`文の誤認識**: `using System;` などを「Variable」として解析
+3. **戻り値型の誤認識**: メソッドの戻り値型 `string` を「Property」として解析
+4. **メソッド欠落**: `AttachWarnings`, `AppendWarnings`, `ErrorResult` が検出されない
+
+### 詳細比較: シンボル一覧
+
+**コードインデックス (`script_symbols_get`)**:
+
+```json
+{
+  "symbols": [
+    { "name": "UnityMCPServer.Helpers", "line": 10 },
+    { "name": "Response", "kind": "class", "line": 15 },
+    { "name": "GetPackageVersion", "kind": "method", "line": 21 },
+    { "name": "Success", "kind": "method", "line": 81 },
+    { "name": "Success", "kind": "method", "line": 103 },
+    { "name": "Error", "kind": "method", "line": 128 },
+    { "name": "ErrorWithId", "kind": "method", "line": 157 },
+    { "name": "Pong", "kind": "method", "line": 184 },
+    { "name": "GetCurrentEditorState", "kind": "method", "line": 199 },
+    { "name": "SuccessResult", "kind": "method", "line": 215 },
+    { "name": "SuccessResult", "kind": "method", "line": 235 },
+    { "name": "AttachWarnings", "kind": "method", "line": 250 },
+    { "name": "AppendWarnings", "kind": "method", "line": 275 },
+    { "name": "ErrorResult", "kind": "method", "line": 314 },
+    { "name": "ErrorResult", "kind": "method", "line": 339 }
+  ]
+}
+```
+
+**Serena (`get_symbols_overview`)**:
+
+```json
+{
+  "symbols": [
+    { "name": "Collections", "kind": "Variable" },  // ❌ using文
+    { "name": "Generic", "kind": "Variable" },      // ❌ using文
+    { "name": "System", "kind": "Variable" },       // ❌ using文
+    { "name": "UnityMCPServer.Helpers", "kind": "Module" },  // ✅ 正確
+    { "name": "Response", "kind": "Class", "children": [
+      { "name": "Error", "kind": "Method" },        // ✅ 正確
+      { "name": "Pong", "kind": "Method" },         // ✅ 正確
+      { "name": "string", "kind": "Property" },    // ❌ 戻り値型を誤認識
+      { "name": "Success", "kind": "Method" }      // ✅ 正確
+      // ❌ AttachWarnings, AppendWarnings, ErrorResult が欠落
+    ]}
+  ]
+}
+```
+
+### 結論: Unity C# 開発には unity-mcp-server を推奨
+
+| 観点 | コードインデックス | Serena（.sln なし） | Serena（.sln あり）* |
+|------|------------------|---------------------|---------------------|
+| C# シンボル検索 | ✅ 完全対応 | ❌ 機能しない | ✅ 期待される |
+| C# 解析精度 | ✅ Roslyn LSP 準拠 | ⚠️ TS フォールバック | ✅ 期待される |
+| メソッドオーバーロード | ✅ 全て検出 | ⚠️ 一部欠落 | ✅ 期待される |
+| Unity プロジェクト連携 | ✅ リアルタイム | ❌ なし | ❌ なし |
+| コンパイルエラー検出 | ✅ 対応 | ❌ 未対応 | ❌ 未対応 |
+| `.sln` 依存 | ❌ 不要 | ✅ 必要 | ✅ 必要 |
+
+*Serena の `.sln` あり環境でのテストは未実施。公式ドキュメントに基づく期待値。
+
+### なぜ Unity 開発に unity-mcp-server が適しているか
+
+1. **`.sln` 不要**: Unity Editor を起動せずにコード解析が可能
+2. **Roslyn LSP 統合**: Unity の C# コンパイラと同等の解析精度
+3. **Unity Editor 連携**: Play Mode、スクリーンショット、コンポーネント操作など
+4. **コンテキスト圧縮**: LLM に最適化された出力サイズ
+
+---
+
 ## 詳細結果
 
 ### 1. Grep ベースライン（標準ツール）
