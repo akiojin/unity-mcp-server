@@ -1,25 +1,28 @@
-# [プロジェクト名] コンテキストファイル
+# [PROJECT NAME] 開発ガイドライン
 
-## 概要
-[プロジェクトの簡単な説明]
+全要件の plan.md から自動生成。最終更新日: [DATE]
 
-## 技術スタック
-- **言語**: [例: Python 3.11, TypeScript 5.0]
-- **フレームワーク**: [例: FastAPI, React]
-- **テスト**: [例: pytest, Jest]
-- **その他**: [例: PostgreSQL, Redis]
+## 利用技術
+
+[EXTRACTED FROM ALL PLAN.MD FILES]
+
+## プロジェクト構造
+
+```text
+[ACTUAL STRUCTURE FROM PLANS]
+```
+
+## コマンド
+
+[ONLY COMMANDS FOR ACTIVE TECHNOLOGIES]
+
+## コードスタイル
+
+[LANGUAGE-SPECIFIC, ONLY FOR LANGUAGES IN USE]
 
 ## 最近の変更
-1. [最新の変更 - 最大3つ保持]
-2. [2番目に新しい変更]
-3. [3番目に新しい変更]
 
-## アーキテクチャノート
-[プロジェクト固有のアーキテクチャに関する重要な決定]
+[LAST 3 FEATURES AND WHAT THEY ADDED]
 
----
-*このファイルはトークン効率のため150行未満に保つこと*
-*手動追加は以下のマーカー間に配置すること*
-
-<!-- BEGIN MANUAL ADDITIONS -->
-<!-- END MANUAL ADDITIONS -->
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->

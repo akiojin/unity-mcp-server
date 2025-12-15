@@ -34,7 +34,7 @@ specs/
 
 - Pattern: `SPEC-[0-9a-f]{8}` (e.g., `SPEC-1a2b3c4d`)
 - Generated: Random 8-character hex string
-- Storage: `.specify/.current-feature` tracks active feature
+- Storage: `.specify/current-feature` tracks active feature
 
 ### CLI Commands
 
@@ -150,7 +150,7 @@ feature branch → develop → main → tag → publish
 
 1. **Feature → develop**
    - Work on `feature/SPEC-xxxxxxxx` with Conventional Commits
-   - Run `finish-feature.sh` to create PR → auto-merge to develop
+   - Create PR to `develop` (e.g., `gh pr create --base develop`) → auto-merge on CI pass
 
 2. **Release PR (manual trigger)**
    - Run `Create Release Branch` Action
@@ -263,7 +263,7 @@ Note: plugin updates may overwrite the cache. If the error comes back, rerun the
 #### フィーチャーID形式
 
 - 形式: `SPEC-[0-9a-f]{8}`（例: `SPEC-1a2b3c4d`）
-- `.specify/.current-feature` にアクティブIDを記録
+- `.specify/current-feature` にアクティブIDを記録
 
 #### CLIコマンド
 

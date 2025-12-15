@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 JSON_MODE=false
 ARGS=()
@@ -11,10 +11,20 @@ for arg in "$@"; do
             JSON_MODE=true
             ;;
         --help|-h)
-            echo "Usage: $0 [--json] <feature_description>"
-            echo "  --json      Output in JSON format"
-            echo "  --help, -h  Show this help message"
+            cat << 'EOF'
+Usage: create-new-feature.sh [--json] <feature_description>
+
+Speckit 用の新規要件（SPEC-xxxxxxxx）を作成します。
+
+Options:
+  --json      JSON形式で出力
+  --help, -h  ヘルプを表示
+EOF
             exit 0
+            ;;
+        --*)
+            echo "ERROR: 不明なオプション '$arg' です。--help を参照してください。" >&2
+            exit 1
             ;;
         *)
             ARGS+=("$arg")
@@ -23,27 +33,11 @@ for arg in "$@"; do
 done
 
 FEATURE_DESCRIPTION="${ARGS[*]}"
-if [ -z "$FEATURE_DESCRIPTION" ]; then
-    echo "Usage: $0 [--json] <feature_description>" >&2
+if [[ -z "$FEATURE_DESCRIPTION" ]]; then
+    echo "ERROR: 要件の説明が空です。Usage: $0 [--json] <feature_description>" >&2
     exit 1
 fi
 
-# Generate SPEC ID (e.g., SPEC-1a2b3c4d) using 8-digit hex format
-generate_spec_id() {
-    for _ in 1 2 3 4 5; do
-        if uuid=$(cat /proc/sys/kernel/random/uuid 2>/dev/null); then
-            local short="${uuid:0:8}"
-            short=$(echo "$short" | tr '[:upper:]' '[:lower:]')
-            echo "SPEC-$short"
-            return
-        fi
-    done
-    # Fallback to timestamp if UUID generation fails
-    local ts=$(date +%s%N)
-    echo "SPEC-${ts: -8}"
-}
-
-# Function to find the repository root by searching for existing project markers
 find_repo_root() {
     local dir="$1"
     while [ "$dir" != "/" ]; do
@@ -56,21 +50,59 @@ find_repo_root() {
     return 1
 }
 
-# Resolve repository root. Prefer git information when available, but fall back
-# to searching for repository markers so the workflow still functions in repositories that
-# were initialised with --no-git.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+generate_spec_id() {
+    local uuid=""
+    for _ in 1 2 3 4 5; do
+        if command -v uuidgen >/dev/null 2>&1; then
+            uuid="$(uuidgen 2>/dev/null || true)"
+        elif [[ -r /proc/sys/kernel/random/uuid ]]; then
+            uuid="$(cat /proc/sys/kernel/random/uuid 2>/dev/null || true)"
+        fi
 
+        if [[ -n "$uuid" ]]; then
+            local short="${uuid:0:8}"
+            short="$(echo "$short" | tr '[:upper:]' '[:lower:]')"
+            echo "SPEC-$short"
+            return 0
+        fi
+    done
+
+    if command -v openssl >/dev/null 2>&1; then
+        local short
+        short="$(openssl rand -hex 4 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)"
+        if [[ -n "$short" ]]; then
+            echo "SPEC-$short"
+            return 0
+        fi
+    fi
+
+    if [[ -r /dev/urandom ]] && command -v od >/dev/null 2>&1; then
+        local short
+        short="$(head -c 4 /dev/urandom 2>/dev/null | od -An -tx1 | tr -d ' \n' | tr '[:upper:]' '[:lower:]' || true)"
+        if [[ "$short" =~ ^[a-f0-9]{8}$ ]]; then
+            echo "SPEC-$short"
+            return 0
+        fi
+    fi
+
+    # Last resort: derive 8 hex chars from epoch seconds (non-random).
+    local short
+    short="$(printf '%08x' "$(( $(date +%s) & 0xffffffff ))")"
+    echo "SPEC-$short"
+}
+
+SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+HAS_GIT=false
 if git rev-parse --show-toplevel >/dev/null 2>&1; then
-    REPO_ROOT=$(git rev-parse --show-toplevel)
+    REPO_ROOT="$(git rev-parse --show-toplevel)"
     HAS_GIT=true
 else
     REPO_ROOT="$(find_repo_root "$SCRIPT_DIR")"
-    if [ -z "$REPO_ROOT" ]; then
-        echo "Error: Could not determine repository root. Please run this script from within the repository." >&2
+    if [[ -z "${REPO_ROOT:-}" ]]; then
+        echo "ERROR: リポジトリルートを特定できませんでした。リポジトリ内で実行してください。" >&2
         exit 1
     fi
-    HAS_GIT=false
 fi
 
 cd "$REPO_ROOT"
@@ -81,8 +113,8 @@ mkdir -p "$SPECS_DIR"
 # Generate unique SPEC ID
 FEATURE_ID=""
 while :; do
-    candidate=$(generate_spec_id)
-    if [ ! -d "$SPECS_DIR/$candidate" ]; then
+    candidate="$(generate_spec_id)"
+    if [[ ! -d "$SPECS_DIR/$candidate" ]]; then
         FEATURE_ID="$candidate"
         break
     fi
@@ -90,42 +122,39 @@ done
 
 # Create feature directory (no branch/worktree)
 FEATURE_DIR="$SPECS_DIR/$FEATURE_ID"
-WORKTREE_DIR=""
-BRANCH_NAME=""
-if [ "$HAS_GIT" = true ]; then
-    echo "[specify] Git repository detected; skipping branch/worktree creation (per configuration)."
-else
-    echo "[specify] Warning: Git repository not detected; using local directory without worktree"
-fi
-
-mkdir -p "$FEATURE_DIR"
+mkdir -p "$FEATURE_DIR/checklists"
 
 # Initialize spec file from template
 TEMPLATE="$REPO_ROOT/.specify/templates/spec-template.md"
 SPEC_FILE="$FEATURE_DIR/spec.md"
-if [ -f "$TEMPLATE" ]; then
+if [[ -f "$TEMPLATE" ]]; then
     cp "$TEMPLATE" "$SPEC_FILE"
 else
-    touch "$SPEC_FILE"
+    : >"$SPEC_FILE"
 fi
 
-# Create checklists subdirectory for quality validation
-mkdir -p "$FEATURE_DIR/checklists"
-
-# Set the SPECIFY_FEATURE environment variable for the current session
-export SPECIFY_FEATURE="$FEATURE_ID"
+# Persist current feature selection for subsequent commands (branchless workflow)
 mkdir -p "$REPO_ROOT/.specify"
-echo "$SPECIFY_FEATURE" > "$REPO_ROOT/.specify/.current-feature"
+echo "$FEATURE_ID" >"$REPO_ROOT/.specify/current-feature"
 
-echo "[specify] Created feature directory: $FEATURE_ID"
-echo "[specify] Description: $FEATURE_DESCRIPTION"
+# Update specs index
+SPECS_README="$SPECS_DIR/README.md"
+if [[ -x "$REPO_ROOT/.specify/scripts/bash/update-specs-readme.sh" ]]; then
+    "$REPO_ROOT/.specify/scripts/bash/update-specs-readme.sh" --quiet || true
+fi
 
-if $JSON_MODE; then
-    printf '{"FEATURE_ID":"%s","SPEC_FILE":"%s","FEATURE_DIR":"%s"}\n' \
-        "$FEATURE_ID" "$SPEC_FILE" "$FEATURE_DIR"
+if [[ "$HAS_GIT" == "true" ]]; then
+    echo "[specify] Gitリポジトリを検出しましたが、ブランチは作成しません（設定による）。"
+fi
+echo "[specify] 要件ID: $FEATURE_ID"
+echo "[specify] 説明: $FEATURE_DESCRIPTION"
+
+if [[ "$JSON_MODE" == "true" ]]; then
+    printf '{"FEATURE_ID":"%s","SPEC_FILE":"%s","FEATURE_DIR":"%s","SPECS_README":"%s"}\n' \
+        "$FEATURE_ID" "$SPEC_FILE" "$FEATURE_DIR" "$SPECS_README"
 else
     echo "FEATURE_ID: $FEATURE_ID"
     echo "SPEC_FILE: $SPEC_FILE"
     echo "FEATURE_DIR: $FEATURE_DIR"
-    echo "SPECIFY_FEATURE environment variable set to: $FEATURE_ID"
+    echo "SPECS_README: $SPECS_README"
 fi

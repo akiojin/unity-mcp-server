@@ -30,12 +30,12 @@
 #
 # 5. Multi-Agent Support
 #    - Handles agent-specific file paths and naming conventions
-#    - Supports: Claude, Gemini, Copilot, Cursor, Qwen, opencode, Codex, Windsurf, Kilo Code, Auggie CLI, Roo Code, CodeBuddy CLI, Amp, or Amazon Q Developer CLI
+#    - Supports: Claude, Gemini, Copilot, Cursor, Qwen, opencode, Codex, Windsurf, Kilo Code, Auggie CLI, Roo Code, CodeBuddy CLI, Qoder CLI, Amp, SHAI, or Amazon Q Developer CLI
 #    - Can update single agents or all existing agent files
 #    - Creates default Claude file if no agent files exist
 #
 # Usage: ./update-agent-context.sh [agent_type]
-# Agent types: claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|q
+# Agent types: claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|shai|q|bob|qoder
 # Leave empty to update all existing agent files
 
 set -e
@@ -49,7 +49,7 @@ set -o pipefail
 #==============================================================================
 
 # Get script directory and load common functions
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
 # Get all paths and variables from common functions
@@ -61,7 +61,7 @@ AGENT_TYPE="${1:-}"
 # Agent-specific file paths  
 CLAUDE_FILE="$REPO_ROOT/CLAUDE.md"
 GEMINI_FILE="$REPO_ROOT/GEMINI.md"
-COPILOT_FILE="$REPO_ROOT/.github/copilot-instructions.md"
+COPILOT_FILE="$REPO_ROOT/.github/agents/copilot-instructions.md"
 CURSOR_FILE="$REPO_ROOT/.cursor/rules/specify-rules.mdc"
 QWEN_FILE="$REPO_ROOT/QWEN.md"
 AGENTS_FILE="$REPO_ROOT/AGENTS.md"
@@ -70,8 +70,11 @@ KILOCODE_FILE="$REPO_ROOT/.kilocode/rules/specify-rules.md"
 AUGGIE_FILE="$REPO_ROOT/.augment/rules/specify-rules.md"
 ROO_FILE="$REPO_ROOT/.roo/rules/specify-rules.md"
 CODEBUDDY_FILE="$REPO_ROOT/CODEBUDDY.md"
+QODER_FILE="$REPO_ROOT/QODER.md"
 AMP_FILE="$REPO_ROOT/AGENTS.md"
+SHAI_FILE="$REPO_ROOT/SHAI.md"
 Q_FILE="$REPO_ROOT/AGENTS.md"
+BOB_FILE="$REPO_ROOT/AGENTS.md"
 
 # Template file
 TEMPLATE_FILE="$REPO_ROOT/.specify/templates/agent-file-template.md"
@@ -317,13 +320,13 @@ create_new_agent_file() {
 
     local recent_change
     if [[ -n "$escaped_lang" && -n "$escaped_framework" ]]; then
-        recent_change="- $escaped_branch: Added $escaped_lang + $escaped_framework"
+        recent_change="- $escaped_branch: $escaped_lang + $escaped_framework を追加"
     elif [[ -n "$escaped_lang" ]]; then
-        recent_change="- $escaped_branch: Added $escaped_lang"
+        recent_change="- $escaped_branch: $escaped_lang を追加"
     elif [[ -n "$escaped_framework" ]]; then
-        recent_change="- $escaped_branch: Added $escaped_framework"
+        recent_change="- $escaped_branch: $escaped_framework を追加"
     else
-        recent_change="- $escaped_branch: Added"
+        recent_change="- $escaped_branch: 追加"
     fi
 
     local substitutions=(
@@ -386,20 +389,20 @@ update_existing_agent_file() {
     
     # Prepare new change entry
     if [[ -n "$tech_stack" ]]; then
-        new_change_entry="- $CURRENT_BRANCH: Added $tech_stack"
+        new_change_entry="- $CURRENT_BRANCH: $tech_stack を追加"
     elif [[ -n "$NEW_DB" ]] && [[ "$NEW_DB" != "N/A" ]] && [[ "$NEW_DB" != "NEEDS CLARIFICATION" ]]; then
-        new_change_entry="- $CURRENT_BRANCH: Added $NEW_DB"
+        new_change_entry="- $CURRENT_BRANCH: $NEW_DB を追加"
     fi
     
     # Check if sections exist in the file
     local has_active_technologies=0
     local has_recent_changes=0
     
-    if grep -q "^## Active Technologies" "$target_file" 2>/dev/null; then
+    if grep -qE "^## (Active Technologies|利用技術)" "$target_file" 2>/dev/null; then
         has_active_technologies=1
     fi
     
-    if grep -q "^## Recent Changes" "$target_file" 2>/dev/null; then
+    if grep -qE "^## (Recent Changes|最近の変更)" "$target_file" 2>/dev/null; then
         has_recent_changes=1
     fi
     
@@ -413,7 +416,7 @@ update_existing_agent_file() {
     
     while IFS= read -r line || [[ -n "$line" ]]; do
         # Handle Active Technologies section
-        if [[ "$line" == "## Active Technologies" ]]; then
+        if [[ "$line" == "## Active Technologies" || "$line" == "## 利用技術" ]]; then
             echo "$line" >> "$temp_file"
             in_tech_section=true
             continue
@@ -437,7 +440,7 @@ update_existing_agent_file() {
         fi
         
         # Handle Recent Changes section
-        if [[ "$line" == "## Recent Changes" ]]; then
+        if [[ "$line" == "## Recent Changes" || "$line" == "## 最近の変更" ]]; then
             echo "$line" >> "$temp_file"
             # Add new change entry right after the heading
             if [[ -n "$new_change_entry" ]]; then
@@ -459,8 +462,10 @@ update_existing_agent_file() {
             continue
         fi
         
-        # Update timestamp
+        # Update timestamp (English/Japanese)
         if [[ "$line" =~ \*\*Last\ updated\*\*:.*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] ]]; then
+            echo "$line" | sed "s/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/$current_date/" >> "$temp_file"
+        elif [[ "$line" =~ 最終更新日:[[:space:]]*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] ]]; then
             echo "$line" | sed "s/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/$current_date/" >> "$temp_file"
         else
             echo "$line" >> "$temp_file"
@@ -476,14 +481,14 @@ update_existing_agent_file() {
     # If sections don't exist, add them at the end of the file
     if [[ $has_active_technologies -eq 0 ]] && [[ ${#new_tech_entries[@]} -gt 0 ]]; then
         echo "" >> "$temp_file"
-        echo "## Active Technologies" >> "$temp_file"
+        echo "## 利用技術" >> "$temp_file"
         printf '%s\n' "${new_tech_entries[@]}" >> "$temp_file"
         tech_entries_added=true
     fi
     
     if [[ $has_recent_changes -eq 0 ]] && [[ -n "$new_change_entry" ]]; then
         echo "" >> "$temp_file"
-        echo "## Recent Changes" >> "$temp_file"
+        echo "## 最近の変更" >> "$temp_file"
         echo "$new_change_entry" >> "$temp_file"
         changes_entries_added=true
     fi
@@ -615,15 +620,24 @@ update_specific_agent() {
         codebuddy)
             update_agent_file "$CODEBUDDY_FILE" "CodeBuddy CLI"
             ;;
+        qoder)
+            update_agent_file "$QODER_FILE" "Qoder CLI"
+            ;;
         amp)
             update_agent_file "$AMP_FILE" "Amp"
+            ;;
+        shai)
+            update_agent_file "$SHAI_FILE" "SHAI"
             ;;
         q)
             update_agent_file "$Q_FILE" "Amazon Q Developer CLI"
             ;;
+        bob)
+            update_agent_file "$BOB_FILE" "IBM Bob"
+            ;;
         *)
             log_error "Unknown agent type '$agent_type'"
-            log_error "Expected: claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|roo|amp|q"
+            log_error "Expected: claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|roo|amp|shai|q|bob|qoder"
             exit 1
             ;;
     esac
@@ -688,8 +702,23 @@ update_all_existing_agents() {
         found_agent=true
     fi
 
+    if [[ -f "$SHAI_FILE" ]]; then
+        update_agent_file "$SHAI_FILE" "SHAI"
+        found_agent=true
+    fi
+
+    if [[ -f "$QODER_FILE" ]]; then
+        update_agent_file "$QODER_FILE" "Qoder CLI"
+        found_agent=true
+    fi
+
     if [[ -f "$Q_FILE" ]]; then
         update_agent_file "$Q_FILE" "Amazon Q Developer CLI"
+        found_agent=true
+    fi
+    
+    if [[ -f "$BOB_FILE" ]]; then
+        update_agent_file "$BOB_FILE" "IBM Bob"
         found_agent=true
     fi
     
@@ -704,20 +733,20 @@ print_summary() {
     log_info "Summary of changes:"
     
     if [[ -n "$NEW_LANG" ]]; then
-        echo "  - Added language: $NEW_LANG"
+        echo "  - 言語を追加: $NEW_LANG"
     fi
     
     if [[ -n "$NEW_FRAMEWORK" ]]; then
-        echo "  - Added framework: $NEW_FRAMEWORK"
+        echo "  - フレームワークを追加: $NEW_FRAMEWORK"
     fi
     
     if [[ -n "$NEW_DB" ]] && [[ "$NEW_DB" != "N/A" ]]; then
-        echo "  - Added database: $NEW_DB"
+        echo "  - DBを追加: $NEW_DB"
     fi
     
     echo
 
-    log_info "Usage: $0 [claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|codebuddy|q]"
+    log_info "Usage: $0 [claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|codebuddy|shai|q|bob|qoder]"
 }
 
 #==============================================================================
@@ -769,4 +798,3 @@ main() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi
-
