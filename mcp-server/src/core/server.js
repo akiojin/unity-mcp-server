@@ -91,6 +91,12 @@ async function ensureInitialized() {
 // Initialize server
 export async function startServer(options = {}) {
   try {
+    // MCP stdio transport requires stdout to stay clean (JSON-RPC only).
+    // Guard against accidental console.log usage breaking the protocol.
+    if (options.stdioEnabled !== false && process.env.UNITY_MCP_ALLOW_STDOUT !== '1') {
+      console.log = (...args) => console.error(...args);
+    }
+
     // Step 1: Load minimal config for server metadata
     // (config import is lightweight; avoid importing the MCP TS SDK on startup)
     const { config: serverConfig, logger: serverLogger } = await import('./config.js');

@@ -78,6 +78,7 @@ const baseConfig = {
     reconnectDelay: 1000,
     maxReconnectDelay: 30000,
     reconnectBackoffMultiplier: 2,
+    connectTimeout: 3000,
     commandTimeout: 30000
   },
 

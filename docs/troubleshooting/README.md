@@ -14,7 +14,7 @@ English | [日本語](#日本語)
 | Symptom | Cause | Fix |
 |---|---|---|
 | `Connection timeout` | Unity not running | Start Unity Editor |
-| `ECONNREFUSED` | Port blocked | Check firewall, verify port `6400` |
+| `ECONNREFUSED` | Unity not listening (or port blocked) | Start Unity Editor, verify the Unity TCP listener/port, check firewall |
 | `Unity TCP disconnected` | Protocol mismatch | Check Unity Console for errors |
 
 ## npx Issues
@@ -61,7 +61,7 @@ If your MCP client launches the server with a working directory outside your wor
 | 症状 | 原因 | 対処 |
 |---|---|---|
 | `Connection timeout` | Unity未起動 | Unity Editorを起動 |
-| `ECONNREFUSED` | ポートブロック | ファイアウォール確認、`6400`確認 |
+| `ECONNREFUSED` | Unity側がlistenしていない（またはポートブロック） | Unity Editor起動、TCPリスナー/ポート確認、ファイアウォール確認 |
 | `Unity TCP disconnected` | プロトコル不一致 | Unity Consoleでエラー確認 |
 
 ## npxの問題

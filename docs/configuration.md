@@ -42,6 +42,7 @@ The server discovers it by walking up from the current working directory until i
 | `unity.mcpHost` | `localhost` | Host where the Node server connects to Unity |
 | `unity.unityHost` | `localhost` | Bind/target host for Unity-side listener (legacy/compat) |
 | `unity.port` | `6400` | Unity Editor TCP port |
+| `unity.connectTimeout` | `3000` | TCP connect timeout (ms) |
 | `logging.level` | `info` | `debug`, `info`, `warn`, `error` |
 | `http.enabled` | `false` | Enable HTTP transport (`/healthz` exposed) |
 | `http.port` | `6401` | HTTP port (when enabled) |
@@ -93,6 +94,7 @@ None (configuration lives in `.unity/config.json`).
 | `unity.mcpHost` | `localhost` | NodeがUnityに接続するホスト |
 | `unity.unityHost` | `localhost` | 互換用（通常は触らない） |
 | `unity.port` | `6400` | Unity Editor TCPポート |
+| `unity.connectTimeout` | `3000` | TCP接続タイムアウト（ms） |
 | `logging.level` | `info` | `debug`, `info`, `warn`, `error` |
 | `http.enabled` | `false` | HTTPトランスポート有効化 |
 | `http.port` | `6401` | HTTPポート |

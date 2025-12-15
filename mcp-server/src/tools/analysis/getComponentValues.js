@@ -106,14 +106,10 @@ export async function getComponentValuesHandler(unityConnection, args) {
       };
     }
 
-    // Success response - result is already the unwrapped data
-    console.log('[DEBUG] GetComponentValues - Full result:', JSON.stringify(result, null, 2));
-
     let responseText = result.summary || `Component values retrieved`;
 
     // Add detailed property information if available
     if (result.properties && Object.keys(result.properties).length > 0) {
-      console.log('[DEBUG] Properties found:', Object.keys(result.properties).length);
       responseText += '\n\nProperties:';
       for (const [key, value] of Object.entries(result.properties)) {
         if (value && typeof value === 'object') {
@@ -144,9 +140,6 @@ export async function getComponentValuesHandler(unityConnection, args) {
           }
         }
       }
-    } else {
-      console.log('[DEBUG] No properties found in result');
-      console.log('[DEBUG] Result keys:', Object.keys(result));
     }
 
     // Add debug information if available
