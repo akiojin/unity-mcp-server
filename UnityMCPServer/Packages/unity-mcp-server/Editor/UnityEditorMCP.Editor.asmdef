@@ -2,6 +2,7 @@
     "name": "UnityMCPServer.Editor",
     "rootNamespace": "UnityMCPServer",
     "references": [
+        "UnityMCPServer.Runtime",
         "Unity.InputSystem",
         "Unity.Recorder",
         "Unity.Recorder.Editor",

@@ -28,7 +28,7 @@ describe('UIFindElementsToolHandler', () => {
     it('should have correct description', () => {
       assert.strictEqual(
         handler.description,
-        'Find UI elements in Unity scene by type, tag, or name'
+        'Find UI elements by component type, tag, or name pattern.'
       );
     });
   });
@@ -40,7 +40,7 @@ describe('UIFindElementsToolHandler', () => {
       assert.strictEqual(definition.name, 'ui_find_elements');
       assert.strictEqual(
         definition.description,
-        'Find UI elements in Unity scene by type, tag, or name'
+        'Find UI elements by component type, tag, or name pattern.'
       );
       assert.strictEqual(definition.inputSchema.type, 'object');
       assert(definition.inputSchema.properties.elementType);
@@ -233,7 +233,7 @@ describe('UIFindElementsToolHandler', () => {
       assert.strictEqual(result.status, 'error');
       assert.strictEqual(result.error, 'Connection failed');
       assert.strictEqual(result.code, 'TOOL_ERROR');
-      assert.strictEqual(result.details.tool, 'find_ui_elements');
+      assert.strictEqual(result.details.tool, 'ui_find_elements');
     });
   });
 });

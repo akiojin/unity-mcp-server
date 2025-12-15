@@ -42,14 +42,14 @@ describe('UISimulateInputToolHandler', () => {
       assert(definition.inputSchema.properties.inputSequence);
       assert(definition.inputSchema.properties.waitBetween);
       assert(definition.inputSchema.properties.validateState);
-      assert.deepStrictEqual(definition.inputSchema.required, ['inputSequence']);
+      assert.equal(definition.inputSchema.required, undefined);
     });
   });
 
   describe('validate', () => {
     it('should require inputSequence', () => {
       assert.throws(() => handler.validate({}), {
-        message: 'Missing required parameter: inputSequence'
+        message: 'Either (elementPath + inputType) or inputSequence is required'
       });
     });
 
