@@ -1025,16 +1025,46 @@ namespace UnityMCPServer.Handlers
                 warnings?.Add($"Failed to invoke UI Toolkit Button.Click(): {e.Message}");
             }
 
-            // 2) Prefer Button.clickable.SimulateSingleClick if available
+            // 2) Prefer invoking Clickable via reflection (API differs by Unity versions)
             try
             {
                 var clickable = button.clickable;
                 if (clickable != null)
                 {
-                    var method = clickable.GetType().GetMethod("SimulateSingleClick", BindingFlags.Public | BindingFlags.Instance);
-                    if (method != null)
+                    var t = clickable.GetType();
+                    const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+                    // 2-a) Known method names (prefer parameterless)
+                    var knownNames = new[] { "SimulateSingleClick", "SimulateClick", "Click", "Invoke" };
+                    foreach (var name in knownNames)
                     {
-                        method.Invoke(clickable, null);
+                        var m = t.GetMethod(name, flags, null, Type.EmptyTypes, null);
+                        if (m != null)
+                        {
+                            m.Invoke(clickable, null);
+                            return true;
+                        }
+                    }
+
+                    // 2-b) Delegate fields/properties (best-effort)
+                    foreach (var field in t.GetFields(flags))
+                    {
+                        if (field.FieldType != typeof(Action)) continue;
+                        if (field.Name.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        var del = field.GetValue(clickable) as Action;
+                        if (del == null) continue;
+                        del.Invoke();
+                        return true;
+                    }
+
+                    foreach (var prop in t.GetProperties(flags))
+                    {
+                        if (!prop.CanRead) continue;
+                        if (prop.PropertyType != typeof(Action)) continue;
+                        if (prop.Name.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        var del = prop.GetValue(clickable, null) as Action;
+                        if (del == null) continue;
+                        del.Invoke();
                         return true;
                     }
                 }

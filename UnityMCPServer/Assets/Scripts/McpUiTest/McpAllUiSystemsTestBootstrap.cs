@@ -5,6 +5,9 @@ using UnityEngine.EventSystems;
 using UGUI = UnityEngine.UI;
 using UITK = UnityEngine.UIElements;
 using UnityMCPServer.Runtime.IMGUI;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem.UI;
+#endif
 
 namespace UnityMCPServer.TestScenes
 {
@@ -31,12 +34,29 @@ namespace UnityMCPServer.TestScenes
 
         private static void EnsureEventSystem()
         {
-            if (FindFirstObjectByType<EventSystem>() != null)
+            var eventSystem = FindFirstObjectByType<EventSystem>();
+            if (eventSystem == null)
             {
-                return;
+                eventSystem = new GameObject("EventSystem", typeof(EventSystem)).GetComponent<EventSystem>();
             }
 
-            new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+#if ENABLE_INPUT_SYSTEM
+            var standalone = eventSystem.GetComponent<StandaloneInputModule>();
+            if (standalone != null)
+            {
+                Destroy(standalone);
+            }
+
+            if (eventSystem.GetComponent<InputSystemUIInputModule>() == null)
+            {
+                eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
+            }
+#else
+            if (eventSystem.GetComponent<StandaloneInputModule>() == null)
+            {
+                eventSystem.gameObject.AddComponent<StandaloneInputModule>();
+            }
+#endif
         }
 
         private void CreateUGui()
