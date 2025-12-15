@@ -1,4 +1,4 @@
-# Code Index Performance Benchmark Results
+# unity-mcp-server Performance Benchmark Results
 
 ## Test Environment
 
@@ -65,13 +65,13 @@
 - Redundant `endLine`/`endColumn` removed (always equals start for symbols)
 - Null fields omitted from output
 
-## Summary: Code Index vs Standard Tools
+## Summary: unity-mcp-server vs Standard Tools
 
-| Operation | Code Index Tool | Time | Standard Tool | Time | Result |
+| Operation | unity-mcp-server Tool | Time | Standard Tool | Time | Result |
 |-----------|----------------|------|---------------|------|--------|
-| Symbol Lookup | `script_symbol_find` | **instant** | `grep "class "` | 353ms | **Code Index wins** |
-| Reference Search | `script_refs_find` | **instant** | `grep "Response"` | 346ms | **Code Index wins** |
-| Code Search | `script_search` | **instant** | `grep` | 346ms | **Code Index wins** |
+| Symbol Lookup | `script_symbol_find` | **instant** | `grep "class "` | 353ms | **unity-mcp-server wins** |
+| Reference Search | `script_refs_find` | **instant** | `grep "Response"` | 346ms | **unity-mcp-server wins** |
+| Code Search | `script_search` | **instant** | `grep` | 346ms | **unity-mcp-server wins** |
 | File Read | `script_read` | **instant** | `Read` | **instant** | **Equal** (both instant) |
 | File Listing | `code_index_status` | **instant** | `Glob` | **instant** | **Equal** (both instant) |
 
@@ -100,7 +100,7 @@ $ time grep -r "Response" UnityMCPServer/Packages/unity-mcp-server --include="*.
 real    0m0.346s
 ```
 
-### 2. Code Index Status
+### 2. unity-mcp-server Index Status
 
 ```json
 {
@@ -190,20 +190,20 @@ Query: `pattern="Response"`, scope: `packages`, returnMode: `snippets`
 - Line numbers included
 - No filtering
 
-**script_read** (code index):
+**script_read** (unity-mcp-server):
 - Default limit: 200 lines, ~8KB
 - Configurable line range
 - Project-relative paths
 
 **Compression**: 1.6x smaller by default
 
-## Key Advantages of Code Index Tools
+## Key Advantages of unity-mcp-server Tools
 
 ### 1. Structured Output
 
-Code index tools return **structured data** instead of raw text:
+unity-mcp-server tools return **structured data** instead of raw text:
 
-| Data Type | Code Index | Standard Grep |
+| Data Type | unity-mcp-server | Standard Grep |
 |-----------|------------|---------------|
 | Symbol name | `"Response"` | Raw line text |
 | Symbol kind | `"class"`, `"method"` | Not available |
@@ -212,7 +212,7 @@ Code index tools return **structured data** instead of raw text:
 
 ### 2. Context Compression
 
-All code index tools implement **LLM-friendly** output limits:
+All unity-mcp-server tools implement **LLM-friendly** output limits:
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
@@ -269,7 +269,7 @@ Some tools may timeout if C# LSP is slow:
 
 ## Conclusion
 
-**Code index tools provide significant advantages over standard file operations:**
+**unity-mcp-server tools provide significant advantages over standard file operations:**
 
 1. **Speed**: Instant queries on 128,040 indexed files
 2. **Structure**: Semantic symbol information vs raw text
