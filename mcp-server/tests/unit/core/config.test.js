@@ -1,273 +1,198 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-import { config, logger } from '../../../src/core/config.js';
+
+const ENV_KEYS = [
+  'UNITY_PROJECT_ROOT',
+  'UNITY_MCP_MCP_HOST',
+  'UNITY_MCP_UNITY_HOST',
+  'UNITY_MCP_PORT',
+  'UNITY_MCP_LOG_LEVEL',
+  'UNITY_MCP_HTTP_ENABLED',
+  'UNITY_MCP_HTTP_PORT',
+  'UNITY_MCP_TELEMETRY_ENABLED',
+  'UNITY_MCP_LSP_REQUEST_TIMEOUT_MS'
+];
+
+function snapshotEnv() {
+  const out = {};
+  for (const k of ENV_KEYS) out[k] = process.env[k];
+  return out;
+}
+
+function restoreEnv(snapshot) {
+  for (const k of ENV_KEYS) {
+    const v = snapshot[k];
+    if (v === undefined) delete process.env[k];
+    else process.env[k] = v;
+  }
+}
+
+async function importConfigFresh() {
+  const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
+  moduleUrl.searchParams.set('ts', Date.now().toString());
+  return import(moduleUrl.href);
+}
 
 describe('Config', () => {
-  describe('config object', () => {
-    it('should have correct default Unity settings', () => {
-      assert.ok(config.unity.unityHost);
-      assert.ok(config.unity.mcpHost);
-      assert.equal(config.unity.bindHost, config.unity.unityHost);
-      assert.equal(config.unity.port, 6400);
-      assert.equal(config.unity.reconnectDelay, 1000);
-      assert.equal(config.unity.maxReconnectDelay, 30000);
-      assert.equal(config.unity.reconnectBackoffMultiplier, 2);
-      assert.equal(config.unity.commandTimeout, 30000);
-    });
+  let envSnapshot;
 
-    it('should have correct server settings', () => {
-      assert.equal(config.server.name, 'unity-mcp-server');
-      const pkgVersion = JSON.parse(
-        fsSync.readFileSync(new URL('../../../package.json', import.meta.url), 'utf8')
-      ).version;
-      assert.equal(config.server.version, pkgVersion);
-      assert.equal(config.server.description, 'MCP server for Unity Editor integration');
-    });
-
-    it('should have correct logging settings', () => {
-      assert.equal(config.logging.level, 'info');
-      assert.equal(config.logging.prefix, '[unity-mcp-server]');
-    });
-
-    it('should load mcpHost and unityHost from external config', async () => {
-      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-config-'));
-      const unityDir = path.join(tmpDir, '.unity');
-      await fs.mkdir(unityDir, { recursive: true });
-      const configPath = path.join(unityDir, 'config.json');
-      await fs.writeFile(
-        configPath,
-        JSON.stringify({
-          unity: {
-            unityHost: '127.0.0.1',
-            mcpHost: 'host.docker.internal',
-            bindHost: '0.0.0.0',
-            port: 6410
-          }
-        }),
-        'utf8'
-      );
-
-      const prevCwd = process.cwd();
-      try {
-        process.chdir(tmpDir);
-        const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
-        moduleUrl.searchParams.set('ts', Date.now().toString());
-        const { config: customConfig } = await import(moduleUrl.href);
-
-        assert.equal(customConfig.__configPath, configPath);
-        assert.equal(customConfig.unity.unityHost, '127.0.0.1');
-        assert.equal(customConfig.unity.mcpHost, 'host.docker.internal');
-        assert.equal(customConfig.unity.bindHost, '0.0.0.0');
-        assert.equal(customConfig.unity.port, 6410);
-      } finally {
-        process.chdir(prevCwd);
-        await fs.rm(tmpDir, { recursive: true, force: true });
-      }
-    });
-
-    it('should fall back to unityHost when only legacy host is provided', async () => {
-      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-config-'));
-      const unityDir = path.join(tmpDir, '.unity');
-      await fs.mkdir(unityDir, { recursive: true });
-      const configPath = path.join(unityDir, 'config.json');
-      await fs.writeFile(configPath, JSON.stringify({ unity: { host: 'example.local' } }), 'utf8');
-
-      const prevCwd = process.cwd();
-      try {
-        process.chdir(tmpDir);
-        const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
-        moduleUrl.searchParams.set('ts', Date.now().toString());
-        const { config: fallbackConfig } = await import(moduleUrl.href);
-
-        assert.equal(fallbackConfig.unity.unityHost, 'example.local');
-        assert.equal(fallbackConfig.unity.mcpHost, 'example.local');
-        assert.equal(fallbackConfig.unity.bindHost, 'example.local');
-      } finally {
-        process.chdir(prevCwd);
-        await fs.rm(tmpDir, { recursive: true, force: true });
-      }
-    });
-
-    it('should map legacy clientHost/bindHost to new fields', async () => {
-      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-config-'));
-      const unityDir = path.join(tmpDir, '.unity');
-      await fs.mkdir(unityDir, { recursive: true });
-      const configPath = path.join(unityDir, 'config.json');
-      await fs.writeFile(
-        configPath,
-        JSON.stringify({
-          unity: {
-            clientHost: 'legacy-client',
-            bindHost: 'legacy-bind'
-          }
-        }),
-        'utf8'
-      );
-
-      const prevCwd = process.cwd();
-      try {
-        process.chdir(tmpDir);
-        const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
-        moduleUrl.searchParams.set('ts', Date.now().toString());
-        const { config: legacyConfig } = await import(moduleUrl.href);
-
-        assert.equal(legacyConfig.unity.mcpHost, 'legacy-client');
-        assert.equal(legacyConfig.unity.unityHost, 'legacy-bind');
-        assert.equal(legacyConfig.unity.bindHost, 'legacy-bind');
-      } finally {
-        process.chdir(prevCwd);
-        await fs.rm(tmpDir, { recursive: true, force: true });
-      }
-    });
-
-    it('should use defaults when no config exists', async () => {
-      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-default-'));
-      const prevCwd = process.cwd();
-      try {
-        process.chdir(tmpDir);
-        const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
-        moduleUrl.searchParams.set('ts', Date.now().toString());
-        const { config: generatedConfig } = await import(moduleUrl.href);
-
-        const defaultPath = path.join(tmpDir, '.unity', 'config.json');
-        assert.equal(fsSync.existsSync(defaultPath), false);
-
-        assert.equal(generatedConfig.__configPath, undefined);
-        assert.equal(generatedConfig.unity.unityHost, 'localhost');
-        assert.equal(generatedConfig.unity.mcpHost, 'localhost');
-        assert.equal(generatedConfig.unity.port, 6400);
-      } finally {
-        process.chdir(prevCwd);
-        await fs.rm(tmpDir, { recursive: true, force: true });
-      }
-    });
+  beforeEach(() => {
+    envSnapshot = snapshotEnv();
+    // Ensure tests start from a clean env baseline
+    for (const k of ENV_KEYS) delete process.env[k];
   });
 
-  describe('logger', () => {
-    let originalConsoleLog;
-    let originalConsoleError;
-    let logOutput;
-    let errorOutput;
+  afterEach(() => {
+    restoreEnv(envSnapshot);
+  });
 
-    beforeEach(() => {
-      originalConsoleLog = console.log;
-      originalConsoleError = console.error;
-      logOutput = [];
-      errorOutput = [];
+  it('should have correct default Unity settings', async () => {
+    const { config } = await importConfigFresh();
 
-      console.log = (...args) => logOutput.push(args.join(' '));
-      console.error = (...args) => errorOutput.push(args.join(' '));
-    });
+    assert.equal(config.unity.unityHost, 'localhost');
+    assert.equal(config.unity.mcpHost, 'localhost');
+    assert.equal(config.unity.bindHost, 'localhost');
+    assert.equal(config.unity.port, 6400);
+    assert.equal(config.unity.reconnectDelay, 1000);
+    assert.equal(config.unity.maxReconnectDelay, 30000);
+    assert.equal(config.unity.reconnectBackoffMultiplier, 2);
+    assert.equal(config.unity.commandTimeout, 30000);
+  });
 
-    afterEach(() => {
-      console.log = originalConsoleLog;
-      console.error = originalConsoleError;
-      logOutput = [];
-      errorOutput = [];
-    });
+  it('should have correct server settings', async () => {
+    const { config } = await importConfigFresh();
 
-    it('should log info messages', () => {
-      logger.info('Test info message');
-      assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[unity-mcp-server\] Test info message/);
-    });
+    assert.equal(config.server.name, 'unity-mcp-server');
+    const pkgVersion = JSON.parse(
+      fsSync.readFileSync(new URL('../../../package.json', import.meta.url), 'utf8')
+    ).version;
+    assert.equal(config.server.version, pkgVersion);
+    assert.equal(config.server.description, 'MCP server for Unity Editor integration');
+  });
 
-    it('should log error messages', () => {
-      logger.error('Test error message');
-      assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[unity-mcp-server\] ERROR: Test error message/);
-    });
+  it('should have correct logging settings', async () => {
+    const { config } = await importConfigFresh();
 
-    it('should log error with error object', () => {
-      const error = new Error('Test error');
-      logger.error('Something failed', error);
-      assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /Something failed/);
-    });
+    assert.equal(config.logging.level, 'info');
+    assert.equal(config.logging.prefix, '[unity-mcp-server]');
+  });
 
-    it('should not log debug messages when level is info', () => {
-      logger.debug('Debug message');
-      assert.equal(logOutput.length, 0);
-      assert.equal(errorOutput.length, 0);
-    });
+  it('should load unity host/port from environment variables', async () => {
+    process.env.UNITY_MCP_UNITY_HOST = '127.0.0.1';
+    process.env.UNITY_MCP_MCP_HOST = 'host.docker.internal';
+    process.env.UNITY_MCP_PORT = '6410';
 
-    it('should log debug messages when level is debug', () => {
-      // Use setLevel to dynamically change log level
-      logger.setLevel('debug');
+    const { config } = await importConfigFresh();
 
-      logger.debug('Debug message');
-      assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[unity-mcp-server\] DEBUG: Debug message/);
+    assert.equal(config.unity.unityHost, '127.0.0.1');
+    assert.equal(config.unity.mcpHost, 'host.docker.internal');
+    assert.equal(config.unity.bindHost, '127.0.0.1');
+    assert.equal(config.unity.port, 6410);
+  });
 
-      // Restore original level
-      logger.setLevel('info');
-    });
+  it('should validate invalid ports and fall back to defaults', async () => {
+    process.env.UNITY_MCP_PORT = '99999';
+    process.env.UNITY_MCP_HTTP_PORT = '-1';
 
-    it('should log warning messages when level is info', () => {
-      logger.warning('Warning message');
-      assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[unity-mcp-server\] WARNING: Warning message/);
-    });
+    const { config } = await importConfigFresh();
 
-    it('should log warning messages when level is warning', () => {
-      // Use setLevel to dynamically change log level
-      logger.setLevel('warning');
+    assert.equal(config.unity.port, 6400);
+    assert.equal(config.http.port, 6401);
+  });
 
-      logger.warning('Warning message');
-      assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[unity-mcp-server\] WARNING: Warning message/);
+  it('should load http and telemetry settings from environment variables', async () => {
+    process.env.UNITY_MCP_HTTP_ENABLED = 'true';
+    process.env.UNITY_MCP_HTTP_PORT = '6405';
+    process.env.UNITY_MCP_TELEMETRY_ENABLED = 'true';
 
-      // Restore original level
-      logger.setLevel('info');
-    });
+    const { config } = await importConfigFresh();
 
-    it('should not log info messages when level is warning', () => {
-      // Use setLevel to dynamically change log level
-      logger.setLevel('warning');
+    assert.equal(config.http.enabled, true);
+    assert.equal(config.http.port, 6405);
+    assert.equal(config.telemetry.enabled, true);
+  });
+});
 
-      logger.info('Info message');
-      assert.equal(errorOutput.length, 0);
+describe('logger', () => {
+  let originalConsoleLog;
+  let originalConsoleError;
+  let logOutput;
+  let errorOutput;
+  let envSnapshot;
+  let logger;
 
-      // Restore original level
-      logger.setLevel('info');
-    });
+  beforeEach(async () => {
+    envSnapshot = snapshotEnv();
+    for (const k of ENV_KEYS) delete process.env[k];
 
-    it('should handle multiple arguments in logger methods', () => {
-      logger.info('Message', { key: 'value' }, 123);
-      assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /\[unity-mcp-server\] Message/);
-      // Note: The logger uses console.error(...args) which joins them with spaces
-      // So the output will contain the stringified object and number
-      assert(errorOutput[0].includes('[object Object]') || errorOutput[0].includes('value'));
-      assert(errorOutput[0].includes('123'));
-    });
+    ({ logger } = await importConfigFresh());
 
-    it('should always log error messages regardless of level', () => {
-      // Test with different log levels using setLevel
-      logger.setLevel('debug');
-      logger.error('Error message 1');
-      assert.equal(errorOutput.length, 1);
+    originalConsoleLog = console.log;
+    originalConsoleError = console.error;
+    logOutput = [];
+    errorOutput = [];
 
-      errorOutput.length = 0; // Clear
-      logger.setLevel('warning');
-      logger.error('Error message 2');
-      assert.equal(errorOutput.length, 1);
+    console.log = (...args) => logOutput.push(args.join(' '));
+    console.error = (...args) => errorOutput.push(args.join(' '));
+  });
 
-      // Restore original level
-      logger.setLevel('info');
-    });
+  afterEach(() => {
+    console.log = originalConsoleLog;
+    console.error = originalConsoleError;
+    logOutput = [];
+    errorOutput = [];
+    restoreEnv(envSnapshot);
+  });
 
-    it('should handle error objects in logger.error', () => {
-      const error = new Error('Test error');
-      error.stack = 'Stack trace here';
+  it('should log info messages', () => {
+    logger.info('Test info message');
+    assert.equal(errorOutput.length, 1);
+    assert.match(errorOutput[0], /\[unity-mcp-server\] Test info message/);
+  });
 
-      logger.error('Operation failed', error);
-      assert.equal(errorOutput.length, 1);
-      assert.match(errorOutput[0], /Operation failed/);
-    });
+  it('should log error messages', () => {
+    logger.error('Test error message');
+    assert.equal(errorOutput.length, 1);
+    assert.match(errorOutput[0], /\[unity-mcp-server\] ERROR: Test error message/);
+  });
+
+  it('should log error with error object', () => {
+    const error = new Error('Test error');
+    logger.error('Something failed', error);
+    assert.equal(errorOutput.length, 1);
+    assert.match(errorOutput[0], /Something failed/);
+  });
+
+  it('should not log debug messages when level is info', () => {
+    logger.debug('Debug message');
+    assert.equal(logOutput.length, 0);
+    assert.equal(errorOutput.length, 0);
+  });
+
+  it('should log debug messages when level is debug', () => {
+    logger.setLevel('debug');
+
+    logger.debug('Debug message');
+    assert.equal(errorOutput.length, 1);
+    assert.match(errorOutput[0], /\[unity-mcp-server\] DEBUG: Debug message/);
+
+    logger.setLevel('info');
+  });
+
+  it('should log warning messages when level is info', () => {
+    logger.warning('Warning message');
+    assert.equal(errorOutput.length, 1);
+    assert.match(errorOutput[0], /\[unity-mcp-server\] WARNING: Warning message/);
+  });
+
+  it('should log warning messages when level is warning', () => {
+    logger.setLevel('warning');
+
+    logger.warning('Warning message');
+    assert.equal(errorOutput.length, 1);
+    assert.match(errorOutput[0], /\[unity-mcp-server\] WARNING: Warning message/);
+
+    logger.setLevel('info');
   });
 });

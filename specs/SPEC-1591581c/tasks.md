@@ -374,7 +374,7 @@
 
 **検証**:
 - MCPクライアントから`profiler_start`ツールを呼び出すと、Unityでプロファイリングが開始される
-- workspaceRootが正しく解決される（.unity/config.jsonフォールバック）
+- workspaceRootが正しく解決される（未受領時は親ディレクトリを遡って `.unity/` を探索）
 
 **依存関係**: T002, T013 [P]
 
@@ -502,7 +502,7 @@
 **タスク**:
 - 既存のWorkspaceRootResolver機能を統合:
   1. Node側から受け取ったworkspaceRootを優先使用
-  2. 未受領時は`.unity/config.json`の`project.root`からフォールバック解決
+  2. 未受領時は親ディレクトリを遡って `.unity/` を探索してフォールバック解決
   3. outputPath生成時にワークスペースルート + `.unity/capture/`を使用
 
 **検証**:
