@@ -21,7 +21,7 @@
 
 ### Integration
 - [ ] T009 `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/ToolManagementHandler.cs` などツール公開リストを更新し、新ツールをエクスポート
-- [ ] T010 `memory/constitution.md`・`CLAUDE.md`・`README.ja.md`・`README.md` に利用ガイドと棲み分けを反映
+- [ ] T010 `docs/constitution.md`・`CLAUDE.md`・`README.ja.md`・`README.md` に利用ガイドと棲み分けを反映
 
 ### Polish
 - [ ] T011 `tests/unit` 実行と既存script編集テストの回帰確認
