@@ -234,6 +234,20 @@ Guidelines for tool responses to minimize token usage:
 
 5. **Verify**: Check compile state, re-read if needed
 
+## Claude Code Troubleshooting
+
+### Hookify import error (`No module named 'hookify'`)
+
+If Claude Code shows `Hookify import error: No module named 'hookify'`, the official `hookify` plugin was installed under a versioned directory and its hook scripts fail to resolve the `hookify` package.
+
+Run this helper to patch the plugin hook scripts in your local Claude plugin cache:
+
+```bash
+./scripts/fix-hookify-import.sh
+```
+
+Note: plugin updates may overwrite the cache. If the error comes back, rerun the script.
+
 ---
 
 ## 日本語
@@ -298,5 +312,19 @@ C#の探索/参照/構造化編集は、同梱の自己完結C# LSPで行いま�
 | 検索 | `pageSize≤20`, `maxBytes≤64KB` |
 | ヒエラルキー | `nameOnly=true`, `maxObjects 100-500` |
 | script_read | 対象の前後30-40行 |
+
+### Claude Code のトラブルシューティング
+
+#### Hookify import error（`No module named 'hookify'`）
+
+Claude Code で `Hookify import error: No module named 'hookify'` が出続ける場合、公式 `hookify` プラグインがバージョン付きディレクトリ配下に展開されており、フックスクリプトが `hookify` パッケージを解決できないのが原因です。
+
+以下を実行して、ローカルの Claude プラグインキャッシュ内のフックスクリプトをパッチしてください:
+
+```bash
+./scripts/fix-hookify-import.sh
+```
+
+注: プラグイン更新でキャッシュが上書きされることがあります。再発したら再度実行してください。
 
 詳細は [CONTRIBUTING.md](../CONTRIBUTING.md) および [CLAUDE.md](../CLAUDE.md) を参照してください。
