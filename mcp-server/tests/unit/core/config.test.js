@@ -35,7 +35,9 @@ describe('Config', () => {
 
     it('should load mcpHost and unityHost from external config', async () => {
       const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-config-'));
-      const configPath = path.join(tmpDir, 'config.json');
+      const unityDir = path.join(tmpDir, '.unity');
+      await fs.mkdir(unityDir, { recursive: true });
+      const configPath = path.join(unityDir, 'config.json');
       await fs.writeFile(
         configPath,
         JSON.stringify({
@@ -49,21 +51,9 @@ describe('Config', () => {
         'utf8'
       );
 
-      const prevConfigPath = process.env.UNITY_MCP_CONFIG;
-      const prevHost = process.env.UNITY_HOST;
-      const prevClientHost = process.env.UNITY_CLIENT_HOST;
-      const prevBindHost = process.env.UNITY_BIND_HOST;
-      const prevUnityHost = process.env.UNITY_UNITY_HOST;
-      const prevMcpHost = process.env.UNITY_MCP_HOST;
-
-      process.env.UNITY_MCP_CONFIG = configPath;
-      delete process.env.UNITY_HOST;
-      delete process.env.UNITY_CLIENT_HOST;
-      delete process.env.UNITY_BIND_HOST;
-      delete process.env.UNITY_UNITY_HOST;
-      delete process.env.UNITY_MCP_HOST;
-
+      const prevCwd = process.cwd();
       try {
+        process.chdir(tmpDir);
         const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
         moduleUrl.searchParams.set('ts', Date.now().toString());
         const { config: customConfig } = await import(moduleUrl.href);
@@ -74,64 +64,21 @@ describe('Config', () => {
         assert.equal(customConfig.unity.bindHost, '0.0.0.0');
         assert.equal(customConfig.unity.port, 6410);
       } finally {
-        if (prevConfigPath === undefined) {
-          delete process.env.UNITY_MCP_CONFIG;
-        } else {
-          process.env.UNITY_MCP_CONFIG = prevConfigPath;
-        }
-
-        if (prevHost === undefined) {
-          delete process.env.UNITY_HOST;
-        } else {
-          process.env.UNITY_HOST = prevHost;
-        }
-
-        if (prevClientHost === undefined) {
-          delete process.env.UNITY_CLIENT_HOST;
-        } else {
-          process.env.UNITY_CLIENT_HOST = prevClientHost;
-        }
-
-        if (prevBindHost === undefined) {
-          delete process.env.UNITY_BIND_HOST;
-        } else {
-          process.env.UNITY_BIND_HOST = prevBindHost;
-        }
-
-        if (prevUnityHost === undefined) {
-          delete process.env.UNITY_UNITY_HOST;
-        } else {
-          process.env.UNITY_UNITY_HOST = prevUnityHost;
-        }
-
-        if (prevMcpHost === undefined) {
-          delete process.env.UNITY_MCP_HOST;
-        } else {
-          process.env.UNITY_MCP_HOST = prevMcpHost;
-        }
-
+        process.chdir(prevCwd);
         await fs.rm(tmpDir, { recursive: true, force: true });
       }
     });
 
     it('should fall back to unityHost when only legacy host is provided', async () => {
       const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-config-'));
-      const configPath = path.join(tmpDir, 'config.json');
+      const unityDir = path.join(tmpDir, '.unity');
+      await fs.mkdir(unityDir, { recursive: true });
+      const configPath = path.join(unityDir, 'config.json');
       await fs.writeFile(configPath, JSON.stringify({ unity: { host: 'example.local' } }), 'utf8');
 
-      const prevConfigPath = process.env.UNITY_MCP_CONFIG;
-      const prevHost = process.env.UNITY_HOST;
-      const prevClientHost = process.env.UNITY_CLIENT_HOST;
-      const prevUnityHost = process.env.UNITY_UNITY_HOST;
-      const prevMcpHost = process.env.UNITY_MCP_HOST;
-
-      process.env.UNITY_MCP_CONFIG = configPath;
-      delete process.env.UNITY_HOST;
-      delete process.env.UNITY_CLIENT_HOST;
-      delete process.env.UNITY_UNITY_HOST;
-      delete process.env.UNITY_MCP_HOST;
-
+      const prevCwd = process.cwd();
       try {
+        process.chdir(tmpDir);
         const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
         moduleUrl.searchParams.set('ts', Date.now().toString());
         const { config: fallbackConfig } = await import(moduleUrl.href);
@@ -140,43 +87,16 @@ describe('Config', () => {
         assert.equal(fallbackConfig.unity.mcpHost, 'example.local');
         assert.equal(fallbackConfig.unity.bindHost, 'example.local');
       } finally {
-        if (prevConfigPath === undefined) {
-          delete process.env.UNITY_MCP_CONFIG;
-        } else {
-          process.env.UNITY_MCP_CONFIG = prevConfigPath;
-        }
-
-        if (prevHost === undefined) {
-          delete process.env.UNITY_HOST;
-        } else {
-          process.env.UNITY_HOST = prevHost;
-        }
-
-        if (prevClientHost === undefined) {
-          delete process.env.UNITY_CLIENT_HOST;
-        } else {
-          process.env.UNITY_CLIENT_HOST = prevClientHost;
-        }
-
-        if (prevUnityHost === undefined) {
-          delete process.env.UNITY_UNITY_HOST;
-        } else {
-          process.env.UNITY_UNITY_HOST = prevUnityHost;
-        }
-
-        if (prevMcpHost === undefined) {
-          delete process.env.UNITY_MCP_HOST;
-        } else {
-          process.env.UNITY_MCP_HOST = prevMcpHost;
-        }
-
+        process.chdir(prevCwd);
         await fs.rm(tmpDir, { recursive: true, force: true });
       }
     });
 
     it('should map legacy clientHost/bindHost to new fields', async () => {
       const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-config-'));
-      const configPath = path.join(tmpDir, 'config.json');
+      const unityDir = path.join(tmpDir, '.unity');
+      await fs.mkdir(unityDir, { recursive: true });
+      const configPath = path.join(unityDir, 'config.json');
       await fs.writeFile(
         configPath,
         JSON.stringify({
@@ -188,20 +108,9 @@ describe('Config', () => {
         'utf8'
       );
 
-      const prevConfigPath = process.env.UNITY_MCP_CONFIG;
-      const prevHost = process.env.UNITY_HOST;
-      const prevClientHost = process.env.UNITY_CLIENT_HOST;
-      const prevUnityHost = process.env.UNITY_UNITY_HOST;
-      const prevMcpHost = process.env.UNITY_MCP_HOST;
-      const prevBindHost = process.env.UNITY_BIND_HOST;
-      process.env.UNITY_MCP_CONFIG = configPath;
-      delete process.env.UNITY_HOST;
-      delete process.env.UNITY_CLIENT_HOST;
-      delete process.env.UNITY_UNITY_HOST;
-      delete process.env.UNITY_MCP_HOST;
-      delete process.env.UNITY_BIND_HOST;
-
+      const prevCwd = process.cwd();
       try {
+        process.chdir(tmpDir);
         const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
         moduleUrl.searchParams.set('ts', Date.now().toString());
         const { config: legacyConfig } = await import(moduleUrl.href);
@@ -210,52 +119,14 @@ describe('Config', () => {
         assert.equal(legacyConfig.unity.unityHost, 'legacy-bind');
         assert.equal(legacyConfig.unity.bindHost, 'legacy-bind');
       } finally {
-        if (prevConfigPath === undefined) {
-          delete process.env.UNITY_MCP_CONFIG;
-        } else {
-          process.env.UNITY_MCP_CONFIG = prevConfigPath;
-        }
-
-        if (prevHost === undefined) {
-          delete process.env.UNITY_HOST;
-        } else {
-          process.env.UNITY_HOST = prevHost;
-        }
-
-        if (prevClientHost === undefined) {
-          delete process.env.UNITY_CLIENT_HOST;
-        } else {
-          process.env.UNITY_CLIENT_HOST = prevClientHost;
-        }
-
-        if (prevUnityHost === undefined) {
-          delete process.env.UNITY_UNITY_HOST;
-        } else {
-          process.env.UNITY_UNITY_HOST = prevUnityHost;
-        }
-
-        if (prevMcpHost === undefined) {
-          delete process.env.UNITY_MCP_HOST;
-        } else {
-          process.env.UNITY_MCP_HOST = prevMcpHost;
-        }
-
-        if (prevBindHost === undefined) {
-          delete process.env.UNITY_BIND_HOST;
-        } else {
-          process.env.UNITY_BIND_HOST = prevBindHost;
-        }
-
+        process.chdir(prevCwd);
         await fs.rm(tmpDir, { recursive: true, force: true });
       }
     });
 
-    it('should create default config when none exists', async () => {
+    it('should use defaults when no config exists', async () => {
       const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-default-'));
       const prevCwd = process.cwd();
-      const prevConfigPath = process.env.UNITY_MCP_CONFIG;
-      delete process.env.UNITY_MCP_CONFIG;
-
       try {
         process.chdir(tmpDir);
         const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
@@ -263,27 +134,13 @@ describe('Config', () => {
         const { config: generatedConfig } = await import(moduleUrl.href);
 
         const defaultPath = path.join(tmpDir, '.unity', 'config.json');
-        const stat = await fs.stat(defaultPath);
-        assert.ok(stat.isFile());
+        assert.equal(fsSync.existsSync(defaultPath), false);
 
-        const contents = JSON.parse(await fs.readFile(defaultPath, 'utf8'));
-        assert.equal(contents.unity.unityHost, 'localhost');
-        assert.equal(contents.unity.mcpHost, 'localhost');
-        assert.equal(contents.unity.port, 6400);
-
+        assert.equal(generatedConfig.__configPath, undefined);
         assert.equal(generatedConfig.unity.unityHost, 'localhost');
         assert.equal(generatedConfig.unity.mcpHost, 'localhost');
         assert.equal(generatedConfig.unity.port, 6400);
-        const resolvedDefaultPath = await fs.realpath(defaultPath);
-        const resolvedConfigPath = await fs.realpath(generatedConfig.__configPath);
-        assert.equal(resolvedConfigPath, resolvedDefaultPath);
-        assert.equal(generatedConfig.__configGenerated, true);
       } finally {
-        if (prevConfigPath === undefined) {
-          delete process.env.UNITY_MCP_CONFIG;
-        } else {
-          process.env.UNITY_MCP_CONFIG = prevConfigPath;
-        }
         process.chdir(prevCwd);
         await fs.rm(tmpDir, { recursive: true, force: true });
       }

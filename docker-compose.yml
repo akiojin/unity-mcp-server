@@ -21,8 +21,6 @@ services:
       - GITHUB_PERSONAL_ACCESS_TOKEN
       - GITHUB_USERNAME
       - GIT_USER_EMAIL
-      - UNITY_HOST=host.docker.internal
-      - UNITY_PORT=6400
       # bash_history
       - HISTFILE=/root/.bash_history_dir/.bash_history
       - HISTSIZE=5000

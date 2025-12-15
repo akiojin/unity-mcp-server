@@ -175,7 +175,7 @@ cd .worktrees/SPEC-0d5d84f9/
   3. E2E tests → 主要ユーザーワークフロー
   4. Unit tests → 個別機能、80%以上のカバレッジ
 
-**詳細は [`memory/constitution.md`](memory/constitution.md) を参照**
+**詳細は [`docs/constitution.md`](docs/constitution.md) を参照**
 
 ### SDD (Spec-Driven Development) 規約
 
@@ -213,7 +213,7 @@ cd .worktrees/SPEC-0d5d84f9/
 
 **憲章準拠**:
 
-- すべての実装は [`memory/constitution.md`](memory/constitution.md) に準拠
+- すべての実装は [`docs/constitution.md`](docs/constitution.md) に準拠
 - TDD、ハンドラーアーキテクチャ、LLM最適化は妥協不可
 
 ## コミュニケーションガイドライン
@@ -245,6 +245,29 @@ cd .worktrees/SPEC-0d5d84f9/
   - `script_search`: C#コード内の検索
 
 **理由**: unity-mcp-serverはUnityプロジェクト専用に最適化されたコードインデックスを持ち、Unityエディタとのリアルタイム連携、コンパイルエラー検出、LSP診断など、Unity開発に不可欠な機能を提供します。serena MCPは汎用的なコードエディタであり、Unity固有の機能をサポートしていません。
+
+#### ベンチマーク結果（コードインデックス vs 標準ツール）
+
+詳細なベンチマーク結果は [`docs/benchmark-results.ja.md`](docs/benchmark-results.ja.md) を参照してください。
+
+**サマリー**:
+
+| 操作 | コードインデックスツール | 標準ツール | 結果 |
+|------|------------------------|------------|------|
+| シンボル検索 | `script_symbol_find` | `grep` | **コードインデックス勝利**（瞬時 vs 353ms） |
+| 参照検索 | `script_refs_find` | `grep` | **コードインデックス勝利**（瞬時 vs 346ms） |
+| コード検索 | `script_search` | `grep` | **コードインデックス勝利**（瞬時 vs 346ms） |
+| ファイル読み取り | `script_read` | `Read` | **同等**（両方瞬時） |
+
+**コンテキスト圧縮**:
+
+| ツール | 出力サイズ | 標準ツール | 圧縮率 |
+|--------|-----------|------------|--------|
+| `script_read` | 200行 (8KB) | 358行 (13KB) | **1.6倍小さい** |
+| `script_symbol_find` | 34シンボル (3KB) | 209行 (15KB) | **5倍小さい** |
+| `script_refs_find` | 20参照 (4KB) | 全行 | **3倍小さい** |
+
+**重要**: `code_index_build` を実行してDBインデックスを構築してから使用してください。インデックスなしではLSPタイムアウト（60秒）が発生します。
 
 #### コードインデックスの活用
 

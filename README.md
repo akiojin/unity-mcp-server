@@ -12,7 +12,7 @@ Unity MCP Server lets LLM-based clients automate the Unity Editor. It focuses on
 - **UI automation**: Locate and interact with UI, validate UI state
 - **Input simulation**: Keyboard/mouse/gamepad/touch for playmode testing (Input System only)
 - **Visual capture**: Deterministic screenshots from Game/Scene/Explorer/Window views
-- **Code base awareness**: Safe structured edits and accurate symbol/search powered by bundled C# LSP
+- **Code base awareness**: Safe structured edits and accurate symbol/search powered by bundled C# LSP (no `.sln` file required)
 - **Project control**: Read/update project/editor settings; read logs, monitor compilation
 - **Addressables management**: Register/organize assets, manage groups, build automation
 
@@ -112,137 +112,61 @@ curl http://localhost:6401/healthz
 
 Configuration is optional; defaults work without any config file.
 
-### Config File Location
+The server discovers `.unity/config.json` by walking up from the working directory (CWD matters).
 
-Config is loaded in this order:
+See [docs/configuration.md](docs/configuration.md) for config file location and keys.
 
-1. `UNITY_MCP_CONFIG` environment variable (absolute path)
-2. Nearest `./.unity/config.json` walking up from CWD
-3. `~/.unity/config.json` (user global)
+## Tools
 
-### Example Configuration
+Unity MCP Server ships **100+ tools**. Use the `search_tools` meta-tool to discover the right tool quickly.
 
-```json
-{
-  "project": {
-    "root": ".",
-    "codeIndexRoot": "./.unity/cache/code-index"
-  }
-}
+See [docs/tools.md](docs/tools.md) for discovery tips and the recommended Code Index workflow.
+
+## Claude Code Skills
+
+This package includes Claude Code skills that provide workflow-oriented guidance for effectively using the 108+ tools.
+
+### Available Skills
+
+| Skill | Description | Triggers |
+|-------|-------------|----------|
+| `unity-csharp-editing` | C# script editing, search, refactoring with TDD workflow | "C# edit", "script search", "refactoring" |
+| `unity-scene-management` | Scene, GameObject, Component management | "scene create", "GameObject", "component add" |
+| `unity-playmode-testing` | PlayMode control, input simulation, UI automation | "playmode", "input simulate", "UI click" |
+| `unity-asset-management` | Prefab, Material, Addressables management | "prefab create", "material", "Addressables" |
+
+### Installation
+
+Install as a Claude Code plugin from GitHub:
+
+```bash
+# Step 1: Add marketplace
+/plugin marketplace add akiojin/unity-mcp-server
+
+# Step 2: Install plugin
+/plugin install unity-mcp-server@unity-mcp-server
 ```
 
-### Key Settings
+Or manually copy the `.claude/skills/` directory to your project.
 
-| Key | Default | Description |
-|-----|---------|-------------|
-| `project.root` | auto-detect | Unity project root (contains `Assets/`) |
-| `unity.port` | `6400` | Unity Editor TCP port |
-| `unity.mcpHost` | `localhost` | Host for MCP server to connect to Unity |
-| `logging.level` | `info` | Log level: `debug`, `info`, `warn` |
+### Usage
 
-See the full configuration reference in [docs/development.md](docs/development.md).
+Skills activate automatically when you mention related keywords. You can also invoke them directly:
 
-## Available Tools
+```
+# Ask about C# editing workflow
+"How do I edit Unity C# scripts?"
 
-### System Tools
+# Ask about scene management
+"Create a new scene with basic lighting"
 
-- `system_ping` - Test connection
-- `system_refresh_assets` - Refresh Unity assets
-
-### GameObject Tools
-
-- `gameobject_create` - Create GameObjects
-- `gameobject_find` - Find by name/tag/layer
-- `gameobject_modify` - Modify properties
-- `gameobject_delete` - Delete GameObjects
-- `gameobject_get_hierarchy` - Get scene hierarchy
-
-### Scene Tools
-
-- `scene_create`, `scene_load`, `scene_save`, `scene_list`, `scene_info_get`
-
-### Component Tools
-
-- `component_add`, `component_remove`, `component_modify`, `component_list`
-
-### Script Tools
-
-- `script_read` - Read C# files
-- `script_search` - Search code
-- `script_symbols_get` - Get file symbols
-- `script_symbol_find` - Find symbols by name
-- `script_refs_find` - Find references
-- `script_edit_structured` - Structured code editing
-- `script_edit_snippet` - Small code edits
-
-### Screenshot Tools
-
-- `screenshot_capture` - Capture Game/Scene/Explorer/Window views
-- `screenshot_analyze` - Analyze captured images
-
-### Input Tools
-
-- `input_keyboard`, `input_mouse`, `input_gamepad`, `input_touch`
-
-### Profiler Tools
-
-- `profiler_start`, `profiler_stop`, `profiler_status`, `profiler_get_metrics`
-
-### Other Tools
-
-- `console_read`, `console_clear` - Unity console
-- `test_run`, `test_get_status` - Run Unity tests
-- `package_manage` - Manage Unity packages
-- `addressables_manage`, `addressables_build` - Addressables management
+# Ask about testing
+"How do I simulate keyboard input in playmode?"
+```
 
 ## Troubleshooting
 
-### Connection Issues
-
-| Symptom | Cause | Solution |
-|---------|-------|----------|
-| `Connection timeout` | Unity not running | Start Unity Editor |
-| `ECONNREFUSED` | Port blocked | Check firewall, verify port 6400 |
-| `Unity TCP disconnected` | Protocol mismatch | Check Unity Console for errors |
-
-### npx Issues
-
-**ENOTEMPTY error**:
-
-```bash
-rm -rf ~/.npm/_npx
-```
-
-**First-run delay**: Pre-cache the package:
-
-```bash
-npx @akiojin/unity-mcp-server@latest --version
-```
-
-### Debug Logging
-
-```bash
-LOG_LEVEL=debug npx @akiojin/unity-mcp-server@latest
-```
-
-### WSL2/Docker to Windows Unity
-
-Use `host.docker.internal` to connect from WSL2/Docker:
-
-```json
-{
-  "mcpServers": {
-    "unity-mcp-server": {
-      "command": "npx",
-      "args": ["@akiojin/unity-mcp-server@latest"],
-      "env": {
-        "UNITY_MCP_HOST": "host.docker.internal",
-        "UNITY_PORT": "6400"
-      }
-    }
-  }
-}
-```
+See [docs/troubleshooting/README.md](docs/troubleshooting/README.md).
 
 ## OpenUPM Scoped Registry
 
@@ -297,6 +221,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, commit guidelines,
 
 For internal development details (Spec Kit, release process, LLM optimization):
 
+- [docs/README.md](docs/README.md)
 - [docs/development.md](docs/development.md)
 - [CLAUDE.md](CLAUDE.md)
 

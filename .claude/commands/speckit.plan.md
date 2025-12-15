@@ -24,7 +24,7 @@ $ARGUMENTS
    - 成功基準と受け入れ基準
    - 言及されている技術的制約または依存関係
 
-3. `.specify/memory/constitution.md` の憲章を読んで、憲章要件を理解します。
+3. `docs/constitution.md` の憲章を読んで、憲章要件を理解します。
 
 4. 実装計画テンプレートを実行します:
    - `.specify/templates/plan-template.md` を読み込み (既にIMPL_PLANパスにコピー済み)

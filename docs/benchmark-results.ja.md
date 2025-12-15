@@ -1,10 +1,9 @@
-# コードインデックス パフォーマンス ベンチマーク結果
+# unity-mcp-server パフォーマンス ベンチマーク結果
 
 ## テスト環境
 
 | 項目 | 値 |
 |------|-----|
-| 日付 | 2025-12-13 |
 | プラットフォーム | Linux 6.6.87.2-microsoft-standard-WSL2 (x86_64) |
 | Node.js | v22.21.1 |
 | Unity MCP Server | v2.42.4 |
@@ -65,13 +64,13 @@
 - 冗長な `endLine`/`endColumn` を削除（シンボルでは常に start と同値）
 - null フィールドを出力から省略
 
-## サマリー: コードインデックス vs 標準ツール
+## サマリー: unity-mcp-server vs 標準ツール
 
-| 操作 | コードインデックスツール | 時間 | 標準ツール | 時間 | 結果 |
+| 操作 | unity-mcp-server ツール | 時間 | 標準ツール | 時間 | 結果 |
 |------|------------------------|------|------------|------|------|
-| シンボル検索 | `script_symbol_find` | **瞬時** | `grep "class "` | 353ms | **コードインデックス勝利** |
-| 参照検索 | `script_refs_find` | **瞬時** | `grep "Response"` | 346ms | **コードインデックス勝利** |
-| コード検索 | `script_search` | **瞬時** | `grep` | 346ms | **コードインデックス勝利** |
+| シンボル検索 | `script_symbol_find` | **瞬時** | `grep "class "` | 353ms | **unity-mcp-server 勝利** |
+| 参照検索 | `script_refs_find` | **瞬時** | `grep "Response"` | 346ms | **unity-mcp-server 勝利** |
+| コード検索 | `script_search` | **瞬時** | `grep` | 346ms | **unity-mcp-server 勝利** |
 | ファイル読み取り | `script_read` | **瞬時** | `Read` | **瞬時** | **同等**（両方瞬時） |
 | ファイル一覧 | `code_index_status` | **瞬時** | `Glob` | **瞬時** | **同等**（両方瞬時） |
 
@@ -83,6 +82,151 @@
 | `script_symbol_find` | 34シンボル (3KB) | `grep` | 209行 (15KB) | **5倍小さい** |
 | `script_refs_find` | 20参照 (4KB) | `grep` | 全行 | **3倍小さい** |
 | `script_search` | 7ファイル、スニペット (5KB) | `grep` | 全行 | **3倍小さい** |
+
+## Serena MCP との比較
+
+### 重要: Serena の C# サポート要件
+
+Serena は公式に C# をサポートしていますが、以下の条件が必要です：
+
+| 要件 | 説明 |
+|------|------|
+| `.sln` ファイル | プロジェクトルート直下に必要 |
+| `.sln` 配置場所 | サブディレクトリ不可（ルート直下のみ） |
+| C# LSP | Microsoft.CodeAnalysis.LanguageServer（自動ダウンロード） |
+| .NET SDK | 9.x が必要（システムにインストール済みであること） |
+| `.slnx` フォーマット | **未対応**（新しい XML ベースの solution 形式） |
+
+> **注意**: 2025年12月時点で、上記要件をすべて満たしても C# サポートが動作しないケースが報告されています（[GitHub Issue #384](https://github.com/oraios/serena/issues/384)）。
+>
+> `csharp: Requires the presence of a .sln file in the project folder.`
+> — Serena 公式ドキュメント
+
+#### 注意: Unity プロジェクトでの制限
+
+Unity プロジェクトでは `.sln` ファイルは Unity Editor が IDE を検出した際に自動生成されます：
+
+- **生成場所**: Unityプロジェクトディレクトリ（例: `UnityMCPServer/UnityMCPServer.sln`）
+- **問題**: ワークスペースルートにはない（サブディレクトリに生成される）
+- **回避策**: シンボリックリンクでルートに配置 `ln -s UnityMCPServer/UnityMCPServer.sln ./`
+- **追加要件**: OmniSharp が正常に起動する環境が必要
+
+### テスト環境（再テスト: 2025-12-15）
+
+- **テストファイル**: `UnityMCPServer/Packages/unity-mcp-server/Editor/Helpers/Response.cs` (357行)
+- **Serena 設定**: `languages: [csharp, typescript]`
+- **`.sln` ファイル**: プロジェクトルートにシンボリックリンク配置
+- **C# LSP (Microsoft.CodeAnalysis.LanguageServer)**: 手動インストール済み
+- **.NET SDK**: 9.0.308 インストール済み
+
+#### 検証結果
+
+| 試行 | 結果 |
+|------|------|
+| `.sln` をルートに配置 | ❌ TypeScript フォールバック |
+| project.yml に `csharp` 追加 | ❌ TypeScript フォールバック |
+| C# LSP 手動インストール | ❌ TypeScript フォールバック |
+
+**根本原因**: Serena の言語サーバーマネージャーは、設定ファイルに `csharp` があっても TypeScript のみを開始する。C# 言語サーバーの初期化ロジック自体が動作していない可能性がある。
+
+**ログ証拠**:
+
+```
+Programming languages: typescript; file encoding: utf-8
+[StartLS:typescript] Creating language server instance ... language=typescript
+```
+
+C# 言語サーバー（`StartLS:csharp`）の開始ログは一切出力されない。
+
+### 比較結果サマリー
+
+| 操作 | unity-mcp-server | Serena MCP | 内蔵ツール | 結果 |
+|------|------------------|------------|-----------|------|
+| シンボル検索 | ✅ 構造化シンボル | ❌ 空の結果* | ✅ 生テキスト | **unity-mcp-server 勝利** |
+| 参照検索 | ✅ 22参照（スニペット付き） | ❌ 未対応* | ✅ 109行（生テキスト） | **unity-mcp-server 勝利** |
+| ファイル読み取り | ✅ 200行 (8KB) | ✅ 357行 (14KB) | ✅ 357行 (14KB) | **unity-mcp-server 勝利**（圧縮） |
+| シンボル一覧 | ✅ 15シンボル（正確） | ⚠️ 部分的（誤認識あり）* | N/A | **unity-mcp-server 勝利** |
+
+*注: `.sln` ファイルがルートにあっても、OmniSharp が正常起動しない環境では同様の結果となります。
+
+### Serena の C# 解析の問題点
+
+`.sln` ファイルがない、または OmniSharp が起動しない環境では、Serena は TypeScript パーサーでフォールバック解析を行うため：
+
+1. **`find_symbol` が機能しない**: C# シンボル検索で空の結果を返す
+2. **`using`文の誤認識**: `using System;` などを「Variable」として解析
+3. **戻り値型の誤認識**: メソッドの戻り値型 `string` を「Property」として解析
+4. **メソッド欠落**: `AttachWarnings`, `AppendWarnings`, `ErrorResult` が検出されない
+
+### 詳細比較: シンボル一覧
+
+**unity-mcp-server (`script_symbols_get`)**:
+
+```json
+{
+  "symbols": [
+    { "name": "UnityMCPServer.Helpers", "line": 10 },
+    { "name": "Response", "kind": "class", "line": 15 },
+    { "name": "GetPackageVersion", "kind": "method", "line": 21 },
+    { "name": "Success", "kind": "method", "line": 81 },
+    { "name": "Success", "kind": "method", "line": 103 },
+    { "name": "Error", "kind": "method", "line": 128 },
+    { "name": "ErrorWithId", "kind": "method", "line": 157 },
+    { "name": "Pong", "kind": "method", "line": 184 },
+    { "name": "GetCurrentEditorState", "kind": "method", "line": 199 },
+    { "name": "SuccessResult", "kind": "method", "line": 215 },
+    { "name": "SuccessResult", "kind": "method", "line": 235 },
+    { "name": "AttachWarnings", "kind": "method", "line": 250 },
+    { "name": "AppendWarnings", "kind": "method", "line": 275 },
+    { "name": "ErrorResult", "kind": "method", "line": 314 },
+    { "name": "ErrorResult", "kind": "method", "line": 339 }
+  ]
+}
+```
+
+**Serena (`get_symbols_overview`)**:
+
+```json
+{
+  "symbols": [
+    { "name": "Collections", "kind": "Variable" },  // ❌ using文
+    { "name": "Generic", "kind": "Variable" },      // ❌ using文
+    { "name": "System", "kind": "Variable" },       // ❌ using文
+    { "name": "UnityMCPServer.Helpers", "kind": "Module" },  // ✅ 正確
+    { "name": "Response", "kind": "Class", "children": [
+      { "name": "Error", "kind": "Method" },        // ✅ 正確
+      { "name": "Pong", "kind": "Method" },         // ✅ 正確
+      { "name": "string", "kind": "Property" },    // ❌ 戻り値型を誤認識
+      { "name": "Success", "kind": "Method" }      // ✅ 正確
+      // ❌ AttachWarnings, AppendWarnings, ErrorResult が欠落
+    ]}
+  ]
+}
+```
+
+### 結論: Unity C# 開発には unity-mcp-server を推奨
+
+| 観点 | unity-mcp-server | Serena（現状）† |
+|------|------------------|-----------------|
+| C# シンボル検索 | ✅ 完全対応 | ❌ 機能しない |
+| C# 解析精度 | ✅ Roslyn LSP 準拠 | ⚠️ TS フォールバック |
+| メソッドオーバーロード | ✅ 全て検出 | ⚠️ 一部欠落 |
+| Unity プロジェクト連携 | ✅ リアルタイム | ❌ なし |
+| コンパイルエラー検出 | ✅ 対応 | ❌ 未対応 |
+| `.sln` 依存 | ❌ 不要 | ✅ 必要 |
+| 追加環境設定 | ❌ 不要 | ✅ .NET 9 + C# LSP 必要 |
+| セットアップの容易さ | ✅ プラグアンドプレイ | ❌ 複雑（手動設定必要） |
+
+†現状 = .sln をルートに配置、project.yml に csharp 設定、C# LSP 手動インストール済みの環境でも C# 言語サーバーが起動しない（2025年12月時点）
+
+### なぜ Unity 開発に unity-mcp-server が適しているか
+
+1. **`.sln` 不要**: Unity Editor を起動せずにコード解析が可能
+2. **Roslyn LSP 統合**: Unity の C# コンパイラと同等の解析精度
+3. **Unity Editor 連携**: Play Mode、スクリーンショット、コンポーネント操作など
+4. **コンテキスト圧縮**: LLM に最適化された出力サイズ
+
+---
 
 ## 詳細結果
 
@@ -100,7 +244,7 @@ $ time grep -r "Response" UnityMCPServer/Packages/unity-mcp-server --include="*.
 real    0m0.346s
 ```
 
-### 2. コードインデックスステータス
+### 2. unity-mcp-server ステータス
 
 ```json
 {
@@ -192,7 +336,7 @@ real    0m0.346s
 - 行番号含む
 - フィルタリングなし
 
-**script_read**（コードインデックス）:
+**script_read**（unity-mcp-server）:
 
 - デフォルト制限: 200行、約8KB
 - 行範囲指定可能
@@ -200,13 +344,13 @@ real    0m0.346s
 
 **圧縮**: デフォルトで 1.6倍小さい
 
-## コードインデックスツールの主な利点
+## unity-mcp-server ツールの主な利点
 
 ### 1. 構造化出力
 
-コードインデックスツールは生テキストの代わりに**構造化データ**を返却:
+unity-mcp-server ツールは生テキストの代わりに**構造化データ**を返却:
 
-| データタイプ | コードインデックス | 標準 Grep |
+| データタイプ | unity-mcp-server | 標準 Grep |
 |-------------|-------------------|-----------|
 | シンボル名 | `"Response"` | 生行テキスト |
 | シンボル種類 | `"class"`, `"method"` | 利用不可 |
@@ -215,7 +359,7 @@ real    0m0.346s
 
 ### 2. コンテキスト圧縮
 
-すべてのコードインデックスツールは **LLM フレンドリー** な出力制限を実装:
+すべての unity-mcp-server ツールは **LLM フレンドリー** な出力制限を実装:
 
 | パラメータ | デフォルト | 説明 |
 |-----------|-----------|------|
@@ -406,7 +550,7 @@ const filePath = response.pathTable[result.fileId];
 
 ## 結論
 
-**コードインデックスツールは標準ファイル操作に対して大きな優位性を提供:**
+**unity-mcp-server ツールは標準ファイル操作に対して大きな優位性を提供:**
 
 1. **速度**: 128,040インデックスファイルへの瞬時クエリ
 2. **構造**: 生テキストではなくセマンティックシンボル情報

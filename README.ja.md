@@ -12,7 +12,7 @@ Unity MCP Server は、LLMクライアントからUnity Editorを自動化しま
 - **UI自動化**: UI要素の探索・操作・状態検証
 - **入力シミュレーション**: キーボード/マウス/ゲームパッド/タッチ（Input System のみ対応）
 - **ビジュアルキャプチャ**: Game/Scene/Explorer/Window の確定的スクリーンショット
-- **コードベース認識**: 同梱 C# LSP により、安全な構造化編集と正確な検索/参照
+- **コードベース認識**: 同梱 C# LSP により、安全な構造化編集と正確な検索/参照（`.sln` ファイル不要）
 - **プロジェクト制御**: 一部のプロジェクト/エディタ設定の読み書き、ログ取得、コンパイル状態取得
 - **Addressables管理**: アセット登録・整理、グループ管理、ビルド自動化
 
@@ -112,135 +112,61 @@ curl http://localhost:6401/healthz
 
 設定は任意です。設定ファイルがなくてもデフォルト値で動作します。
 
-### 設定ファイルの読み込み順序
+サーバーは起動時のカレントディレクトリ（CWD）から上位へ `.unity/config.json` を探索します（CWDが重要）。
 
-1. `UNITY_MCP_CONFIG` 環境変数（絶対パス）
-2. カレントディレクトリから上位に探索した `./.unity/config.json`
-3. `~/.unity/config.json`（ユーザーグローバル）
+詳細は [docs/configuration.md](docs/configuration.md) を参照してください。
 
-### 設定例
+## ツール探索
 
-```json
-{
-  "project": {
-    "root": ".",
-    "codeIndexRoot": "./.unity/cache/code-index"
-  }
-}
+Unity MCP Server は **100+ ツール**を提供します。`search_tools` を使って目的のツールを素早く探すのが推奨です。
+
+ツール探索とコードインデックス運用は [docs/tools.md](docs/tools.md) を参照してください。
+
+## Claude Code スキル
+
+このパッケージには、108以上のツールを効果的に使用するためのワークフロー指向のClaude Codeスキルが含まれています。
+
+### 利用可能なスキル
+
+| スキル | 説明 | トリガーキーワード |
+|--------|------|-------------------|
+| `unity-csharp-editing` | C#スクリプト編集、検索、TDDワークフローでのリファクタリング | "C#編集", "スクリプト検索", "リファクタリング" |
+| `unity-scene-management` | シーン、GameObject、コンポーネント管理 | "シーン作成", "GameObject", "コンポーネント追加" |
+| `unity-playmode-testing` | プレイモード制御、入力シミュレーション、UI自動化 | "プレイモード", "入力シミュレーション", "UIクリック" |
+| `unity-asset-management` | プレハブ、マテリアル、Addressables管理 | "プレハブ作成", "マテリアル", "Addressables" |
+
+### インストール
+
+Claude Code CLIからGitHubプラグインとしてインストール:
+
+```bash
+# ステップ1: マーケットプレイスを追加
+/plugin marketplace add akiojin/unity-mcp-server
+
+# ステップ2: プラグインをインストール
+/plugin install unity-mcp-server@unity-mcp-server
 ```
 
-### 主要な設定項目
+または、`.claude/skills/` ディレクトリを手動でプロジェクトにコピーしてください。
 
-| キー | デフォルト | 説明 |
-|-----|---------|-------------|
-| `project.root` | 自動検出 | Unityプロジェクトルート（`Assets/` を含むディレクトリ） |
-| `unity.port` | `6400` | Unity Editor のTCPポート |
-| `unity.mcpHost` | `localhost` | MCPサーバーがUnityに接続するホスト |
-| `logging.level` | `info` | ログレベル: `debug`, `info`, `warn` |
+### 使い方
 
-詳細な設定リファレンスは [docs/development.md](docs/development.md) を参照してください。
+関連キーワードを含むメッセージで自動的にスキルがアクティブになります。直接呼び出すこともできます:
 
-## 利用可能なツール
+```
+# C#編集ワークフローについて質問
+「Unity C#スクリプトの編集方法は？」
 
-### システムツール
+# シーン管理について質問
+「基本的なライティングを含む新しいシーンを作成して」
 
-- `system_ping` - 接続テスト
-- `system_refresh_assets` - Unityアセットの更新
-
-### GameObjectツール
-
-- `gameobject_create` - GameObject作成
-- `gameobject_find` - 名前/タグ/レイヤーで検索
-- `gameobject_modify` - プロパティ変更
-- `gameobject_delete` - GameObject削除
-- `gameobject_get_hierarchy` - シーンヒエラルキー取得
-
-### シーンツール
-
-- `scene_create`, `scene_load`, `scene_save`, `scene_list`, `scene_info_get`
-
-### コンポーネントツール
-
-- `component_add`, `component_remove`, `component_modify`, `component_list`
-
-### スクリプトツール
-
-- `script_read` - C#ファイル読み取り
-- `script_search` - コード検索
-- `script_symbols_get` - ファイルのシンボル取得
-- `script_symbol_find` - 名前でシンボル検索
-- `script_refs_find` - 参照検索
-- `script_edit_structured` - 構造化コード編集
-- `script_edit_snippet` - 小さなコード編集
-
-### スクリーンショットツール
-
-- `screenshot_capture` - Game/Scene/Explorer/Window ビューをキャプチャ
-- `screenshot_analyze` - キャプチャ画像の解析
-
-### 入力ツール
-
-- `input_keyboard`, `input_mouse`, `input_gamepad`, `input_touch`
-
-### プロファイラーツール
-
-- `profiler_start`, `profiler_stop`, `profiler_status`, `profiler_get_metrics`
-
-### その他のツール
-
-- `console_read`, `console_clear` - Unityコンソール
-- `test_run`, `test_get_status` - Unityテスト実行
-- `package_manage` - Unityパッケージ管理
-- `addressables_manage`, `addressables_build` - Addressables管理
+# テストについて質問
+「プレイモードでキーボード入力をシミュレートするには？」
+```
 
 ## トラブルシューティング
 
-### 接続の問題
-
-| 症状 | 原因 | 解決策 |
-|------|------|--------|
-| `Connection timeout` | Unity未起動 | Unity Editorを起動 |
-| `ECONNREFUSED` | ポートブロック | ファイアウォール確認、ポート6400確認 |
-| `Unity TCP disconnected` | プロトコル不一致 | Unity Consoleでエラー確認 |
-
-### npxの問題
-
-**ENOTEMPTYエラー**:
-
-```bash
-rm -rf ~/.npm/_npx
-```
-
-**初回実行の遅延**: パッケージを事前キャッシュ:
-
-```bash
-npx @akiojin/unity-mcp-server@latest --version
-```
-
-### デバッグログ
-
-```bash
-LOG_LEVEL=debug npx @akiojin/unity-mcp-server@latest
-```
-
-### WSL2/DockerからWindows上のUnityへの接続
-
-WSL2/Dockerから接続する場合は `host.docker.internal` を使用:
-
-```json
-{
-  "mcpServers": {
-    "unity-mcp-server": {
-      "command": "npx",
-      "args": ["@akiojin/unity-mcp-server@latest"],
-      "env": {
-        "UNITY_MCP_HOST": "host.docker.internal",
-        "UNITY_PORT": "6400"
-      }
-    }
-  }
-}
-```
+詳細は [docs/troubleshooting/README.md](docs/troubleshooting/README.md) を参照してください。
 
 ## OpenUPM スコープドレジストリ
 
@@ -295,6 +221,7 @@ csharp-lsp/          # RoslynベースLSP CLI
 
 内部開発詳細（Spec Kit、リリースプロセス、LLM最適化）:
 
+- [docs/README.md](docs/README.md)
 - [docs/development.md](docs/development.md)
 - [CLAUDE.md](CLAUDE.md)
 
