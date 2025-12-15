@@ -8,7 +8,7 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'script_search',
-      '[OFFLINE] No Unity connection required. Search C# by substring/regex/glob with pagination and snippet context. PRIORITY: Use to locate symbols/files; avoid full contents. Use returnMode="snippets" (or "metadata") with small snippetContext (1–2). Narrow aggressively via include globs under Assets/** or Packages/** and semantic filters (namespace/container/identifier). Do NOT prefix repository folders.',
+      '[OFFLINE] No Unity connection required. Search C# by substring/regex/glob with pagination and snippet context. PRIORITY: Use to locate symbols/files; avoid full contents. Use returnMode="snippets" (or "metadata") with small snippetContext (1–2). Narrow aggressively via include globs under Assets/**, Packages/**, or Library/PackageCache/** and semantic filters (namespace/container/identifier). Do NOT prefix repository folders.',
       {
         type: 'object',
         properties: {
@@ -29,9 +29,9 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
           },
           scope: {
             type: 'string',
-            enum: ['assets', 'packages', 'embedded', 'all'],
+            enum: ['assets', 'packages', 'embedded', 'library', 'all'],
             description:
-              'Search scope: assets (Assets/, default), packages (Packages/), embedded, or all.'
+              'Search scope: assets (Assets/), packages (Packages/), embedded, library (Library/PackageCache/), or all. Default: all.'
           },
           include: {
             type: 'string',
@@ -151,6 +151,7 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
       if (scope === 'assets' || scope === 'all') roots.push(info.assetsPath);
       if (scope === 'packages' || scope === 'embedded' || scope === 'all')
         roots.push(info.packagesPath);
+      if (scope === 'library' || scope === 'all') roots.push(info.packageCachePath);
 
       const includeRx = globToRegExp(include);
       const excludeRx = exclude ? globToRegExp(exclude) : null;
