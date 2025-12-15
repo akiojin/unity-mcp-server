@@ -153,11 +153,9 @@ namespace UnityMCPServer.Handlers
                     filterSettings.assemblyNames = new[] { namespaceFilter };
                 }
 
-                // Reduce domain reload impact during PlayMode tests
-                if (testMode != "EditMode")
-                {
-                    ApplyEnterPlayModeOptionsPatch();
-                }
+                // Reduce domain reload impact during tests that may enter Play Mode.
+                // Even EditMode tests can enter Play Mode via EnterPlayMode/ExitPlayMode (UnityTest).
+                ApplyEnterPlayModeOptionsPatch();
 
                 currentCollector = new TestResultCollector(resolvedExportPath, includeDetails, testMode);
                 var collector = currentCollector;

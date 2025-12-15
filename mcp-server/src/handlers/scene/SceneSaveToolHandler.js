@@ -51,23 +51,22 @@ export class SceneSaveToolHandler extends BaseToolHandler {
     // Send command to Unity
     const result = await this.unityConnection.sendCommand('save_scene', params);
 
-    // Check for Unity-side errors
-    if (result.status === 'error') {
+    // Unity returns errors as { error: "..." } payloads (still wrapped in a success response)
+    if (result && result.error) {
       const error = new Error(result.error);
       error.code = 'UNITY_ERROR';
       throw error;
     }
 
-    // Handle undefined or null results from Unity
-    if (result.result === undefined || result.result === null) {
+    // Handle undefined or null results from Unity (best-effort)
+    if (result === undefined || result === null) {
       return {
-        status: 'success',
         scenePath: params.scenePath || 'Current scene path',
         saveAs: params.saveAs === true,
         message: 'Scene save completed but Unity returned no details'
       };
     }
 
-    return result.result;
+    return result;
   }
 }

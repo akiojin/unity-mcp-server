@@ -48,6 +48,7 @@ describe('UIFindElementsToolHandler', () => {
       assert(definition.inputSchema.properties.namePattern);
       assert(definition.inputSchema.properties.includeInactive);
       assert(definition.inputSchema.properties.canvasFilter);
+      assert(definition.inputSchema.properties.uiSystem);
       assert.equal(definition.inputSchema.required, undefined);
     });
   });
@@ -92,7 +93,8 @@ describe('UIFindElementsToolHandler', () => {
           tagFilter: undefined,
           namePattern: undefined,
           includeInactive: false,
-          canvasFilter: undefined
+          canvasFilter: undefined,
+          uiSystem: undefined
         }
       ]);
 
@@ -127,7 +129,8 @@ describe('UIFindElementsToolHandler', () => {
         tagFilter: undefined,
         namePattern: undefined,
         includeInactive: false,
-        canvasFilter: undefined
+        canvasFilter: undefined,
+        uiSystem: undefined
       });
 
       assert.deepStrictEqual(result, mockResponse);
@@ -169,7 +172,8 @@ describe('UIFindElementsToolHandler', () => {
         tagFilter: undefined,
         namePattern: undefined,
         includeInactive: true,
-        canvasFilter: undefined
+        canvasFilter: undefined,
+        uiSystem: undefined
       });
 
       assert.deepStrictEqual(result, mockResponse);
@@ -184,6 +188,26 @@ describe('UIFindElementsToolHandler', () => {
       await handler.execute({});
 
       assert.strictEqual(mockUnityConnection.connect.mock.calls.length, 1);
+    });
+
+    it('should forward uiSystem filter when provided', async () => {
+      const mockResponse = { elements: [], count: 0 };
+      mockUnityConnection.sendCommand.mock.mockImplementationOnce(() =>
+        Promise.resolve(mockResponse)
+      );
+
+      const result = await handler.execute({ elementType: 'Button', uiSystem: 'uitk' });
+
+      assert.deepStrictEqual(mockUnityConnection.sendCommand.mock.calls[0].arguments[1], {
+        elementType: 'Button',
+        tagFilter: undefined,
+        namePattern: undefined,
+        includeInactive: false,
+        canvasFilter: undefined,
+        uiSystem: 'uitk'
+      });
+
+      assert.deepStrictEqual(result, mockResponse);
     });
 
     it('should handle Unity errors', async () => {

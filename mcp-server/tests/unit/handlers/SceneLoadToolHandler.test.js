@@ -10,15 +10,12 @@ describe('SceneLoadToolHandler', () => {
   beforeEach(() => {
     sendCommandSpy = mock.fn(() =>
       Promise.resolve({
-        status: 'success',
-        result: {
-          sceneName: 'MainMenu',
-          scenePath: 'Assets/Scenes/MainMenu.unity',
-          loadMode: 'Single',
-          isLoaded: true,
-          previousScene: 'SampleScene',
-          summary: 'Loaded scene "MainMenu" in Single mode'
-        }
+        sceneName: 'MainMenu',
+        scenePath: 'Assets/Scenes/MainMenu.unity',
+        loadMode: 'Single',
+        isLoaded: true,
+        previousScene: 'SampleScene',
+        summary: 'Loaded scene "MainMenu" in Single mode'
       })
     );
 
@@ -37,7 +34,7 @@ describe('SceneLoadToolHandler', () => {
   it('should have correct tool definition', () => {
     const definition = handler.getDefinition();
     assert.equal(definition.name, 'scene_load');
-    assert.equal(definition.description, 'Load a scene in Unity');
+    assert.equal(definition.description, 'Load a scene by path or name (Single/Additive).');
     assert.ok(definition.inputSchema);
     assert.ok(definition.inputSchema.properties.scenePath);
     assert.ok(definition.inputSchema.properties.sceneName);
@@ -70,15 +67,12 @@ describe('SceneLoadToolHandler', () => {
 
     sendCommandSpy.mock.mockImplementation(() =>
       Promise.resolve({
-        status: 'success',
-        result: {
-          sceneName: 'Level1',
-          scenePath: 'Assets/Levels/Level1.unity',
-          loadMode: 'Single',
-          isLoaded: true,
-          previousScene: 'MainMenu',
-          summary: 'Loaded scene "Level1" in Single mode'
-        }
+        sceneName: 'Level1',
+        scenePath: 'Assets/Levels/Level1.unity',
+        loadMode: 'Single',
+        isLoaded: true,
+        previousScene: 'MainMenu',
+        summary: 'Loaded scene "Level1" in Single mode'
       })
     );
 
@@ -142,7 +136,6 @@ describe('SceneLoadToolHandler', () => {
   it('should handle Unity error response', async () => {
     sendCommandSpy.mock.mockImplementation(() =>
       Promise.resolve({
-        status: 'error',
         error: 'Scene not found'
       })
     );
@@ -183,12 +176,7 @@ describe('SceneLoadToolHandler', () => {
 
   it('should handle Unity returning undefined result (reproduces union error)', async () => {
     // This test reproduces the union error where Unity returns success but undefined result
-    sendCommandSpy.mock.mockImplementation(() =>
-      Promise.resolve({
-        status: 'success',
-        result: undefined // This causes the union error in MCP protocol
-      })
-    );
+    sendCommandSpy.mock.mockImplementation(() => Promise.resolve(undefined));
 
     const response = await handler.handle({ sceneName: 'TestScene' });
 
@@ -201,12 +189,7 @@ describe('SceneLoadToolHandler', () => {
   });
 
   it('should handle Unity returning null result', async () => {
-    sendCommandSpy.mock.mockImplementation(() =>
-      Promise.resolve({
-        status: 'success',
-        result: null // Another edge case
-      })
-    );
+    sendCommandSpy.mock.mockImplementation(() => Promise.resolve(null));
 
     const response = await handler.handle({ sceneName: 'TestScene' });
 
