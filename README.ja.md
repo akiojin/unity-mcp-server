@@ -197,7 +197,7 @@ OpenUPMパッケージを使用するには、プロジェクトにスコープ�
 
 ```
 .unity/
-├── config.json      # ワークスペース設定
+├── cache/           # ローカルキャッシュ（Git管理外）
 └── capture/         # スクリーンショット/動画（Git管理外）
 
 UnityMCPServer/
@@ -206,7 +206,7 @@ UnityMCPServer/
 
 mcp-server/          # Node MCPサーバー
 
-csharp-lsp/          # RoslynベースLSP CLI
+csharp-lsp/          # RoslynベースLSPツール
 ```
 
 ## 機能ドキュメント

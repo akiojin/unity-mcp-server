@@ -197,7 +197,7 @@ To use OpenUPM packages, add the scoped registry to your project:
 
 ```
 .unity/
-├── config.json      # Workspace settings
+├── cache/           # Local caches (git-ignored)
 └── capture/         # Screenshots/videos (git-ignored)
 
 UnityMCPServer/
@@ -206,7 +206,7 @@ UnityMCPServer/
 
 mcp-server/          # Node MCP server
 
-csharp-lsp/          # Roslyn-based LSP CLI
+csharp-lsp/          # Roslyn-based LSP tool
 ```
 
 ## Feature Documentation
