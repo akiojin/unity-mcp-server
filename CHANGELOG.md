@@ -10,6 +10,13 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [3.2.0](https://github.com/akiojin/unity-mcp-server/compare/v3.1.0...v3.2.0) (2025-12-15)
+
+
+### Features
+
+* **mcp-server:** change output format to grouped by file path ([b608979](https://github.com/akiojin/unity-mcp-server/commit/b608979bb590451bf9c748833e5761bcc6dbbc4e))
+
 ## [3.1.0](https://github.com/akiojin/unity-mcp-server/compare/v3.0.0...v3.1.0) (2025-12-15)
 
 
