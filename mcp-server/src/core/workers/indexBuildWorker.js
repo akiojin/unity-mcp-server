@@ -512,7 +512,8 @@ async function runBuild() {
     throttleMs = 0,
     retry = 2,
     reportPercentage = 10,
-    excludePackageCache = false
+    excludePackageCache = false,
+    forceRebuild = false // Skip change detection and rebuild all files
   } = workerData;
   void _concurrency; // Explicitly mark as intentionally unused
 
@@ -593,25 +594,58 @@ async function runBuild() {
     const files = await fastWalkCs(roots);
     log('info', `[worker] Found ${files.length} C# files to process`);
 
-    // Get current indexed files
-    const currentResult = querySQL(db, 'SELECT path, sig FROM files');
-    const current = new Map();
-    if (currentResult.length > 0) {
-      for (const row of currentResult[0].values) {
-        current.set(row[0], row[1]);
+    let changed = [];
+    let removed = [];
+    const wanted = new Map();
+
+    if (forceRebuild) {
+      // Skip change detection - process all files
+      log('info', `[worker] forceRebuild=true, skipping change detection`);
+      // Clear all existing data
+      runSQL(db, 'DELETE FROM symbols');
+      runSQL(db, 'DELETE FROM files');
+      // Mark all files as changed
+      for (const abs of files) {
+        const rel = toRel(abs, projectRoot);
+        wanted.set(rel, '0-0'); // Dummy signature for forceRebuild
+        changed.push(rel);
       }
-    }
+      log('info', `[worker] All ${changed.length} files marked for processing`);
+    } else {
+      // Normal change detection
+      // Get current indexed files
+      const currentResult = querySQL(db, 'SELECT path, sig FROM files');
+      const current = new Map();
+      if (currentResult.length > 0) {
+        for (const row of currentResult[0].values) {
+          current.set(row[0], row[1]);
+        }
+      }
 
-    // Determine changes
-    const wanted = new Map(files.map(abs => [toRel(abs, projectRoot), makeSig(abs)]));
-    const changed = [];
-    const removed = [];
+      // Determine changes (this calls makeSig for each file)
+      log('info', `[worker] Computing file signatures (${files.length} files)...`);
+      const sigStartTime = Date.now();
+      let sigProcessed = 0;
+      for (const abs of files) {
+        const rel = toRel(abs, projectRoot);
+        const sig = makeSig(abs);
+        wanted.set(rel, sig);
+        sigProcessed++;
+        // Report progress every 10000 files
+        if (sigProcessed % 10000 === 0) {
+          const elapsed = ((Date.now() - sigStartTime) / 1000).toFixed(1);
+          log('info', `[worker] Signature progress: ${sigProcessed}/${files.length} (${elapsed}s)`);
+        }
+      }
+      const sigTime = ((Date.now() - sigStartTime) / 1000).toFixed(1);
+      log('info', `[worker] Signatures computed in ${sigTime}s`);
 
-    for (const [rel, sig] of wanted) {
-      if (current.get(rel) !== sig) changed.push(rel);
-    }
-    for (const [rel] of current) {
-      if (!wanted.has(rel)) removed.push(rel);
+      for (const [rel, sig] of wanted) {
+        if (current.get(rel) !== sig) changed.push(rel);
+      }
+      for (const [rel] of current) {
+        if (!wanted.has(rel)) removed.push(rel);
+      }
     }
 
     log('info', `[worker] Changes: ${changed.length} to update, ${removed.length} to remove`);
