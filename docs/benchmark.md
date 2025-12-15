@@ -4,7 +4,6 @@
 
 This document presents comprehensive performance comparison testing between unity-mcp-server code index tools and standard Claude Code tools (Read, Grep, Edit).
 
-**Test Date**: 2025-11-27
 **Environment**: Linux (WSL2), Node.js 22.x, Unity Editor connected
 
 ## Grep Baseline Performance
@@ -413,7 +412,6 @@ Without DB index, LSP-based search times out (60s). This is not a bug - it's the
 
 ## Worker Thread Implementation Performance (FR-056 ~ FR-061)
 
-**Test Date**: 2025-11-27
 **Environment**: Linux (WSL2), Node.js 22.x, Unity Editor connected
 **Configuration**: `watch: true` (background index build enabled)
 

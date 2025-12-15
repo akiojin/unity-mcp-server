@@ -4,7 +4,6 @@
 
 | 項目 | 値 |
 |------|-----|
-| 日付 | 2025-12-13 |
 | プラットフォーム | Linux 6.6.87.2-microsoft-standard-WSL2 (x86_64) |
 | Node.js | v22.21.1 |
 | Unity MCP Server | v2.42.4 |
