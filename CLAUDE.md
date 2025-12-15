@@ -39,8 +39,8 @@
 1. **`/speckit.specify`**: 機能仕様書を作成 (`specs/SPEC-[UUID8桁]/spec.md`)
    - ビジネス要件とユーザーストーリーを定義
    - 「何を」「なぜ」に焦点を当てる（「どのように」は含めない）
-   - SPECディレクトリ、featureブランチ、Worktreeを自動作成
-   - 作業は`.worktrees/SPEC-xxx/`内で実施
+   - SPECディレクトリを自動作成（`specs/SPEC-xxxxxxxx/`）
+   - Gitブランチ/Worktreeは作成しない（必要なら手動運用）
 
 2. **`/speckit.plan`**: 実装計画を作成 (`specs/SPEC-[UUID8桁]/plan.md`)
    - 技術スタック、アーキテクチャ、データモデルを設計
@@ -57,7 +57,7 @@
 #### Spec命名規則
 
 - **形式**: `SPEC-[UUID8桁]`
-- **UUID生成**: ランダムな英数字（小文字）8桁
+- **UUID生成**: ランダムな16進数（小文字）8桁（`a-f0-9`）
   - ✅ 正しい例: `SPEC-a1b2c3d4`, `SPEC-3f8e9d2a`, `SPEC-7c4b1e5f`
   - ❌ 間違い例: `SPEC-001`, `SPEC-gameobj`, `SPEC-core-001`
 - **禁止事項**:
@@ -66,90 +66,35 @@
   - 大文字の使用（UUID部分は小文字のみ）
 - **生成方法**: `uuidgen | tr '[:upper:]' '[:lower:]' | cut -c1-8` またはオンラインUUID生成ツール
 
-#### Worktree＆ブランチ運用（必須）
+#### ブランチ運用（任意）
 
-**すべてのSPEC開発はWorktreeで並行作業**
+Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し、**Gitブランチ/Worktreeは作成しません**。
 
-本プロジェクトは**Git Worktree**を使用した並行開発フローを採用しています。各SPECは独立したWorktreeで作業し、完了後にGitHub Pull Requestを作成して自動マージします（**GitHub Actions自動マージ**）。
+**現在の作業対象要件の選択**:
 
-**ブランチ命名規則**:
+- `/speckit.specify` 実行時に、対象の `FEATURE_ID` が `.specify/current-feature` に保存されます。
+- 以降の `/speckit.plan`・`/speckit.tasks` などは、この値を参照して `specs/SPEC-xxxxxxxx/` を特定します。
+- 明示的に切り替えたい場合は、環境変数 `SPECIFY_FEATURE=SPEC-xxxxxxxx` を設定しても構いません。
 
-- **形式**: `feature/SPEC-[UUID8桁]`
-- **例**: `feature/SPEC-a1b2c3d4`, `feature/SPEC-3f8e9d2a`
-- 各SPECに対して1つのfeatureブランチを作成
-- developブランチから派生
+**要件一覧**:
 
-**Worktree配置**:
+- `specs/README.md` は `/speckit.specify` 実行時に自動更新されます。
+- 手動で再生成する場合は `.specify/scripts/bash/update-specs-readme.sh` を実行します。
 
-- **場所**: `.worktrees/SPEC-[UUID8桁]/`
-- **例**: `.worktrees/SPEC-a1b2c3d4/`
-- Git管理外（`.gitignore`登録済み）
-- 各Worktreeは完全な作業ツリーを持つ
+**ブランチが必要な場合**（任意）:
 
-**新規SPEC作成フロー**:
-
-1. `/speckit.specify` コマンド実行
-   - SPECディレクトリ作成（`specs/SPEC-xxx/`）
-   - featureブランチ作成（`feature/SPEC-xxx`）
-   - Worktree作成（`.worktrees/SPEC-xxx/`）
-   - 初期ファイル生成（`spec.md`）
-
-2. Worktreeに移動して作業開始:
-   ```bash
-   cd .worktrees/SPEC-a1b2c3d4/
-   ```
-
-3. 独立して開発作業を実行:
-   - TDDサイクル厳守
-   - 各変更をコミット
-   - 他のSPECと完全に独立
-
-**作業完了フロー**:
-
-1. Worktree内で最終コミット完了を確認
-2. finish-featureスクリプト実行:
-   ```bash
-   .specify/scripts/bash/finish-feature.sh
-   # またはドラフトPRとして作成:
-   .specify/scripts/bash/finish-feature.sh --draft
-   ```
-
-3. 自動実行される処理:
-   - featureブランチをリモートにpush
-   - GitHub PRを自動作成（spec.mdからタイトル取得）
-   - GitHub ActionsでRequiredチェックを監視し、自動マージ可否を判定
-   - Requiredチェックがすべて成功した場合のみ自動的にdevelopへマージ（`--no-ff`で履歴保持）
-
-**既存SPEC移行**:
-
-既存の16個のSPECは既にWorktree移行済み。各SPECは以下で確認:
-
-```bash
-# 全Worktree一覧
-git worktree list
-
-# 全featureブランチ一覧
-git branch | grep "feature/SPEC-"
-
-# 特定SPECで作業開始
-cd .worktrees/SPEC-0d5d84f9/
-```
-
-**重要な注意事項**:
-
-- **main/developブランチで直接SPEC作業禁止**: 必ずWorktreeを使用
-- **PR自動マージ**: GitHub Actionsで Required チェック完了後にdevelopへ自動マージ
-- **ドラフトPR**: `--draft`オプションで作成したPRは自動マージ対象外
-- **並行開発推奨**: 複数のSPECを同時に異なるWorktreeで作業可能
-- **Worktree間の独立性**: 各Worktreeは完全に独立（相互干渉なし）
-- **コミット**: Worktree内でのコミットはfeatureブランチに記録される
-- **GitHub CLI必須**: `gh auth login`で認証が必要
+- 通常のGit運用に従って手動でブランチを作成してください（Speckitは関与しません）。
 
 **スクリプト**:
 
-- `.specify/scripts/bash/create-new-feature.sh`: 新規SPEC＆Worktree作成
-- `.specify/scripts/bash/finish-feature.sh`: PR作成（自動マージトリガー）
+- `.specify/scripts/bash/create-new-feature.sh`: 新規SPEC作成（ブランチなし）
+- `.specify/scripts/bash/update-specs-readme.sh`: `specs/README.md` の再生成
 - `.specify/scripts/checks/*.sh`: 任意チェック用スクリプト（tasks/tests/compile/commits 等）
+
+**Speckitアップデート**:
+
+- 手順（Runbook）: `docs/runbooks/speckit-upgrade.md`
+- 上流スナップショット取得（比較用）: `bash scripts/upgrade-speckit.sh --tag vX.Y.Z`
 
 ### TDD遵守（妥協不可）
 
@@ -184,25 +129,19 @@ cd .worktrees/SPEC-0d5d84f9/
 **新規機能開発フロー**:
 
 1. `/speckit.specify` - ビジネス要件を定義（技術詳細なし）
-   - 自動的にfeatureブランチ＆Worktree作成
-   - `.worktrees/SPEC-xxx/`に移動して作業開始
 2. `/speckit.plan` - 技術設計を作成（憲章チェック必須）
-   - Worktree内で実行
 3. `/speckit.tasks` - 実行可能タスクに分解
    - 実装実行は `/speckit.implement` で補助的に利用可能
-   - Worktree内で実行
 4. タスク実行（TDDサイクル厳守）
-   - Worktree内で独立して作業
-   - 各変更をfeatureブランチにコミット
-5. 完了後、`finish-feature.sh`でdevelopにマージ＆Worktree削除
+   - 通常の作業ツリーで実施（Speckitはブランチ/Worktreeを作成しない）
+5. 完了後は、必要に応じて通常のGit運用（ブランチ作成/PR/マージ）で統合
 
 **既存機能のSpec化フロー**:
 
-1. 対応するWorktreeに移動: `cd .worktrees/SPEC-xxx/`
-2. `/speckit.specify` - 実装済み機能のビジネス要件を文書化
-3. `/speckit.plan` - （必要に応じて）技術設計を追記
-4. 既存実装とSpecの整合性確認
-5. 完了後、`finish-feature.sh`でdevelopにマージ
+1. `/speckit.specify` - 実装済み機能のビジネス要件を文書化
+2. `/speckit.plan` - （必要に応じて）技術設計を追記
+3. 既存実装とSpecの整合性確認
+4. 完了後は、必要に応じて通常のGit運用（PR/マージ）で統合
 
 **Spec作成原則**:
 
@@ -686,7 +625,7 @@ git commit -m "feat: add hooks and fix bug and update docs"
 - featureブランチから作成するPRの宛先は必ず`develop`。`main`への直接PRは禁止（hotfixも`develop`経由でバックポート）。
 
 1. **featureブランチで開発**（Conventional Commits厳守）
-   - `finish-feature.sh`でPR作成 → develop向け。
+   - PRは `develop` 宛に作成（例: `gh pr create --base develop`）。
    - Required Checks（Markdown/ESLint/Prettier・Commit Message Lint）成功でauto-merge。
 2. **develop→mainマージ**
    - `/release` コマンドまたは手動で`prepare-release-pr.sh`を実行 → develop→main PRを作成・自動マージ。

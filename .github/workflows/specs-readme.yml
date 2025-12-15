@@ -1,0 +1,31 @@
+name: Specs README
+
+on:
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  specs-readme:
+    name: Verify specs/README.md is up-to-date
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate specs/README.md
+        run: bash .specify/scripts/bash/update-specs-readme.sh --quiet
+
+      - name: Fail if specs/README.md changed
+        run: |
+          status="$(git status --porcelain -- specs/README.md)"
+          if [[ -n "$status" ]]; then
+            echo "ERROR: specs/README.md が最新ではありません。"
+            echo "ローカルで次を実行してコミットしてください:"
+            echo "  bash .specify/scripts/bash/update-specs-readme.sh --quiet"
+            echo ""
+            echo "git status:"
+            echo "$status"
+            exit 1
+          fi
