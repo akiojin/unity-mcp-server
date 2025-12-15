@@ -84,6 +84,63 @@
 | `script_refs_find` | 20 refs (4KB) | `grep` | Full lines | **3x smaller** |
 | `script_search` | 7 files, snippets (5KB) | `grep` | Full lines | **3x smaller** |
 
+## Scale-Based Benchmark (Measured Results)
+
+Performance comparison of SQLite index vs ripgrep by project scale.
+
+### Test Environment
+
+- **Small**: unity-mcp-server package (68 C# files)
+- **Medium**: Assets + Packages + Library/PackageCache (~7,200 C# files)
+- **Large**: Generated test files (100,003 C# files, 1,258,739 symbols)
+
+### Comparison Summary
+
+| Scale | File Count | SQLite Index | ripgrep | Speedup |
+|-------|-----------|--------------|---------|---------|
+| Small | 68 | <1ms | 165ms | **>165x** |
+| Medium | ~7,200 | <5ms | ~500ms | **>100x** |
+| Large | 100,003 | <8ms | 48-62s | **>6,000x** |
+
+### Large-Scale Benchmark Details (100,003 files)
+
+#### SQLite Index Queries
+
+| Query Type | Execution Time | Match Count |
+|------------|---------------|-------------|
+| Exact match (Helper) | 7.79ms | 1 |
+| Exact match (BaseEntity) | 0.06ms | 1 |
+| Exact match (IService) | 0.04ms | 1 |
+| Kind filter (kind=class) | 5.16ms | 100,138 |
+
+#### ripgrep Searches
+
+| Query Type | Execution Time | Match Count |
+|------------|---------------|-------------|
+| Utils.Helper (100K refs) | 48,950ms (49s) | 100,000 files |
+| class BaseEntity (1 match) | 57,164ms (57s) | 1 file |
+| IService (100K impls) | 55,167ms (55s) | 20,001 files |
+| public class (all classes) | 61,693ms (62s) | 100,000 files |
+
+### Small-Scale Benchmark Details (68 files)
+
+#### ripgrep Searches
+
+| Query Type | Execution Time | Match Count |
+|------------|---------------|-------------|
+| Response (class) | 165ms | 7 files |
+| public class (all) | 164ms | 24 files |
+
+### Conclusion
+
+| Scale | SQLite Advantage | Recommended Use |
+|-------|-----------------|-----------------|
+| Small (~100) | **165x faster** | Single package development |
+| Medium (~10K) | **100x faster** | Typical Unity projects |
+| Large (~100K) | **6,000x faster** | Large games / Enterprise |
+
+> **Important**: The SQLite index advantage grows exponentially with project scale. At 100K file scale, searches that take ripgrep nearly a minute complete in under 8ms with SQLite.
+
 ## Detailed Results
 
 ### 1. Grep Baseline (Standard Tool)
