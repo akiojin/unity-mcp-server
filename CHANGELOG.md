@@ -10,6 +10,23 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [3.0.0](https://github.com/akiojin/unity-mcp-server/compare/v2.46.0...v3.0.0) (2025-12-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **config:** 環境変数による設定（UNITY_* / LOG_LEVEL / UNITY_MCP_CONFIG 等）は無効化 ~/.unity/config.json もサポートしません。 設定はワークスペースの .unity/config.json のみです。
+
+### Features
+
+* **plugin:** add Claude Code plugin manifest for marketplace distribution ([ff1c520](https://github.com/akiojin/unity-mcp-server/commit/ff1c52078720d060f93cf025cf52821971be4c29))
+* **skills:** add Claude Code skills for Unity MCP Server ([20844c3](https://github.com/akiojin/unity-mcp-server/commit/20844c3032547b2095b0c75852ad17622cad4fa0))
+
+
+### Code Refactoring
+
+* **config:** 設定を .unity/config.json のみに統一 ([6c76564](https://github.com/akiojin/unity-mcp-server/commit/6c765646b6e9ab9df70a7a1fa0a63a6649a2bdde))
+
 ## [2.46.0](https://github.com/akiojin/unity-mcp-server/compare/v2.45.5...v2.46.0) (2025-12-13)
 
 
