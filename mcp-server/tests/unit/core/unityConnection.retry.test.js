@@ -28,8 +28,9 @@ describe('UnityConnection Retry Logic', () => {
     config.unity.reconnectDelay = 100;
     config.unity.maxReconnectDelay = 500;
     config.unity.commandTimeout = 1000;
-    config.unity.unityHost = 'localhost';
-    config.unity.mcpHost = 'localhost';
+    config.unity.connectTimeout = 1000;
+    config.unity.unityHost = '127.0.0.1';
+    config.unity.mcpHost = '127.0.0.1';
 
     connection = new UnityConnection();
   });
@@ -57,7 +58,7 @@ describe('UnityConnection Retry Logic', () => {
       });
 
       await new Promise(resolve => {
-        mockServer.listen(0, 'localhost', () => {
+        mockServer.listen(0, '127.0.0.1', () => {
           serverPort = mockServer.address().port;
           resolve();
         });
@@ -130,7 +131,7 @@ describe('UnityConnection Retry Logic', () => {
       });
 
       await new Promise(resolve => {
-        mockServer.listen(0, 'localhost', () => {
+        mockServer.listen(0, '127.0.0.1', () => {
           serverPort = mockServer.address().port;
           resolve();
         });
@@ -154,7 +155,7 @@ describe('UnityConnection Retry Logic', () => {
       // Create a server
       mockServer = net.createServer();
       await new Promise(resolve => {
-        mockServer.listen(0, 'localhost', () => {
+        mockServer.listen(0, '127.0.0.1', () => {
           serverPort = mockServer.address().port;
           resolve();
         });
@@ -218,7 +219,7 @@ describe('UnityConnection Retry Logic', () => {
       });
 
       await new Promise(resolve => {
-        mockServer.listen(0, 'localhost', () => {
+        mockServer.listen(0, '127.0.0.1', () => {
           serverPort = mockServer.address().port;
           resolve();
         });
@@ -266,7 +267,7 @@ describe('UnityConnection Retry Logic', () => {
       });
 
       await new Promise(resolve => {
-        mockServer.listen(0, 'localhost', () => {
+        mockServer.listen(0, '127.0.0.1', () => {
           serverPort = mockServer.address().port;
           resolve();
         });
@@ -326,7 +327,7 @@ describe('UnityConnection Retry Logic', () => {
       });
 
       await new Promise(resolve => {
-        mockServer.listen(0, 'localhost', () => {
+        mockServer.listen(0, '127.0.0.1', () => {
           serverPort = mockServer.address().port;
           resolve();
         });

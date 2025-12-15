@@ -88,8 +88,8 @@ namespace UnityMCPServer.Handlers
                 string dir = projectRoot;
                 for (int i = 0; i < 3; i++)
                 {
-                    var cfgPath = Path.Combine(dir, ".unity", "config.json");
-                    if (File.Exists(cfgPath)) return dir;
+                    var unityDir = Path.Combine(dir, ".unity");
+                    if (Directory.Exists(unityDir)) return dir;
                     var parent = Directory.GetParent(dir);
                     if (parent == null) break;
                     dir = parent.FullName;

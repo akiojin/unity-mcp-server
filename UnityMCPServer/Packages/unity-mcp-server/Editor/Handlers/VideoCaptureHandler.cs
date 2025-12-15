@@ -55,7 +55,7 @@ namespace UnityMCPServer.Handlers
                 s_IncludeUI = parameters["includeUI"]?.ToObject<bool>() ?? true;
                 s_MaxDurationSec = Math.Max(0, parameters["maxDurationSec"]?.ToObject<double>() ?? 0);
 
-                // 固定保存先: <project>/.unity/captures
+                // 固定保存先: <workspace>/.unity/captures
                 string format = parameters["format"]?.ToString() ?? "mp4";
                 if (!IsValidFormat(format))
                 {
@@ -65,7 +65,8 @@ namespace UnityMCPServer.Handlers
                 {
                     string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
                     var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-                    var workspaceRoot = ResolveWorkspaceRoot(projectRoot);
+                    var wsParam = parameters["workspaceRoot"]?.ToString();
+                    string workspaceRoot = !string.IsNullOrEmpty(wsParam) ? wsParam : ResolveWorkspaceRoot(projectRoot);
                     var captureDir = Path.Combine(workspaceRoot, ".unity", "captures");
                     if (!Directory.Exists(captureDir)) Directory.CreateDirectory(captureDir);
                     string ext = string.Equals(format, "webm", StringComparison.OrdinalIgnoreCase) ? ".webm" : ".mp4";
@@ -95,7 +96,22 @@ namespace UnityMCPServer.Handlers
                 // 出力先（ワークスペース直下 .unity/captures/<file>）に設定
                 var fileNoExt = Path.GetFileNameWithoutExtension(s_OutputPath);
                 s_MovieRecorderSettings.FileNameGenerator.Root = OutputPath.Root.Project;
-                s_MovieRecorderSettings.FileNameGenerator.Leaf = "/../.unity/captures";
+                {
+                    string captureDir = Path.GetDirectoryName(s_OutputPath);
+                    string leaf = "../.unity/captures";
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(captureDir))
+                        {
+                            leaf = Path.GetRelativePath(Path.GetFullPath(Path.Combine(Application.dataPath, "..")), captureDir);
+                            if (Path.IsPathRooted(leaf)) leaf = "../.unity/captures";
+                        }
+                    }
+                    catch { leaf = "../.unity/captures"; }
+                    leaf = leaf.Replace('\\', '/');
+                    if (!leaf.StartsWith("/")) leaf = "/" + leaf;
+                    s_MovieRecorderSettings.FileNameGenerator.Leaf = leaf;
+                }
                 s_MovieRecorderSettings.FileNameGenerator.FileName = fileNoExt;
                 // フォーマット設定はデフォルト（MP4/H.264）を使用
 
@@ -239,19 +255,8 @@ namespace UnityMCPServer.Handlers
                 string dir = projectRoot;
                 for (int i = 0; i < 10; i++)
                 {
-                    var configPath = Path.Combine(dir, ".unity", "config.json");
-                    if (File.Exists(configPath))
-                    {
-                        var json = File.ReadAllText(configPath);
-                        var cfg = JObject.Parse(json);
-                        var pr = cfg?["project"]?["root"]?.ToString();
-                        if (!string.IsNullOrEmpty(pr))
-                        {
-                            string prAbs = pr;
-                            if (!Path.IsPathRooted(prAbs)) prAbs = Path.GetFullPath(Path.Combine(dir, prAbs));
-                            if (PathsEqual(prAbs, projectRoot)) return dir;
-                        }
-                    }
+                    var unityDir = Path.Combine(dir, ".unity");
+                    if (Directory.Exists(unityDir)) return dir;
                     var parent = Directory.GetParent(dir);
                     if (parent == null) break;
                     dir = parent.FullName;
@@ -259,17 +264,6 @@ namespace UnityMCPServer.Handlers
             }
             catch { }
             return projectRoot;
-        }
-
-        private static bool PathsEqual(string a, string b)
-        {
-            try
-            {
-                var na = Path.GetFullPath(a).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                var nb = Path.GetFullPath(b).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                return string.Equals(na, nb, StringComparison.OrdinalIgnoreCase);
-            }
-            catch { return string.Equals(a, b, StringComparison.OrdinalIgnoreCase); }
         }
 
         private static bool IsValidCaptureMode(string mode)

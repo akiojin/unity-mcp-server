@@ -1,11 +1,7 @@
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import * as findUpPkg from 'find-up';
 import { MCPLogger } from './mcpLogger.js';
-
-// Diagnostic log: confirm module loading reached this point
-process.stderr.write('[unity-mcp-server] Config module loading...\n');
 
 function findUpSyncCompat(matcher, options = {}) {
   if (typeof matcher === 'function') {
@@ -37,6 +33,30 @@ function merge(a, b) {
     }
   }
   return out;
+}
+
+function parseBoolEnv(value) {
+  if (typeof value !== 'string') return undefined;
+  const v = value.trim().toLowerCase();
+  if (v === '') return undefined;
+  if (v === '1' || v === 'true' || v === 'yes' || v === 'y' || v === 'on') return true;
+  if (v === '0' || v === 'false' || v === 'no' || v === 'n' || v === 'off') return false;
+  return undefined;
+}
+
+function parseIntEnv(value) {
+  if (typeof value !== 'string') return undefined;
+  const v = value.trim();
+  if (v === '') return undefined;
+  const n = Number.parseInt(v, 10);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function envString(key) {
+  const raw = process.env[key];
+  if (typeof raw !== 'string') return undefined;
+  const v = raw.trim();
+  return v.length > 0 ? v : undefined;
 }
 
 function resolvePackageVersion() {
@@ -71,14 +91,21 @@ function resolvePackageVersion() {
 const baseConfig = {
   // Unity connection settings
   unity: {
-    unityHost: null,
-    mcpHost: null,
-    bindHost: null,
+    unityHost: 'localhost',
+    mcpHost: 'localhost',
+    bindHost: 'localhost',
     port: 6400,
     reconnectDelay: 1000,
     maxReconnectDelay: 30000,
     reconnectBackoffMultiplier: 2,
+    connectTimeout: 3000,
     commandTimeout: 30000
+  },
+
+  // Project settings (primarily for code index paths)
+  project: {
+    root: null,
+    codeIndexRoot: null
   },
 
   // Server settings
@@ -136,83 +163,124 @@ const baseConfig = {
   }
 };
 
-/**
- * External config resolution:
- * - Uses the nearest `.unity/config.json` found by walking up from the current working directory.
- * - Intentionally ignores `~/.unity/config.json` (user-global).
- */
-function loadExternalConfig() {
-  if (typeof findUpSyncCompat !== 'function') {
-    return {};
+function loadEnvConfig() {
+  const unityHost = envString('UNITY_MCP_UNITY_HOST');
+  const mcpHost = envString('UNITY_MCP_MCP_HOST');
+  const unityPort = parseIntEnv(process.env.UNITY_MCP_PORT);
+
+  const projectRoot = envString('UNITY_PROJECT_ROOT');
+
+  const logLevel = envString('UNITY_MCP_LOG_LEVEL');
+
+  const httpEnabled = parseBoolEnv(process.env.UNITY_MCP_HTTP_ENABLED);
+  const httpPort = parseIntEnv(process.env.UNITY_MCP_HTTP_PORT);
+
+  const telemetryEnabled = parseBoolEnv(process.env.UNITY_MCP_TELEMETRY_ENABLED);
+  const lspRequestTimeoutMs = parseIntEnv(process.env.UNITY_MCP_LSP_REQUEST_TIMEOUT_MS);
+
+  const out = {};
+
+  if (unityHost || mcpHost || unityPort !== undefined) {
+    out.unity = {};
+    if (unityHost) out.unity.unityHost = unityHost;
+    if (mcpHost) out.unity.mcpHost = mcpHost;
+    if (unityPort !== undefined) out.unity.port = unityPort;
+    if (out.unity.unityHost) out.unity.bindHost = out.unity.unityHost;
   }
-  let userGlobalPath = null;
-  try {
-    const homeDir = os.homedir();
-    userGlobalPath = homeDir ? path.resolve(homeDir, '.unity', 'config.json') : null;
-  } catch {}
 
-  const projectPath = findUpSyncCompat(
-    directory => {
-      const candidate = path.resolve(directory, '.unity', 'config.json');
-      if (userGlobalPath && path.resolve(candidate) === userGlobalPath) return undefined;
-      return fs.existsSync(candidate) ? candidate : undefined;
-    },
-    { cwd: process.cwd() }
-  );
+  if (projectRoot) {
+    out.project = {};
+    if (projectRoot) out.project.root = projectRoot;
+  }
 
-  if (!projectPath) return {};
-  try {
-    const raw = fs.readFileSync(projectPath, 'utf8');
-    const json = JSON.parse(raw);
-    const out = json && typeof json === 'object' ? json : {};
-    out.__configPath = projectPath;
-    return out;
-  } catch (e) {
-    return { __configLoadError: `${projectPath}: ${e.message}` };
+  if (logLevel) {
+    out.logging = { level: logLevel };
+  }
+
+  if (httpEnabled !== undefined || httpPort !== undefined) {
+    out.http = {};
+    if (httpEnabled !== undefined) out.http.enabled = httpEnabled;
+    if (httpPort !== undefined) out.http.port = httpPort;
+  }
+
+  if (telemetryEnabled !== undefined) {
+    out.telemetry = { enabled: telemetryEnabled };
+  }
+
+  if (lspRequestTimeoutMs !== undefined) {
+    out.lsp = { requestTimeoutMs: lspRequestTimeoutMs };
+  }
+
+  return out;
+}
+
+function validateAndNormalizeConfig(cfg) {
+  // Unity port
+  if (!Number.isInteger(cfg.unity.port) || cfg.unity.port <= 0 || cfg.unity.port >= 65536) {
+    console.error(
+      `[unity-mcp-server] WARN: Invalid UNITY_MCP_PORT (${cfg.unity.port}); using default 6400`
+    );
+    cfg.unity.port = 6400;
+  }
+
+  // HTTP port
+  if (cfg.http?.port !== undefined) {
+    if (!Number.isInteger(cfg.http.port) || cfg.http.port <= 0 || cfg.http.port >= 65536) {
+      console.error(
+        `[unity-mcp-server] WARN: Invalid UNITY_MCP_HTTP_PORT (${cfg.http.port}); using default 6401`
+      );
+      cfg.http.port = 6401;
+    }
+  }
+
+  // logging.level
+  if (cfg.logging?.level) {
+    const level = String(cfg.logging.level).toLowerCase();
+    const allowed = new Set(['debug', 'info', 'warn', 'warning', 'error']);
+    if (!allowed.has(level)) {
+      console.error(
+        `[unity-mcp-server] WARN: Invalid UNITY_MCP_LOG_LEVEL (${cfg.logging.level}); using default info`
+      );
+      cfg.logging.level = 'info';
+    } else {
+      cfg.logging.level = level === 'warning' ? 'warn' : level;
+    }
+  }
+
+  // unity hosts
+  if (typeof cfg.unity.unityHost !== 'string' || cfg.unity.unityHost.trim() === '') {
+    cfg.unity.unityHost = 'localhost';
+  }
+  if (typeof cfg.unity.mcpHost !== 'string' || cfg.unity.mcpHost.trim() === '') {
+    cfg.unity.mcpHost = cfg.unity.unityHost;
+  }
+  cfg.unity.bindHost = cfg.unity.unityHost;
+
+  // project roots (keep as-is; resolved later)
+  if (cfg.project?.root && typeof cfg.project.root !== 'string') {
+    cfg.project.root = null;
+  }
+  if (cfg.project?.codeIndexRoot && typeof cfg.project.codeIndexRoot !== 'string') {
+    cfg.project.codeIndexRoot = null;
+  }
+
+  // lsp timeout sanity
+  if (cfg.lsp?.requestTimeoutMs !== undefined) {
+    const t = Number(cfg.lsp.requestTimeoutMs);
+    if (!Number.isFinite(t) || t <= 0) {
+      console.error(
+        `[unity-mcp-server] WARN: Invalid UNITY_MCP_LSP_REQUEST_TIMEOUT_MS (${cfg.lsp.requestTimeoutMs}); using default 60000`
+      );
+      cfg.lsp.requestTimeoutMs = 60000;
+    }
   }
 }
 
-const external = loadExternalConfig();
-export const config = merge(baseConfig, external);
+export const config = merge(baseConfig, loadEnvConfig());
+validateAndNormalizeConfig(config);
 
-const normalizeUnityConfig = () => {
-  const unityConfig = config.unity || (config.unity = {});
-
-  // Legacy aliases coming from config files
-  const legacyHost = unityConfig.host;
-  const legacyClientHost = unityConfig.clientHost;
-  const legacyBindHost = unityConfig.bindHost;
-
-  if (!unityConfig.unityHost) {
-    unityConfig.unityHost = legacyBindHost || legacyHost || 'localhost';
-  }
-
-  if (!unityConfig.mcpHost) {
-    unityConfig.mcpHost = legacyClientHost || legacyHost || unityConfig.unityHost;
-  }
-
-  // Keep bindHost for backwards compatibility with legacy code paths
-  if (!unityConfig.bindHost) {
-    unityConfig.bindHost = legacyBindHost || unityConfig.unityHost;
-  }
-
-  // Maintain legacy properties so older handlers keep working
-  unityConfig.host = unityConfig.unityHost;
-  unityConfig.clientHost = unityConfig.mcpHost;
-};
-
-normalizeUnityConfig();
-
-// Workspace root detection: directory that contains .unity/config.json used
-const initialCwd = process.cwd();
-let workspaceRoot = initialCwd;
-try {
-  if (config.__configPath) {
-    const cfgDir = path.dirname(config.__configPath); // <workspace>/.unity
-    workspaceRoot = path.dirname(cfgDir); // <workspace>
-  }
-} catch {}
-export const WORKSPACE_ROOT = workspaceRoot;
+// Workspace root: current working directory (used for cache/capture roots)
+export const WORKSPACE_ROOT = process.cwd();
 
 /**
  * Logger utility
@@ -224,18 +292,9 @@ export const WORKSPACE_ROOT = workspaceRoot;
  */
 export const logger = new MCPLogger(config);
 
-// Late log if external config failed to load
-if (config.__configLoadError) {
-  console.error(
-    `${baseConfig.logging.prefix} WARN: Failed to load external config: ${config.__configLoadError}`
-  );
-  delete config.__configLoadError;
-}
-
 // Startup debug log: output config info to stderr for troubleshooting
 // This helps diagnose connection issues (especially in WSL2/Docker environments)
 console.error(`[unity-mcp-server] Startup config:`);
-console.error(`[unity-mcp-server]   Config file: ${config.__configPath || '(not found)'}`);
 console.error(
   `[unity-mcp-server]   Unity host: ${config.unity.mcpHost || config.unity.unityHost || 'localhost'}`
 );
