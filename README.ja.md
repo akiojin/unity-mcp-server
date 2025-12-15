@@ -211,8 +211,11 @@ curl http://localhost:6401/healthz
 Claude Code CLIからGitHubプラグインとしてインストール:
 
 ```bash
-# Claude Code CLIで実行
-/install akiojin/unity-mcp-server
+# ステップ1: マーケットプレイスを追加
+/plugin marketplace add akiojin/unity-mcp-server
+
+# ステップ2: プラグインをインストール
+/plugin install unity-mcp-server@unity-mcp-server
 ```
 
 または、`.claude/skills/` ディレクトリを手動でプロジェクトにコピーしてください。

@@ -213,8 +213,11 @@ This package includes Claude Code skills that provide workflow-oriented guidance
 Install as a Claude Code plugin from GitHub:
 
 ```bash
-# In Claude Code CLI
-/install akiojin/unity-mcp-server
+# Step 1: Add marketplace
+/plugin marketplace add akiojin/unity-mcp-server
+
+# Step 2: Install plugin
+/plugin install unity-mcp-server@unity-mcp-server
 ```
 
 Or manually copy the `.claude/skills/` directory to your project.
