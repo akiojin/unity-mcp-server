@@ -10,6 +10,32 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [3.1.0](https://github.com/akiojin/unity-mcp-server/compare/v3.0.0...v3.1.0) (2025-12-15)
+
+
+### Features
+
+* **code-index:** add forceRebuild option and 100K benchmark results ([43084ae](https://github.com/akiojin/unity-mcp-server/commit/43084ae8d4ee573ddc5482859f6936663b5d3446))
+* **test:** add large-scale C# file generation script ([ee74cb3](https://github.com/akiojin/unity-mcp-server/commit/ee74cb37e511ec018cdf2970317c85c0e9f025c5))
+* **ui:** UI操作をIMGUI/uGUI/UITK対応 ([29eff99](https://github.com/akiojin/unity-mcp-server/commit/29eff994f4f1017417a1d41cba820a75a6a0a11a))
+* UI操作のIMGUI/uGUI/UITK対応とツール改善 ([8c928dd](https://github.com/akiojin/unity-mcp-server/commit/8c928dd50d482a2095c413eb3a620909a84308aa))
+* UI操作のIMGUI/uGUI/UITK対応と検証シーン追加 ([f85507d](https://github.com/akiojin/unity-mcp-server/commit/f85507d0dac85bf6f0ff348ec51445172eaab5e1))
+
+
+### Bug Fixes
+
+* **code-index:** add Library/PackageCache support and performance optimization ([a8c728e](https://github.com/akiojin/unity-mcp-server/commit/a8c728ef9571c703c9061f0f128ba5a5e72f15f6))
+* **code-index:** remove */.*  pattern that breaks worktree builds ([2bd9d8b](https://github.com/akiojin/unity-mcp-server/commit/2bd9d8b52cf11d17d805f5de7afdc727d61afe16))
+* **mcp-server:** add Library/PackageCache to script_search scope ([e797f5b](https://github.com/akiojin/unity-mcp-server/commit/e797f5b9b1226e3ec726cd66580c0ba7310350a5))
+* **uitk:** Query拡張メソッド参照を修正 ([0ddf05f](https://github.com/akiojin/unity-mcp-server/commit/0ddf05f262c0fe83f3323342d1d0d78d11840d03))
+* **uitk:** テストシーンUI Toolkit API互換 ([29ced95](https://github.com/akiojin/unity-mcp-server/commit/29ced951a10262f7feda73241c26aafee749bfe2))
+* **ui:** UITKクリックとInputSystem対応 ([85d23c6](https://github.com/akiojin/unity-mcp-server/commit/85d23c65860efb98604dce11a46b5d826d0ffe14))
+
+
+### Performance Improvements
+
+* **code-index:** add fastWalkCs and excludePackageCache option ([2d2b022](https://github.com/akiojin/unity-mcp-server/commit/2d2b02240f75181de6747a3c178955d43cecb649))
+
 ## [3.0.0](https://github.com/akiojin/unity-mcp-server/compare/v2.46.0...v3.0.0) (2025-12-15)
 
 
