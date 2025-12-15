@@ -338,4 +338,4 @@ OpenAPI相当のスキーマは`/contracts/`に出力（下記で作成）。
 - [x] 複雑さの逸脱を文書化済み (逸脱なし)
 
 ---
-*憲章 v1.0.0 に基づく - `memory/constitution.md` 参照*
+*憲章 v1.0.0 に基づく - `docs/constitution.md` 参照*

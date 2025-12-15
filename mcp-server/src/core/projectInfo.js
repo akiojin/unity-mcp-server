@@ -1,7 +1,35 @@
+import fs from 'fs';
 import path from 'path';
 import { logger, config, WORKSPACE_ROOT } from './config.js';
 
 const normalize = p => p.replace(/\\/g, '/');
+
+const looksLikeUnityProjectRoot = dir => {
+  try {
+    return (
+      fs.existsSync(path.join(dir, 'Assets')) &&
+      fs.existsSync(path.join(dir, 'Packages')) &&
+      fs.statSync(path.join(dir, 'Assets')).isDirectory() &&
+      fs.statSync(path.join(dir, 'Packages')).isDirectory()
+    );
+  } catch {
+    return false;
+  }
+};
+
+const inferUnityProjectRootFromDir = startDir => {
+  try {
+    let dir = startDir;
+    const { root } = path.parse(dir);
+    while (true) {
+      if (looksLikeUnityProjectRoot(dir)) return dir;
+      if (dir === root) return null;
+      dir = path.dirname(dir);
+    }
+  } catch {
+    return null;
+  }
+};
 
 const resolveDefaultCodeIndexRoot = projectRoot => {
   const base = WORKSPACE_ROOT || projectRoot || process.cwd();
@@ -18,21 +46,6 @@ export class ProjectInfoProvider {
 
   async get() {
     if (this.cached) return this.cached;
-    // Env-driven project root override (primarily for tests)
-    const envRootRaw = process.env.UNITY_PROJECT_ROOT;
-    if (typeof envRootRaw === 'string' && envRootRaw.trim().length > 0) {
-      const envRoot = envRootRaw.trim();
-      const projectRoot = normalize(path.resolve(envRoot));
-      const codeIndexRoot = normalize(resolveDefaultCodeIndexRoot(projectRoot));
-      this.cached = {
-        projectRoot,
-        assetsPath: normalize(path.join(projectRoot, 'Assets')),
-        packagesPath: normalize(path.join(projectRoot, 'Packages')),
-        codeIndexRoot
-      };
-      return this.cached;
-    }
-
     // Config-driven project root (no env fallback)
     const cfgRootRaw = config?.project?.root;
     if (typeof cfgRootRaw === 'string' && cfgRootRaw.trim().length > 0) {
@@ -73,13 +86,28 @@ export class ProjectInfoProvider {
         logger.warning(`get_editor_info failed: ${e.message}`);
       }
     }
+
+    // Best-effort local inference (when Unity isn't connected)
+    const inferredRoot = inferUnityProjectRootFromDir(process.cwd());
+    if (inferredRoot) {
+      const projectRoot = normalize(inferredRoot);
+      const codeIndexRoot = normalize(resolveDefaultCodeIndexRoot(projectRoot));
+      this.cached = {
+        projectRoot,
+        assetsPath: normalize(path.join(projectRoot, 'Assets')),
+        packagesPath: normalize(path.join(projectRoot, 'Packages')),
+        codeIndexRoot
+      };
+      return this.cached;
+    }
+
     if (typeof cfgRootRaw === 'string') {
       throw new Error(
-        'project.root is configured but empty. Set a valid path in .unity/config.json or UNITY_MCP_CONFIG.'
+        'project.root is configured but empty. Set a valid path in .unity/config.json.'
       );
     }
     throw new Error(
-      'Unable to resolve Unity project root. Configure project.root in .unity/config.json or provide UNITY_MCP_CONFIG.'
+      'Unable to resolve Unity project root. Start the server inside a Unity project (directory containing Assets/ and Packages/) or configure project.root in .unity/config.json.'
     );
   }
 
