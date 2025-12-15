@@ -93,9 +93,12 @@ Serena は公式に C# をサポートしていますが、以下の条件が必
 |------|------|
 | `.sln` ファイル | プロジェクトルート直下に必要 |
 | `.sln` 配置場所 | サブディレクトリ不可（ルート直下のみ） |
-| OmniSharp | C# Language Server（自動インストール/起動が必要） |
+| C# LSP | Microsoft.CodeAnalysis.LanguageServer（自動ダウンロード） |
+| .NET SDK | 9.x が必要（システムにインストール済みであること） |
 | `.slnx` フォーマット | **未対応**（新しい XML ベースの solution 形式） |
 
+> **注意**: 2025年12月時点で、上記要件をすべて満たしても C# サポートが動作しないケースが報告されています（[GitHub Issue #384](https://github.com/oraios/serena/issues/384)）。
+>
 > `csharp: Requires the presence of a .sln file in the project folder.`
 > — Serena 公式ドキュメント
 
@@ -113,8 +116,27 @@ Unity プロジェクトでは `.sln` ファイルは Unity Editor が IDE を�
 - **テストファイル**: `UnityMCPServer/Packages/unity-mcp-server/Editor/Helpers/Response.cs` (357行)
 - **Serena 設定**: `languages: [csharp, typescript]`
 - **`.sln` ファイル**: プロジェクトルートにシンボリックリンク配置
-- **OmniSharp**: 起動失敗（環境未構成）
-- **結果**: Serena は TypeScript フォールバックで C# を解析（.sln があっても同様）
+- **C# LSP (Microsoft.CodeAnalysis.LanguageServer)**: 手動インストール済み
+- **.NET SDK**: 9.0.308 インストール済み
+
+#### 検証結果
+
+| 試行 | 結果 |
+|------|------|
+| `.sln` をルートに配置 | ❌ TypeScript フォールバック |
+| project.yml に `csharp` 追加 | ❌ TypeScript フォールバック |
+| C# LSP 手動インストール | ❌ TypeScript フォールバック |
+
+**根本原因**: Serena の言語サーバーマネージャーは、設定ファイルに `csharp` があっても TypeScript のみを開始する。C# 言語サーバーの初期化ロジック自体が動作していない可能性がある。
+
+**ログ証拠**:
+
+```
+Programming languages: typescript; file encoding: utf-8
+[StartLS:typescript] Creating language server instance ... language=typescript
+```
+
+C# 言語サーバー（`StartLS:csharp`）の開始ログは一切出力されない。
 
 ### 比較結果サマリー
 
@@ -184,19 +206,18 @@ Unity プロジェクトでは `.sln` ファイルは Unity Editor が IDE を�
 
 ### 結論: Unity C# 開発には unity-mcp-server を推奨
 
-| 観点 | コードインデックス | Serena（環境未構成）† | Serena（理想環境）* |
-|------|------------------|---------------------|---------------------|
-| C# シンボル検索 | ✅ 完全対応 | ❌ 機能しない | ✅ 期待される |
-| C# 解析精度 | ✅ Roslyn LSP 準拠 | ⚠️ TS フォールバック | ✅ 期待される |
-| メソッドオーバーロード | ✅ 全て検出 | ⚠️ 一部欠落 | ✅ 期待される |
-| Unity プロジェクト連携 | ✅ リアルタイム | ❌ なし | ❌ なし |
-| コンパイルエラー検出 | ✅ 対応 | ❌ 未対応 | ❌ 未対応 |
-| `.sln` 依存 | ❌ 不要 | ✅ 必要 | ✅ 必要 |
-| 追加環境設定 | ❌ 不要 | ✅ OmniSharp 必要 | ✅ OmniSharp 必要 |
+| 観点 | コードインデックス | Serena（現状）† |
+|------|------------------|-----------------|
+| C# シンボル検索 | ✅ 完全対応 | ❌ 機能しない |
+| C# 解析精度 | ✅ Roslyn LSP 準拠 | ⚠️ TS フォールバック |
+| メソッドオーバーロード | ✅ 全て検出 | ⚠️ 一部欠落 |
+| Unity プロジェクト連携 | ✅ リアルタイム | ❌ なし |
+| コンパイルエラー検出 | ✅ 対応 | ❌ 未対応 |
+| `.sln` 依存 | ❌ 不要 | ✅ 必要 |
+| 追加環境設定 | ❌ 不要 | ✅ .NET 9 + C# LSP 必要 |
+| セットアップの容易さ | ✅ プラグアンドプレイ | ❌ 複雑（手動設定必要） |
 
-*Serena の理想環境（.sln + OmniSharp 正常動作）でのテストは未実施。公式ドキュメントに基づく期待値。
-
-†環境未構成 = .sln がルートにあるが OmniSharp が起動しない環境（今回のテスト環境）
+†現状 = .sln をルートに配置、project.yml に csharp 設定、C# LSP 手動インストール済みの環境でも C# 言語サーバーが起動しない（2025年12月時点）
 
 ### なぜ Unity 開発に unity-mcp-server が適しているか
 
