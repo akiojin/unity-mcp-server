@@ -23,6 +23,11 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
             minimum: 0,
             maximum: 5,
             description: 'Number of retries for LSP requests (default: 2).'
+          },
+          excludePackageCache: {
+            type: 'boolean',
+            description:
+              'Exclude Library/PackageCache from indexing (default: false). Set to true for faster builds when package symbols are not needed.'
           }
         },
         required: []
@@ -54,7 +59,8 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
       return {
         success: false,
         error: 'build_already_running',
-        message: 'Code index build is already running (Worker Thread). Use code_index_status to check progress.',
+        message:
+          'Code index build is already running (Worker Thread). Use code_index_status to check progress.',
         jobId: this.currentJobId
       };
     }
@@ -86,7 +92,8 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
           concurrency: 1, // Worker Thread uses sequential processing for stability
           throttleMs: Math.max(0, Number(params?.throttleMs ?? 0)),
           retry: Math.max(0, Math.min(5, Number(params?.retry ?? 2))),
-          reportPercentage: 10
+          reportPercentage: 10,
+          excludePackageCache: Boolean(params?.excludePackageCache)
         });
 
         // Clear current job tracking on success

@@ -46,6 +46,22 @@ export class ProjectInfoProvider {
 
   async get() {
     if (this.cached) return this.cached;
+    // Env-driven project root override (primarily for tests)
+    const envRootRaw = process.env.UNITY_PROJECT_ROOT;
+    if (typeof envRootRaw === 'string' && envRootRaw.trim().length > 0) {
+      const envRoot = envRootRaw.trim();
+      const projectRoot = normalize(path.resolve(envRoot));
+      const codeIndexRoot = normalize(resolveDefaultCodeIndexRoot(projectRoot));
+      this.cached = {
+        projectRoot,
+        assetsPath: normalize(path.join(projectRoot, 'Assets')),
+        packagesPath: normalize(path.join(projectRoot, 'Packages')),
+        packageCachePath: normalize(path.join(projectRoot, 'Library/PackageCache')),
+        codeIndexRoot
+      };
+      return this.cached;
+    }
+
     // Config-driven project root (no env fallback)
     const cfgRootRaw = config?.project?.root;
     if (typeof cfgRootRaw === 'string' && cfgRootRaw.trim().length > 0) {
@@ -61,6 +77,7 @@ export class ProjectInfoProvider {
         projectRoot,
         assetsPath: normalize(path.join(projectRoot, 'Assets')),
         packagesPath: normalize(path.join(projectRoot, 'Packages')),
+        packageCachePath: normalize(path.join(projectRoot, 'Library/PackageCache')),
         codeIndexRoot
       };
       return this.cached;
@@ -76,6 +93,9 @@ export class ProjectInfoProvider {
             projectRoot: info.projectRoot,
             assetsPath: info.assetsPath,
             packagesPath: normalize(info.packagesPath || path.join(info.projectRoot, 'Packages')),
+            packageCachePath: normalize(
+              info.packageCachePath || path.join(info.projectRoot, 'Library/PackageCache')
+            ),
             codeIndexRoot: normalize(
               info.codeIndexRoot || resolveDefaultCodeIndexRoot(info.projectRoot)
             )
@@ -96,6 +116,7 @@ export class ProjectInfoProvider {
         projectRoot,
         assetsPath: normalize(path.join(projectRoot, 'Assets')),
         packagesPath: normalize(path.join(projectRoot, 'Packages')),
+        packageCachePath: normalize(path.join(projectRoot, 'Library/PackageCache')),
         codeIndexRoot
       };
       return this.cached;
