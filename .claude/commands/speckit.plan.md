@@ -1,5 +1,5 @@
 ---
-description: 指定された機能の実装方法を計画します。
+description: planテンプレートに従って実装計画（plan.md）と設計アーティファクトを作成します。
 ---
 
 ## ユーザー入力
@@ -12,26 +12,39 @@ $ARGUMENTS
 
 ## 概要
 
-これはSpec駆動開発ライフサイクルの2番目のステップです。
+これはSpec駆動開発ライフサイクルの2番目のステップです（仕様 → 計画）。
 
-引数として提供された実装詳細に基づいて、以下を実行します:
+## 実行手順
 
-1. リポジトリルートから `.specify/scripts/bash/setup-plan.sh --json` を実行し、FEATURE_SPEC、IMPL_PLAN、SPECS_DIRのJSONを解析します。今後のすべてのファイルパスは絶対パスである必要があります。
+1. リポジトリルートから `.specify/scripts/bash/setup-plan.sh --json` を実行し、JSON出力から以下を取得します（パスはすべて絶対パス）:
+   - `FEATURE_ID`
+   - `FEATURE_DIR`
+   - `FEATURE_SPEC`
+   - `IMPL_PLAN`
 
-2. 機能仕様を読んで分析し、以下を理解します:
-   - 機能要件とユーザーストーリー
-   - 機能要件と非機能要件
-   - 成功基準と受け入れ基準
-   - 言及されている技術的制約または依存関係
+2. コンテキストを読み込みます:
+   - `FEATURE_SPEC`（spec.md）
+   - `docs/constitution.md`（憲章。存在しない場合は `.specify/memory/constitution.md` を参照）
+   - `.specify/templates/plan-template.md`（構造と必須セクションの理解。すでに `IMPL_PLAN` にコピー済み）
 
-3. `docs/constitution.md` の憲章を読んで、憲章要件を理解します。
+3. `IMPL_PLAN`（plan.md）をテンプレート構造に沿って埋めます:
+   - 技術コンテキストを具体化（不明点は `要明確化` として明示）
+   - 憲章チェックを、憲章のMUST/禁止事項に従って記述
+   - プロジェクト構造（ドキュメント/ソース）を実パスで確定
+   - ユーザー入力 `$ARGUMENTS` の技術選択・制約を反映（矛盾があれば指摘し、合理案を提示）
 
-4. 実装計画テンプレートを実行します:
-   - `.specify/templates/plan-template.md` を読み込み (既にIMPL_PLANパスにコピー済み)
-   - 入力パスをFEATURE_SPECに設定
-   - テンプレート内の指示に従って実装計画を作成
-   - 引数からのユーザー提供の詳細を技術コンテキストに組み込みます: $ARGUMENTS
+4. 設計アーティファクトを作成します（必要に応じて）:
+   - `FEATURE_DIR/research.md`: 技術選定の根拠、代替案、決定事項（要明確化の解消）
+   - `FEATURE_DIR/data-model.md`: 主要エンティティと関係（要件/ストーリーに対応）
+   - `FEATURE_DIR/contracts/`: API/入出力契約（該当する場合）
+   - `FEATURE_DIR/quickstart.md`: 主要ユーザーストーリーを検証する最短の実行/確認手順
 
-5. ファイルパスと生成されたアーティファクトで結果を報告します。
+5. 最後に、ユーザーへ以下を返します:
+   - `FEATURE_ID`
+   - `IMPL_PLAN` のパス
+   - 生成したアーティファクト（存在するもの）の一覧
+   - 次ステップ（`/speckit.tasks`）への案内
 
-リポジトリルートを絶対パスで使用して、すべてのファイル操作でパスの問題を回避します。
+## 重要
+
+- すべてのファイル操作は**絶対パス**で行い、パス解決の誤りを避けてください。

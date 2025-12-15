@@ -7,12 +7,13 @@ get_repo_root() {
         git rev-parse --show-toplevel
     else
         # Fall back to script location for non-git repos
-        local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        local script_dir="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         (cd "$script_dir/../../.." && pwd)
     fi
 }
 
-# Get current branch, with fallback for non-git repositories
+# Get current feature id (SPEC-xxxxxxxx) or current git branch as fallback.
+# NOTE: This project does NOT create git branches as part of Speckit workflow.
 get_current_branch() {
     # First check if SPECIFY_FEATURE environment variable is set
     if [[ -n "${SPECIFY_FEATURE:-}" ]]; then
@@ -20,20 +21,34 @@ get_current_branch() {
         return
     fi
 
-    # Then check git if available
+    local repo_root
+    repo_root=$(get_repo_root)
+
+    # Then check .specify/current-feature (persistent selection across command runs)
+    local current_feature_file="$repo_root/.specify/current-feature"
+    if [[ -f "$current_feature_file" ]]; then
+        local current_feature
+        current_feature="$(cat "$current_feature_file" 2>/dev/null | tr -d '\r\n')"
+        if [[ -n "$current_feature" ]]; then
+            echo "$current_feature"
+            return
+        fi
+    fi
+
+    # Then check git if available (fallback only)
     if git rev-parse --abbrev-ref HEAD >/dev/null 2>&1; then
         git rev-parse --abbrev-ref HEAD
         return
     fi
 
-    # For non-git repos, check .specify/.current-feature file
-    local repo_root=$(get_repo_root)
-    local current_feature_file="$repo_root/.specify/.current-feature"
+    local specs_dir="$repo_root/specs"
 
-    if [[ -f "$current_feature_file" ]]; then
-        local branch_name=$(cat "$current_feature_file")
-        if [[ -n "$branch_name" ]]; then
-            echo "$branch_name"
+    if [[ -d "$specs_dir" ]]; then
+        # As a last resort, pick the newest SPEC-* directory (mtime).
+        local latest_feature
+        latest_feature="$(ls -1t "$specs_dir" 2>/dev/null | grep -E '^SPEC-[a-z0-9]{8}$' | head -n 1 || true)"
+        if [[ -n "$latest_feature" ]]; then
+            echo "$latest_feature"
             return
         fi
     fi
@@ -52,59 +67,43 @@ check_feature_branch() {
 
     # For non-git repos, we can't enforce branch naming but still provide output
     if [[ "$has_git_repo" != "true" ]]; then
-        echo "[specify] Warning: Git repository not detected; skipped branch validation" >&2
+        echo "[specify] 警告: Gitリポジトリが検出できませんでした（ブランチ検証をスキップ）" >&2
         return 0
     fi
 
-    # Check for feature/SPEC-UUID8桁 format (branch & worktree workflow)
-    if [[ "$branch" =~ ^feature/SPEC-[a-z0-9]{8}$ ]]; then
-        return 0
+    # In this project, the "branch" value may actually be a feature id.
+    if [[ "$branch" =~ ^SPEC-[a-z0-9]{8}$ ]]; then return 0; fi
+    if [[ "$branch" =~ ^feature/(SPEC-[a-z0-9]{8})$ ]]; then return 0; fi
+
+    # On main/master we cannot infer the active feature in branchless workflow.
+    if [[ "$branch" == "main" || "$branch" == "master" ]]; then
+        echo "ERROR: 対象要件が特定できません（現在のGitブランチ: '$branch'）。/speckit.specify を実行して .specify/current-feature を作成するか、環境変数 SPECIFY_FEATURE=SPEC-xxxxxxxx を設定してください。" >&2
+        return 1
     fi
 
-    # Allow main branch
-    if [[ "$branch" == "main" ]] || [[ "$branch" == "master" ]]; then
-        return 0
-    fi
-
-    # Warn but allow other branches
-    echo "[specify] Warning: Branch '$branch' does not match feature/SPEC-[UUID8桁] format, but continuing" >&2
-    return 0
+    echo "ERROR: 現在のGitブランチ '$branch' から要件ID（SPEC-xxxxxxxx）を特定できません。/speckit.specify を実行して .specify/current-feature を作成するか、環境変数 SPECIFY_FEATURE=SPEC-xxxxxxxx を設定してください。" >&2
+    return 1
 }
 
 get_feature_dir() { echo "$1/specs/$2"; }
 
-# Find feature directory for branch & worktree workflow
-# Extracts SPEC-ID from branch name and finds corresponding worktree
+# Find feature directory for SPEC-xxxxxxxx naming.
 find_feature_dir_by_prefix() {
     local repo_root="$1"
     local branch_name="$2"
-
-    # Extract SPEC-ID from feature/SPEC-xxx branch name
-    if [[ "$branch_name" =~ ^feature/(SPEC-[a-z0-9]{8})$ ]]; then
-        local spec_id="${BASH_REMATCH[1]}"
-        local worktree_dir="$repo_root/.worktrees/$spec_id"
-
-        # Check if worktree exists
-        if [[ -d "$worktree_dir" ]]; then
-            echo "$worktree_dir/specs/$spec_id"
-            return
-        fi
-
-        # Fallback to main repo if worktree doesn't exist
-        echo "$repo_root/specs/$spec_id"
-        return
-    fi
-
-    # For main branch or other branches, use main repo specs directory
     local specs_dir="$repo_root/specs"
 
-    # If branch_name looks like a SPEC-ID directly
     if [[ "$branch_name" =~ ^SPEC-[a-z0-9]{8}$ ]]; then
         echo "$specs_dir/$branch_name"
         return
     fi
 
-    # Fallback: use branch name as-is
+    if [[ "$branch_name" =~ ^feature/(SPEC-[a-z0-9]{8})$ ]]; then
+        echo "$specs_dir/${BASH_REMATCH[1]}"
+        return
+    fi
+
+    # Fallback: use the provided name as-is (may fail later with clear error)
     echo "$specs_dir/$branch_name"
 }
 
@@ -137,4 +136,3 @@ EOF
 
 check_file() { [[ -f "$1" ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
 check_dir() { [[ -d "$1" && -n $(ls -A "$1" 2>/dev/null) ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
-
