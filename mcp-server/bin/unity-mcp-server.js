@@ -34,7 +34,7 @@ const args = process.argv.slice(2);
 const command = args[0] && !args[0].startsWith('--') ? args[0] : null;
 const rest = command ? args.slice(1) : args;
 
-let httpEnabled = false;
+let httpEnabled;
 let httpPort;
 let stdioEnabled = true;
 let telemetryEnabled;
@@ -114,11 +114,12 @@ async function main() {
 
     // Start MCP server (dynamic import)
     const { startServer } = await import('../src/core/server.js');
+    const http = {};
+    if (httpEnabled !== undefined) http.enabled = httpEnabled;
+    if (httpPort !== undefined) http.port = httpPort;
+
     await startServer({
-      http: {
-        enabled: httpEnabled,
-        port: httpPort
-      },
+      http: Object.keys(http).length > 0 ? http : undefined,
       telemetry: telemetryEnabled === undefined ? undefined : { enabled: telemetryEnabled },
       stdioEnabled
     });

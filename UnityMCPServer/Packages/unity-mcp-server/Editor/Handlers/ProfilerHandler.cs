@@ -512,12 +512,12 @@ namespace UnityMCPServer.Handlers
         /// </summary>
         private static string ResolveWorkspaceRoot(string projectRoot)
         {
-            // Check if .unity/config.json exists in parent directory
+            // Prefer a parent directory that already has `.unity/` (workspace-style layout)
             var parentDir = Directory.GetParent(projectRoot);
             if (parentDir != null)
             {
-                var configPath = Path.Combine(parentDir.FullName, ".unity", "config.json");
-                if (File.Exists(configPath))
+                var unityDir = Path.Combine(parentDir.FullName, ".unity");
+                if (Directory.Exists(unityDir))
                 {
                     return parentDir.FullName;
                 }

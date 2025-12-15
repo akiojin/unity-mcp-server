@@ -124,7 +124,7 @@
 この機能は以下に依存します:
 
 - MCPサーバーとUnityエディタ間の双方向通信機能
-- ワークスペースルート解決機能（.unity/config.jsonからの読み込み）
+- ワークスペースルート解決機能（Nodeからの `workspaceRoot` 優先／未受領時は `.unity/` 探索）
 - 既存のハンドラーアーキテクチャ（VideoCapture、Screenshotと同様のパターン）
 
 ---

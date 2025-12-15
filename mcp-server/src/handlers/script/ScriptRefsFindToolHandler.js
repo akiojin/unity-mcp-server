@@ -213,42 +213,48 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
       }
     }
 
-    // Phase 3.2: Build pathTable for deduplication (62% size reduction)
-    const pathSet = new Set();
-    for (const [p] of perFile) {
-      pathSet.add(p);
-    }
-    const pathTable = [...pathSet];
-    const pathIndex = new Map(pathTable.map((p, i) => [p, i]));
-
-    // Pagination and byte limits with compact format
+    // Phase 3.3: Grouped output format (more compact, LLM-friendly)
+    // Pagination and byte limits with grouped format
     const results = [];
     let bytes = 0;
+    let total = 0;
+    let truncated = false;
+
     for (const [filePath, arr] of perFile) {
-      const fileId = pathIndex.get(filePath);
+      const references = [];
       for (const it of arr) {
-        // Compact format: fileId reference + only essential fields
-        const compact = {
-          fileId,
+        const ref = {
           line: it.line,
           column: it.column,
           snippet: it.snippet
         };
-        const json = JSON.stringify(compact);
-        const size = Buffer.byteLength(json, 'utf8');
-        if (results.length >= pageSize || bytes + size > maxBytes) {
-          return { success: true, pathTable, results, total: results.length, truncated: true };
+        const refJson = JSON.stringify(ref);
+        const refSize = Buffer.byteLength(refJson, 'utf8');
+
+        // Check limits before adding
+        if (total >= pageSize || bytes + refSize > maxBytes) {
+          truncated = true;
+          break;
         }
-        results.push(compact);
-        bytes += size;
+        references.push(ref);
+        bytes += refSize;
+        total++;
       }
+
+      if (references.length > 0) {
+        results.push({ path: filePath, references });
+      }
+
+      if (truncated) break;
     }
 
     // Edge case: extreme limits
     const extremeLimits = pageSize <= 1 || maxBytes <= 1;
-    const truncated = extremeLimits && results.length === 0 ? true : false;
+    if (extremeLimits && results.length === 0) {
+      truncated = true;
+    }
 
-    return { success: true, pathTable, results, total: results.length, truncated };
+    return { success: true, results, total, truncated };
   }
 }
 

@@ -1,5 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import path from 'node:path';
 
 describe('CodeIndex', () => {
   describe('basic functionality', () => {
@@ -30,9 +31,11 @@ describe('CodeIndex', () => {
 
   describe('when fast-sql is unavailable', () => {
     it('disables gracefully and records the reason', async () => {
-      const { CodeIndex, __resetCodeIndexDriverStatusForTest } = await import(
-        '../../../src/core/codeIndex.js'
-      );
+      const prevProjectRoot = process.env.UNITY_PROJECT_ROOT;
+      process.env.UNITY_PROJECT_ROOT = path.resolve(process.cwd(), '../UnityMCPServer');
+
+      const { CodeIndex, __resetCodeIndexDriverStatusForTest } =
+        await import('../../../src/core/codeIndex.js');
 
       mock.method(CodeIndex.prototype, '_ensureDriver', async function () {
         this._SQL = {
@@ -55,6 +58,9 @@ describe('CodeIndex', () => {
 
       mock.restoreAll();
       __resetCodeIndexDriverStatusForTest();
+
+      if (prevProjectRoot === undefined) delete process.env.UNITY_PROJECT_ROOT;
+      else process.env.UNITY_PROJECT_ROOT = prevProjectRoot;
     });
   });
 
