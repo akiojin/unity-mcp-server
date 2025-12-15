@@ -785,7 +785,7 @@ namespace UnityMCPServer.Handlers
                 List<UITK.VisualElement> all;
                 try
                 {
-                    all = root.Query<UITK.VisualElement>().ToList();
+                    all = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root).ToList();
                 }
                 catch
                 {
@@ -944,7 +944,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = $"UIDocument at {uiDocumentPath} has no rootVisualElement (panel not ready)" };
             }
 
-            var matches = root.Query<UITK.VisualElement>(name: elementName).ToList();
+            var matches = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root, name: elementName).ToList();
             if (matches.Count == 0)
             {
                 return new { error = $"UI Toolkit element not found: {elementName}" };
@@ -1123,7 +1123,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = $"UIDocument at {uiDocumentPath} has no rootVisualElement (panel not ready)" };
             }
 
-            var matches = root.Query<UITK.VisualElement>(name: elementName).ToList();
+            var matches = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root, name: elementName).ToList();
             if (matches.Count == 0)
             {
                 return new { error = $"UI Toolkit element not found: {elementName}" };
@@ -1226,7 +1226,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = $"UIDocument at {uiDocumentPath} has no rootVisualElement (panel not ready)" };
             }
 
-            var matches = root.Query<UITK.VisualElement>(name: elementName).ToList();
+            var matches = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root, name: elementName).ToList();
             if (matches.Count == 0)
             {
                 return new { error = $"UI Toolkit element not found: {elementName}" };
@@ -1508,7 +1508,7 @@ namespace UnityMCPServer.Handlers
                 {
                     return new { error = $"UIDocument at {uiDocumentPath} has no rootVisualElement (panel not ready)" };
                 }
-                var matches = root.Query<UITK.VisualElement>(name: uiElementName).ToList();
+                var matches = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root, name: uiElementName).ToList();
                 var element = matches.Count > 0 ? matches[0] : null;
                 if (element == null)
                 {
