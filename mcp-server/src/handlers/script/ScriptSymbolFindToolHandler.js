@@ -22,7 +22,7 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
             type: 'string',
             enum: ['assets', 'packages', 'embedded', 'all'],
             description:
-              'Search scope: assets (Assets/), packages (Packages/), embedded, or all (default: all).'
+              'Search scope: assets (Assets/), packages (Packages/), embedded, or all (default: assets).'
           },
           exact: {
             type: 'boolean',
