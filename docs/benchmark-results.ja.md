@@ -28,8 +28,9 @@
 
 | ツール | 最適化 | サイズ削減 |
 |--------|--------|-----------|
-| `script_symbol_find` | pathTable + fileId 参照 | **60%** |
-| `script_refs_find` | pathTable + fileId 参照 | **62%** |
+| `script_symbol_find` | ファイルごとにグループ化 | **40%** |
+| `script_refs_find` | ファイルごとにグループ化 | **40%** |
+| `script_search` | ファイルごとにグループ化 | **40%** |
 | `script_symbols_get` | endLine/endColumn 削除 | **50%** |
 | **全体** | null フィールド省略 | **47%** |
 
@@ -46,23 +47,30 @@
 }
 ```
 
-**変更後 (v2.42.4+)**:
+**変更後 (v2.43.0+) - ファイルグループ化形式**:
 
 ```json
 {
-  "pathTable": ["Assets/Scripts/Player.cs"],
   "results": [
-    { "fileId": 0, "symbol": { "name": "Foo", "line": 10 } },
-    { "fileId": 0, "symbol": { "name": "Bar", "line": 20 } }
-  ]
+    {
+      "path": "Assets/Scripts/Player.cs",
+      "symbols": [
+        { "name": "Foo", "kind": "method", "line": 10, "column": 5 },
+        { "name": "Bar", "kind": "method", "line": 20, "column": 5 }
+      ]
+    }
+  ],
+  "total": 2
 }
 ```
 
 **メリット**:
 
-- パス文字列を `pathTable` で重複排除（通常60%以上削減）
+- ファイルごとにシンボルをグループ化（LLMが理解しやすい構造）
+- パス文字列の重複を排除（同一ファイル内の複数シンボルで1回のみ出力）
 - 冗長な `endLine`/`endColumn` を削除（シンボルでは常に start と同値）
 - null フィールドを出力から省略
+- 配列形式で順序を保持（オブジェクトキー形式と異なり順序が保証）
 
 ## サマリー: unity-mcp-server vs 標準ツール
 
@@ -326,10 +334,19 @@ real    0m0.346s
 ```json
 {
   "success": true,
-  "pathTable": ["Packages/unity-mcp-server/Editor/Helpers/Response.cs", "..."],
   "results": [
-    { "fileId": 0, "symbol": { "name": "Response", "kind": "class", "line": 10 } },
-    { "fileId": 1, "symbol": { "name": "CreateErrorResponse", "kind": "method", "line": 25 } }
+    {
+      "path": "Packages/unity-mcp-server/Editor/Helpers/Response.cs",
+      "symbols": [
+        { "name": "Response", "kind": "class", "line": 10, "column": 5, "namespace": "UnityMCPServer.Helpers" }
+      ]
+    },
+    {
+      "path": "Packages/unity-mcp-server/Editor/Core/UnityMCPServer.cs",
+      "symbols": [
+        { "name": "CreateErrorResponse", "kind": "method", "line": 25, "column": 9, "container": "UnityMCPServer" }
+      ]
+    }
   ],
   "total": 34
 }
@@ -349,17 +366,23 @@ real    0m0.346s
 ```json
 {
   "success": true,
-  "pathTable": ["Packages/unity-mcp-server/Editor/Core/UnityMCPServer.cs", "..."],
   "results": [
     {
-      "fileId": 0,
-      "line": 392,
-      "column": 25,
-      "snippet": "var pongResponse = Response.Pong();"
+      "path": "Packages/unity-mcp-server/Editor/Core/UnityMCPServer.cs",
+      "references": [
+        { "line": 392, "column": 25, "snippet": "var pongResponse = Response.Pong();" },
+        { "line": 415, "column": 20, "snippet": "return Response.Success(result);" }
+      ]
+    },
+    {
+      "path": "Packages/unity-mcp-server/Editor/Handlers/GameObjectHandler.cs",
+      "references": [
+        { "line": 45, "column": 16, "snippet": "return Response.Error(\"Not found\");" }
+      ]
     }
   ],
   "total": 20,
-  "truncated": true
+  "truncated": false
 }
 ```
 
@@ -373,13 +396,23 @@ real    0m0.346s
 {
   "success": true,
   "total": 7,
-  "pathTable": [
-    "Packages/unity-mcp-server/Editor/Core/UnityMCPServer.cs",
-    "Packages/unity-mcp-server/Editor/Handlers/AddressablesHandler.cs"
-  ],
   "results": [
-    { "fileId": 0, "lineRanges": "392-393,409-410,415", "snippets": ["..."] }
-  ]
+    {
+      "path": "Packages/unity-mcp-server/Editor/Core/UnityMCPServer.cs",
+      "lineRanges": "392-393,409-410,415",
+      "snippets": [
+        { "line": 392, "snippet": "var pongResponse = Response.Pong();" }
+      ]
+    },
+    {
+      "path": "Packages/unity-mcp-server/Editor/Handlers/AddressablesHandler.cs",
+      "lineRanges": "28,45",
+      "snippets": [
+        { "line": 28, "snippet": "return Response.Success(data);" }
+      ]
+    }
+  ],
+  "cursor": null
 }
 ```
 
@@ -725,28 +758,39 @@ this.db.run('PRAGMA synchronous = NORMAL');  // 安全性/速度のバランス
 
 ## マイグレーションガイド
 
-### v2.42.4+ での破壊的変更
+### v2.43.0+ での破壊的変更（ファイルグループ化形式）
 
 1. **`script_symbol_find` 出力フォーマット**:
-   - 旧: `results[].path` (文字列)
-   - 新: `pathTable[]` + `results[].fileId` (数値)
+   - 旧: `results[]` にフラットなシンボルリスト
+   - 新: `results[].path` + `results[].symbols[]` でファイルごとにグループ化
 
 2. **`script_refs_find` 出力フォーマット**:
-   - 旧: `results[].path` (文字列)
-   - 新: `pathTable[]` + `results[].fileId` (数値)
+   - 旧: `results[]` にフラットな参照リスト
+   - 新: `results[].path` + `results[].references[]` でファイルごとにグループ化
 
-3. **`script_symbols_get` 出力フォーマット**:
+3. **`script_search` 出力フォーマット**:
+   - 旧: `results[]` にフラットな検索結果リスト
+   - 新: `results[].path` + `results[].snippets[]` でファイルごとにグループ化
+
+4. **`script_symbols_get` 出力フォーマット**:
    - 旧: `symbols[].startLine`, `symbols[].endLine`
    - 新: `symbols[].line`, `symbols[].column`
 
 ### クライアント適応
 
 ```javascript
-// 変更前
-const filePath = result.path;
+// 変更前（フラットリスト）
+for (const result of response.results) {
+  console.log(result.path, result.symbol.name);
+}
 
-// 変更後
-const filePath = response.pathTable[result.fileId];
+// 変更後（ファイルグループ化）
+for (const fileGroup of response.results) {
+  console.log(`File: ${fileGroup.path}`);
+  for (const symbol of fileGroup.symbols) {
+    console.log(`  - ${symbol.name} at line ${symbol.line}`);
+  }
+}
 ```
 
 ## 変更ファイル
@@ -755,8 +799,9 @@ const filePath = response.pathTable[result.fileId];
 |---------|---------|
 | `mcp-server/src/core/CodeIndex.js` | 複合インデックス、LRUキャッシュ、PRAGMA |
 | `mcp-server/src/core/workers/indexBuildWorker.js` | バッチトランザクション、バッチDELETE |
-| `mcp-server/src/handlers/script/ScriptSymbolFindToolHandler.js` | pathTable 出力 |
-| `mcp-server/src/handlers/script/ScriptRefsFindToolHandler.js` | pathTable 出力 |
+| `mcp-server/src/handlers/script/ScriptSymbolFindToolHandler.js` | ファイルグループ化出力 |
+| `mcp-server/src/handlers/script/ScriptRefsFindToolHandler.js` | ファイルグループ化出力 |
+| `mcp-server/src/handlers/script/ScriptSearchToolHandler.js` | ファイルグループ化出力 |
 | `mcp-server/src/handlers/script/ScriptSymbolsGetToolHandler.js` | 簡略化出力 |
 | `mcp-server/package.json` | `lru-cache` 依存関係追加 |
 

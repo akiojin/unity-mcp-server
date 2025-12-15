@@ -178,13 +178,15 @@ public class UseTestClass : MonoBehaviour
       const result = await handler.execute({ name: 'TestClass' });
 
       assert.equal(result.success, true);
-      assert.ok(result.results.length >= 2, 'Should find at least 2 references');
-      // Check that results have correct structure
+      assert.ok(result.total >= 2, 'Should find at least 2 references');
+      // Check that results have correct grouped structure
       const firstResult = result.results[0];
       assert.ok(firstResult.path, 'Result should have path');
-      assert.ok(typeof firstResult.line === 'number', 'Result should have line number');
-      assert.ok(typeof firstResult.column === 'number', 'Result should have column number');
-      assert.ok(firstResult.snippet, 'Result should have snippet');
+      assert.ok(Array.isArray(firstResult.references), 'Result should have references array');
+      const firstRef = firstResult.references[0];
+      assert.ok(typeof firstRef.line === 'number', 'Reference should have line number');
+      assert.ok(typeof firstRef.column === 'number', 'Reference should have column number');
+      assert.ok(firstRef.snippet, 'Reference should have snippet');
     });
 
     it('should respect scope filtering for assets', async () => {
@@ -192,8 +194,11 @@ public class UseTestClass : MonoBehaviour
 
       assert.equal(result.success, true);
       // All results should be from Assets/
-      for (const ref of result.results) {
-        assert.ok(ref.path.startsWith('Assets/'), `Expected Assets/ path, got: ${ref.path}`);
+      for (const fileResult of result.results) {
+        assert.ok(
+          fileResult.path.startsWith('Assets/'),
+          `Expected Assets/ path, got: ${fileResult.path}`
+        );
       }
     });
 
@@ -201,15 +206,12 @@ public class UseTestClass : MonoBehaviour
       const result = await handler.execute({ name: 'TestClass', maxMatchesPerFile: 1 });
 
       assert.equal(result.success, true);
-      // Group by file
-      const byFile = new Map();
-      for (const ref of result.results) {
-        const count = byFile.get(ref.path) || 0;
-        byFile.set(ref.path, count + 1);
-      }
-      // Each file should have at most 1 match
-      for (const [file, count] of byFile) {
-        assert.ok(count <= 1, `File ${file} has ${count} matches, expected max 1`);
+      // Each file group should have at most 1 reference
+      for (const fileResult of result.results) {
+        assert.ok(
+          fileResult.references.length <= 1,
+          `File ${fileResult.path} has ${fileResult.references.length} matches, expected max 1`
+        );
       }
     });
 
@@ -217,7 +219,7 @@ public class UseTestClass : MonoBehaviour
       const result = await handler.execute({ name: 'TestClass', pageSize: 1 });
 
       assert.equal(result.success, true);
-      assert.ok(result.results.length <= 1, 'Should respect pageSize');
+      assert.ok(result.total <= 1, 'Should respect pageSize');
     });
 
     it('should not match partial words', async () => {
@@ -242,9 +244,11 @@ public class UseTestClass : MonoBehaviour
       assert.equal(result.success, true);
       if (result.results.length > 0) {
         const firstResult = result.results[0];
-        assert.ok(firstResult.snippet, 'Should have snippet');
+        assert.ok(firstResult.references.length > 0, 'Should have references');
+        const firstRef = firstResult.references[0];
+        assert.ok(firstRef.snippet, 'Should have snippet');
         // Snippet should contain multiple lines if context is available
-        const lines = firstResult.snippet.split('\n');
+        const lines = firstRef.snippet.split('\n');
         assert.ok(lines.length >= 1, 'Snippet should have at least 1 line');
       }
     });

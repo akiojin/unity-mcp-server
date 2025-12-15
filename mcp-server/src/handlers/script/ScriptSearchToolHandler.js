@@ -161,9 +161,8 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
       }
       const matcher = buildMatcher(patternType, pattern, flags);
 
+      // Phase 3.3: Grouped output format (more compact, LLM-friendly)
       const results = [];
-      const pathTable = [];
-      const pathId = new Map();
       let bytes = 0;
       let afterFound = !startAfter;
 
@@ -200,13 +199,8 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
         }
         if (matches === 0) continue;
 
-        const id = pathId.has(rel)
-          ? pathId.get(rel)
-          : (pathTable.push(rel) - 1, pathTable.length - 1);
-        pathId.set(rel, id);
-
         const lineRanges = toRanges(matchedLines);
-        const item = { fileId: id, lineRanges };
+        const item = { path: rel, lineRanges };
 
         if (normalizedReturnMode === 'snippets') {
           // Build minimal snippets around first few matches
@@ -229,10 +223,9 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
       return {
         success: true,
         total: results.length,
-        pathTable,
         results,
         cursor:
-          results.length && results.length >= pageSize ? pathTable[pathTable.length - 1] : null
+          results.length && results.length >= pageSize ? results[results.length - 1].path : null
       };
     } catch (e) {
       logger.error(`[script_search] failed: ${e.message}`);
