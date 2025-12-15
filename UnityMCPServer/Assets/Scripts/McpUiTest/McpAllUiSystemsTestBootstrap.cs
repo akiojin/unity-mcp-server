@@ -16,6 +16,10 @@ namespace UnityMCPServer.TestScenes
         private UGUI.Text uguiStatus;
         private UITK.Label uitkStatus;
         private UITK.VisualElement uitkContainer;
+        private UITK.Toggle uitkToggle;
+        private UITK.Slider uitkSlider;
+        private UITK.TextField uitkTextField;
+        private UITK.DropdownField uitkDropdown;
 
         private void Awake()
         {
@@ -202,7 +206,6 @@ namespace UnityMCPServer.TestScenes
             uitkContainer.style.flexDirection = UITK.FlexDirection.Column;
             uitkContainer.style.paddingLeft = 10;
             uitkContainer.style.paddingTop = 10;
-            uitkContainer.style.rowGap = 6;
             root.Add(uitkContainer);
 
             uitkStatus = new UITK.Label("UITK Status") { name = "UITK_Status" };
@@ -219,19 +222,19 @@ namespace UnityMCPServer.TestScenes
             };
             uitkContainer.Add(button);
 
-            var toggle = new UITK.Toggle("UITK Toggle") { name = "UITK_Toggle", value = false };
-            toggle.RegisterValueChangedCallback(_ => UpdateUitkStatus());
-            uitkContainer.Add(toggle);
+            uitkToggle = new UITK.Toggle("UITK Toggle") { name = "UITK_Toggle", value = false };
+            uitkToggle.RegisterCallback<UITK.ChangeEvent<bool>>(_ => UpdateUitkStatus());
+            uitkContainer.Add(uitkToggle);
 
-            var slider = new UITK.Slider("UITK Slider", 0, 10) { name = "UITK_Slider", value = 5 };
-            slider.RegisterValueChangedCallback(_ => UpdateUitkStatus());
-            uitkContainer.Add(slider);
+            uitkSlider = new UITK.Slider("UITK Slider", 0, 10) { name = "UITK_Slider", value = 5 };
+            uitkSlider.RegisterCallback<UITK.ChangeEvent<float>>(_ => UpdateUitkStatus());
+            uitkContainer.Add(uitkSlider);
 
-            var textField = new UITK.TextField("UITK TextField") { name = "UITK_TextField", value = string.Empty };
-            textField.RegisterValueChangedCallback(_ => UpdateUitkStatus());
-            uitkContainer.Add(textField);
+            uitkTextField = new UITK.TextField("UITK TextField") { name = "UITK_TextField", value = string.Empty };
+            uitkTextField.RegisterCallback<UITK.ChangeEvent<string>>(_ => UpdateUitkStatus());
+            uitkContainer.Add(uitkTextField);
 
-            var dropdown = new UITK.DropdownField(
+            uitkDropdown = new UITK.DropdownField(
                 "UITK Dropdown",
                 new List<string> { "Option A", "Option B", "Option C" },
                 0
@@ -239,27 +242,22 @@ namespace UnityMCPServer.TestScenes
             {
                 name = "UITK_Dropdown"
             };
-            dropdown.RegisterValueChangedCallback(_ => UpdateUitkStatus());
-            uitkContainer.Add(dropdown);
+            uitkDropdown.RegisterCallback<UITK.ChangeEvent<string>>(_ => UpdateUitkStatus());
+            uitkContainer.Add(uitkDropdown);
 
             UpdateUitkStatus();
         }
 
         private void UpdateUitkStatus()
         {
-            if (uitkStatus == null || uitkContainer == null) return;
-
-            var toggle = uitkContainer.Q<UITK.Toggle>("UITK_Toggle");
-            var slider = uitkContainer.Q<UITK.Slider>("UITK_Slider");
-            var textField = uitkContainer.Q<UITK.TextField>("UITK_TextField");
-            var dropdown = uitkContainer.Q<UITK.DropdownField>("UITK_Dropdown");
+            if (uitkStatus == null) return;
 
             uitkStatus.text =
                 $"UITK clicks={uitkClicks}\n" +
-                $"Toggle={toggle?.value}\n" +
-                $"Slider={slider?.value}\n" +
-                $"Text='{textField?.value}'\n" +
-                $"Dropdown='{dropdown?.value}'";
+                $"Toggle={uitkToggle?.value}\n" +
+                $"Slider={uitkSlider?.value}\n" +
+                $"Text='{uitkTextField?.value}'\n" +
+                $"Dropdown='{uitkDropdown?.value}'";
         }
 
         private static void CreateImguiPanel()
@@ -273,4 +271,3 @@ namespace UnityMCPServer.TestScenes
         }
     }
 }
-
