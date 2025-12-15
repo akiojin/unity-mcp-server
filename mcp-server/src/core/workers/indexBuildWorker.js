@@ -153,6 +153,9 @@ async function fastWalkCs(roots) {
           );
         } else {
           // Unix: Use find command (secure - no shell interpretation)
+          // Note: We intentionally don't exclude hidden directories (*/.*) because:
+          // - The search root may be inside .worktrees which contains a dot
+          // - -name '*.cs' already filters to only C# files (excluding .meta etc.)
           execFile(
             'find',
             [
@@ -166,10 +169,7 @@ async function fastWalkCs(roots) {
               '*/obj/*',
               '-not',
               '-path',
-              '*/bin/*',
-              '-not',
-              '-path',
-              '*/.*'
+              '*/bin/*'
             ],
             { maxBuffer: 50 * 1024 * 1024 }, // 50MB buffer for large projects
             (error, stdout) => {
