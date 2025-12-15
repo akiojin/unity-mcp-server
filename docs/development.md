@@ -22,7 +22,7 @@ This project uses Spec-Driven Development (SDD) with Spec Kit CLI v0.0.78.
 .specify/
 ├── scripts/       # Bash scripts for workflow automation
 ├── templates/     # Japanese-localized spec templates
-└── memory/        # Project constitution and context
+└── memory/        # Constitution mirror (source: docs/constitution.md)
 specs/
 └── SPEC-[uuid8]/  # Feature specifications
     ├── spec.md    # Requirements specification
