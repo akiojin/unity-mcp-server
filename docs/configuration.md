@@ -2,104 +2,88 @@
 
 English | [日本語](#日本語)
 
-Configuration is optional; defaults work out of the box. Use it when you need to:
+Configuration is optional; defaults work out of the box.
 
-- Point the server at a specific Unity project root
-- Change Unity connection host/port (WSL2/Docker, remote Unity, multiple instances)
-- Adjust logging or HTTP transport
+This project uses:
 
-## Config File Resolution
+- **Node side**: environment variables
+- **Unity side**: Project Settings (host/port)
 
-The only supported config file is:
+## Node (Environment Variables)
 
-- `.unity/config.json` (workspace-local)
+Set environment variables when launching the Node MCP server process.
 
-The server discovers it by walking up from the current working directory until it finds `.unity/config.json`.
+### Minimal Example
 
-## Notes
-
-- Keep all configuration in `.unity/config.json` (workspace-local).
-- Ensure the server process runs inside the workspace that contains `.unity/config.json` (working directory matters).
-- This project intentionally avoids environment-variable overrides for config keys to prevent configuration drift.
-- If you see `UNITY_MCP_PORT` in older snippets, it is **not supported**. Use `unity.port` in the config file instead.
-
-## Minimal Example
-
-```json
-{
-  "project": { "root": "." },
-  "unity": { "mcpHost": "localhost", "port": 6400 },
-  "logging": { "level": "info" }
-}
+```bash
+export UNITY_MCP_MCP_HOST=localhost
+export UNITY_MCP_PORT=6400
+export UNITY_PROJECT_ROOT=.
 ```
 
-## Common Keys
+### Common Variables
 
-| Key | Default | Notes |
+| Env | Default | Notes |
 |---|---:|---|
-| `project.root` | auto-detect | Unity project root (directory containing `Assets/`) |
-| `project.codeIndexRoot` | `<workspace>/.unity/cache/code-index` | Where `code-index.db` lives |
-| `unity.mcpHost` | `localhost` | Host where the Node server connects to Unity |
-| `unity.unityHost` | `localhost` | Bind/target host for Unity-side listener (legacy/compat) |
-| `unity.port` | `6400` | Unity Editor TCP port |
-| `unity.connectTimeout` | `3000` | TCP connect timeout (ms) |
-| `logging.level` | `info` | `debug`, `info`, `warn`, `error` |
-| `http.enabled` | `false` | Enable HTTP transport (`/healthz` exposed) |
-| `http.port` | `6401` | HTTP port (when enabled) |
-| `telemetry.enabled` | `false` | Can also be controlled by CLI flags |
+| `UNITY_PROJECT_ROOT` | auto-detect | Unity project root (directory containing `Assets/` and `Packages/`) |
+| `UNITY_MCP_MCP_HOST` | `localhost` | Host where the Node server connects to Unity |
+| `UNITY_MCP_PORT` | `6400` | Unity Editor TCP port |
+| `UNITY_MCP_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
+| `UNITY_MCP_HTTP_ENABLED` | `false` | Enable HTTP transport (`/healthz` exposed) |
+| `UNITY_MCP_HTTP_PORT` | `6401` | HTTP port (when enabled) |
+| `UNITY_MCP_TELEMETRY_ENABLED` | `false` | Can also be controlled by command flags |
+| `UNITY_MCP_LSP_REQUEST_TIMEOUT_MS` | `60000` | LSP request timeout (ms) |
 
-## Environment Variables
+## Unity (Project Settings)
 
-None (configuration lives in `.unity/config.json`).
+Unity: **Edit → Project Settings → Unity MCP Server**
+
+- `Host`: bind/listen host for the Unity-side TCP listener (`localhost`, `0.0.0.0`, etc.)
+- `Port`: TCP port (must match `UNITY_MCP_PORT`)
+
+Click **Apply & Restart** to restart the Unity listener (and trigger a reimport).
 
 ---
 
 ## 日本語
 
-設定は任意です（デフォルトで動きます）。以下が必要なときだけ設定してください。
+設定は任意です（デフォルトで動きます）。
 
-- Unityプロジェクトのルートを明示したい
-- Unity接続先のホスト/ポートを変えたい（WSL2/Docker/リモートUnity/複数起動）
-- ログやHTTPモードを調整したい
+このプロジェクトは次の方式で設定します。
 
-## 設定ファイルの探索順
+- **Node側**: 環境変数
+- **Unity側**: Project Settings（host/port）
 
-設定ファイルは **`.unity/config.json` のみ** です（ワークスペースローカル）。
+## Node（環境変数）
 
-サーバーはカレントディレクトリから上位へ探索して `.unity/config.json` を見つけます。
+Node MCP サーバープロセス起動時に環境変数を設定してください。
 
-## メモ
+### 最小例
 
-- 設定は `.unity/config.json`（ワークスペース）に集約してください。
-- サーバープロセスは `.unity/config.json` を含むワークスペース内で起動してください（CWDが重要）。
-- 設定のズレを防ぐため、このプロジェクトは設定キーの環境変数オーバーライドを避けています。
-- 古いスニペットに `UNITY_MCP_PORT` が出てくることがありますが、**非対応**です。設定ファイルの `unity.port` を使ってください。
-
-## 最小設定例
-
-```json
-{
-  "project": { "root": "." },
-  "unity": { "mcpHost": "localhost", "port": 6400 },
-  "logging": { "level": "info" }
-}
+```bash
+export UNITY_MCP_MCP_HOST=localhost
+export UNITY_MCP_PORT=6400
+export UNITY_PROJECT_ROOT=.
 ```
 
-## よく使うキー
+### よく使う環境変数
 
-| キー | デフォルト | 補足 |
+| 環境変数 | デフォルト | 補足 |
 |---|---:|---|
-| `project.root` | 自動検出 | `Assets/` を含むディレクトリ |
-| `project.codeIndexRoot` | `<workspace>/.unity/cache/code-index` | `code-index.db` の場所 |
-| `unity.mcpHost` | `localhost` | NodeがUnityに接続するホスト |
-| `unity.unityHost` | `localhost` | 互換用（通常は触らない） |
-| `unity.port` | `6400` | Unity Editor TCPポート |
-| `unity.connectTimeout` | `3000` | TCP接続タイムアウト（ms） |
-| `logging.level` | `info` | `debug`, `info`, `warn`, `error` |
-| `http.enabled` | `false` | HTTPトランスポート有効化 |
-| `http.port` | `6401` | HTTPポート |
-| `telemetry.enabled` | `false` | CLIでも切替可能 |
+| `UNITY_PROJECT_ROOT` | 自動検出 | Unityプロジェクトルート（`Assets/` と `Packages/` を含む） |
+| `UNITY_MCP_MCP_HOST` | `localhost` | Node が Unity に接続するホスト |
+| `UNITY_MCP_PORT` | `6400` | Unity Editor TCPポート |
+| `UNITY_MCP_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
+| `UNITY_MCP_HTTP_ENABLED` | `false` | HTTPトランスポート有効化（`/healthz`） |
+| `UNITY_MCP_HTTP_PORT` | `6401` | HTTPポート |
+| `UNITY_MCP_TELEMETRY_ENABLED` | `false` | コマンドフラグでも切替可能 |
+| `UNITY_MCP_LSP_REQUEST_TIMEOUT_MS` | `60000` | LSP リクエストタイムアウト（ms） |
 
-## 環境変数
+## Unity（Project Settings）
 
-なし（設定は `.unity/config.json` に集約）。
+Unity: **Edit → Project Settings → Unity MCP Server**
+
+- `Host`: Unity 側 TCP リスナーの待ち受けホスト（`localhost`, `0.0.0.0` など）
+- `Port`: TCP ポート（`UNITY_MCP_PORT` と一致させる）
+
+**Apply & Restart** を押すと Unity 側のリスナーを再起動します（Reimport も実行）。

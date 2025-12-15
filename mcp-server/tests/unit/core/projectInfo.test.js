@@ -1,80 +1,84 @@
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { ProjectInfoProvider } from '../../../src/core/projectInfo.js';
-import { config } from '../../../src/core/config.js';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+
+const ENV_KEYS = ['UNITY_PROJECT_ROOT'];
+
+function snapshotEnv() {
+  const out = {};
+  for (const k of ENV_KEYS) out[k] = process.env[k];
+  return out;
+}
+
+function restoreEnv(snapshot) {
+  for (const k of ENV_KEYS) {
+    const v = snapshot[k];
+    if (v === undefined) delete process.env[k];
+    else process.env[k] = v;
+  }
+}
+
+async function importProjectInfoFresh() {
+  const moduleUrl = new URL('../../../src/core/projectInfo.js', import.meta.url);
+  moduleUrl.searchParams.set('ts', Date.now().toString());
+  return import(moduleUrl.href);
+}
 
 describe('ProjectInfoProvider', () => {
-  let provider;
-  let mockConnection;
+  let envSnapshot;
 
   beforeEach(() => {
-    mockConnection = {
+    envSnapshot = snapshotEnv();
+    for (const k of ENV_KEYS) delete process.env[k];
+  });
+
+  afterEach(() => {
+    restoreEnv(envSnapshot);
+  });
+
+  it('returns cached value if available', async () => {
+    const { ProjectInfoProvider } = await importProjectInfoFresh();
+    const provider = new ProjectInfoProvider({
       isConnected: () => false,
-      sendCommand: async () => ({ success: false })
+      sendCommand: async () => ({})
+    });
+
+    const mockInfo = {
+      projectRoot: '/test/project',
+      assetsPath: '/test/project/Assets',
+      packagesPath: '/test/project/Packages',
+      codeIndexRoot: '/test/workspace/.unity/cache/code-index'
     };
-    provider = new ProjectInfoProvider(mockConnection);
+    provider.cached = mockInfo;
+
+    const result = await provider.get();
+    assert.deepEqual(result, mockInfo);
   });
 
-  describe('constructor', () => {
-    it('should construct with unityConnection', () => {
-      assert.ok(provider);
-      assert.equal(provider.cached, null);
-      assert.equal(provider.lastTried, 0);
-    });
-  });
+  it('uses UNITY_PROJECT_ROOT when provided', async () => {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-project-'));
+    const projectDir = path.join(tmpDir, 'MyUnityProject');
+    await fs.mkdir(path.join(projectDir, 'Assets'), { recursive: true });
+    await fs.mkdir(path.join(projectDir, 'Packages'), { recursive: true });
 
-  describe('get method', () => {
-    it('should have get method', () => {
-      assert.ok(provider.get);
-      assert.equal(typeof provider.get, 'function');
-    });
+    process.env.UNITY_PROJECT_ROOT = projectDir;
 
-    it('should return cached value if available', async () => {
-      const mockInfo = {
-        projectRoot: '/test/project',
-        assetsPath: '/test/project/Assets',
-        packagesPath: '/test/project/Packages',
-        codeIndexRoot: '/test/workspace/.unity/cache/code-index'
-      };
-      provider.cached = mockInfo;
-      const result = await provider.get();
-      assert.deepEqual(result, mockInfo);
-    });
-  });
+    try {
+      const { ProjectInfoProvider } = await importProjectInfoFresh();
+      const provider = new ProjectInfoProvider({
+        isConnected: () => false,
+        sendCommand: async () => ({})
+      });
 
-  describe('inferFromCwd method', () => {
-    it('should have inferFromCwd method', () => {
-      assert.ok(provider.inferFromCwd);
-      assert.equal(typeof provider.inferFromCwd, 'function');
-    });
-
-    it('should return null or object', () => {
-      const result = provider.inferFromCwd();
-      assert.ok(result === null || typeof result === 'object');
-    });
-  });
-
-  describe('SPEC compliance', () => {
-    it('should provide project info functionality', () => {
-      assert.ok(ProjectInfoProvider);
-      assert.equal(typeof ProjectInfoProvider, 'function');
-    });
-  });
-
-  describe('configuration requirements', () => {
-    it('should throw when project.root is configured but empty', async () => {
-      const originalProject = { ...config.project };
-      config.project = { ...(config.project || {}), root: '' };
-
-      try {
-        const provider = new ProjectInfoProvider({
-          isConnected: () => false,
-          sendCommand: async () => ({})
-        });
-        await assert.rejects(() => provider.get(), /project\.root is configured but empty/);
-      } finally {
-        config.project = originalProject;
-      }
-    });
+      const info = await provider.get();
+      assert.equal(info.projectRoot, projectDir.replace(/\\/g, '/'));
+      assert.equal(info.assetsPath, path.join(projectDir, 'Assets').replace(/\\/g, '/'));
+      assert.equal(info.packagesPath, path.join(projectDir, 'Packages').replace(/\\/g, '/'));
+      assert.match(info.codeIndexRoot, /\/\.unity\/cache\/code-index$/);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
   });
 });

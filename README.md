@@ -112,9 +112,9 @@ curl http://localhost:6401/healthz
 
 Configuration is optional; defaults work without any config file.
 
-The server discovers `.unity/config.json` by walking up from the working directory (CWD matters).
+Node-side configuration uses **environment variables**, and Unity-side host/port lives in **Project Settings**.
 
-See [docs/configuration.md](docs/configuration.md) for config file location and keys.
+See [docs/configuration.md](docs/configuration.md).
 
 ## Tools
 

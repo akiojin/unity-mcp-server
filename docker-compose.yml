@@ -29,6 +29,10 @@ services:
       - MAX_MCP_OUTPUT_TOKENS
       - ENABLE_BACKGROUND_TASKS=1
       - FORCE_AUTO_BACKGROUND_TASKS=1
+      # Node -> Unity connection (Docker -> host Unity)
+      - UNITY_MCP_MCP_HOST=host.docker.internal
+      # Unity project root (inside container)
+      - UNITY_PROJECT_ROOT=./UnityMCPServer
     extra_hosts:
       - "host.docker.internal:host-gateway"
     stdin_open: true
