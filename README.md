@@ -12,7 +12,7 @@ Unity MCP Server lets LLM-based clients automate the Unity Editor. It focuses on
 - **UI automation**: Locate and interact with UI, validate UI state
 - **Input simulation**: Keyboard/mouse/gamepad/touch for playmode testing (Input System only)
 - **Visual capture**: Deterministic screenshots from Game/Scene/Explorer/Window views
-- **Code base awareness**: Safe structured edits and accurate symbol/search powered by bundled C# LSP
+- **Code base awareness**: Safe structured edits and accurate symbol/search powered by bundled C# LSP (no `.sln` file required)
 - **Project control**: Read/update project/editor settings; read logs, monitor compilation
 - **Addressables management**: Register/organize assets, manage groups, build automation
 
