@@ -130,10 +130,14 @@ This package includes Claude Code skills that provide workflow-oriented guidance
 
 | Skill | Description | Triggers |
 |-------|-------------|----------|
+| `mcp-server-development` | Build MCP servers (TypeScript SDK), implement tools/resources/prompts, JSON-RPC patterns | "MCP server", "tool handler", "JSON-RPC", "TypeScript" |
 | `unity-csharp-editing` | C# script editing, search, refactoring with TDD workflow | "C# edit", "script search", "refactoring" |
 | `unity-scene-management` | Scene, GameObject, Component management | "scene create", "GameObject", "component add" |
 | `unity-playmode-testing` | PlayMode control, input simulation, UI automation | "playmode", "input simulate", "UI click" |
 | `unity-asset-management` | Prefab, Material, Addressables management | "prefab create", "material", "Addressables" |
+| `unity-editor-imgui-design` | Unity Editor IMGUI for EditorWindow/Inspector/PropertyDrawer (not for in-game UI) | "EditorWindow", "Custom Inspector", "PropertyDrawer", "IMGUI" |
+| `unity-game-ugui-design` | In-game uGUI (Canvas/RectTransform/Anchors) UI design | "uGUI", "Canvas", "RectTransform", "Anchors", "HUD" |
+| `unity-game-ui-toolkit-design` | In-game UI Toolkit (UXML/USS/Flexbox) UI design | "UI Toolkit", "UXML", "USS", "VisualElement", "Flexbox" |
 
 ### Installation
 

@@ -130,10 +130,14 @@ Unity MCP Server は **100+ ツール**を提供します。`search_tools` を�
 
 | スキル | 説明 | トリガーキーワード |
 |--------|------|-------------------|
+| `mcp-server-development` | MCPサーバー（TypeScript SDK）の開発、ツール/リソース/プロンプト実装、JSON-RPCパターン | "MCPサーバー", "ツール実装", "JSON-RPC", "TypeScript" |
 | `unity-csharp-editing` | C#スクリプト編集、検索、TDDワークフローでのリファクタリング | "C#編集", "スクリプト検索", "リファクタリング" |
 | `unity-scene-management` | シーン、GameObject、コンポーネント管理 | "シーン作成", "GameObject", "コンポーネント追加" |
 | `unity-playmode-testing` | プレイモード制御、入力シミュレーション、UI自動化 | "プレイモード", "入力シミュレーション", "UIクリック" |
 | `unity-asset-management` | プレハブ、マテリアル、Addressables管理 | "プレハブ作成", "マテリアル", "Addressables" |
+| `unity-editor-imgui-design` | Unity Editor拡張向けIMGUI（EditorWindow/Inspector/PropertyDrawer）※ゲームUI用途ではない | "EditorWindow", "カスタムインスペクタ", "PropertyDrawer", "IMGUI" |
+| `unity-game-ugui-design` | ゲームUI向けuGUI（Canvas/RectTransform/Anchors）設計 | "uGUI", "Canvas", "RectTransform", "アンカー", "HUD" |
+| `unity-game-ui-toolkit-design` | ゲームUI向けUI Toolkit（UXML/USS/Flexbox）設計 | "UI Toolkit", "UXML", "USS", "VisualElement", "Flexbox" |
 
 ### インストール
 
