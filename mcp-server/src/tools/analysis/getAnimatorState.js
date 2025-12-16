@@ -99,8 +99,8 @@ export async function getAnimatorStateHandler(unityConnection, args) {
       };
     }
 
-    // Send command to Unity
-    const result = await unityConnection.sendCommand('get_animator_state', args);
+    // Send command to Unity (tool name is normalized to Unity command type in UnityConnection)
+    const result = await unityConnection.sendCommand(getAnimatorStateToolDefinition.name, args);
 
     // Check for errors
     if (!result || typeof result === 'string') {
@@ -221,8 +221,11 @@ export async function getAnimatorRuntimeInfoHandler(unityConnection, args) {
       };
     }
 
-    // Send command to Unity
-    const result = await unityConnection.sendCommand('get_animator_runtime_info', args);
+    // Send command to Unity (tool name is normalized to Unity command type in UnityConnection)
+    const result = await unityConnection.sendCommand(
+      getAnimatorRuntimeInfoToolDefinition.name,
+      args
+    );
 
     // Check for errors
     if (!result || typeof result === 'string') {
