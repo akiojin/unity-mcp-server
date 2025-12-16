@@ -141,9 +141,6 @@ export async function getComponentValuesHandler(unityConnection, args) {
           }
         }
       }
-    } else {
-      console.log('[DEBUG] No properties found in result');
-      console.log('[DEBUG] Result keys:', Object.keys(result));
     }
 
     // Add debug information if available

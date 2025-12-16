@@ -22,7 +22,7 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
             type: 'string',
             enum: ['assets', 'packages', 'embedded', 'all'],
             description:
-              'Search scope: assets (Assets/), packages (Packages/), embedded, or all (default: all).'
+              'Search scope: assets (Assets/), packages (Packages/), embedded, or all (default: assets).'
           },
           exact: {
             type: 'boolean',
@@ -110,18 +110,15 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
       filteredRows = filteredRows.filter(r => r.name === target);
     }
 
-    // Phase 3.1: Optimized output format with pathTable (60% size reduction)
-    // Build pathTable for deduplication
-    const pathSet = new Set();
+    // Phase 3.2: Grouped output format (40% more compact than pathTable)
+    // Group symbols by file path
+    const grouped = new Map();
+    let total = 0;
     for (const r of filteredRows) {
-      pathSet.add((r.path || '').replace(/\\/g, '/'));
-    }
-    const pathTable = [...pathSet];
-    const pathIndex = new Map(pathTable.map((p, i) => [p, i]));
-
-    // Build compact results with fileId reference
-    const results = filteredRows.map(r => {
       const p = (r.path || '').replace(/\\/g, '/');
+      if (!grouped.has(p)) {
+        grouped.set(p, []);
+      }
       const symbol = {
         name: r.name,
         kind: r.kind,
@@ -131,10 +128,16 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
       // Only include non-null optional fields
       if (r.ns) symbol.namespace = r.ns;
       if (r.container) symbol.container = r.container;
+      grouped.get(p).push(symbol);
+      total++;
+    }
 
-      return { fileId: pathIndex.get(p), symbol };
-    });
+    // Convert to array format
+    const results = [];
+    for (const [path, symbols] of grouped) {
+      results.push({ path, symbols });
+    }
 
-    return { success: true, pathTable, results, total: results.length };
+    return { success: true, results, total };
   }
 }

@@ -7,7 +7,6 @@
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
 [Ss]creenShots/
-.unity/captures/
 *.pidb.meta
 *.pdb.meta
 *.mdb.meta
@@ -91,10 +90,7 @@ dist/
 build/
 CLAUDE.local.md
 
-.unity/cache/
-.unity/capture/
-.unity/captures/
-.unity/guid-db/
+.unity/
 UnityMCPServer/.unity/
 .worktrees/
 

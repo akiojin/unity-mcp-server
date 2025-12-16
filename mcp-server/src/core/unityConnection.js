@@ -22,6 +22,7 @@ export class UnityConnection extends EventEmitter {
     this.inFlight = 0;
     this.maxInFlight = 1; // process one command at a time by default
     this.connectedAt = null; // Timestamp when connection was established
+    this.hasConnectedOnce = false;
   }
 
   /**
@@ -86,6 +87,7 @@ export class UnityConnection extends EventEmitter {
         this.connected = true;
         this.reconnectAttempts = 0;
         this.connectPromise = null;
+        this.hasConnectedOnce = true;
         this.emit('connected');
         this._pumpQueue(); // flush any queued commands that arrived during reconnect
         settle(resolve);
@@ -120,7 +122,7 @@ export class UnityConnection extends EventEmitter {
           // Destroy the socket to clean up properly
           this.socket.destroy();
           this.isDisconnecting = false;
-          reject(error);
+          reject(wrapUnityConnectError(error, targetHost, config.unity.port));
         } else if (this.connected) {
           // Force close to trigger reconnect logic
           try {
@@ -175,9 +177,11 @@ export class UnityConnection extends EventEmitter {
           this.socket.removeAllListeners();
           this.socket.destroy();
           this.connectPromise = null;
-          settle(reject, new Error('Connection timeout'));
+          const timeoutError = new Error('Connection timeout');
+          timeoutError.code = 'ETIMEDOUT';
+          settle(reject, wrapUnityConnectError(timeoutError, targetHost, config.unity.port));
         }
-      }, config.unity.commandTimeout);
+      }, config.unity.connectTimeout ?? config.unity.commandTimeout);
     });
     return this.connectPromise;
   }
@@ -361,7 +365,7 @@ export class UnityConnection extends EventEmitter {
     if (!this.connected) {
       logger.warning('[Unity] Not connected; waiting for reconnection before sending command');
       await this.ensureConnected({
-        timeoutMs: config.unity.commandTimeout
+        timeoutMs: config.unity.connectTimeout ?? config.unity.commandTimeout
       });
     }
 
@@ -518,6 +522,13 @@ export class UnityConnection extends EventEmitter {
         if (/test environment/i.test(msg)) {
           throw error;
         }
+        if (
+          !this.hasConnectedOnce &&
+          (error?.code === 'UNITY_CONNECTION_REFUSED' || error?.code === 'ECONNREFUSED')
+        ) {
+          // Fail fast for the initial connection when Unity isn't listening.
+          throw error;
+        }
       }
 
       if (this.connected) return;
@@ -525,8 +536,9 @@ export class UnityConnection extends EventEmitter {
     }
 
     if (!this.connected) {
+      const targetHost = config.unity.mcpHost || config.unity.unityHost || 'localhost';
       const error = new Error(
-        `Failed to reconnect to Unity within ${timeoutMs}ms${lastError ? `: ${lastError.message}` : ''}`
+        `Failed to connect to Unity at ${targetHost}:${config.unity.port} within ${timeoutMs}ms${lastError ? `: ${lastError.message}` : ''}`
       );
       error.code = 'UNITY_RECONNECT_TIMEOUT';
       throw error;
@@ -544,4 +556,34 @@ export class UnityConnection extends EventEmitter {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, Math.max(0, ms || 0)));
+}
+
+function wrapUnityConnectError(error, host, port) {
+  const code = error?.code || '';
+  if (code === 'ECONNREFUSED') {
+    const hint = buildUnityConnectionHint(host, port);
+    const wrapped = new Error(
+      `Unity TCP connection refused (ECONNREFUSED) at ${host}:${port}. ${hint}`
+    );
+    wrapped.code = 'UNITY_CONNECTION_REFUSED';
+    wrapped.cause = error;
+    return wrapped;
+  }
+  if (code === 'ETIMEDOUT') {
+    const hint = buildUnityConnectionHint(host, port);
+    const wrapped = new Error(`Unity TCP Connection timeout at ${host}:${port}. ${hint}`);
+    wrapped.code = 'UNITY_CONNECTION_TIMEOUT';
+    wrapped.cause = error;
+    return wrapped;
+  }
+  return error;
+}
+
+function buildUnityConnectionHint(_host, _port) {
+  const configPath = config.__configPath || '.unity/config.json';
+  return (
+    `Start Unity Editor and ensure the Unity MCP package is running (TCP listener). ` +
+    `Check ${configPath} (unity.mcpHost/unity.port). ` +
+    `If using WSL2/Docker → Windows Unity, set unity.mcpHost=host.docker.internal.`
+  );
 }

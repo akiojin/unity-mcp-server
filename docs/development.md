@@ -14,7 +14,7 @@ This document contains internal development details for Unity MCP Server maintai
 
 ## Spec Kit (SDD) Conventions
 
-This project uses Spec-Driven Development (SDD) with Spec Kit CLI v0.0.78.
+This project uses Spec-Driven Development (SDD) with Spec Kit v0.0.78.
 
 ### Directory Structure
 
@@ -36,10 +36,10 @@ specs/
 - Generated: Random 8-character hex string
 - Storage: `.specify/current-feature` tracks active feature
 
-### CLI Commands
+### Commands
 
 ```bash
-# Verify CLI and templates
+# Verify Spec Kit and templates
 uvx --from git+https://github.com/github/spec-kit.git specify check
 
 # Feature workflow

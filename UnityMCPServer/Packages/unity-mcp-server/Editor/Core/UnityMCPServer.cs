@@ -12,6 +12,7 @@ using UnityMCPServer.Models;
 using UnityMCPServer.Helpers;
 using UnityMCPServer.Logging;
 using UnityMCPServer.Handlers;
+using UnityMCPServer.Settings;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
@@ -55,8 +56,8 @@ namespace UnityMCPServer.Core
         
         public const int DEFAULT_PORT = 6400;
         private static int currentPort = DEFAULT_PORT;
-        // Client connects via unity.mcpHost (legacy keys still supported). Server bind is independent (unity.unityHost/bindHost).
-        private static string currentHost = "localhost"; // for logging only
+        // For logging only (what we bind/listen on)
+        private static string currentHost = "localhost";
         private static IPAddress bindAddress = IPAddress.Any; // default: 0.0.0.0
         
         /// <summary>
@@ -67,119 +68,36 @@ namespace UnityMCPServer.Core
             McpLogger.Log("Initializing...");
             EditorApplication.update += ProcessCommandQueue;
             EditorApplication.quitting += Shutdown;
+            AssemblyReloadEvents.beforeAssemblyReload += Shutdown;
             
-            // Load config and start the TCP listener
-            TryLoadConfigAndApply();
+            // Load Project Settings and start the TCP listener
+            TryLoadProjectSettingsAndApply();
             StartTcpListener();
         }
 
         
 
         /// <summary>
-        /// Load external configuration and apply port if present.
-        /// Looks for `.unity/config.json` from the Unity project root, then walks up parent directories.
-        /// Intentionally ignores `~/.unity/config.json` (user-global).
+        /// Load Project Settings (Project Settings > Unity MCP Server) and apply host/port.
         /// </summary>
-        private static void TryLoadConfigAndApply()
+        private static void TryLoadProjectSettingsAndApply()
         {
             try
             {
-                // Current Unity project root
-                string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-                string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                string userGlobalConfigPath = string.IsNullOrEmpty(homeDir) ? null : Path.Combine(homeDir, ".unity", "config.json");
+                var settings = UnityMcpServerProjectSettings.instance;
+                var host = settings != null ? settings.ResolvedUnityHost : "localhost";
+                var port = settings != null ? settings.ResolvedPort : DEFAULT_PORT;
 
-                // Search `.unity/config.json` upwards from the Unity project root (最大10階層)
-                string configPath = FindAncestorConfigSimple(projectRoot, excludedConfigPath: userGlobalConfigPath, maxLevels: 10);
+                currentHost = host;
+                currentPort = port;
+                bindAddress = ResolveBindAddress(host);
 
-                if (!string.IsNullOrEmpty(configPath) && File.Exists(configPath))
-                {
-                    try
-                    {
-                        var jsonText = File.ReadAllText(configPath);
-                        var json = JObject.Parse(jsonText);
-
-                        // Expect structure: { "unity": { "port": 6400, "unityHost": "localhost", "mcpHost": "host.docker.internal" } }
-                        var portToken = json.SelectToken("unity.port");
-                        if (portToken != null && int.TryParse(portToken.ToString(), out int port) && port > 0 && port < 65536)
-                        {
-                            currentPort = port;
-                        }
-                        // mcpHost は Node 側が接続に使用するホスト。旧 clientHost/host をフォールバックで利用。
-                        var clientTargetToken = json.SelectToken("unity.mcpHost")
-                            ?? json.SelectToken("unity.clientHost")
-                            ?? json.SelectToken("unity.host");
-                        if (clientTargetToken != null)
-                        {
-                            var host = clientTargetToken.ToString();
-                            if (!string.IsNullOrWhiteSpace(host)) currentHost = host.Trim();
-                        }
-
-                        // unityHost（旧 bindHost/host）は Unity が待ち受けるインターフェース。
-                        var bindToken = json.SelectToken("unity.unityHost")
-                            ?? json.SelectToken("unity.bindHost")
-                            ?? json.SelectToken("unity.host");
-                        if (bindToken != null)
-                        {
-                            var bh = bindToken.ToString();
-                            if (!string.IsNullOrWhiteSpace(bh)) bindAddress = ResolveBindAddress(bh.Trim());
-                        }
-                        var minIntToken = json.SelectToken("unity.minEditorStateIntervalMs");
-                        if (minIntToken != null && int.TryParse(minIntToken.ToString(), out var minMs) && minMs >= 0 && minMs <= 10000)
-                        {
-                            minEditorStateIntervalMs = minMs;
-                        }
-                        McpLogger.Log($"Config loaded from {configPath}: bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
-                        return;
-                    }
-                    catch (Exception ex)
-                    {
-                        McpLogger.LogWarning($"Failed to load config '{configPath}': {ex.Message}");
-                    }
-                }
-
-                // No config found; keep default
-                McpLogger.Log($"No external config found. Using default bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
+                McpLogger.Log($"Project Settings loaded: host={host}, bind={bindAddress}, port={currentPort}");
             }
             catch (Exception ex)
             {
-                McpLogger.LogWarning($"Config load error: {ex.Message}. Using default bind={bindAddress}, mcpHost={currentHost}, port={currentPort}");
+                McpLogger.LogWarning($"Project Settings load error: {ex.Message}. Using defaults.");
             }
-        }
-
-        /// <summary>
-        /// Walk up parent directories from the Unity project root (最大 maxLevels)
-        /// and return the first found <dir>/.unity/config.json (excluding user-global). Returns null if none.
-        /// </summary>
-        private static string FindAncestorConfigSimple(string projectRoot, string excludedConfigPath = null, int maxLevels = 10)
-        {
-            try
-            {
-                string dir = projectRoot;
-                for (int i = 0; i < maxLevels; i++)
-                {
-                    var parent = (i == 0) ? new DirectoryInfo(dir) : Directory.GetParent(dir);
-                    if (parent == null) break;
-                    dir = parent.FullName;
-                    var configPath = Path.Combine(dir, ".unity", "config.json");
-                    if (File.Exists(configPath))
-                    {
-                        if (!string.IsNullOrEmpty(excludedConfigPath))
-                        {
-                            try
-                            {
-                                var a = Path.GetFullPath(configPath);
-                                var b = Path.GetFullPath(excludedConfigPath);
-                                if (string.Equals(a, b, StringComparison.OrdinalIgnoreCase)) continue;
-                            }
-                            catch { }
-                        }
-                        return configPath;
-                    }
-                }
-            }
-            catch { }
-            return null;
         }
 
         private static IPAddress ResolveBindAddress(string host)
@@ -233,7 +151,7 @@ namespace UnityMCPServer.Core
                 tcpListener.Start();
                 
                 Status = McpStatus.Disconnected;
-                McpLogger.Log($"TCP listener binding on {bindAddress}:{currentPort} (mcpHost={currentHost})");
+                McpLogger.Log($"TCP listener binding on {bindAddress}:{currentPort} (host={currentHost})");
                 
                 // Start accepting connections asynchronously
                 listenerTask = Task.Run(() => AcceptConnectionsAsync(cancellationTokenSource.Token));
@@ -1055,8 +973,8 @@ namespace UnityMCPServer.Core
                 string dir = projectRoot;
                 for (int i = 0; i < 3 && !string.IsNullOrEmpty(dir); i++)
                 {
-                    var cfgPath = Path.Combine(dir, ".unity", "config.json");
-                    if (File.Exists(cfgPath))
+                    var unityDir = Path.Combine(dir, ".unity");
+                    if (Directory.Exists(unityDir))
                     {
                         return dir.Replace('\\', '/');
                     }
@@ -1078,6 +996,7 @@ namespace UnityMCPServer.Core
         public static void Restart()
         {
             McpLogger.Log("Restarting...");
+            TryLoadProjectSettingsAndApply();
             StopTcpListener();
             StartTcpListener();
         }

@@ -46,7 +46,7 @@ export class ProjectInfoProvider {
 
   async get() {
     if (this.cached) return this.cached;
-    // Env-driven project root override (primarily for tests)
+    // Env-driven project root override (explicit, deterministic)
     const envRootRaw = process.env.UNITY_PROJECT_ROOT;
     if (typeof envRootRaw === 'string' && envRootRaw.trim().length > 0) {
       const envRoot = envRootRaw.trim();
@@ -62,7 +62,7 @@ export class ProjectInfoProvider {
       return this.cached;
     }
 
-    // Config-driven project root (no env fallback)
+    // Config-driven project root (env is mapped into config.project.root)
     const cfgRootRaw = config?.project?.root;
     if (typeof cfgRootRaw === 'string' && cfgRootRaw.trim().length > 0) {
       const cfgRoot = cfgRootRaw.trim();
@@ -122,13 +122,8 @@ export class ProjectInfoProvider {
       return this.cached;
     }
 
-    if (typeof cfgRootRaw === 'string') {
-      throw new Error(
-        'project.root is configured but empty. Set a valid path in .unity/config.json.'
-      );
-    }
     throw new Error(
-      'Unable to resolve Unity project root. Start the server inside a Unity project (directory containing Assets/ and Packages/) or configure project.root in .unity/config.json.'
+      'Unable to resolve Unity project root. Start the server inside a Unity project (directory containing Assets/ and Packages/) or set UNITY_PROJECT_ROOT.'
     );
   }
 

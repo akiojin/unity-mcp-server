@@ -10,6 +10,86 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [3.2.0](https://github.com/akiojin/unity-mcp-server/compare/v3.1.0...v3.2.0) (2025-12-15)
+
+
+### Features
+
+* **mcp-server:** change output format to grouped by file path ([b608979](https://github.com/akiojin/unity-mcp-server/commit/b608979bb590451bf9c748833e5761bcc6dbbc4e))
+
+## [3.1.0](https://github.com/akiojin/unity-mcp-server/compare/v3.0.0...v3.1.0) (2025-12-15)
+
+
+### Features
+
+* **code-index:** add forceRebuild option and 100K benchmark results ([43084ae](https://github.com/akiojin/unity-mcp-server/commit/43084ae8d4ee573ddc5482859f6936663b5d3446))
+* **test:** add large-scale C# file generation script ([ee74cb3](https://github.com/akiojin/unity-mcp-server/commit/ee74cb37e511ec018cdf2970317c85c0e9f025c5))
+* **ui:** UI操作をIMGUI/uGUI/UITK対応 ([29eff99](https://github.com/akiojin/unity-mcp-server/commit/29eff994f4f1017417a1d41cba820a75a6a0a11a))
+* UI操作のIMGUI/uGUI/UITK対応とツール改善 ([8c928dd](https://github.com/akiojin/unity-mcp-server/commit/8c928dd50d482a2095c413eb3a620909a84308aa))
+* UI操作のIMGUI/uGUI/UITK対応と検証シーン追加 ([f85507d](https://github.com/akiojin/unity-mcp-server/commit/f85507d0dac85bf6f0ff348ec51445172eaab5e1))
+
+
+### Bug Fixes
+
+* **code-index:** add Library/PackageCache support and performance optimization ([a8c728e](https://github.com/akiojin/unity-mcp-server/commit/a8c728ef9571c703c9061f0f128ba5a5e72f15f6))
+* **code-index:** remove */.*  pattern that breaks worktree builds ([2bd9d8b](https://github.com/akiojin/unity-mcp-server/commit/2bd9d8b52cf11d17d805f5de7afdc727d61afe16))
+* **mcp-server:** add Library/PackageCache to script_search scope ([e797f5b](https://github.com/akiojin/unity-mcp-server/commit/e797f5b9b1226e3ec726cd66580c0ba7310350a5))
+* **uitk:** Query拡張メソッド参照を修正 ([0ddf05f](https://github.com/akiojin/unity-mcp-server/commit/0ddf05f262c0fe83f3323342d1d0d78d11840d03))
+* **uitk:** テストシーンUI Toolkit API互換 ([29ced95](https://github.com/akiojin/unity-mcp-server/commit/29ced951a10262f7feda73241c26aafee749bfe2))
+* **ui:** UITKクリックとInputSystem対応 ([85d23c6](https://github.com/akiojin/unity-mcp-server/commit/85d23c65860efb98604dce11a46b5d826d0ffe14))
+
+
+### Performance Improvements
+
+* **code-index:** add fastWalkCs and excludePackageCache option ([2d2b022](https://github.com/akiojin/unity-mcp-server/commit/2d2b02240f75181de6747a3c178955d43cecb649))
+
+## [3.0.0](https://github.com/akiojin/unity-mcp-server/compare/v2.46.0...v3.0.0) (2025-12-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **config:** 環境変数による設定（UNITY_* / LOG_LEVEL / UNITY_MCP_CONFIG 等）は無効化 ~/.unity/config.json もサポートしません。 設定はワークスペースの .unity/config.json のみです。
+
+### Features
+
+* **plugin:** add Claude Code plugin manifest for marketplace distribution ([ff1c520](https://github.com/akiojin/unity-mcp-server/commit/ff1c52078720d060f93cf025cf52821971be4c29))
+* **skills:** add Claude Code skills for Unity MCP Server ([20844c3](https://github.com/akiojin/unity-mcp-server/commit/20844c3032547b2095b0c75852ad17622cad4fa0))
+
+
+### Code Refactoring
+
+* **config:** 設定を .unity/config.json のみに統一 ([6c76564](https://github.com/akiojin/unity-mcp-server/commit/6c765646b6e9ab9df70a7a1fa0a63a6649a2bdde))
+
+## [2.46.0](https://github.com/akiojin/unity-mcp-server/compare/v2.45.5...v2.46.0) (2025-12-13)
+
+
+### Features
+
+* **code-index:** add [OFFLINE] tag to tool descriptions for LLM awareness ([902ac07](https://github.com/akiojin/unity-mcp-server/commit/902ac07a3dc8b4c8807e2e2fd4b28a055889793a))
+* **code-index:** add [OFFLINE] tag to tool descriptions for LLM awareness ([f747a51](https://github.com/akiojin/unity-mcp-server/commit/f747a5192404989ae0358faff7b3d4123c6e6bae))
+
+
+### Bug Fixes
+
+* gh extension インストール時のトークン受け渡し ([f22218e](https://github.com/akiojin/unity-mcp-server/commit/f22218ebc0eaeea174e71e3a7922533cc4d9c829))
+* initialized後に重い初期化を延期 ([fc43435](https://github.com/akiojin/unity-mcp-server/commit/fc434352227d27a9fdb36ae1d23455973ac0e5a9))
+* **mcp-server:** initialized後に重い初期化を延期 ([dfd52fe](https://github.com/akiojin/unity-mcp-server/commit/dfd52fe9b28319f69bff7803f881b061378f0758))
+* **mcp-server:** 起動10秒タイムアウトを解消 ([ea02c62](https://github.com/akiojin/unity-mcp-server/commit/ea02c62a2ed4890e61a708a82d8962df7310b122))
+* **mcp-server:** 起動10秒タイムアウトを解消 ([88b4ef4](https://github.com/akiojin/unity-mcp-server/commit/88b4ef4503c13ea4dab11b23eea0fc72d4c33d54))
+* **mcp-server:** 起動時のtools/listを高速化 ([afaee8c](https://github.com/akiojin/unity-mcp-server/commit/afaee8c22a4bddeb18ac9362458b07bce2bac53d))
+* **monorepo:** add postinstall script and improve error messages ([d132b16](https://github.com/akiojin/unity-mcp-server/commit/d132b1695153fb2db79cb7f48e9de570fa8fd5b6))
+* **monorepo:** add postinstall script to build local packages ([8ed1478](https://github.com/akiojin/unity-mcp-server/commit/8ed1478901fdd8f7dec2f1330e99976d621d1d6c))
+* **script-tools:** improve file not found error messages ([a975c11](https://github.com/akiojin/unity-mcp-server/commit/a975c1145356ac6477299aae3efdede2bb616090))
+* **script-tools:** replace LSP with file-based search in script_refs_find ([cc99ee0](https://github.com/akiojin/unity-mcp-server/commit/cc99ee0e15e4ff7e0fb25ed3da905d9d1c85c375))
+* **script-tools:** replace LSP with file-based search in script_refs_find ([b74f081](https://github.com/akiojin/unity-mcp-server/commit/b74f081fb8e4b4c85a2461b74150c68e538cf19b))
+* 起動時のtools/listを高速化 ([0e179bc](https://github.com/akiojin/unity-mcp-server/commit/0e179bc76a5406fffb55e37a4513617f4e0bd9eb))
+
+
+### Performance Improvements
+
+* **code-index:** comprehensive performance optimization ([c02a48f](https://github.com/akiojin/unity-mcp-server/commit/c02a48f95c251b9ba945c83ce3578b70209f8585))
+* **code-index:** comprehensive performance optimization ([d43a087](https://github.com/akiojin/unity-mcp-server/commit/d43a08798415cf80cc8c5e246b2cff2a8b416fd0))
+
 ## [2.45.5](https://github.com/akiojin/unity-mcp-server/compare/v2.45.4...v2.45.5) (2025-12-09)
 
 

@@ -17,6 +17,6 @@
     "editor-automation"
   ],
   "skills": [
-    "./.claude/skills/"
+    "./skills/"
   ]
 }

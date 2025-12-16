@@ -73,7 +73,8 @@ test('script_search (local) finds class Symbol in packages', async () => {
   });
   assert.equal(res.success, true);
   assert.ok(res.total >= 1, 'should find at least one match');
-  assert.ok(Array.isArray(res.pathTable));
+  assert.ok(Array.isArray(res.results), 'results should be an array');
+  assert.ok(res.results[0]?.path, 'each result should have a path property');
 });
 
 test('script_symbols_get (local) returns symbols for Symbols.cs', async () => {

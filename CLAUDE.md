@@ -810,13 +810,16 @@ README.mdにカバレッジバッジを追加する場合：
 本リポジトリは「ワークスペース（リポジトリ）ルート」を基点として、Unityプロジェクト・Node製MCPサーバ・C# LSP を同居させています。パスは常にワークスペースルート基準で解決します。
 
 - ワークスペースルート
-  - 定義: コーディングエージェント（Codex等）が「起動したディレクトリ」。
-  - 設定: `./.unity/config.json` の `project.root` に Unity プロジェクトの相対/絶対パスを記載。
-  - Node側は起動時にこの設定を読み、以後「固定の WORKSPACE_ROOT」として保持し、Unityへの全コマンドに `workspaceRoot` を同梱します（`process.cwd()`の変動には依存しない）。
+  - 定義: MCPサーバ（Node）の起動ディレクトリ（`process.cwd()`）。
+  - Node側は起動時の `process.cwd()` を `WORKSPACE_ROOT` として固定し、Unityへの全コマンドに `workspaceRoot` を同梱します（プロセス内の `process.chdir()` には依存しない）。
+
+- Unityプロジェクトルート
+  - 設定: 環境変数 `UNITY_PROJECT_ROOT` に Unity プロジェクトの相対/絶対パスを指定（未指定なら自動検出）。
 
 - `.unity/`
-  - `config.json`: ワークスペースの設定。特に `project.root` は Unity プロジェクトルートを指す（相対なら `.unity` の1階層上を基準）。
-  - `capture/`: スクリーンショット・動画の固定保存先。一時成果物としてGit管理外（`.gitignore` 済）。
+  - `cache/`: コードインデックス等のキャッシュ（Git管理外）
+  - `captures/`: スクリーンショット・動画の固定保存先（Git管理外）
+  - `capture/`: プロファイラ等の成果物保存先（Git管理外）
 
 - `UnityMCPServer/`（Unityプロジェクト）
   - `Packages/unity-mcp-server/**`（UPMパッケージ 実装本体／ソース・オブ・トゥルース）
@@ -825,7 +828,7 @@ README.mdにカバレッジバッジを追加する場合：
   - エディタ拡張のスクショ/動画ハンドラ:
     - `Editor/Handlers/ScreenshotHandler.cs`:
       - 保存先は常に `<workspace>/.unity/captures/image_<mode>_<timestamp>.png`
-      - Nodeから受け取る `workspaceRoot` を優先。未受領時のみ `.unity/config.json` を用いてフォールバック解決。
+      - Nodeから受け取る `workspaceRoot` を優先。未受領時は `.unity/` ディレクトリを上位探索してワークスペースを推定。
     - `Editor/Handlers/VideoCaptureHandler.cs`:
       - Unity Recorder（必須依存）で mp4/webm へ録画。
       - 保存先は常に `<workspace>/.unity/captures/video_<mode>_<timestamp>.(mp4|webm)`。
@@ -833,7 +836,7 @@ README.mdにカバレッジバッジを追加する場合：
 
 - `mcp-server/`（Node製 MCP サーバ）
   - `src/core/config.js`:
-    - 起動時に `./.unity/config.json` を読み込み、`WORKSPACE_ROOT` を確定・固定（`process.cwd()`変動非依存）。
+    - 起動時に環境変数（`UNITY_*`）を読み込み、`WORKSPACE_ROOT`（起動時 `process.cwd()`）を固定。
   - ハンドラ登録: `src/handlers/index.js`
   - スクリーンショット: `src/handlers/screenshot/CaptureScreenshotToolHandler.js`
     - Unityコマンド `capture_screenshot` に `workspaceRoot` を常時付与。
@@ -849,8 +852,8 @@ README.mdにカバレッジバッジを追加する場合：
 ### パス解決ポリシー（統一）
 - スクリーンショット/動画の出力先は常にワークスペースルート固定の `./.unity/captures/`。
 - Node側が `WORKSPACE_ROOT` を決定し、全Unityコマンドに `workspaceRoot` を付与。
-- Unity側は `workspaceRoot` を優先採用し、未受領時のみ `.unity/config.json` の `project.root` によるフォールバックでワークスペースを探索。
-- `process.cwd()` 変化・環境変数には依存しない。
+- Unity側は `workspaceRoot` を優先採用し、未受領時は `.unity/` ディレクトリを上位探索してワークスペースを推定。
+- Node側の接続設定（Unity接続先/ログ等）は環境変数、Unity側のリッスン設定は Project Settings で管理する。
 
 ### Git 管理
 - `/.unity/captures/` は `.gitignore` に登録（一時成果物の保護）。
