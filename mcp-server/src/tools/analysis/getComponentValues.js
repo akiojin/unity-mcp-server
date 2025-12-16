@@ -77,7 +77,7 @@ export async function getComponentValuesHandler(unityConnection, args) {
     }
 
     // Send command to Unity
-    const result = await unityConnection.sendCommand('analysis_component_values_get', args);
+    const result = await unityConnection.sendCommand('get_component_values', args);
 
     // The unityConnection.sendCommand already extracts the result field
     // from the response, so we access properties directly on result
@@ -107,13 +107,10 @@ export async function getComponentValuesHandler(unityConnection, args) {
     }
 
     // Success response - result is already the unwrapped data
-    console.log('[DEBUG] GetComponentValues - Full result:', JSON.stringify(result, null, 2));
-
     let responseText = result.summary || `Component values retrieved`;
 
     // Add detailed property information if available
     if (result.properties && Object.keys(result.properties).length > 0) {
-      console.log('[DEBUG] Properties found:', Object.keys(result.properties).length);
       responseText += '\n\nProperties:';
       for (const [key, value] of Object.entries(result.properties)) {
         if (value && typeof value === 'object') {

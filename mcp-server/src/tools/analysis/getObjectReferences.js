@@ -47,10 +47,23 @@ export async function getObjectReferencesHandler(unityConnection, args) {
     }
 
     // Send command to Unity
-    const result = await unityConnection.sendCommand('analysis_object_references_get', args);
+    const result = await unityConnection.sendCommand('get_object_references', args);
 
-    // Handle Unity response
-    if (result.status === 'error') {
+    // The unityConnection.sendCommand already extracts the result field
+    // from the response, so we access properties directly on result
+    if (!result || typeof result === 'string') {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Failed to get object references: Invalid response format`
+          }
+        ],
+        isError: true
+      };
+    }
+
+    if (result.error) {
       return {
         content: [
           {
@@ -67,7 +80,7 @@ export async function getObjectReferencesHandler(unityConnection, args) {
       content: [
         {
           type: 'text',
-          text: result.result.summary || `References analyzed for ${args.gameObjectName}`
+          text: result.summary || `References analyzed for ${args.gameObjectName}`
         }
       ],
       isError: false
