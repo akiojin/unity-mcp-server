@@ -27,12 +27,13 @@ describe('GetGameObjectDetailsToolHandler', () => {
   });
 
   describe('execute', () => {
-    it('should return error result when Unity not connected', async () => {
+    it('should throw error when Unity not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
 
-      const result = await handler.execute({ gameObjectName: 'Player' });
-      assert.equal(result.isError, true);
-      assert.ok(result.content[0].text.includes('Unity connection not available'));
+      await assert.rejects(
+        async () => await handler.execute({ gameObjectName: 'Player' }),
+        /Unity connection not available/
+      );
     });
 
     it('should call get_gameobject_details in Unity', async () => {
