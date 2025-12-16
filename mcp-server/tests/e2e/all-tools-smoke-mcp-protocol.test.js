@@ -2,6 +2,7 @@ import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -134,11 +135,97 @@ function isUnknownCommand(text) {
   return /Unknown command type:/i.test(text || '');
 }
 
+async function waitFor(fn, { timeoutMs = 15_000, pollMs = 250 } = {}) {
+  const start = Date.now();
+  for (;;) {
+    const ok = await fn();
+    if (ok) return;
+    if (Date.now() - start > timeoutMs) {
+      throw new Error('Timed out waiting for condition');
+    }
+    await sleep(pollMs);
+  }
+}
+
+function encodeFramedJson(obj) {
+  const json = JSON.stringify(obj);
+  const payload = Buffer.from(json, 'utf8');
+  const len = Buffer.allocUnsafe(4);
+  len.writeInt32BE(payload.length, 0);
+  return Buffer.concat([len, payload]);
+}
+
+function createMockUnityServer({ host = '127.0.0.1', port = 6400 } = {}) {
+  const receivedTypes = new Set();
+  const sockets = new Set();
+  const server = net.createServer(socket => {
+    sockets.add(socket);
+    socket.on('close', () => sockets.delete(socket));
+    let buffer = Buffer.alloc(0);
+
+    socket.on('data', chunk => {
+      buffer = Buffer.concat([buffer, chunk]);
+
+      while (buffer.length >= 4) {
+        const length = buffer.readInt32BE(0);
+        if (buffer.length < 4 + length) break;
+        const body = buffer.slice(4, 4 + length);
+        buffer = buffer.slice(4 + length);
+
+        let cmd;
+        try {
+          cmd = JSON.parse(body.toString('utf8'));
+        } catch {
+          continue;
+        }
+
+        if (cmd?.type) receivedTypes.add(String(cmd.type));
+
+        const result =
+          cmd?.type === 'ping'
+            ? {
+                message: 'pong',
+                echo: cmd?.params?.message || null,
+                timestamp: new Date().toISOString()
+              }
+            : {};
+
+        const response = { id: cmd?.id, success: true, result };
+        socket.write(encodeFramedJson(response));
+      }
+    });
+  });
+
+  return {
+    receivedTypes,
+    async start() {
+      await new Promise((resolve, reject) => {
+        server.once('error', reject);
+        server.listen(port, host, () => {
+          server.off('error', reject);
+          resolve();
+        });
+      });
+    },
+    async stop() {
+      for (const socket of sockets) {
+        try {
+          socket.destroy();
+        } catch {}
+      }
+      sockets.clear();
+
+      await new Promise(resolve => server.close(resolve));
+    }
+  };
+}
+
 describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
   let proc = null;
   let rpc = null;
   let unityAvailable = false;
   let toolNames = [];
+  let mockUnity = null;
 
   before(async () => {
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -178,6 +265,12 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
   });
 
   after(async () => {
+    if (mockUnity) {
+      try {
+        await mockUnity.stop();
+      } catch {}
+      mockUnity = null;
+    }
     if (!proc) return;
     try {
       proc.kill('SIGTERM');
@@ -196,8 +289,17 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
     { timeout: 12 * 60_000 },
     async t => {
       if (!unityAvailable) {
-        t.skip('Unity not available');
-        return;
+        mockUnity = createMockUnityServer({ host: '127.0.0.1', port: 6400 });
+        await mockUnity.start();
+
+        await waitFor(async () => {
+          const ping = await rpc.request('tools/call', {
+            name: 'system_ping',
+            arguments: { message: 'ping' }
+          });
+          const pingJson = safeJson(toolText(ping));
+          return Boolean(pingJson && pingJson.success === true);
+        });
       }
 
       const reportPath = path.resolve('tests/.reports/all-tools-smoke-mcp-protocol.json');
@@ -205,7 +307,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
 
       const report = {
         startedAt: new Date().toISOString(),
-        unityAvailable,
+        unityAvailable: unityAvailable || Boolean(mockUnity),
         toolsListed: toolNames.length,
         called: [],
         failures: [],
@@ -261,6 +363,17 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
           return null;
         }
       }
+
+      await safeCall('system_ping', { message: 'smoke' }, { timeoutMs: 60_000 });
+
+      // Addressables (best-effort; may be unavailable in some projects)
+      await safeCall(
+        'addressables_analyze',
+        { action: 'analyze_unused', pageSize: 1, offset: 0 },
+        { timeoutMs: 120_000 }
+      );
+      await safeCall('addressables_build', { action: 'clean_build' }, { timeoutMs: 120_000 });
+      await safeCall('addressables_manage', { action: 'list_groups' }, { timeoutMs: 120_000 });
 
       // Ensure clean-ish starting state
       await safeCall('playmode_stop', {}, { timeoutMs: 120_000 });
@@ -331,6 +444,17 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       if (typeof firstPath === 'string' && firstPath.startsWith('/')) {
         createdGoPath = firstPath;
       }
+
+      await safeCall(
+        'gameobject_modify',
+        { path: createdGoPath, position: { x: 1, y: 2, z: 3 } },
+        { timeoutMs: 60_000 }
+      );
+      await safeCall(
+        'gameobject_get_hierarchy',
+        { nameOnly: true, maxObjects: 100 },
+        { timeoutMs: 60_000 }
+      );
 
       // Core analysis tools: these must not hit "Unknown command type"
       await safeCall(
@@ -788,8 +912,8 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       await safeCall('playmode_pause', {}, { timeoutMs: 60_000 });
       await safeCall(
         'playmode_wait_for_state',
-        { isPlaying: true, timeoutMs: 60_000, pollMs: 250 },
-        { timeoutMs: 120_000 }
+        { isPlaying: false, timeoutMs: 1000, pollMs: 100 },
+        { timeoutMs: 30_000 }
       );
       await safeCall('playmode_stop', {}, { timeoutMs: 180_000 });
 
@@ -858,6 +982,43 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         false,
         missingToolsFailure?.reason || 'missing tools'
       );
+
+      if (mockUnity) {
+        const types = mockUnity.receivedTypes;
+        const expectations = [
+          ['analysis_scene_contents_analyze', 'analyze_scene_contents'],
+          ['analysis_component_find', 'find_by_component'],
+          ['analysis_component_values_get', 'get_component_values'],
+          ['analysis_gameobject_details_get', 'get_gameobject_details'],
+          ['analysis_object_references_get', 'get_object_references'],
+          ['analysis_animator_state_get', 'get_animator_state'],
+          ['analysis_animator_runtime_info_get', 'get_animator_runtime_info'],
+          ['input_actions_state_get', 'get_input_actions_state'],
+          ['input_actions_asset_analyze', 'analyze_input_actions_asset'],
+          ['input_action_map_create', 'create_action_map'],
+          ['input_action_map_remove', 'remove_action_map'],
+          ['input_action_add', 'add_input_action'],
+          ['input_action_remove', 'remove_input_action'],
+          ['input_binding_add', 'add_input_binding'],
+          ['input_binding_remove', 'remove_input_binding'],
+          ['input_binding_remove_all', 'remove_all_bindings'],
+          ['input_binding_composite_create', 'create_composite_binding'],
+          ['input_control_schemes_manage', 'manage_control_schemes']
+        ];
+
+        for (const [toolName, unityCommand] of expectations) {
+          assert.equal(
+            types.has(toolName),
+            false,
+            `Mock Unity received tool name as command type: ${toolName}`
+          );
+          assert.equal(
+            types.has(unityCommand),
+            true,
+            `Mock Unity did not receive expected command type: ${unityCommand}`
+          );
+        }
+      }
     }
   );
 });
