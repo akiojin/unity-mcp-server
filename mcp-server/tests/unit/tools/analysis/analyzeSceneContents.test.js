@@ -50,7 +50,7 @@ describe('AnalyzeSceneContentsTool', () => {
     const result = await analyzeSceneContentsHandler(mockUnityConnection, args);
 
     assert.equal(sendCommandSpy.mock.calls.length, 1);
-    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'analysis_scene_contents_analyze');
+    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'analyze_scene_contents');
     assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
 
     assert.equal(result.isError, false);

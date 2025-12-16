@@ -115,7 +115,7 @@ describe('GetInputActionsStateToolHandler', () => {
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
       assert.equal(
         mockConnection.sendCommand.mock.calls[0].arguments[0],
-        'input_actions_state_get'
+        'get_input_actions_state'
       );
 
       assert.ok(result);

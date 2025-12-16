@@ -8,7 +8,11 @@ describe('GetGameObjectDetailsToolHandler', () => {
   let mockConnection;
 
   beforeEach(() => {
-    mockConnection = createMockUnityConnection({ sendCommandResult: { success: true } });
+    mockConnection = createMockUnityConnection({
+      sendCommandResult: {
+        summary: 'GameObject details retrieved'
+      }
+    });
     handler = new GetGameObjectDetailsToolHandler(mockConnection);
   });
 
@@ -23,17 +27,22 @@ describe('GetGameObjectDetailsToolHandler', () => {
   });
 
   describe('execute', () => {
-    it('should throw error when Unity not connected', async () => {
+    it('should return error result when Unity not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      await assert.rejects(
-        async () => await handler.execute({ gameObjectName: 'Player' }),
-        /Unity connection not available/
-      );
+
+      const result = await handler.execute({ gameObjectName: 'Player' });
+      assert.equal(result.isError, true);
+      assert.ok(result.content[0].text.includes('Unity connection not available'));
     });
 
-    it('should execute when Unity connected', async () => {
+    it('should call get_gameobject_details in Unity', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => true);
-      assert.ok(handler.execute);
+
+      const result = await handler.execute({ gameObjectName: 'Player' });
+
+      assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'get_gameobject_details');
+      assert.equal(result.isError, false);
     });
   });
 

@@ -8,7 +8,16 @@ describe('FindByComponentToolHandler', () => {
   let mockConnection;
 
   beforeEach(() => {
-    mockConnection = createMockUnityConnection({ sendCommandResult: { success: true } });
+    mockConnection = createMockUnityConnection({
+      sendCommandResult: {
+        componentType: 'Light',
+        searchScope: 'scene',
+        results: [],
+        totalFound: 0,
+        activeCount: 0,
+        summary: 'No GameObjects found with Light component'
+      }
+    });
     handler = new FindByComponentToolHandler(mockConnection);
   });
 
@@ -23,17 +32,22 @@ describe('FindByComponentToolHandler', () => {
   });
 
   describe('execute', () => {
-    it('should throw error when Unity not connected', async () => {
+    it('should return error result when Unity not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      await assert.rejects(
-        async () => await handler.execute({ componentType: 'Light' }),
-        /Unity connection not available/
-      );
+
+      const result = await handler.execute({ componentType: 'Light' });
+      assert.equal(result.isError, true);
+      assert.ok(result.content[0].text.includes('Unity connection not available'));
     });
 
-    it('should execute when Unity connected', async () => {
+    it('should call find_by_component in Unity', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => true);
-      assert.ok(handler.execute);
+
+      const result = await handler.execute({ componentType: 'Light' });
+
+      assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'find_by_component');
+      assert.equal(result.isError, false);
     });
   });
 
