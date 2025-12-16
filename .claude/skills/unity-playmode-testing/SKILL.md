@@ -285,8 +285,15 @@ mcp__unity-mcp-server__input_mouse({
 - IMGUI: `imgui:<controlId>`（OnGUI側で登録されたID）
   - 例: `imgui:IMGUI/Button`
 
-検証用シーン（uGUI/UI Toolkit/IMGUI 同居）:
-- `UnityMCPServer/Assets/Scenes/MCP_UI_AllSystems_TestScene.unity`
+検証用シーン:
+- uGUI: `UnityMCPServer/Assets/Scenes/MCP_UI_UGUI_TestScene.unity`
+- UI Toolkit: `UnityMCPServer/Assets/Scenes/MCP_UI_UITK_TestScene.unity`
+- IMGUI: `UnityMCPServer/Assets/Scenes/MCP_UI_IMGUI_TestScene.unity`
+- uGUI/UI Toolkit/IMGUI 同居: `UnityMCPServer/Assets/Scenes/MCP_UI_AllSystems_TestScene.unity`
+  - 注: UI は `McpAllUiSystemsTestBootstrap` が Play Mode 開始時に生成するため、Edit Mode では見えない
+- MCP経由E2Eテスト（シーンロード→Play Mode→ui_* ツール呼び出し）:
+  - stdio / tools/call: `node --test mcp-server/tests/e2e/ui-automation-mcp-protocol.test.js`
+  - UnityConnection直結: `node --test mcp-server/tests/e2e/ui-automation-scenes.test.js`
 
 ### UI要素検索
 

@@ -10,14 +10,11 @@ describe('SceneSaveToolHandler', () => {
   beforeEach(() => {
     sendCommandSpy = mock.fn(() =>
       Promise.resolve({
-        status: 'success',
-        result: {
-          sceneName: 'MainMenu',
-          scenePath: 'Assets/Scenes/MainMenu.unity',
-          saved: true,
-          isDirty: false,
-          summary: 'Saved scene "MainMenu" to "Assets/Scenes/MainMenu.unity"'
-        }
+        sceneName: 'MainMenu',
+        scenePath: 'Assets/Scenes/MainMenu.unity',
+        saved: true,
+        isDirty: false,
+        summary: 'Saved scene "MainMenu" to "Assets/Scenes/MainMenu.unity"'
       })
     );
 
@@ -36,7 +33,7 @@ describe('SceneSaveToolHandler', () => {
   it('should have correct tool definition', () => {
     const definition = handler.getDefinition();
     assert.equal(definition.name, 'scene_save');
-    assert.equal(definition.description, 'Save the current scene in Unity');
+    assert.equal(definition.description, 'Save current scene or save as a specified path.');
     assert.ok(definition.inputSchema);
     assert.ok(definition.inputSchema.properties.scenePath);
     assert.ok(definition.inputSchema.properties.saveAs);
@@ -94,7 +91,6 @@ describe('SceneSaveToolHandler', () => {
   it('should handle Unity error response', async () => {
     sendCommandSpy.mock.mockImplementation(() =>
       Promise.resolve({
-        status: 'error',
         error: 'No scene is currently loaded'
       })
     );

@@ -762,6 +762,72 @@ namespace UnityMCPServer.Handlers
             return !string.IsNullOrEmpty(controlId);
         }
 
+        private static List<UITK.VisualElement> CollectUiToolkitElements(UITK.VisualElement root)
+        {
+            var results = new List<UITK.VisualElement>();
+            if (root == null) return results;
+
+            var stack = new Stack<UITK.VisualElement>();
+            stack.Push(root);
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                if (current == null) continue;
+
+                results.Add(current);
+
+                try
+                {
+                    foreach (var child in current.hierarchy.Children())
+                    {
+                        if (child == null) continue;
+                        stack.Push(child);
+                    }
+                }
+                catch
+                {
+                    // Some panels may not be ready yet
+                }
+            }
+
+            return results;
+        }
+
+        private static List<UITK.VisualElement> FindUiToolkitElementsByName(UITK.VisualElement root, string elementName)
+        {
+            var matches = new List<UITK.VisualElement>();
+            if (root == null) return matches;
+            if (string.IsNullOrEmpty(elementName)) return matches;
+
+            var stack = new Stack<UITK.VisualElement>();
+            stack.Push(root);
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                if (current == null) continue;
+
+                if (string.Equals(current.name, elementName, StringComparison.Ordinal))
+                {
+                    matches.Add(current);
+                }
+
+                try
+                {
+                    foreach (var child in current.hierarchy.Children())
+                    {
+                        if (child == null) continue;
+                        stack.Push(child);
+                    }
+                }
+                catch
+                {
+                    // Some panels may not be ready yet
+                }
+            }
+
+            return matches;
+        }
+
         private static IEnumerable<object> FindUiToolkitElements(string elementType, string tagFilter, string namePattern, bool includeInactive, string uiDocumentFilter)
         {
             var results = new List<object>();
@@ -783,15 +849,7 @@ namespace UnityMCPServer.Handlers
 
                 var docPath = GetGameObjectPath(doc.gameObject);
                 List<UITK.VisualElement> all;
-                try
-                {
-                    all = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root).ToList();
-                }
-                catch
-                {
-                    // Some panels may not be ready yet
-                    continue;
-                }
+                all = CollectUiToolkitElements(root);
 
                 foreach (var ve in all)
                 {
@@ -944,7 +1002,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = $"UIDocument at {uiDocumentPath} has no rootVisualElement (panel not ready)" };
             }
 
-            var matches = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root, name: elementName).ToList();
+            var matches = FindUiToolkitElementsByName(root, elementName);
             if (matches.Count == 0)
             {
                 return new { error = $"UI Toolkit element not found: {elementName}" };
@@ -1025,16 +1083,46 @@ namespace UnityMCPServer.Handlers
                 warnings?.Add($"Failed to invoke UI Toolkit Button.Click(): {e.Message}");
             }
 
-            // 2) Prefer Button.clickable.SimulateSingleClick if available
+            // 2) Prefer invoking Clickable via reflection (API differs by Unity versions)
             try
             {
                 var clickable = button.clickable;
                 if (clickable != null)
                 {
-                    var method = clickable.GetType().GetMethod("SimulateSingleClick", BindingFlags.Public | BindingFlags.Instance);
-                    if (method != null)
+                    var t = clickable.GetType();
+                    const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+                    // 2-a) Known method names (prefer parameterless)
+                    var knownNames = new[] { "SimulateSingleClick", "SimulateClick", "Click", "Invoke" };
+                    foreach (var name in knownNames)
                     {
-                        method.Invoke(clickable, null);
+                        var m = t.GetMethod(name, flags, null, Type.EmptyTypes, null);
+                        if (m != null)
+                        {
+                            m.Invoke(clickable, null);
+                            return true;
+                        }
+                    }
+
+                    // 2-b) Delegate fields/properties (best-effort)
+                    foreach (var field in t.GetFields(flags))
+                    {
+                        if (field.FieldType != typeof(Action)) continue;
+                        if (field.Name.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        var del = field.GetValue(clickable) as Action;
+                        if (del == null) continue;
+                        del.Invoke();
+                        return true;
+                    }
+
+                    foreach (var prop in t.GetProperties(flags))
+                    {
+                        if (!prop.CanRead) continue;
+                        if (prop.PropertyType != typeof(Action)) continue;
+                        if (prop.Name.IndexOf("click", StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        var del = prop.GetValue(clickable, null) as Action;
+                        if (del == null) continue;
+                        del.Invoke();
                         return true;
                     }
                 }
@@ -1123,7 +1211,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = $"UIDocument at {uiDocumentPath} has no rootVisualElement (panel not ready)" };
             }
 
-            var matches = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root, name: elementName).ToList();
+            var matches = FindUiToolkitElementsByName(root, elementName);
             if (matches.Count == 0)
             {
                 return new { error = $"UI Toolkit element not found: {elementName}" };
@@ -1226,7 +1314,7 @@ namespace UnityMCPServer.Handlers
                 return new { error = $"UIDocument at {uiDocumentPath} has no rootVisualElement (panel not ready)" };
             }
 
-            var matches = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root, name: elementName).ToList();
+            var matches = FindUiToolkitElementsByName(root, elementName);
             if (matches.Count == 0)
             {
                 return new { error = $"UI Toolkit element not found: {elementName}" };
@@ -1508,7 +1596,7 @@ namespace UnityMCPServer.Handlers
                 {
                     return new { error = $"UIDocument at {uiDocumentPath} has no rootVisualElement (panel not ready)" };
                 }
-                var matches = UnityEngine.UIElements.UQueryExtensions.Query<UITK.VisualElement>(root, name: uiElementName).ToList();
+                var matches = FindUiToolkitElementsByName(root, uiElementName);
                 var element = matches.Count > 0 ? matches[0] : null;
                 if (element == null)
                 {

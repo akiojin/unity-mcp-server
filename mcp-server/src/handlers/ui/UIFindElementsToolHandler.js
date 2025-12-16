@@ -24,6 +24,10 @@ export class UIFindElementsToolHandler extends BaseToolHandler {
         canvasFilter: {
           type: 'string',
           description: 'Filter by parent Canvas name.'
+        },
+        uiSystem: {
+          type: 'string',
+          description: 'Filter by UI system: ugui|uitk|imgui|all (default: all).'
         }
       },
       required: []
@@ -32,7 +36,14 @@ export class UIFindElementsToolHandler extends BaseToolHandler {
   }
 
   async execute(params = {}) {
-    const { elementType, tagFilter, namePattern, includeInactive = false, canvasFilter } = params;
+    const {
+      elementType,
+      tagFilter,
+      namePattern,
+      includeInactive = false,
+      canvasFilter,
+      uiSystem
+    } = params;
 
     // Ensure connected
     if (!this.unityConnection.isConnected()) {
@@ -44,7 +55,8 @@ export class UIFindElementsToolHandler extends BaseToolHandler {
       tagFilter,
       namePattern,
       includeInactive,
-      canvasFilter
+      canvasFilter,
+      uiSystem
     });
 
     // Return the result for the BaseToolHandler to format
