@@ -10,6 +10,16 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [3.2.1](https://github.com/akiojin/unity-mcp-server/compare/v3.2.0...v3.2.1) (2025-12-16)
+
+
+### Bug Fixes
+
+* analysis/input actions のUnityコマンド名マッピング ([222227f](https://github.com/akiojin/unity-mcp-server/commit/222227fc2de7bd650bce84328a260d4743d23490))
+* Animator tool名→Unity command type を正規化 ([30754e2](https://github.com/akiojin/unity-mcp-server/commit/30754e2f790b7a5983f5cc9798509d670996e18b))
+* Animatorコマンドtypeを正規化 ([13f7a27](https://github.com/akiojin/unity-mcp-server/commit/13f7a2767d07839289f9db74ab4311868c416136))
+* Unityコマンド名のマッピング修正 ([0eff680](https://github.com/akiojin/unity-mcp-server/commit/0eff680debc0abf79bd0dc9d76506402e189de9b))
+
 ## [3.2.0](https://github.com/akiojin/unity-mcp-server/compare/v3.1.0...v3.2.0) (2025-12-15)
 
 
