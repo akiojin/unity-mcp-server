@@ -1,7 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/twelvelabs/gh-repo-config/main/schema/branch-protection.json",
-  "_comment": "mainブランチ: PR必須、Required Checksなし（developで検証済み）",
-  "required_status_checks": null,
+  "_comment": "mainブランチ: PR必須、Main PR Policy必須（develop→mainのみ許可）",
+  "required_status_checks": {
+    "strict": true,
+    "checks": [
+      { "context": "Main PR Policy" }
+    ]
+  },
   "enforce_admins": false,
   "required_pull_request_reviews": {
     "required_approving_review_count": 0,
