@@ -90,7 +90,7 @@ describe('InputBindingAddToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_binding_add');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'add_input_binding');
 
       assert.ok(result);
       assert.ok(result.content);

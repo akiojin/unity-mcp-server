@@ -100,7 +100,7 @@ export async function getAnimatorStateHandler(unityConnection, args) {
     }
 
     // Send command to Unity
-    const result = await unityConnection.sendCommand('analysis_animator_state_get', args);
+    const result = await unityConnection.sendCommand('get_animator_state', args);
 
     // Check for errors
     if (!result || typeof result === 'string') {
@@ -222,7 +222,7 @@ export async function getAnimatorRuntimeInfoHandler(unityConnection, args) {
     }
 
     // Send command to Unity
-    const result = await unityConnection.sendCommand('analysis_animator_runtime_info_get', args);
+    const result = await unityConnection.sendCommand('get_animator_runtime_info', args);
 
     // Check for errors
     if (!result || typeof result === 'string') {

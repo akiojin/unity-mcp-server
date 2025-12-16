@@ -106,7 +106,7 @@ export async function getGameObjectDetailsHandler(unityConnection, args) {
     if (args.maxDepth !== undefined) params.maxDepth = args.maxDepth;
 
     // Send command to Unity
-    const result = await unityConnection.sendCommand('analysis_gameobject_details_get', args);
+    const result = await unityConnection.sendCommand('get_gameobject_details', params);
 
     // The unityConnection.sendCommand already extracts the result field
     // from the response, so we access properties directly on result

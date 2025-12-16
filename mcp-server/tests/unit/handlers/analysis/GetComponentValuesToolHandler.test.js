@@ -8,7 +8,12 @@ describe('GetComponentValuesToolHandler', () => {
   let mockConnection;
 
   beforeEach(() => {
-    mockConnection = createMockUnityConnection({ sendCommandResult: { success: true } });
+    mockConnection = createMockUnityConnection({
+      sendCommandResult: {
+        summary: 'Component values retrieved',
+        properties: {}
+      }
+    });
     handler = new GetComponentValuesToolHandler(mockConnection);
   });
 
@@ -23,17 +28,28 @@ describe('GetComponentValuesToolHandler', () => {
   });
 
   describe('execute', () => {
-    it('should throw error when Unity not connected', async () => {
+    it('should return error result when Unity not connected', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => false);
-      await assert.rejects(
-        async () => await handler.execute({ gameObjectName: 'Player', componentType: 'Transform' }),
-        /Unity connection not available/
-      );
+
+      const result = await handler.execute({
+        gameObjectName: 'Player',
+        componentType: 'Transform'
+      });
+      assert.equal(result.isError, true);
+      assert.ok(result.content[0].text.includes('Unity connection not available'));
     });
 
-    it('should execute when Unity connected', async () => {
+    it('should call get_component_values in Unity', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => true);
-      assert.ok(handler.execute);
+
+      const result = await handler.execute({
+        gameObjectName: 'Player',
+        componentType: 'Transform'
+      });
+
+      assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'get_component_values');
+      assert.equal(result.isError, false);
     });
   });
 

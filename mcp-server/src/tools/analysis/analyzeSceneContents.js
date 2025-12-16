@@ -47,7 +47,7 @@ export async function analyzeSceneContentsHandler(unityConnection, args) {
     }
 
     // Send command to Unity with provided parameters
-    const result = await unityConnection.sendCommand('analysis_scene_contents_analyze', args);
+    const result = await unityConnection.sendCommand('analyze_scene_contents', args);
 
     // The unityConnection.sendCommand already extracts the result field
     // from the response, so we access properties directly on result

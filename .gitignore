@@ -84,13 +84,16 @@ coverage/
 .nyc_output/
 tests/.reports/
 tests/.todo/
+mcp-server/tests/.reports/
+mcp-server/tests/.todo/
 
 # Build output
 dist/
 build/
 CLAUDE.local.md
 
-/.unity/
+.unity/
+UnityMCPServer/.unity/
 .worktrees/
 
 *.local.json

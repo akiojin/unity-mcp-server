@@ -303,7 +303,10 @@ function formatUnityResponse(result, successMessage) {
   }
 
   if (result.success) {
-    let text = result.message || successMessage;
+    let text = successMessage || result.message || 'Operation completed';
+    if (successMessage && result.message && result.message !== successMessage) {
+      text += `\n${result.message}`;
+    }
     // Add any additional info from result
     Object.keys(result).forEach(key => {
       if (key !== 'success' && key !== 'message' && key !== 'error') {
@@ -348,7 +351,7 @@ export async function createActionMapHandler(unityConnection, args) {
       };
     }
 
-    const result = await unityConnection.sendCommand('input_action_map_create', args);
+    const result = await unityConnection.sendCommand('create_action_map', args);
     return formatUnityResponse(result, `Created Action Map: ${args.mapName}`);
   } catch (error) {
     return {
@@ -377,7 +380,7 @@ export async function removeActionMapHandler(unityConnection, args) {
       };
     }
 
-    const result = await unityConnection.sendCommand('input_action_map_remove', args);
+    const result = await unityConnection.sendCommand('remove_action_map', args);
     return formatUnityResponse(result, `Removed Action Map: ${args.mapName}`);
   } catch (error) {
     return {
@@ -407,7 +410,7 @@ export async function addInputActionHandler(unityConnection, args) {
       };
     }
 
-    const result = await unityConnection.sendCommand('input_action_add', args);
+    const result = await unityConnection.sendCommand('add_input_action', args);
     return formatUnityResponse(result, `Added Action: ${args.actionName}`);
   } catch (error) {
     return {
@@ -436,7 +439,7 @@ export async function removeInputActionHandler(unityConnection, args) {
       };
     }
 
-    const result = await unityConnection.sendCommand('input_action_remove', args);
+    const result = await unityConnection.sendCommand('remove_input_action', args);
     return formatUnityResponse(result, `Removed Action: ${args.actionName}`);
   } catch (error) {
     return {
@@ -466,7 +469,7 @@ export async function addInputBindingHandler(unityConnection, args) {
       };
     }
 
-    const result = await unityConnection.sendCommand('input_binding_add', args);
+    const result = await unityConnection.sendCommand('add_input_binding', args);
     return formatUnityResponse(result, `Added Binding: ${args.path}`);
   } catch (error) {
     return {
@@ -495,7 +498,7 @@ export async function removeInputBindingHandler(unityConnection, args) {
       };
     }
 
-    const result = await unityConnection.sendCommand('input_binding_remove', args);
+    const result = await unityConnection.sendCommand('remove_input_binding', args);
     return formatUnityResponse(result, 'Removed Binding');
   } catch (error) {
     return {
@@ -524,7 +527,7 @@ export async function removeAllBindingsHandler(unityConnection, args) {
       };
     }
 
-    const result = await unityConnection.sendCommand('input_binding_remove_all', args);
+    const result = await unityConnection.sendCommand('remove_all_bindings', args);
     return formatUnityResponse(result, `Removed all bindings from ${args.actionName}`);
   } catch (error) {
     return {
@@ -553,7 +556,7 @@ export async function createCompositeBindingHandler(unityConnection, args) {
       };
     }
 
-    const result = await unityConnection.sendCommand('input_binding_composite_create', args);
+    const result = await unityConnection.sendCommand('create_composite_binding', args);
     return formatUnityResponse(
       result,
       `Created composite binding: ${args.name || args.compositeType}`
@@ -586,7 +589,7 @@ export async function manageControlSchemesHandler(unityConnection, args) {
       };
     }
 
-    const result = await unityConnection.sendCommand('input_control_schemes_manage', args);
+    const result = await unityConnection.sendCommand('manage_control_schemes', args);
     const operationText =
       args.operation === 'add' ? 'Added' : args.operation === 'remove' ? 'Removed' : 'Modified';
     return formatUnityResponse(result, `${operationText} control scheme: ${args.schemeName}`);

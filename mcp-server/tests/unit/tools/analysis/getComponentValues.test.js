@@ -83,7 +83,7 @@ describe('GetComponentValuesTool', () => {
     const result = await getComponentValuesHandler(mockUnityConnection, args);
 
     assert.equal(sendCommandSpy.mock.calls.length, 1);
-    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'analysis_component_values_get');
+    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'get_component_values');
     assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
 
     assert.equal(result.isError, false);

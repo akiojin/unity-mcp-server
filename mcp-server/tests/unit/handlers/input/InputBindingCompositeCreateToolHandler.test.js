@@ -121,7 +121,7 @@ describe('InputBindingCompositeCreateToolHandler', () => {
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
       assert.equal(
         mockConnection.sendCommand.mock.calls[0].arguments[0],
-        'input_binding_composite_create'
+        'create_composite_binding'
       );
 
       assert.ok(result);
