@@ -19,7 +19,7 @@ describe('GetComponentValuesToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'analysis_component_values_get');
+      assert.equal(handler.name, 'get_component_values');
     });
 
     it('should have description', () => {
@@ -55,7 +55,7 @@ describe('GetComponentValuesToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should get component properties and values', () => {
-      assert.equal(handler.name, 'analysis_component_values_get');
+      assert.equal(handler.name, 'get_component_values');
     });
   });
 });

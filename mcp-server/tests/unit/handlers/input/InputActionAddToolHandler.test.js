@@ -19,7 +19,7 @@ describe('InputActionAddToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'input_action_add');
+      assert.equal(handler.name, 'add_input_action');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Action'));
     });

@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class ComponentAddToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'component_add',
+      'add_component',
       'Add a component to a GameObject (scene or prefab mode) with optional initial properties.',
       {
         type: 'object',

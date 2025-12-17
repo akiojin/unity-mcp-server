@@ -19,7 +19,7 @@ describe('InputActionRemoveToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'input_action_remove');
+      assert.equal(handler.name, 'remove_input_action');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Action'));
     });

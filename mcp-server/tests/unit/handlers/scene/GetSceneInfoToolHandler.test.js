@@ -14,13 +14,13 @@ describe('GetSceneInfoToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'scene_info_get');
+      assert.equal(handler.name, 'get_scene_info');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should get detailed scene information', () => {
-      assert.equal(handler.name, 'scene_info_get');
+      assert.equal(handler.name, 'get_scene_info');
     });
   });
 });

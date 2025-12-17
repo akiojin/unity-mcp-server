@@ -30,7 +30,7 @@ describe('SystemPingToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'system_ping');
+      assert.equal(handler.name, 'ping');
       assert.equal(handler.description, 'Test connection to Unity Editor');
       assert.equal(handler.inputSchema.required, undefined);
       assert.equal(handler.unityConnection, mockUnityConnection);
@@ -51,8 +51,8 @@ describe('SystemPingToolHandler', () => {
 
       assert.equal(connectMock.mock.calls.length, 0); // Should not connect
       assert.equal(sendCommandMock.mock.calls.length, 1);
-      assert.deepEqual(sendCommandMock.mock.calls[0].arguments[0], 'system_ping');
-      assert.deepEqual(sendCommandMock.mock.calls[0].arguments[1], { message: 'system_ping' });
+      assert.deepEqual(sendCommandMock.mock.calls[0].arguments[0], 'ping');
+      assert.deepEqual(sendCommandMock.mock.calls[0].arguments[1], { message: 'ping' });
     });
 
     it('should connect if not connected', async () => {
@@ -103,7 +103,7 @@ describe('SystemPingToolHandler', () => {
 
       const resultTime = new Date(result.timestamp);
       assert.ok(resultTime >= beforeTime && resultTime <= afterTime);
-      assert.equal(result.echo, 'system_ping'); // Default echo
+      assert.equal(result.echo, 'ping'); // Default echo
     });
 
     it('should handle Unity connection errors', async () => {
@@ -111,7 +111,12 @@ describe('SystemPingToolHandler', () => {
         throw new Error('Unity connection failed');
       });
 
-      await assert.rejects(async () => await handler.execute({}), /Unity connection failed/);
+      const result = await handler.execute({});
+      assert.equal(result.success, false);
+      assert.equal(result.error, 'unity_connection_failed');
+      assert.ok(result.message.includes('Unity connection failed'));
+      assert.ok(Array.isArray(result.offlineToolsAvailable));
+      assert.ok(typeof result.hint === 'string');
     });
 
     it('should handle connection failure', async () => {
@@ -120,7 +125,12 @@ describe('SystemPingToolHandler', () => {
         throw new Error('Failed to connect');
       });
 
-      await assert.rejects(async () => await handler.execute({}), /Failed to connect/);
+      const result = await handler.execute({});
+      assert.equal(result.success, false);
+      assert.equal(result.error, 'unity_connection_failed');
+      assert.ok(result.message.includes('Failed to connect'));
+      assert.ok(Array.isArray(result.offlineToolsAvailable));
+      assert.ok(typeof result.hint === 'string');
     });
   });
 
@@ -150,10 +160,12 @@ describe('SystemPingToolHandler', () => {
 
       const result = await handler.handle({});
 
-      assert.equal(result.status, 'error');
-      assert.equal(result.error, 'Unity error');
-      assert.equal(result.code, 'UNITY_ERROR');
-      assert.equal(result.details.tool, 'system_ping');
+      assert.equal(result.status, 'success');
+      assert.equal(result.result.success, false);
+      assert.equal(result.result.error, 'unity_connection_failed');
+      assert.ok(result.result.message.includes('Unity error'));
+      assert.ok(Array.isArray(result.result.offlineToolsAvailable));
+      assert.ok(typeof result.result.hint === 'string');
     });
   });
 });

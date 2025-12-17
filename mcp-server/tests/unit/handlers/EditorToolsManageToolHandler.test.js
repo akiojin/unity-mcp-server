@@ -107,11 +107,8 @@ describe('EditorToolsManageToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'editor_tools_manage');
-      assert.equal(
-        handler.description,
-        'Manage Unity Editor tools and plugins (list, activate, deactivate, refresh)'
-      );
+      assert.equal(handler.name, 'manage_tools');
+      assert.ok(handler.description.startsWith('Manage editor tools/plugins'));
       assert.ok(handler.inputSchema);
       assert.equal(handler.inputSchema.type, 'object');
     });

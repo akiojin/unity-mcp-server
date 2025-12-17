@@ -47,7 +47,7 @@
 - テスト前の実装/REDスキップは禁止 (チェックリストに追記) ✅
 
 **可観測性**:
-- 既存loggerに`component_field_set`カテゴリーを追加し、対象パス/結果/エラーを構造化出力 ✅
+- 既存loggerに`set_component_field`カテゴリーを追加し、対象パス/結果/エラーを構造化出力 ✅
 - エラー時は旧値を返すことで診断性を確保 ✅
 
 **バージョニング**:
@@ -106,7 +106,7 @@ UnityMCPServer/Packages/unity-mcp-server/
    - 検証ルール (必須/相互排他/型制約)
 
 2. **contracts/**
-   - `component_field_set.request.json` / `component_field_set.response.json` (JSON Schema) を追加
+   - `set_component_field.request.json` / `set_component_field.response.json` (JSON Schema) を追加
    - NodeハンドラがUnityコマンドに渡すPayload契約を明示
 
 3. **quickstart.md**

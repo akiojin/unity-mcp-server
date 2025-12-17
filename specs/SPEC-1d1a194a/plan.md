@@ -186,7 +186,7 @@ capabilities: {
   "result": {
     "tools": [
       {
-        "name": "system_ping",
+        "name": "ping",
         "description": "Test connection to Unity Editor",
         "inputSchema": { "type": "object", "properties": {} }
       }
@@ -241,7 +241,7 @@ test('tools/list should return all 107 tool definitions', async () => {
   const response = await client.request('tools/list');
 
   assert.strictEqual(response.tools.length, 107);
-  assert.ok(response.tools.find(t => t.name === 'system_ping'));
+  assert.ok(response.tools.find(t => t.name === 'ping'));
 });
 ```
 
@@ -252,7 +252,7 @@ test('tools/list should return all 107 tool definitions', async () => {
 1. unity-mcp-serverをインストール
 2. Claude Codeで接続
 3. 「Capabilities: tools」と表示されることを確認
-4. `system_ping`ツールを実行して接続確認
+4. `ping`ツールを実行して接続確認
 
 （詳細は次のセクションで作成）
 

@@ -3,13 +3,13 @@ import { CATEGORIES, SCOPES } from '../base/categories.js';
 import { OFFLINE_TOOLS, OFFLINE_TOOLS_HINT } from '../../constants/offlineTools.js';
 
 /**
- * Handler for the system_ping tool
+ * Handler for the ping tool
  * Tests connection to Unity Editor
  */
 export class SystemPingToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'system_ping',
+      'ping',
       'Test connection to Unity Editor',
       {
         type: 'object',

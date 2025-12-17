@@ -19,7 +19,7 @@ describe('InputBindingAddToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'input_binding_add');
+      assert.equal(handler.name, 'add_input_binding');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Binding'));
     });

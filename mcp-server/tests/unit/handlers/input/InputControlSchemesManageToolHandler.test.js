@@ -19,7 +19,7 @@ describe('InputControlSchemesManageToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'input_control_schemes_manage');
+      assert.equal(handler.name, 'manage_control_schemes');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Control Scheme'));
     });

@@ -5,7 +5,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class SceneListToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('scene_list', 'List scenes in project (filter to loaded/build scenes or by path).', {
+    super('list_scenes', 'List scenes in project (filter to loaded/build scenes or by path).', {
       type: 'object',
       properties: {
         includeLoadedOnly: {

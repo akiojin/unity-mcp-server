@@ -30,12 +30,12 @@
 
 5. **ツール一覧を確認**:
    - Claude CodeのMCPツール一覧を表示
-   - 107個のツール（system_ping, gameobject_create等）がすべて表示される
+   - 107個のツール（ping, create_gameobject等）がすべて表示される
 
-6. **system_pingツールを実行**:
+6. **pingツールを実行**:
    ```json
    {
-     "tool": "system_ping"
+     "tool": "ping"
    }
    ```
    - Unity Editorとの接続が確認できる
@@ -44,7 +44,7 @@
 **成功基準**:
 - ✅ 「Capabilities: tools」と表示される
 - ✅ 107個のツールすべてが認識される
-- ✅ system_pingツールが正常に実行される
+- ✅ pingツールが正常に実行される
 
 ---
 
@@ -128,7 +128,7 @@ npm run test:ci
 
 - [ ] Claude Codeで「Capabilities: tools」と表示される
 - [ ] 107個のツールすべてが認識される
-- [ ] system_pingツールが正常に実行される
+- [ ] pingツールが正常に実行される
 - [ ] サーバーログにエラー/ワーニングが出力されない
 - [ ] Claude Codeのコンソールにエラー/ワーニングが表示されない
 - [ ] Unity Consoleにエラーが表示されない

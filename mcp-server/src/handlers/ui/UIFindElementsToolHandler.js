@@ -2,7 +2,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 export class UIFindElementsToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('ui_find_elements', 'Find UI elements by component type, tag, or name pattern.', {
+    super('find_ui_elements', 'Find UI elements by component type, tag, or name pattern.', {
       type: 'object',
       properties: {
         elementType: {

@@ -5,7 +5,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class PlaymodeGetStateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('playmode_get_state', 'Get current Unity editor state including play mode status', {
+    super('get_editor_state', 'Get current Unity editor state including play mode status', {
       type: 'object',
       properties: {
         waitFor: {

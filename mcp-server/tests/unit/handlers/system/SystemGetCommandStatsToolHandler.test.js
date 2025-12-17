@@ -31,7 +31,7 @@ describe('SystemGetCommandStatsToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'system_get_command_stats');
+      assert.equal(handler.name, 'get_command_stats');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('command'));
     });

@@ -5,32 +5,28 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class EditorLayersManageToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super(
-      'editor_layers_manage',
-      'Manage project layers: add/remove/list and convert (by name/index).',
-      {
-        type: 'object',
-        properties: {
-          action: {
-            type: 'string',
-            enum: ['add', 'remove', 'get', 'get_by_name', 'get_by_index'],
-            description: 'Operation: add, remove, get, get_by_name, or get_by_index.'
-          },
-          layerName: {
-            type: 'string',
-            description:
-              'Layer name (required for add/remove/get_by_name). Letters/numbers/space/_ only.'
-          },
-          layerIndex: {
-            type: 'number',
-            minimum: 0,
-            maximum: 31,
-            description: 'Layer index (0-31). Required for get_by_index.'
-          }
+    super('manage_layers', 'Manage project layers: add/remove/list and convert (by name/index).', {
+      type: 'object',
+      properties: {
+        action: {
+          type: 'string',
+          enum: ['add', 'remove', 'get', 'get_by_name', 'get_by_index'],
+          description: 'Operation: add, remove, get, get_by_name, or get_by_index.'
         },
-        required: ['action']
-      }
-    );
+        layerName: {
+          type: 'string',
+          description:
+            'Layer name (required for add/remove/get_by_name). Letters/numbers/space/_ only.'
+        },
+        layerIndex: {
+          type: 'number',
+          minimum: 0,
+          maximum: 31,
+          description: 'Layer index (0-31). Required for get_by_index.'
+        }
+      },
+      required: ['action']
+    });
     this.unityConnection = unityConnection;
     this.RESERVED_LAYERS = ['Default', 'TransparentFX', 'Ignore Raycast', 'Water', 'UI'];
   }

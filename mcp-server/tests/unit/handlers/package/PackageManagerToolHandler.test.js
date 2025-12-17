@@ -18,7 +18,7 @@ describe('PackageManagerToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'package_manager');
+      assert.equal(handler.name, 'package_managerr');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('package'));
     });

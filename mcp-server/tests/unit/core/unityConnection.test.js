@@ -184,7 +184,7 @@ describe('UnityConnection', () => {
     });
 
     it('should send command with incrementing ID', async () => {
-      const sendPromise = connection.sendCommand('system_ping', { echo: 'test' });
+      const sendPromise = connection.sendCommand('ping', { echo: 'test' });
 
       // Verify command was sent
       assert.equal(mockSocket.write.mock.calls.length, 1);
@@ -194,7 +194,7 @@ describe('UnityConnection', () => {
       const command = JSON.parse(payload);
 
       assert.equal(command.id, '1');
-      assert.equal(command.type, 'system_ping');
+      assert.equal(command.type, 'ping');
       assert.deepEqual(command.params, { echo: 'test' });
 
       // Simulate response
@@ -247,7 +247,7 @@ describe('UnityConnection', () => {
     });
   });
 
-  describe('system_ping', () => {
+  describe('ping', () => {
     beforeEach(async () => {
       // Set up connected state
       const connectPromise = connection.connect();

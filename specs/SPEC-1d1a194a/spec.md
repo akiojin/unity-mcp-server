@@ -19,7 +19,7 @@ MCPクライアント（Claude Code等）でunity-mcp-serverに接続したと�
 
 1. **前提** unity-mcp-serverがインストールされている、**実行** MCPクライアント（Claude Code）で接続、**結果** 「Capabilities: tools」と表示される
 2. **前提** unity-mcp-serverに接続済み、**実行** `tools/list`リクエストを送信、**結果** 107個のツール定義が正常に返却される
-3. **前提** MCPクライアントでツール一覧を表示、**実行** `system_ping`ツールを実行、**結果** Unity Editorとの接続が確認できる
+3. **前提** MCPクライアントでツール一覧を表示、**実行** `ping`ツールを実行、**結果** Unity Editorとの接続が確認できる
 
 ---
 

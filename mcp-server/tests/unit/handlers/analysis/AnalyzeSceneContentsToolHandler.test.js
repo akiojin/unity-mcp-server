@@ -16,7 +16,7 @@ describe('AnalyzeSceneContentsToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'analysis_scene_contents_analyze');
+      assert.equal(handler.name, 'analyze_scene_contents');
     });
 
     it('should have description', () => {
@@ -46,7 +46,7 @@ describe('AnalyzeSceneContentsToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should analyze scene contents', () => {
-      assert.equal(handler.name, 'analysis_scene_contents_analyze');
+      assert.equal(handler.name, 'analyze_scene_contents');
     });
   });
 });

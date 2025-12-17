@@ -2,11 +2,11 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { extractEditorState } from '../../utils/editorState.js';
 
 /**
- * Handler for the playmode_play tool
+ * Handler for the play_game tool
  */
 export class PlaymodePlayToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('playmode_play', 'Enter Play Mode.', {
+    super('play_game', 'Enter Play Mode.', {
       type: 'object',
       properties: {},
       required: []

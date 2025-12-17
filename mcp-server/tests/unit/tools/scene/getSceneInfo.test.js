@@ -44,7 +44,7 @@ describe('GetSceneInfoTool', () => {
   });
 
   it('should have correct tool definition', () => {
-    assert.equal(getSceneInfoToolDefinition.name, 'scene_info_get');
+    assert.equal(getSceneInfoToolDefinition.name, 'get_scene_info');
     assert.equal(getSceneInfoToolDefinition.description, 'Get detailed information about a scene');
   });
 
@@ -63,7 +63,7 @@ describe('GetSceneInfoTool', () => {
     const result = await getSceneInfoHandler(mockUnityConnection, args);
 
     assert.equal(sendCommandSpy.mock.calls.length, 1);
-    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'scene_info_get');
+    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'get_scene_info');
     assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
 
     assert.equal(result.isError, false);

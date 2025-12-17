@@ -19,7 +19,7 @@ describe('InputBindingCompositeCreateToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'input_binding_composite_create');
+      assert.equal(handler.name, 'create_composite_binding');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('composite binding'));
     });

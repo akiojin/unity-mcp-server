@@ -1,8 +1,8 @@
 /**
- * Tool definition for scene_info_get
+ * Tool definition for get_scene_info
  */
 export const getSceneInfoToolDefinition = {
-  name: 'scene_info_get',
+  name: 'get_scene_info',
   description: 'Get detailed information about a scene',
   inputSchema: {
     type: 'object',

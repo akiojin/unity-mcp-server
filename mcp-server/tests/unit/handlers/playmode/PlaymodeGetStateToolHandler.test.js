@@ -14,13 +14,13 @@ describe('PlaymodeGetStateToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'playmode_get_state');
+      assert.equal(handler.name, 'get_editor_state');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should get editor state', () => {
-      assert.equal(handler.name, 'playmode_get_state');
+      assert.equal(handler.name, 'get_editor_state');
     });
   });
 });

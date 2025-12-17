@@ -14,13 +14,13 @@ describe('SceneListToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'scene_list');
+      assert.equal(handler.name, 'list_scenes');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should list scenes in project', () => {
-      assert.equal(handler.name, 'scene_list');
+      assert.equal(handler.name, 'list_scenes');
     });
   });
 });

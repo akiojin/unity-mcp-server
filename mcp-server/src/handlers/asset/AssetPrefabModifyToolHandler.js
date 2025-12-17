@@ -3,7 +3,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class AssetPrefabModifyToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'asset_prefab_modify',
+      'modify_prefab',
       'Modify an existing prefab by applying property changes (optionally to instances).',
       {
         type: 'object',

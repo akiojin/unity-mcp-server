@@ -56,7 +56,7 @@ describe('ListScenesTool', () => {
   });
 
   it('should have correct tool definition', () => {
-    assert.equal(listScenesToolDefinition.name, 'scene_list');
+    assert.equal(listScenesToolDefinition.name, 'list_scenes');
     assert.equal(listScenesToolDefinition.description, 'List all scenes in the Unity project');
   });
 
@@ -75,7 +75,7 @@ describe('ListScenesTool', () => {
     const result = await listScenesHandler(mockUnityConnection, args);
 
     assert.equal(sendCommandSpy.mock.calls.length, 1);
-    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'scene_list');
+    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'list_scenes');
     assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
 
     assert.equal(result.isError, false);

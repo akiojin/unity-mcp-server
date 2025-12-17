@@ -3,7 +3,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class AssetPrefabCreateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'asset_prefab_create',
+      'create_prefab',
       'Create a prefab from a GameObject path or create an empty prefab at a target asset path.',
       {
         type: 'object',

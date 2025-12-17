@@ -31,7 +31,7 @@ export class PlaymodeWaitForStateToolHandler extends BaseToolHandler {
         } catch {}
       }
       try {
-        const state = await this.unityConnection.sendCommand('playmode_get_state', {});
+        const state = await this.unityConnection.sendCommand('get_editor_state', {});
         if (!!state?.isPlaying === want) {
           return { status: 'success', state, waitedMs: Date.now() - start };
         }

@@ -87,7 +87,7 @@ curl http://localhost:6401/healthz
 2. **Configure your MCP client** with the JSON above
 3. **Open your Unity project** (package starts TCP listener on port 6400)
 4. **Launch your MCP client** (it connects to the Node server)
-5. **Test the connection** with `system_ping`
+5. **Test the connection** with `ping`
 
 > Tip: `npx @akiojin/unity-mcp-server@latest` downloads and runs the latest build without cloning.
 

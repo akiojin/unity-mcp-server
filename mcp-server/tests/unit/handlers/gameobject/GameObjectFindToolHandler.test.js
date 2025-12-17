@@ -14,13 +14,13 @@ describe('GameObjectFindToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'gameobject_find');
+      assert.equal(handler.name, 'find_gameobject');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should find GameObjects by name, tag, or layer', () => {
-      assert.equal(handler.name, 'gameobject_find');
+      assert.equal(handler.name, 'find_gameobject');
     });
   });
 });

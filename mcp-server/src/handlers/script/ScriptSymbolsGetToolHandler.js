@@ -3,6 +3,7 @@ import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
+import { parseFileSymbols } from '../../utils/csharpParse.js';
 
 export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
@@ -63,28 +64,45 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
           hint: `Verify the file exists at: ${abs}. Path must be relative to Unity project root (e.g., "Assets/Scripts/Foo.cs" or "Packages/com.example/Runtime/Bar.cs").`
         };
       }
-      const lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
-      const uri = 'file://' + abs.replace(/\\\\/g, '/');
-      const res = await lsp.request('textDocument/documentSymbol', { textDocument: { uri } });
-      const docSymbols = res?.result ?? res ?? [];
-      const list = [];
-      const visit = (s, container) => {
-        const start = s.range?.start || s.selectionRange?.start || {};
-        // Phase 3.3: Optimized output (50% size reduction)
-        // Removed redundant endLine/endColumn, renamed to line/column
-        const sym = {
-          name: s.name || '',
-          kind: this.mapKind(s.kind),
-          line: (start.line ?? 0) + 1,
-          column: (start.character ?? 0) + 1
+      try {
+        const lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
+        const uri = 'file://' + abs.replace(/\\\\/g, '/');
+        const res = await lsp.request('textDocument/documentSymbol', { textDocument: { uri } });
+        const docSymbols = res?.result ?? res ?? [];
+        const list = [];
+        const visit = (s, container) => {
+          const start = s.range?.start || s.selectionRange?.start || {};
+          // Phase 3.3: Optimized output (50% size reduction)
+          // Removed redundant endLine/endColumn, renamed to line/column
+          const sym = {
+            name: s.name || '',
+            kind: this.mapKind(s.kind),
+            line: (start.line ?? 0) + 1,
+            column: (start.character ?? 0) + 1
+          };
+          // Only include non-null optional fields
+          if (container) sym.container = container;
+          list.push(sym);
+          if (Array.isArray(s.children)) for (const c of s.children) visit(c, s.name || container);
         };
-        // Only include non-null optional fields
-        if (container) sym.container = container;
-        list.push(sym);
-        if (Array.isArray(s.children)) for (const c of s.children) visit(c, s.name || container);
-      };
-      if (Array.isArray(docSymbols)) for (const s of docSymbols) visit(s, null);
-      return { success: true, path: relPath, symbols: list };
+        if (Array.isArray(docSymbols)) for (const s of docSymbols) visit(s, null);
+        return { success: true, path: relPath, symbols: list };
+      } catch (e) {
+        // Fallback: lightweight regex-based symbol extraction (no Roslyn)
+        const text = await fs.readFile(abs, 'utf8');
+        const parsed = parseFileSymbols(relPath, text);
+        const list = (parsed.symbols || []).map(s => {
+          const sym = {
+            name: s.name || '',
+            kind: s.kind,
+            line: s.startLine,
+            column: s.startColumn
+          };
+          if (s.container) sym.container = s.container;
+          return sym;
+        });
+        return { success: true, path: relPath, symbols: list, warning: 'csharp-lsp unavailable' };
+      }
     } catch (e) {
       return { error: e.message || 'Failed to get symbols' };
     }

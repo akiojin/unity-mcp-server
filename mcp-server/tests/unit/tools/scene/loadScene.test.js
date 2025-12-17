@@ -35,7 +35,7 @@ describe('LoadSceneTool', () => {
   });
 
   it('should have correct tool definition', () => {
-    assert.equal(loadSceneToolDefinition.name, 'scene_load');
+    assert.equal(loadSceneToolDefinition.name, 'load_scene');
     assert.equal(loadSceneToolDefinition.description, 'Load a scene in Unity');
   });
 
@@ -61,7 +61,7 @@ describe('LoadSceneTool', () => {
     const result = await loadSceneHandler(mockUnityConnection, args);
 
     assert.equal(sendCommandSpy.mock.calls.length, 1);
-    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'scene_load');
+    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'load_scene');
     assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
 
     assert.equal(result.isError, false);

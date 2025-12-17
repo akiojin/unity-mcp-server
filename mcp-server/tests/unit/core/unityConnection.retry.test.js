@@ -8,6 +8,7 @@ describe('UnityConnection Retry Logic', () => {
   let mockServer;
   let serverPort;
   let originalConfig;
+  let originalAllowTestConnect;
   const frame = obj => {
     const payload = Buffer.from(JSON.stringify(obj), 'utf8');
     const len = Buffer.allocUnsafe(4);
@@ -20,6 +21,9 @@ describe('UnityConnection Retry Logic', () => {
   };
 
   beforeEach(async () => {
+    originalAllowTestConnect = process.env.UNITY_MCP_ALLOW_TEST_CONNECT;
+    process.env.UNITY_MCP_ALLOW_TEST_CONNECT = '1';
+
     // Store original config
     const { config } = await import('../../../src/core/config.js');
     originalConfig = { ...config.unity };
@@ -36,6 +40,12 @@ describe('UnityConnection Retry Logic', () => {
   });
 
   afterEach(async () => {
+    if (originalAllowTestConnect === undefined) {
+      delete process.env.UNITY_MCP_ALLOW_TEST_CONNECT;
+    } else {
+      process.env.UNITY_MCP_ALLOW_TEST_CONNECT = originalAllowTestConnect;
+    }
+
     // Restore config
     const { config } = await import('../../../src/core/config.js');
     Object.assign(config.unity, originalConfig);

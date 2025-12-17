@@ -23,12 +23,12 @@ describe('MCP Tools List Integration', () => {
     assert.ok(unityConnection, 'Unity connection should be initialized');
   });
 
-  it('should include system_ping tool in the list', async () => {
+  it('should include ping tool in the list', async () => {
     const { server } = await createServer();
 
-    // system_pingツールが含まれることを間接的に検証
+    // pingツールが含まれることを間接的に検証
     // （手動検証で実際のtools/listレスポンスを確認）
 
-    assert.ok(server, 'Server with system_ping tool should be created');
+    assert.ok(server, 'Server with ping tool should be created');
   });
 });

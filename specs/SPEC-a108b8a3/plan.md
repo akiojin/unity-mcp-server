@@ -151,7 +151,7 @@ tests/integration/addressables/
 
 3. **JSON-RPCコマンド形式**
    - **決定**: `addressables_manage`, `addressables_build`, `addressables_analyze`
-   - **理由**: 既存のコマンド命名規則（`asset_database_manage`, `package_manage`）に準拠
+   - **理由**: 既存のコマンド命名規則（`manage_asset_database`, `package_managerr`）に準拠
    - **代替案**: `addressables:manage`, `addressables/manage` - 却下理由: 既存プロトコルとの一貫性
 
 4. **エラーハンドリング戦略**

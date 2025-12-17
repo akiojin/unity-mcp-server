@@ -125,7 +125,7 @@ describe('AssetImportSettingsManageToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'asset_import_settings_manage');
+      assert.equal(handler.name, 'manage_asset_import_settings');
       assert.equal(
         handler.description,
         'Manage Unity asset import settings (get, modify, apply presets, reimport)'

@@ -2,7 +2,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 export class UIGetElementStateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('ui_get_element_state', 'Get detailed state information about UI elements', {
+    super('get_ui_element_state', 'Get detailed state information about UI elements', {
       type: 'object',
       properties: {
         elementPath: {

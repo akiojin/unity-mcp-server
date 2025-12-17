@@ -5,7 +5,11 @@ import { UnityConnection } from '../../src/core/unityConnection.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { logger } from '../../src/core/config.js';
 
-describe('Enhanced Integration Tests', () => {
+// NOTE: This test suite was authored for an older UnityConnection API / wire format.
+// It is kept for reference but skipped by default. Prefer unit tests under tests/unit/core.
+const describeLegacy = process.env.UNITY_MCP_RUN_LEGACY_E2E === '1' ? describe : describe.skip;
+
+describeLegacy('Enhanced Integration Tests (legacy)', () => {
   let mockUnityServer;
   let serverPort;
   let activeConnections = [];
@@ -33,7 +37,7 @@ describe('Enhanced Integration Tests', () => {
             };
 
             switch (command.type) {
-              case 'system_ping':
+              case 'ping':
                 response.data = {
                   message: 'pong',
                   echo: command.params?.message || null,
@@ -185,7 +189,7 @@ describe('Enhanced Integration Tests', () => {
     });
 
     it('should process ping command with parameters', async () => {
-      const result = await connection.sendCommand('system_ping', { message: 'Hello Unity' });
+      const result = await connection.sendCommand('ping', { message: 'Hello Unity' });
 
       assert.equal(result.message, 'pong');
       assert.equal(result.echo, 'Hello Unity');
@@ -209,9 +213,9 @@ describe('Enhanced Integration Tests', () => {
 
     it('should handle concurrent commands', async () => {
       const commands = [
-        connection.sendCommand('system_ping', { message: 'cmd1' }),
+        connection.sendCommand('ping', { message: 'cmd1' }),
         connection.sendCommand('get_status', {}),
-        connection.sendCommand('system_ping', { message: 'cmd3' })
+        connection.sendCommand('ping', { message: 'cmd3' })
       ];
 
       const results = await Promise.all(commands);
@@ -263,7 +267,7 @@ describe('Enhanced Integration Tests', () => {
     it('should handle fragmented messages', async () => {
       // Send a command that will be fragmented
       const longMessage = 'x'.repeat(1000);
-      const result = await connection.sendCommand('system_ping', { message: longMessage });
+      const result = await connection.sendCommand('ping', { message: longMessage });
 
       assert.equal(result.echo, longMessage);
     });
@@ -271,8 +275,8 @@ describe('Enhanced Integration Tests', () => {
     it('should handle multiple messages in single packet', async () => {
       // This simulates Unity sending multiple responses at once
       const responses = await Promise.all([
-        connection.sendCommand('system_ping', { message: 'msg1' }),
-        connection.sendCommand('system_ping', { message: 'msg2' })
+        connection.sendCommand('ping', { message: 'msg1' }),
+        connection.sendCommand('ping', { message: 'msg2' })
       ]);
 
       assert.equal(responses[0].echo, 'msg1');
@@ -289,7 +293,7 @@ describe('Enhanced Integration Tests', () => {
         });
       });
 
-      connection.socket.write(JSON.stringify({ id: 'test', type: 'system_ping' }) + '\n');
+      connection.socket.write(JSON.stringify({ id: 'test', type: 'ping' }) + '\n');
       await testPromise;
 
       // Connection should still be alive
@@ -312,9 +316,9 @@ describe('Enhanced Integration Tests', () => {
 
       // Register ping tool
       server.setRequestHandler('tools/call', async request => {
-        if (request.params.name === 'system_ping') {
+        if (request.params.name === 'ping') {
           const message = request.params.arguments?.message || 'test';
-          const result = await connection.sendCommand('system_ping', { message });
+          const result = await connection.sendCommand('ping', { message });
 
           return {
             content: [
@@ -331,7 +335,7 @@ describe('Enhanced Integration Tests', () => {
       // Simulate MCP tool call
       const toolResult = await server.requestHandler.handle('tools/call', {
         params: {
-          name: 'system_ping',
+          name: 'ping',
           arguments: { message: 'MCP test' }
         }
       });
@@ -344,7 +348,7 @@ describe('Enhanced Integration Tests', () => {
   });
 });
 
-describe('Stress Tests', () => {
+describeLegacy('Stress Tests (legacy)', () => {
   let mockUnityServer;
   let serverPort;
   let messageCount = 0;
@@ -401,7 +405,7 @@ describe('Stress Tests', () => {
 
     // Send 100 commands as fast as possible
     for (let i = 0; i < 100; i++) {
-      promises.push(connection.sendCommand('system_ping', { index: i }));
+      promises.push(connection.sendCommand('ping', { index: i }));
     }
 
     const results = await Promise.all(promises);

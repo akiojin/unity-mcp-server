@@ -47,7 +47,7 @@ interface ServerCapabilities {
 
 ### 2. ToolDefinition
 
-**説明**: MCPツールの定義。107個のツール（system_ping, gameobject_create等）が該当。
+**説明**: MCPツールの定義。107個のツール（ping, create_gameobject等）が該当。
 
 **型定義**:
 ```typescript
@@ -66,7 +66,7 @@ interface ToolDefinition {
 
 | フィールド | 型 | 必須 | 説明 |
 |-----------|-----|------|------|
-| `name` | `string` | Yes | ツール名（例: `system_ping`） |
+| `name` | `string` | Yes | ツール名（例: `ping`） |
 | `description` | `string` | Yes | ツールの説明 |
 | `inputSchema` | `object` | Yes | JSON Schemaによる入力パラメータ定義 |
 | `inputSchema.type` | `'object'` | Yes | 常に`'object'` |

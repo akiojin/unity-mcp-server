@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class ComponentRemoveToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'component_remove',
+      'remove_component',
       'Remove a component from a GameObject (scene or prefab mode) by type/index.',
       {
         type: 'object',

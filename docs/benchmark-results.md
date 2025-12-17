@@ -285,7 +285,7 @@ Index builds run in **Worker Threads**:
 ```
 Main Thread (MCP tools)     Worker Thread (index build)
         │                           │
-        ├── system_ping ─────────── │ ──► instant response
+        ├── ping ─────────── │ ──► instant response
         ├── code_index_status ───── │ ──► instant response
         │                           ├── Processing file 1/1000
         │                           ├── Processing file 2/1000
