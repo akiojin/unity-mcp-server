@@ -18,19 +18,7 @@ const looksLikeUnityProjectRoot = dir => {
 };
 
 const inferUnityProjectRootFromDir = startDir => {
-  try {
-    let dir = startDir;
-    const { root } = path.parse(dir);
-    // First, walk up to find a Unity project
-    while (true) {
-      if (looksLikeUnityProjectRoot(dir)) return dir;
-      if (dir === root) break;
-      dir = path.dirname(dir);
-    }
-  } catch {
-    // Fall through to child search
-  }
-  // If not found, search immediate child directories (1 level deep)
+  // First, search immediate child directories (1 level deep)
   try {
     const entries = fs.readdirSync(startDir, { withFileTypes: true });
     for (const entry of entries) {
@@ -39,6 +27,18 @@ const inferUnityProjectRootFromDir = startDir => {
       if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
       const childDir = path.join(startDir, entry.name);
       if (looksLikeUnityProjectRoot(childDir)) return childDir;
+    }
+  } catch {
+    // Fall through to upward search
+  }
+  // If not found in children, walk up to find a Unity project
+  try {
+    let dir = startDir;
+    const { root } = path.parse(dir);
+    while (true) {
+      if (looksLikeUnityProjectRoot(dir)) return dir;
+      if (dir === root) break;
+      dir = path.dirname(dir);
     }
   } catch {
     // Ignore errors (e.g., permission denied)
