@@ -1,7 +1,6 @@
 import net from 'net';
 import { EventEmitter } from 'events';
 import { config, logger } from './config.js';
-import { normalizeUnityCommandType } from './unityCommandType.js';
 
 /**
  * Manages TCP connection to Unity Editor
@@ -361,8 +360,7 @@ export class UnityConnection extends EventEmitter {
    * @returns {Promise<any>} - Response from Unity
    */
   async sendCommand(type, params = {}) {
-    const normalizedType = normalizeUnityCommandType(type);
-    logger.info(`[Unity] enqueue sendCommand: ${normalizedType}`, { connected: this.connected });
+    logger.info(`[Unity] enqueue sendCommand: ${type}`, { connected: this.connected });
 
     if (!this.connected) {
       logger.warning('[Unity] Not connected; waiting for reconnection before sending command');
@@ -373,7 +371,7 @@ export class UnityConnection extends EventEmitter {
 
     // Create an external promise that will resolve when Unity responds
     return new Promise((outerResolve, outerReject) => {
-      const task = { type: normalizedType, params, outerResolve, outerReject };
+      const task = { type, params, outerResolve, outerReject };
       this.sendQueue.push(task);
       this._pumpQueue();
     });
