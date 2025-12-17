@@ -641,7 +641,7 @@ git commit -m "feat: add hooks and fix bug and update docs"
 5. **Publish（タグトリガー）**
    - タグpushで`Publish`ワークフローがトリガー。
    - csharp-lspを全RIDでビルドし、manifest＋バイナリをReleaseに添付。
-   - `mcp-server`をnpm publish。OpenUPMはタグを自動検出。
+   - `mcp-server`をnpm publish。UnityパッケージはUnity 6.3で署名生成し、OpenUPMへpublish。
    - 完了後、`main`→`develop`をバックマージ。
 
 **重要**:
