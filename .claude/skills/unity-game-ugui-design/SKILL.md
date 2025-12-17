@@ -2,20 +2,20 @@
 name: unity-game-ugui-design
 description: UnityのuGUI（Canvas/RectTransform/Anchors）を使用したゲームUIデザイン。HUD、ヘルスバー、インベントリ、スキルバー等のゲームUI要素、モバイルレスポンシブ対応、Safe Area対応を含む。使用タイミング: ゲームUI設計、HUD作成、Canvas設定、モバイルUI、Anchors設定
 allowed-tools:
-  - mcp__unity-mcp-server__ui_find_elements
-  - mcp__unity-mcp-server__ui_click_element
-  - mcp__unity-mcp-server__ui_get_element_state
-  - mcp__unity-mcp-server__ui_set_element_value
-  - mcp__unity-mcp-server__ui_simulate_input
-  - mcp__unity-mcp-server__component_add
-  - mcp__unity-mcp-server__component_modify
-  - mcp__unity-mcp-server__component_field_set
-  - mcp__unity-mcp-server__component_list
-  - mcp__unity-mcp-server__component_get_types
-  - mcp__unity-mcp-server__gameobject_create
-  - mcp__unity-mcp-server__gameobject_modify
-  - mcp__unity-mcp-server__gameobject_find
-  - mcp__unity-mcp-server__gameobject_get_hierarchy
+  - mcp__unity-mcp-server__find_ui_elements
+  - mcp__unity-mcp-server__click_ui_element
+  - mcp__unity-mcp-server__get_ui_element_state
+  - mcp__unity-mcp-server__set_ui_element_value
+  - mcp__unity-mcp-server__simulate_ui_input
+  - mcp__unity-mcp-server__add_component
+  - mcp__unity-mcp-server__modify_component
+  - mcp__unity-mcp-server__set_component_field
+  - mcp__unity-mcp-server__list_components
+  - mcp__unity-mcp-server__get_component_types
+  - mcp__unity-mcp-server__create_gameobject
+  - mcp__unity-mcp-server__modify_gameobject
+  - mcp__unity-mcp-server__find_gameobject
+  - mcp__unity-mcp-server__get_hierarchy
   - mcp__unity-mcp-server__script_edit_structured
   - mcp__unity-mcp-server__script_create_class
   - mcp__unity-mcp-server__script_read
@@ -32,12 +32,12 @@ UnityのuGUI（Unity GUI）システムを使用したゲームUIデザインの
 
 ```javascript
 // 1. Canvasを作成
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Canvas"
 })
 
 // 2. Canvasコンポーネントを追加
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas",
   componentType: "Canvas",
   properties: {
@@ -46,7 +46,7 @@ mcp__unity-mcp-server__component_add({
 })
 
 // 3. CanvasScalerを追加（レスポンシブ対応）
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas",
   componentType: "CanvasScaler",
   properties: {
@@ -58,7 +58,7 @@ mcp__unity-mcp-server__component_add({
 })
 
 // 4. GraphicRaycasterを追加（インタラクション用）
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas",
   componentType: "GraphicRaycaster"
 })
@@ -78,13 +78,13 @@ mcp__unity-mcp-server__component_add({
 
 ```javascript
 // ワールドスペースCanvas（敵頭上HPバー）
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Enemy/HealthCanvas",
   componentType: "Canvas",
   properties: { renderMode: 2 }  // WorldSpace
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Enemy/HealthCanvas",
   componentType: "RectTransform",
   fieldPath: "sizeDelta",
@@ -102,7 +102,7 @@ mcp__unity-mcp-server__component_field_set({
 
 ```javascript
 // HUD用オーバーレイCanvas
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas",
   componentType: "Canvas",
   properties: { renderMode: 0 }  // ScreenSpaceOverlay
@@ -119,14 +119,14 @@ mcp__unity-mcp-server__component_add({
 
 ```javascript
 // ビルボードマーカー
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/QuestMarker/Canvas",
   componentType: "Canvas",
   properties: { renderMode: 2 }  // WorldSpace
 })
 
 // ビルボードスクリプト追加
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/QuestMarker/Canvas",
   componentType: "BillboardUI"
 })
@@ -142,7 +142,7 @@ mcp__unity-mcp-server__component_add({
 
 ```javascript
 // 被ダメージフラッシュ用Canvas
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/EffectCanvas",
   componentType: "Canvas",
   properties: {
@@ -152,12 +152,12 @@ mcp__unity-mcp-server__component_add({
 })
 
 // フラッシュImage（全画面）
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "DamageFlash",
   parentPath: "/EffectCanvas"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/EffectCanvas/DamageFlash",
   componentType: "Image",
   properties: {
@@ -209,33 +209,33 @@ mcp__unity-mcp-server__component_add({
 
 ```javascript
 // HP バー（左上配置）
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "HPBar",
   parentPath: "/HUDCanvas/SafeArea"
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/HPBar",
   componentType: "RectTransform",
   fieldPath: "anchorMin",
   value: { x: 0, y: 1 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/HPBar",
   componentType: "RectTransform",
   fieldPath: "anchorMax",
   value: { x: 0, y: 1 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/HPBar",
   componentType: "RectTransform",
   fieldPath: "pivot",
   value: { x: 0, y: 1 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/HPBar",
   componentType: "RectTransform",
   fieldPath: "anchoredPosition",
@@ -243,33 +243,33 @@ mcp__unity-mcp-server__component_field_set({
 })
 
 // ミニマップ（右上配置）
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Minimap",
   parentPath: "/HUDCanvas/SafeArea"
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/Minimap",
   componentType: "RectTransform",
   fieldPath: "anchorMin",
   value: { x: 1, y: 1 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/Minimap",
   componentType: "RectTransform",
   fieldPath: "anchorMax",
   value: { x: 1, y: 1 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/Minimap",
   componentType: "RectTransform",
   fieldPath: "pivot",
   value: { x: 1, y: 1 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/Minimap",
   componentType: "RectTransform",
   fieldPath: "anchoredPosition",
@@ -277,33 +277,33 @@ mcp__unity-mcp-server__component_field_set({
 })
 
 // スキルバー（下部中央配置）
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "SkillBar",
   parentPath: "/HUDCanvas/SafeArea"
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/SkillBar",
   componentType: "RectTransform",
   fieldPath: "anchorMin",
   value: { x: 0.5, y: 0 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/SkillBar",
   componentType: "RectTransform",
   fieldPath: "anchorMax",
   value: { x: 0.5, y: 0 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/SkillBar",
   componentType: "RectTransform",
   fieldPath: "pivot",
   value: { x: 0.5, y: 0 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/SkillBar",
   componentType: "RectTransform",
   fieldPath: "anchoredPosition",
@@ -333,12 +333,12 @@ HealthBar (RectTransform)
 
 ```javascript
 // ヘルスバー作成
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "HealthBar",
   parentPath: "/HUDCanvas/SafeArea"
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/HealthBar",
   componentType: "RectTransform",
   fieldPath: "sizeDelta",
@@ -346,12 +346,12 @@ mcp__unity-mcp-server__component_field_set({
 })
 
 // 背景
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Background",
   parentPath: "/HUDCanvas/SafeArea/HealthBar"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/HealthBar/Background",
   componentType: "Image",
   properties: {
@@ -360,12 +360,12 @@ mcp__unity-mcp-server__component_add({
 })
 
 // 遅延ゲージ（Filled Image）
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "DelayedFill",
   parentPath: "/HUDCanvas/SafeArea/HealthBar"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/HealthBar/DelayedFill",
   componentType: "Image",
   properties: {
@@ -377,12 +377,12 @@ mcp__unity-mcp-server__component_add({
 })
 
 // 現在値ゲージ
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Fill",
   parentPath: "/HUDCanvas/SafeArea/HealthBar"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/HealthBar/Fill",
   componentType: "Image",
   properties: {
@@ -394,12 +394,12 @@ mcp__unity-mcp-server__component_add({
 })
 
 // テキスト
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Text",
   parentPath: "/HUDCanvas/SafeArea/HealthBar"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/HealthBar/Text",
   componentType: "TextMeshProUGUI",
   properties: {
@@ -484,12 +484,12 @@ SkillSlot (RectTransform)
 
 ```javascript
 // スキルスロット作成
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "SkillSlot",
   parentPath: "/HUDCanvas/SafeArea/SkillBar"
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot",
   componentType: "RectTransform",
   fieldPath: "sizeDelta",
@@ -497,23 +497,23 @@ mcp__unity-mcp-server__component_field_set({
 })
 
 // アイコン
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Icon",
   parentPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot/Icon",
   componentType: "Image"
 })
 
 // クールダウンオーバーレイ（Radial Fill）
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "CooldownOverlay",
   parentPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot/CooldownOverlay",
   componentType: "Image",
   properties: {
@@ -527,12 +527,12 @@ mcp__unity-mcp-server__component_add({
 })
 
 // クールダウンテキスト
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "CooldownText",
   parentPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot/CooldownText",
   componentType: "TextMeshProUGUI",
   properties: {
@@ -544,12 +544,12 @@ mcp__unity-mcp-server__component_add({
 })
 
 // キーヒント
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "KeyHint",
   parentPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot/KeyHint",
   componentType: "TextMeshProUGUI",
   properties: {
@@ -634,12 +634,12 @@ InventoryGrid (RectTransform + GridLayoutGroup)
 
 ```javascript
 // インベントリグリッド作成
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "InventoryGrid",
   parentPath: "/InventoryCanvas/Panel"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/InventoryCanvas/Panel/InventoryGrid",
   componentType: "GridLayoutGroup",
   properties: {
@@ -654,12 +654,12 @@ mcp__unity-mcp-server__component_add({
 })
 
 // アイテムスロット作成
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "ItemSlot",
   parentPath: "/InventoryCanvas/Panel/InventoryGrid"
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot",
   componentType: "RectTransform",
   fieldPath: "sizeDelta",
@@ -667,12 +667,12 @@ mcp__unity-mcp-server__component_field_set({
 })
 
 // 背景（レアリティ枠）
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Background",
   parentPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot/Background",
   componentType: "Image",
   properties: {
@@ -681,23 +681,23 @@ mcp__unity-mcp-server__component_add({
 })
 
 // アイコン
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Icon",
   parentPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot/Icon",
   componentType: "Image"
 })
 
 // スタック数
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "StackCount",
   parentPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot/StackCount",
   componentType: "TextMeshProUGUI",
   properties: {
@@ -708,12 +708,12 @@ mcp__unity-mcp-server__component_add({
 })
 
 // 選択ハイライト
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "SelectionHighlight",
   parentPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot/SelectionHighlight",
   componentType: "Image",
   properties: {
@@ -769,12 +769,12 @@ DamageNumber (RectTransform)
 
 ```javascript
 // ダメージ数値Prefab作成
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "DamageNumber",
   parentPath: "/WorldCanvas"
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/WorldCanvas/DamageNumber",
   componentType: "RectTransform",
   fieldPath: "sizeDelta",
@@ -782,12 +782,12 @@ mcp__unity-mcp-server__component_field_set({
 })
 
 // テキスト
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Text",
   parentPath: "/WorldCanvas/DamageNumber"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/WorldCanvas/DamageNumber/Text",
   componentType: "TextMeshProUGUI",
   properties: {
@@ -876,12 +876,12 @@ MinimapContainer (RectTransform)
 
 ```javascript
 // ミニマップコンテナ
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "MinimapContainer",
   parentPath: "/HUDCanvas/SafeArea"
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/MinimapContainer",
   componentType: "RectTransform",
   fieldPath: "sizeDelta",
@@ -889,18 +889,18 @@ mcp__unity-mcp-server__component_field_set({
 })
 
 // マップ表示（RawImage）
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "MapImage",
   parentPath: "/HUDCanvas/SafeArea/MinimapContainer"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/MinimapContainer/MapImage",
   componentType: "RawImage"
 })
 
 // 円形マスク用
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/MinimapContainer/MapImage",
   componentType: "Mask",
   properties: {
@@ -909,17 +909,17 @@ mcp__unity-mcp-server__component_add({
 })
 
 // プレイヤーアイコン（中央固定）
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "PlayerIcon",
   parentPath: "/HUDCanvas/SafeArea/MinimapContainer"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/MinimapContainer/PlayerIcon",
   componentType: "Image"
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/MinimapContainer/PlayerIcon",
   componentType: "RectTransform",
   fieldPath: "sizeDelta",
@@ -927,12 +927,12 @@ mcp__unity-mcp-server__component_field_set({
 })
 
 // 枠
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Border",
   parentPath: "/HUDCanvas/SafeArea/MinimapContainer"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/MinimapContainer/Border",
   componentType: "Image",
   properties: {
@@ -963,12 +963,12 @@ DialogPanel (RectTransform + CanvasGroup)
 
 ```javascript
 // ダイアログパネル
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "DialogPanel",
   parentPath: "/DialogCanvas"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/DialogCanvas/DialogPanel",
   componentType: "Image",
   properties: {
@@ -976,20 +976,20 @@ mcp__unity-mcp-server__component_add({
   }
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/DialogCanvas/DialogPanel",
   componentType: "CanvasGroup"
 })
 
 // 下部ストレッチ配置
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/DialogCanvas/DialogPanel",
   componentType: "RectTransform",
   fieldPath: "anchorMin",
   value: { x: 0, y: 0 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/DialogCanvas/DialogPanel",
   componentType: "RectTransform",
   fieldPath: "anchorMax",
@@ -997,12 +997,12 @@ mcp__unity-mcp-server__component_field_set({
 })
 
 // 話者名
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "SpeakerName",
   parentPath: "/DialogCanvas/DialogPanel"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/DialogCanvas/DialogPanel/SpeakerName",
   componentType: "TextMeshProUGUI",
   properties: {
@@ -1014,17 +1014,17 @@ mcp__unity-mcp-server__component_add({
 })
 
 // 顔アイコン
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Portrait",
   parentPath: "/DialogCanvas/DialogPanel"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/DialogCanvas/DialogPanel/Portrait",
   componentType: "Image"
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/DialogCanvas/DialogPanel/Portrait",
   componentType: "RectTransform",
   fieldPath: "sizeDelta",
@@ -1032,12 +1032,12 @@ mcp__unity-mcp-server__component_field_set({
 })
 
 // ダイアログテキスト
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "DialogText",
   parentPath: "/DialogCanvas/DialogPanel"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/DialogCanvas/DialogPanel/DialogText",
   componentType: "TextMeshProUGUI",
   properties: {
@@ -1048,12 +1048,12 @@ mcp__unity-mcp-server__component_add({
 })
 
 // 選択肢コンテナ
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "ChoicesContainer",
   parentPath: "/DialogCanvas/DialogPanel"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/DialogCanvas/DialogPanel/ChoicesContainer",
   componentType: "VerticalLayoutGroup",
   properties: {
@@ -1063,12 +1063,12 @@ mcp__unity-mcp-server__component_add({
 })
 
 // 次へインジケーター
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "ContinueIndicator",
   parentPath: "/DialogCanvas/DialogPanel"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/DialogCanvas/DialogPanel/ContinueIndicator",
   componentType: "Image"
 })
@@ -1155,14 +1155,14 @@ RectTransformはUI要素の位置・サイズを制御するコンポーネン�
 
 ```javascript
 // RectTransformの主要プロパティ
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/Button",
   componentType: "RectTransform",
   fieldPath: "anchoredPosition",
   value: { x: 0, y: 100 }  // アンカー基準の位置
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/Button",
   componentType: "RectTransform",
   fieldPath: "sizeDelta",
@@ -1190,28 +1190,28 @@ mcp__unity-mcp-server__component_field_set({
 
 ```javascript
 // 全画面ストレッチの例
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/Background",
   componentType: "RectTransform",
   fieldPath: "anchorMin",
   value: { x: 0, y: 0 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/Background",
   componentType: "RectTransform",
   fieldPath: "anchorMax",
   value: { x: 1, y: 1 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/Background",
   componentType: "RectTransform",
   fieldPath: "offsetMin",
   value: { x: 0, y: 0 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/Background",
   componentType: "RectTransform",
   fieldPath: "offsetMax",
@@ -1228,21 +1228,21 @@ mcp__unity-mcp-server__component_field_set({
 #### 縦向き（Portrait）優先
 
 ```javascript
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas",
   componentType: "CanvasScaler",
   fieldPath: "uiScaleMode",
   value: 1  // ScaleWithScreenSize
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas",
   componentType: "CanvasScaler",
   fieldPath: "referenceResolution",
   value: { x: 1080, y: 1920 }  // 9:16 縦向き基準
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas",
   componentType: "CanvasScaler",
   fieldPath: "matchWidthOrHeight",
@@ -1253,14 +1253,14 @@ mcp__unity-mcp-server__component_field_set({
 #### 横向き（Landscape）優先
 
 ```javascript
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas",
   componentType: "CanvasScaler",
   fieldPath: "referenceResolution",
   value: { x: 1920, y: 1080 }  // 16:9 横向き基準
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas",
   componentType: "CanvasScaler",
   fieldPath: "matchWidthOrHeight",
@@ -1354,25 +1354,25 @@ public class SafeAreaHandler : MonoBehaviour
 
 ```javascript
 // Safe Area用パネルを作成
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "SafeAreaPanel",
   parentPath: "/Canvas"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/SafeAreaPanel",
   componentType: "RectTransform"
 })
 
 // 全画面ストレッチに設定
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/SafeAreaPanel",
   componentType: "RectTransform",
   fieldPath: "anchorMin",
   value: { x: 0, y: 0 }
 })
 
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/SafeAreaPanel",
   componentType: "RectTransform",
   fieldPath: "anchorMax",
@@ -1380,7 +1380,7 @@ mcp__unity-mcp-server__component_field_set({
 })
 
 // SafeAreaHandlerスクリプトを追加
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/SafeAreaPanel",
   componentType: "SafeAreaHandler"
 })
@@ -1393,7 +1393,7 @@ mcp__unity-mcp-server__component_add({
 ### Horizontal Layout Group
 
 ```javascript
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/ButtonContainer",
   componentType: "HorizontalLayoutGroup",
   properties: {
@@ -1410,7 +1410,7 @@ mcp__unity-mcp-server__component_add({
 ### Vertical Layout Group
 
 ```javascript
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/MenuList",
   componentType: "VerticalLayoutGroup",
   properties: {
@@ -1424,7 +1424,7 @@ mcp__unity-mcp-server__component_add({
 ### Grid Layout Group
 
 ```javascript
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/ItemGrid",
   componentType: "GridLayoutGroup",
   properties: {
@@ -1444,7 +1444,7 @@ mcp__unity-mcp-server__component_add({
 子要素のサイズに合わせて親を自動調整します。
 
 ```javascript
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/AutoSizePanel",
   componentType: "ContentSizeFitter",
   properties: {
@@ -1458,14 +1458,14 @@ mcp__unity-mcp-server__component_add({
 
 | 目的 | 推奨ツール |
 |------|-----------|
-| Canvas作成 | `gameobject_create` + `component_add` |
-| UI要素追加 | `gameobject_create` + `component_add` |
-| アンカー設定 | `component_field_set` (RectTransform) |
-| Canvas Scaler設定 | `component_field_set` (CanvasScaler) |
-| Layout Group追加 | `component_add` |
-| UI要素検索 | `ui_find_elements` |
-| UIクリックテスト | `ui_click_element` |
-| UI状態確認 | `ui_get_element_state` |
+| Canvas作成 | `create_gameobject` + `add_component` |
+| UI要素追加 | `create_gameobject` + `add_component` |
+| アンカー設定 | `set_component_field` (RectTransform) |
+| Canvas Scaler設定 | `set_component_field` (CanvasScaler) |
+| Layout Group追加 | `add_component` |
+| UI要素検索 | `find_ui_elements` |
+| UIクリックテスト | `click_ui_element` |
+| UI状態確認 | `get_ui_element_state` |
 | スクリプト作成 | `script_create_class` |
 
 ## Common Workflows
@@ -1474,13 +1474,13 @@ mcp__unity-mcp-server__component_add({
 
 ```javascript
 // Step 1: Canvas作成
-mcp__unity-mcp-server__gameobject_create({ name: "MobileCanvas" })
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__create_gameobject({ name: "MobileCanvas" })
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/MobileCanvas",
   componentType: "Canvas",
   properties: { renderMode: 0 }
 })
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/MobileCanvas",
   componentType: "CanvasScaler",
   properties: {
@@ -1489,32 +1489,32 @@ mcp__unity-mcp-server__component_add({
     matchWidthOrHeight: 0
   }
 })
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/MobileCanvas",
   componentType: "GraphicRaycaster"
 })
 
 // Step 2: Safe Areaパネル
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "SafeArea",
   parentPath: "/MobileCanvas"
 })
 
 // Step 3: ヘッダー（上部ストレッチ）
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Header",
   parentPath: "/MobileCanvas/SafeArea"
 })
 // アンカーを上部ストレッチに設定...
 
 // Step 4: コンテンツ（中央ストレッチ）
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Content",
   parentPath: "/MobileCanvas/SafeArea"
 })
 
 // Step 5: フッター（下部ストレッチ）
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Footer",
   parentPath: "/MobileCanvas/SafeArea"
 })
@@ -1524,33 +1524,33 @@ mcp__unity-mcp-server__gameobject_create({
 
 ```javascript
 // ScrollView作成
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "ScrollView",
   parentPath: "/Canvas"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/ScrollView",
   componentType: "ScrollRect"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/ScrollView",
   componentType: "Image"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/ScrollView",
   componentType: "Mask"
 })
 
 // Content作成
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "Content",
   parentPath: "/Canvas/ScrollView"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/ScrollView/Content",
   componentType: "VerticalLayoutGroup",
   properties: {
@@ -1559,7 +1559,7 @@ mcp__unity-mcp-server__component_add({
   }
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/ScrollView/Content",
   componentType: "ContentSizeFitter",
   properties: {
@@ -1635,9 +1635,9 @@ referenceResolution: { x: 1920, y: 1080 }
 
 ## Tool Reference
 
-### ui_find_elements
+### find_ui_elements
 ```javascript
-mcp__unity-mcp-server__ui_find_elements({
+mcp__unity-mcp-server__find_ui_elements({
   elementType: "Button",      // UI component type
   tagFilter: "MainMenu",      // GameObject tag
   namePattern: "Btn_*",       // Name pattern
@@ -1646,9 +1646,9 @@ mcp__unity-mcp-server__ui_find_elements({
 })
 ```
 
-### ui_click_element
+### click_ui_element
 ```javascript
-mcp__unity-mcp-server__ui_click_element({
+mcp__unity-mcp-server__click_ui_element({
   elementPath: "/Canvas/Button",
   clickType: "left",     // left, right, middle
   holdDuration: 0,       // ms
@@ -1656,27 +1656,27 @@ mcp__unity-mcp-server__ui_click_element({
 })
 ```
 
-### ui_get_element_state
+### get_ui_element_state
 ```javascript
-mcp__unity-mcp-server__ui_get_element_state({
+mcp__unity-mcp-server__get_ui_element_state({
   elementPath: "/Canvas/Button",
   includeChildren: false,
   includeInteractableInfo: true
 })
 ```
 
-### ui_set_element_value
+### set_ui_element_value
 ```javascript
-mcp__unity-mcp-server__ui_set_element_value({
+mcp__unity-mcp-server__set_ui_element_value({
   elementPath: "/Canvas/InputField",
   value: "Hello World",
   triggerEvents: true
 })
 ```
 
-### component_field_set (RectTransform)
+### set_component_field (RectTransform)
 ```javascript
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/Panel",
   componentType: "RectTransform",
   fieldPath: "anchorMin",  // anchorMin, anchorMax, pivot, anchoredPosition, sizeDelta, offsetMin, offsetMax
@@ -1684,9 +1684,9 @@ mcp__unity-mcp-server__component_field_set({
 })
 ```
 
-### component_field_set (CanvasScaler)
+### set_component_field (CanvasScaler)
 ```javascript
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas",
   componentType: "CanvasScaler",
   fieldPath: "matchWidthOrHeight",  // uiScaleMode, referenceResolution, screenMatchMode, matchWidthOrHeight

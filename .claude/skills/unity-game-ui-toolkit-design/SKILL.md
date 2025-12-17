@@ -2,19 +2,19 @@
 name: unity-game-ui-toolkit-design
 description: UnityのUI Toolkit（USS/UXML/Flexbox）を使用したゲームUIデザイン。HUD、ヘルスバー、インベントリ、スキルバー等のゲームUI要素、PanelSettingsによるスケーリング、Safe Area対応を含む。使用タイミング: ゲームUI設計、HUD作成、USS/UXMLスタイリング、Flexboxレイアウト、PanelSettings設定
 allowed-tools:
-  - mcp__unity-mcp-server__ui_find_elements
-  - mcp__unity-mcp-server__ui_click_element
-  - mcp__unity-mcp-server__ui_get_element_state
-  - mcp__unity-mcp-server__ui_set_element_value
-  - mcp__unity-mcp-server__ui_simulate_input
-  - mcp__unity-mcp-server__component_add
-  - mcp__unity-mcp-server__component_modify
-  - mcp__unity-mcp-server__component_field_set
-  - mcp__unity-mcp-server__component_list
-  - mcp__unity-mcp-server__gameobject_create
-  - mcp__unity-mcp-server__gameobject_modify
-  - mcp__unity-mcp-server__gameobject_find
-  - mcp__unity-mcp-server__asset_database_manage
+  - mcp__unity-mcp-server__find_ui_elements
+  - mcp__unity-mcp-server__click_ui_element
+  - mcp__unity-mcp-server__get_ui_element_state
+  - mcp__unity-mcp-server__set_ui_element_value
+  - mcp__unity-mcp-server__simulate_ui_input
+  - mcp__unity-mcp-server__add_component
+  - mcp__unity-mcp-server__modify_component
+  - mcp__unity-mcp-server__set_component_field
+  - mcp__unity-mcp-server__list_components
+  - mcp__unity-mcp-server__create_gameobject
+  - mcp__unity-mcp-server__modify_gameobject
+  - mcp__unity-mcp-server__find_gameobject
+  - mcp__unity-mcp-server__manage_asset_database
   - mcp__unity-mcp-server__script_edit_structured
   - mcp__unity-mcp-server__script_create_class
   - mcp__unity-mcp-server__script_read
@@ -221,18 +221,18 @@ UI Toolkitは、Webの技術（HTML/CSS）に近いアプローチでUIを構築
 
 ```javascript
 // 1. UIDocumentを持つGameObject作成
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "UIManager"
 })
 
 // 2. UIDocumentコンポーネントを追加
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/UIManager",
   componentType: "UIDocument"
 })
 
 // 3. PanelSettingsを設定
-mcp__unity-mcp-server__component_field_set({
+mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/UIManager",
   componentType: "UIDocument",
   fieldPath: "panelSettings",
@@ -1223,13 +1223,13 @@ void ReturnToPool(VisualElement element)
 
 | 目的 | 推奨ツール |
 |------|-----------|
-| UIDocument GameObject作成 | `gameobject_create` + `component_add` |
-| PanelSettings設定 | `component_field_set` |
+| UIDocument GameObject作成 | `create_gameobject` + `add_component` |
+| PanelSettings設定 | `set_component_field` |
 | C#コントローラー作成 | `script_create_class` |
-| UXML/USSファイル作成 | `asset_database_manage` |
-| UI要素検索 | `ui_find_elements` |
-| UIテスト | `ui_click_element`, `ui_simulate_input` |
-| UI状態確認 | `ui_get_element_state` |
+| UXML/USSファイル作成 | `manage_asset_database` |
+| UI要素検索 | `find_ui_elements` |
+| UIテスト | `click_ui_element`, `simulate_ui_input` |
+| UI状態確認 | `get_ui_element_state` |
 
 ## Common Workflows
 
@@ -1237,11 +1237,11 @@ void ReturnToPool(VisualElement element)
 
 ```javascript
 // Step 1: UIDocument用GameObjectを作成
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "ResponsiveUI"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/ResponsiveUI",
   componentType: "UIDocument"
 })

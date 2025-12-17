@@ -45,7 +45,7 @@
 - `addressables_analyze`
 
 **理由**:
-- **既存命名規則準拠**: `asset_database_manage`, `package_manage`, `scene_load`等と一貫性
+- **既存命名規則準拠**: `manage_asset_database`, `package_managerr`, `load_scene`等と一貫性
 - **スネークケース**: MCPサーバーの標準
 - **動詞_名詞パターン**: 操作が明確
 

@@ -15,14 +15,14 @@
 ## Phase 3.1: セットアップ / ドキュメント
 - [ ] **T001** `/specs/SPEC-0b6b106c/research.md` に SerializedPropertyパス表記・Prefab保存方針・PlayMode制約の調査結果を記載
 - [P] **T002** `/specs/SPEC-0b6b106c/data-model.md` で `ComponentFieldUpdateRequest` と `ComponentFieldUpdateResult` の属性・検証ルールを定義
-- [P] **T003** `/specs/SPEC-0b6b106c/contracts/component_field_set.request.json` と `.response.json` を作成し、MCP↔Unity間Payload契約を記述
+- [P] **T003** `/specs/SPEC-0b6b106c/contracts/set_component_field.request.json` と `.response.json` を作成し、MCP↔Unity間Payload契約を記述
 - [P] **T004** `/specs/SPEC-0b6b106c/quickstart.md` に LLM利用者向けのドライラン→本適用→保存確認の手順を書く
 - [ ] **T005** `.claude/settings` 経由の `scripts/update-agent-context.sh claude` を実行し、新ツールの利用方針/TDD必須をエージェント文脈に追記
 
 ## Phase 3.2: テストファースト (RED)
 - [ ] **T006** `mcp-server/tests/unit/handlers/component/ComponentFieldSetToolHandler.test.js` に入力バリデーション・dry-run・Prefab適用・エラー分岐を網羅するREDテストを追加
 - [ ] **T007** `UnityMCPServer/Packages/unity-mcp-server/Tests/Editor/Handlers/ComponentHandlerTests.cs` にシーン/Prefab/dry-run/PlayModeブロックのEditModeテスト (失敗状態) を追加
-- [ ] **T008** `tests/test-mcp-component-tools.md` に `component_field_set` 用のチェック項目 (U30-04) を追加し、差分比較ステップを記述
+- [ ] **T008** `tests/test-mcp-component-tools.md` に `set_component_field` 用のチェック項目 (U30-04) を追加し、差分比較ステップを記述
 
 ## Phase 3.3: コア実装 (GREEN化)
 - [ ] **T009** `mcp-server/src/handlers/component/ComponentFieldSetToolHandler.js` を実装し、フィールドパス正規化・value型推論・dry-run処理を追加
@@ -38,7 +38,7 @@
 - [ ] **T017** `specs/SPEC-0b6b106c/quickstart.md` と `README.md` に dry-run→適用→保存のワークフローを反映
 
 ## Phase 3.5: 仕上げ / リリース準備
-- [ ] **T018** `mcp-server/src/core/config.js` 周辺で `component_field_set` のログ/メトリクスカテゴリを登録し、loggerテストを追加
+- [ ] **T018** `mcp-server/src/core/config.js` 周辺で `set_component_field` のログ/メトリクスカテゴリを登録し、loggerテストを追加
 - [ ] **T019** `mcp-server/package.json` と Unityパッケージ `package.json` にバージョン・エクスポート項目を更新 (必要なら)
 - [ ] **T020** `CHANGELOG.md` / `README.ja.md` / `CLAUDE.md` に新フロー・注意事項を追記 (TDD必須を再強調)
 - [ ] **T021** 手動検証: シーン/Prefab/dry-run/エラー系のCLI操作ログを `docs/manual-tests/component-field-set.md` (新規) に残す
@@ -65,4 +65,4 @@
 ## 注意事項
 - すべての [P] タスクは異なるファイルを対象とし依存関係が無い場合のみ並列実行する
 - コミットは RED→GREEN→リファクタ単位で細かく行い、各コミットに対応するテスト結果を記載
-- `component_field_set` は高リスク操作のため dry-run サポートを常に確認 (T007/T017)
+- `set_component_field` は高リスク操作のため dry-run サポートを常に確認 (T007/T017)

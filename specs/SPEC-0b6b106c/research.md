@@ -26,6 +26,6 @@
 - **検討した代替案**: InstanceIDを直接受け取る → セッションを跨ぐと無効になる。
 
 ## 6. ログポリシー
-- **決定**: `component_field_set` カテゴリで JSON構造ログ (target, scope, dryRun, result/ error) を出力し、Undo登録状況も記録する。
+- **決定**: `set_component_field` カテゴリで JSON構造ログ (target, scope, dryRun, result/ error) を出力し、Undo登録状況も記録する。
 - **理由**: 監査性とトラブルシュート性を確保し、遠隔操作を追跡可能にするため。
 - **検討した代替案**: 既存ログに文字列連結で追記 → 解析しづらく目的を達成できない。

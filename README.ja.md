@@ -87,7 +87,7 @@ curl http://localhost:6401/healthz
 2. **MCPクライアントを設定**（上記JSONを追加）
 3. **Unityプロジェクトを開く**（パッケージがポート6400でTCPリスナーを起動）
 4. **MCPクライアントを起動**（Nodeサーバーに接続）
-5. **接続テスト** - `system_ping` を実行
+5. **接続テスト** - `ping` を実行
 
 > ヒント: `npx @akiojin/unity-mcp-server@latest` を使うとクローンなしで最新ビルドを実行できます。
 

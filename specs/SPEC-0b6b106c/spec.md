@@ -101,7 +101,7 @@ QAオペレーターが安全性のために「適用せず検証のみ」を実
 
 ## 依存関係 *(該当する場合)*
 
-- 既存の `get_hierarchy`、`list_components`、`analysis_component_values_get` などのツールから得られるパス・フィールド情報。
+- 既存の `get_hierarchy`、`list_components`、`get_component_values` などのツールから得られるパス・フィールド情報。
 - MCPコマンド履歴/監査ログの永続化仕組み。
 
 ---
