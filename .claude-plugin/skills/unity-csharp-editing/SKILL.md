@@ -210,7 +210,7 @@ mcp__unity-mcp-server__script_edit_structured({
 
 ```javascript
 // コンパイル状態を確認
-mcp__unity-mcp-server__compilation_get_state({ includeMessages: true })
+mcp__unity-mcp-server__get_compilation_state({ includeMessages: true })
 
 // 影響範囲を確認してからリファクタリング
 mcp__unity-mcp-server__script_refs_find({
@@ -442,4 +442,4 @@ mcp__unity-mcp-server__code_index_update({
 | `code_index_status` | インデックス状態確認 | - |
 | `code_index_build` | インデックス構築 | - |
 | `code_index_update` | インデックス更新 | paths |
-| `compilation_get_state` | コンパイル状態 | includeMessages |
+| `get_compilation_state` | コンパイル状態 | includeMessages |

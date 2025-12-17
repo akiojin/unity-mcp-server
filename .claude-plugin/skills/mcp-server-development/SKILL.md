@@ -28,7 +28,7 @@ MCP servers bridge AI assistants to external systems. They must be:
 export class SystemPingToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super({
-      name: 'system_ping',
+      name: 'ping',
       description: 'Check Unity Editor connectivity',
       inputSchema: { type: 'object', properties: {} }
     });
@@ -130,7 +130,7 @@ Unity communication uses a simple request/response pattern:
 
 ```javascript
 const result = await this.unityConnection.send({
-  command: 'gameobject_create',
+  command: 'create_gameobject',
   params: { name: 'Cube', primitiveType: 'cube' }
 });
 ```
@@ -142,7 +142,7 @@ const result = await this.unityConnection.send({
 ```javascript
 execute(params) {
   return this.unityConnection.send({
-    command: 'screenshot_capture',
+    command: 'capture_screenshot',
     workspaceRoot: config.workspaceRoot,
     ...params
   });

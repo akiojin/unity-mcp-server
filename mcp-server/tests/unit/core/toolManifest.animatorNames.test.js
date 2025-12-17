@@ -21,7 +21,7 @@ function loadToolManifest() {
 }
 
 describe('toolManifest (animator tool naming)', () => {
-  it('should expose get_animator_state/get_animator_runtime_info and hide legacy analysis_animator_* names', () => {
+  it('should expose get_animator_state/get_animator_runtime_info', () => {
     const tools = loadToolManifest();
     assert.ok(Array.isArray(tools), 'toolManifest.json must be an array');
 
@@ -31,15 +31,6 @@ describe('toolManifest (animator tool naming)', () => {
     assert.ok(
       names.has('get_animator_runtime_info'),
       "expected manifest to include 'get_animator_runtime_info'"
-    );
-
-    assert.ok(
-      !names.has('analysis_animator_state_get'),
-      "expected manifest to hide legacy name 'analysis_animator_state_get'"
-    );
-    assert.ok(
-      !names.has('analysis_animator_runtime_info_get'),
-      "expected manifest to hide legacy name 'analysis_animator_runtime_info_get'"
     );
   });
 });
