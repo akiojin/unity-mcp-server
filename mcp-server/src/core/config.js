@@ -115,6 +115,12 @@ const baseConfig = {
     description: 'MCP server for Unity Editor integration'
   },
 
+  // Compatibility / safety checks
+  compat: {
+    // warn|error|off
+    versionMismatch: 'warn'
+  },
+
   // Logging settings
   logging: {
     level: 'info',
@@ -171,6 +177,7 @@ function loadEnvConfig() {
   const projectRoot = envString('UNITY_PROJECT_ROOT');
 
   const logLevel = envString('UNITY_MCP_LOG_LEVEL');
+  const versionMismatch = envString('UNITY_MCP_VERSION_MISMATCH');
 
   const httpEnabled = parseBoolEnv(process.env.UNITY_MCP_HTTP_ENABLED);
   const httpPort = parseIntEnv(process.env.UNITY_MCP_HTTP_PORT);
@@ -195,6 +202,10 @@ function loadEnvConfig() {
 
   if (logLevel) {
     out.logging = { level: logLevel };
+  }
+
+  if (versionMismatch) {
+    out.compat = { versionMismatch };
   }
 
   if (httpEnabled !== undefined || httpPort !== undefined) {
@@ -244,6 +255,22 @@ function validateAndNormalizeConfig(cfg) {
       cfg.logging.level = 'info';
     } else {
       cfg.logging.level = level === 'warning' ? 'warn' : level;
+    }
+  }
+
+  // compat.versionMismatch
+  if (cfg.compat?.versionMismatch) {
+    const raw = String(cfg.compat.versionMismatch).trim().toLowerCase();
+    const normalized =
+      raw === 'warning' ? 'warn' : raw === 'none' || raw === 'ignore' ? 'off' : raw;
+    const allowed = new Set(['warn', 'error', 'off']);
+    if (!allowed.has(normalized)) {
+      console.error(
+        `[unity-mcp-server] WARN: Invalid UNITY_MCP_VERSION_MISMATCH (${cfg.compat.versionMismatch}); using default warn`
+      );
+      cfg.compat.versionMismatch = 'warn';
+    } else {
+      cfg.compat.versionMismatch = normalized;
     }
   }
 

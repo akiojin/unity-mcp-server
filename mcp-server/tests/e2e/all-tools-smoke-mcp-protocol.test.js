@@ -498,16 +498,6 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'analysis_animator_state_get',
-        { gameObjectName: SMOKE_GO_NAME },
-        { timeoutMs: 60_000 }
-      );
-      await safeCall(
-        'analysis_animator_runtime_info_get',
-        { gameObjectName: SMOKE_GO_NAME },
-        { timeoutMs: 60_000 }
-      );
-      await safeCall(
         'get_animator_state',
         { gameObjectName: SMOKE_GO_NAME },
         { timeoutMs: 60_000 }
@@ -801,12 +791,6 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'remove_input_binding_all',
-        { assetPath: TMP_INPUT_ACTIONS, mapName: INPUT_MAP_NAME, actionName: 'Move' },
-        { timeoutMs: 60_000 }
-      );
-      // New name (tools/list returns new names only) + keep legacy alias above for compatibility coverage.
-      await safeCall(
         'remove_all_bindings',
         { assetPath: TMP_INPUT_ACTIONS, mapName: INPUT_MAP_NAME, actionName: 'Move' },
         { timeoutMs: 60_000 }
@@ -1022,8 +1006,8 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
           ['get_component_values', 'get_component_values'],
           ['get_gameobject_details', 'get_gameobject_details'],
           ['get_object_references', 'get_object_references'],
-          ['analysis_animator_state_get', 'get_animator_state'],
-          ['analysis_animator_runtime_info_get', 'get_animator_runtime_info'],
+          ['get_animator_state', 'get_animator_state'],
+          ['get_animator_runtime_info', 'get_animator_runtime_info'],
           ['get_input_actions_state', 'get_input_actions_state'],
           ['analyze_input_actions_asset', 'analyze_input_actions_asset'],
           ['create_action_map', 'create_action_map'],
@@ -1032,7 +1016,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
           ['remove_input_action', 'remove_input_action'],
           ['add_input_binding', 'add_input_binding'],
           ['remove_input_binding', 'remove_input_binding'],
-          ['remove_input_binding_all', 'remove_all_bindings'],
+          ['remove_all_bindings', 'remove_all_bindings'],
           ['create_composite_binding', 'create_composite_binding'],
           ['manage_control_schemes', 'manage_control_schemes']
         ];
