@@ -1,5 +1,5 @@
 const TOOL_NAME_TO_UNITY_COMMAND_TYPE = Object.freeze({
-  // Animator tools: tool name (MCP) -> Unity command type (TCP)
+  // Legacy MCP tool names -> Unity command type (TCP)
   analysis_animator_state_get: 'get_animator_state',
   analysis_animator_runtime_info_get: 'get_animator_runtime_info'
 });

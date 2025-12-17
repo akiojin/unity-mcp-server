@@ -4,10 +4,20 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+/**
+ * Load the tool manifest JSON used by `tools/list`.
+ * Throws with path context when the file cannot be read/parsed.
+ */
 function loadToolManifest() {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const manifestPath = path.resolve(__dirname, '../../../src/core/toolManifest.json');
-  return JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  try {
+    return JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  } catch (error) {
+    throw new Error(`Failed to load tool manifest: ${manifestPath}\n${error.message}`, {
+      cause: error
+    });
+  }
 }
 
 describe('toolManifest (animator tool naming)', () => {

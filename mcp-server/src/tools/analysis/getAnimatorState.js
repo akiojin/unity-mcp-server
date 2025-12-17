@@ -99,7 +99,7 @@ export async function getAnimatorStateHandler(unityConnection, args) {
       };
     }
 
-    // Send command to Unity (tool name is normalized to Unity command type in UnityConnection)
+    // Send command to Unity (UnityConnection normalizes legacy tool names → Unity command type)
     const result = await unityConnection.sendCommand(getAnimatorStateToolDefinition.name, args);
 
     // Check for errors
@@ -221,7 +221,7 @@ export async function getAnimatorRuntimeInfoHandler(unityConnection, args) {
       };
     }
 
-    // Send command to Unity (tool name is normalized to Unity command type in UnityConnection)
+    // Send command to Unity (UnityConnection normalizes legacy tool names → Unity command type)
     const result = await unityConnection.sendCommand(
       getAnimatorRuntimeInfoToolDefinition.name,
       args
