@@ -56,7 +56,7 @@ describe('GetComponentValuesTool', () => {
   });
 
   it('should have correct tool definition', () => {
-    assert.equal(getComponentValuesToolDefinition.name, 'analysis_component_values_get');
+    assert.equal(getComponentValuesToolDefinition.name, 'get_component_values');
     assert.equal(
       getComponentValuesToolDefinition.description,
       'Get properties/values from a component on a GameObject (scene or prefab mode).'

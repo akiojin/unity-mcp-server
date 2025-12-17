@@ -65,7 +65,7 @@ describe('GetGameObjectDetailsTool', () => {
   });
 
   it('should have correct tool definition', () => {
-    assert.equal(getGameObjectDetailsToolDefinition.name, 'analysis_gameobject_details_get');
+    assert.equal(getGameObjectDetailsToolDefinition.name, 'get_gameobject_details');
     assert.equal(
       getGameObjectDetailsToolDefinition.description,
       'Get details for a GameObject by name or path (children/components/materials).'

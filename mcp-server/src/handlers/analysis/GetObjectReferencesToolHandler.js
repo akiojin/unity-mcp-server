@@ -5,7 +5,7 @@ import {
 } from '../../tools/analysis/getObjectReferences.js';
 
 /**
- * Handler for the analysis_object_references_get tool
+ * Handler for the get_object_references tool
  */
 export class GetObjectReferencesToolHandler extends BaseToolHandler {
   constructor(unityConnection) {

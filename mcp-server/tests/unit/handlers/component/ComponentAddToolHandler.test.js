@@ -41,7 +41,7 @@ describe('ComponentAddToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'component_add');
+      assert.equal(handler.name, 'add_component');
       assert.equal(handler.description, 'Add a component to a GameObject in Unity');
       assert.deepEqual(handler.inputSchema.required, ['gameObjectPath', 'componentType']);
     });

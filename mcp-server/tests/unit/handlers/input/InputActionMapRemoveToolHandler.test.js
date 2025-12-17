@@ -19,7 +19,7 @@ describe('InputActionMapRemoveToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'input_action_map_remove');
+      assert.equal(handler.name, 'remove_action_map');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Action Map'));
     });

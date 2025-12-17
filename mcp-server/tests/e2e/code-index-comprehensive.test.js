@@ -20,9 +20,10 @@ import { execFileSync, spawnSync } from 'child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const isCI = process.env.CI === 'true';
+const runSlowE2E = process.env.UNITY_MCP_RUN_SLOW_E2E === '1';
 
-// Skip all E2E tests in CI environment (requires Unity and real file operations)
-const describeE2E = isCI ? describe.skip : describe;
+// Skip by default (slow + requires file operations). Opt-in with UNITY_MCP_RUN_SLOW_E2E=1.
+const describeE2E = isCI || !runSlowE2E ? describe.skip : describe;
 
 // Test project paths
 const TEST_PROJECT_ROOT = path.resolve(__dirname, '../../..');

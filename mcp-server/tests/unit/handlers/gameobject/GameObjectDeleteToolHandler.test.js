@@ -14,13 +14,13 @@ describe('GameObjectDeleteToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'gameobject_delete');
+      assert.equal(handler.name, 'delete_gameobject');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should delete GameObject by path', () => {
-      assert.equal(handler.name, 'gameobject_delete');
+      assert.equal(handler.name, 'delete_gameobject');
     });
   });
 });

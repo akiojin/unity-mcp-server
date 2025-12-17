@@ -22,7 +22,7 @@ describe('UIClickElementToolHandler', () => {
     });
 
     it('should have correct tool name', () => {
-      assert.strictEqual(handler.name, 'ui_click_element');
+      assert.strictEqual(handler.name, 'click_ui_element');
     });
 
     it('should have correct description', () => {
@@ -34,7 +34,7 @@ describe('UIClickElementToolHandler', () => {
     it('should return correct tool definition', () => {
       const definition = handler.getDefinition();
 
-      assert.strictEqual(definition.name, 'ui_click_element');
+      assert.strictEqual(definition.name, 'click_ui_element');
       assert.strictEqual(definition.inputSchema.type, 'object');
       assert(definition.inputSchema.properties.elementPath);
       assert(definition.inputSchema.properties.clickType);

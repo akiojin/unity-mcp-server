@@ -8,6 +8,11 @@
     "build": "npm run build --workspaces --if-present",
     "release": "echo \"Release is handled by GitHub Actions (release-please).\" && exit 1"
   },
+  "overrides": {
+    "markdownlint-cli": {
+      "glob": "11.1.0"
+    }
+  },
   "workspaces": [
     "mcp-server",
     "packages/fast-sql"

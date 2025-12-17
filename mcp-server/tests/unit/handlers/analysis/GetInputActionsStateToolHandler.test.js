@@ -62,7 +62,7 @@ describe('GetInputActionsStateToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'input_actions_state_get');
+      assert.equal(handler.name, 'get_input_actions_state');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Input Actions'));
     });

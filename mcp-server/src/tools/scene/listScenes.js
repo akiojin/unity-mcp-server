@@ -1,8 +1,8 @@
 /**
- * Tool definition for scene_list
+ * Tool definition for list_scenes
  */
 export const listScenesToolDefinition = {
-  name: 'scene_list',
+  name: 'list_scenes',
   description: 'List all scenes in the Unity project',
   inputSchema: {
     type: 'object',
@@ -44,7 +44,7 @@ export async function listScenesHandler(unityConnection, args) {
     }
 
     // Send command to Unity
-    const result = await unityConnection.sendCommand('scene_list', args);
+    const result = await unityConnection.sendCommand('list_scenes', args);
 
     // Handle Unity response
     if (result.status === 'error') {

@@ -88,7 +88,7 @@ describe('Server', () => {
       assert.equal(result.result.message, 'pong');
     });
 
-    it('should handle gameobject_create with validation', async () => {
+    it('should handle create_gameobject with validation', async () => {
       const { GameObjectCreateToolHandler } =
         await import('../../../src/handlers/gameobject/GameObjectCreateToolHandler.js');
       const handler = new GameObjectCreateToolHandler(unityConnection);
@@ -134,38 +134,38 @@ describe('Server', () => {
       assert.ok(handlers.size >= 96);
 
       // Check for some key handlers
-      assert.ok(handlers.has('system_ping'));
-      assert.ok(handlers.has('gameobject_create'));
-      assert.ok(handlers.has('gameobject_get_hierarchy'));
-      assert.ok(handlers.has('analysis_scene_contents_analyze'));
+      assert.ok(handlers.has('ping'));
+      assert.ok(handlers.has('create_gameobject'));
+      assert.ok(handlers.has('get_hierarchy'));
+      assert.ok(handlers.has('analyze_scene_contents'));
       // Check for new editor control handlers
-      assert.ok(handlers.has('editor_tags_manage'));
-      assert.ok(handlers.has('editor_layers_manage'));
-      assert.ok(handlers.has('editor_selection_manage'));
-      assert.ok(handlers.has('editor_windows_manage'));
-      assert.ok(handlers.has('editor_tools_manage'));
+      assert.ok(handlers.has('manage_tags'));
+      assert.ok(handlers.has('manage_layers'));
+      assert.ok(handlers.has('manage_selection'));
+      assert.ok(handlers.has('manage_windows'));
+      assert.ok(handlers.has('manage_tools'));
       // Check for UI handlers
-      assert.ok(handlers.has('ui_find_elements'));
-      assert.ok(handlers.has('ui_click_element'));
+      assert.ok(handlers.has('find_ui_elements'));
+      assert.ok(handlers.has('click_ui_element'));
 
       // Check for component handlers
-      assert.ok(handlers.has('component_add'));
-      assert.ok(handlers.has('component_remove'));
-      assert.ok(handlers.has('component_modify'));
-      assert.ok(handlers.has('component_list'));
-      assert.ok(handlers.has('component_get_types'));
-      assert.ok(handlers.has('ui_get_element_state'));
-      assert.ok(handlers.has('ui_set_element_value'));
-      assert.ok(handlers.has('ui_simulate_input'));
+      assert.ok(handlers.has('add_component'));
+      assert.ok(handlers.has('remove_component'));
+      assert.ok(handlers.has('modify_component'));
+      assert.ok(handlers.has('list_components'));
+      assert.ok(handlers.has('get_component_types'));
+      assert.ok(handlers.has('get_ui_element_state'));
+      assert.ok(handlers.has('set_ui_element_value'));
+      assert.ok(handlers.has('simulate_ui_input'));
       // Check for Asset handlers
-      assert.ok(handlers.has('asset_prefab_create'));
-      assert.ok(handlers.has('asset_prefab_modify'));
-      assert.ok(handlers.has('asset_prefab_instantiate'));
-      assert.ok(handlers.has('asset_material_create'));
-      assert.ok(handlers.has('asset_material_modify'));
-      assert.ok(handlers.has('asset_import_settings_manage'));
-      assert.ok(handlers.has('asset_database_manage'));
-      assert.ok(handlers.has('asset_dependency_analyze'));
+      assert.ok(handlers.has('create_prefab'));
+      assert.ok(handlers.has('modify_prefab'));
+      assert.ok(handlers.has('instantiate_prefab'));
+      assert.ok(handlers.has('create_material'));
+      assert.ok(handlers.has('modify_material'));
+      assert.ok(handlers.has('manage_asset_import_settings'));
+      assert.ok(handlers.has('manage_asset_database'));
+      assert.ok(handlers.has('analyze_asset_dependencies'));
       // Check for search_tools meta-tool
       assert.ok(handlers.has('search_tools'));
     });

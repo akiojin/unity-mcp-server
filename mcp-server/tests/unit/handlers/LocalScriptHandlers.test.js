@@ -10,6 +10,7 @@ import { ScriptReadToolHandler } from '../../../src/handlers/script/ScriptReadTo
 import { ScriptSearchToolHandler } from '../../../src/handlers/script/ScriptSearchToolHandler.js';
 import { ScriptSymbolsGetToolHandler } from '../../../src/handlers/script/ScriptSymbolsGetToolHandler.js';
 import { ScriptSymbolFindToolHandler } from '../../../src/handlers/script/ScriptSymbolFindToolHandler.js';
+import { LspRpcClientSingleton } from '../../../src/lsp/LspRpcClientSingleton.js';
 import { LspProcessManager } from '../../../src/lsp/LspProcessManager.js';
 
 function setupTempUnityProject() {
@@ -21,7 +22,12 @@ function setupTempUnityProject() {
   const rel = 'Packages/MyPkg/Symbols.cs';
   const abs = path.join(root, rel);
   mkdirSync(path.dirname(abs), { recursive: true });
-  const content = `using System;\nnamespace Demo { public class Symbol { public void Foo(){} } public class Other{} }`;
+  const content =
+    'using System;\n' +
+    'namespace Demo {\n' +
+    '  public class Symbol { public void Foo(){} }\n' +
+    '  public class Other {}\n' +
+    '}\n';
   writeFileSync(abs, content, 'utf8');
   // simple file in Assets too
   const abs2 = path.join(root, 'Assets', 'Test.cs');
@@ -41,6 +47,7 @@ test.afterEach(async () => {
   } else {
     config.project = { ...originalProject };
   }
+  await LspRpcClientSingleton.reset();
   const mgr = new LspProcessManager();
   await mgr.stop(0);
 });

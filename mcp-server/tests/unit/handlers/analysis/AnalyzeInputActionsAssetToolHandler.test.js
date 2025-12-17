@@ -26,7 +26,7 @@ describe('AnalyzeInputActionsAssetToolHandler', () => {
   });
 
   it('should initialize with correct name', () => {
-    assert.equal(handler.name, 'input_actions_asset_analyze');
+    assert.equal(handler.name, 'analyze_input_actions_asset');
   });
 
   it('should call analyze_input_actions_asset in Unity', async () => {

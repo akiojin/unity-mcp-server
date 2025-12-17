@@ -34,7 +34,7 @@ describe('SaveSceneTool', () => {
   });
 
   it('should have correct tool definition', () => {
-    assert.equal(saveSceneToolDefinition.name, 'scene_save');
+    assert.equal(saveSceneToolDefinition.name, 'save_scene');
     assert.equal(saveSceneToolDefinition.description, 'Save the current scene in Unity');
   });
 
@@ -52,7 +52,7 @@ describe('SaveSceneTool', () => {
     const result = await saveSceneHandler(mockUnityConnection, args);
 
     assert.equal(sendCommandSpy.mock.calls.length, 1);
-    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'scene_save');
+    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'save_scene');
     assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
 
     assert.equal(result.isError, false);

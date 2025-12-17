@@ -10,14 +10,11 @@ describe('GetGameObjectDetailsToolHandler', () => {
   beforeEach(() => {
     sendCommandSpy = mock.fn(() =>
       Promise.resolve({
-        status: 'success',
-        result: {
-          name: 'TestObject',
-          path: '/TestObject',
-          isActive: true,
-          components: [],
-          summary: 'GameObject "TestObject" at /TestObject'
-        }
+        name: 'TestObject',
+        path: '/TestObject',
+        isActive: true,
+        components: [],
+        summary: 'GameObject "TestObject" at /TestObject'
       })
     );
 
@@ -30,11 +27,11 @@ describe('GetGameObjectDetailsToolHandler', () => {
   });
 
   it('should have correct tool name', () => {
-    assert.equal(handler.name, 'analysis_gameobject_details_get');
+    assert.equal(handler.name, 'get_gameobject_details');
   });
 
   it('should have correct tool definition', () => {
-    assert.equal(handler.name, 'analysis_gameobject_details_get');
+    assert.equal(handler.name, 'get_gameobject_details');
     assert.equal(
       handler.description,
       'Get details for a GameObject by name or path (children/components/materials).'
@@ -54,8 +51,9 @@ describe('GetGameObjectDetailsToolHandler', () => {
   it('should handle execution errors', async () => {
     mockUnityConnection.isConnected = () => false;
 
-    const result = await handler.execute({ gameObjectName: 'Test' });
-    assert.equal(result.isError, true);
-    assert.ok(result.content[0].text.includes('Unity connection not available'));
+    await assert.rejects(
+      async () => await handler.execute({ gameObjectName: 'Test' }),
+      /Unity connection not available/
+    );
   });
 });

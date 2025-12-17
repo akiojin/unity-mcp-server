@@ -2,7 +2,7 @@
 
 // Action Map Management
 export const createActionMapToolDefinition = {
-  name: 'input_action_map_create',
+  name: 'create_action_map',
   description: 'Create a new Action Map in an Input Actions asset',
   inputSchema: {
     type: 'object',
@@ -32,7 +32,7 @@ export const createActionMapToolDefinition = {
 };
 
 export const removeActionMapToolDefinition = {
-  name: 'input_action_map_remove',
+  name: 'remove_action_map',
   description: 'Remove an Action Map from an Input Actions asset',
   inputSchema: {
     type: 'object',
@@ -52,7 +52,7 @@ export const removeActionMapToolDefinition = {
 
 // Action Management
 export const addInputActionToolDefinition = {
-  name: 'input_action_add',
+  name: 'add_input_action',
   description: 'Add a new Action to an Action Map',
   inputSchema: {
     type: 'object',
@@ -81,7 +81,7 @@ export const addInputActionToolDefinition = {
 };
 
 export const removeInputActionToolDefinition = {
-  name: 'input_action_remove',
+  name: 'remove_input_action',
   description: 'Remove an Action from an Action Map',
   inputSchema: {
     type: 'object',
@@ -105,7 +105,7 @@ export const removeInputActionToolDefinition = {
 
 // Binding Management
 export const addInputBindingToolDefinition = {
-  name: 'input_binding_add',
+  name: 'add_input_binding',
   description: 'Add a new Binding to an Action',
   inputSchema: {
     type: 'object',
@@ -144,7 +144,7 @@ export const addInputBindingToolDefinition = {
 };
 
 export const removeInputBindingToolDefinition = {
-  name: 'input_binding_remove',
+  name: 'remove_input_binding',
   description: 'Remove a Binding from an Action',
   inputSchema: {
     type: 'object',
@@ -175,7 +175,7 @@ export const removeInputBindingToolDefinition = {
 };
 
 export const removeAllBindingsToolDefinition = {
-  name: 'input_binding_remove_all',
+  name: 'remove_all_bindings',
   description: 'Remove all Bindings from an Action',
   inputSchema: {
     type: 'object',
@@ -198,7 +198,7 @@ export const removeAllBindingsToolDefinition = {
 };
 
 export const createCompositeBindingToolDefinition = {
-  name: 'input_binding_composite_create',
+  name: 'create_composite_binding',
   description: 'Create a composite binding (e.g., 2D Vector for WASD movement)',
   inputSchema: {
     type: 'object',
@@ -248,7 +248,7 @@ export const createCompositeBindingToolDefinition = {
 
 // Control Scheme Management
 export const manageControlSchemesToolDefinition = {
-  name: 'input_control_schemes_manage',
+  name: 'manage_control_schemes',
   description: 'Manage Control Schemes in an Input Actions asset',
   inputSchema: {
     type: 'object',

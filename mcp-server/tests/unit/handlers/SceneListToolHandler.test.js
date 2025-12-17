@@ -10,13 +10,10 @@ describe('SceneListToolHandler', () => {
   beforeEach(() => {
     mockConnection = createMockUnityConnection({
       sendCommandResult: {
-        status: 'success',
-        result: {
-          scenes: [
-            { name: 'MainMenu', path: 'Assets/Scenes/MainMenu.unity', buildIndex: 0 },
-            { name: 'Level1', path: 'Assets/Scenes/Level1.unity', buildIndex: 1 }
-          ]
-        }
+        scenes: [
+          { name: 'MainMenu', path: 'Assets/Scenes/MainMenu.unity', buildIndex: 0 },
+          { name: 'Level1', path: 'Assets/Scenes/Level1.unity', buildIndex: 1 }
+        ]
       }
     });
     handler = new SceneListToolHandler(mockConnection);

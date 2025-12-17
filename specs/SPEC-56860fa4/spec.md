@@ -21,7 +21,7 @@
   - `controlId` は実装側で登録するID（OnGUIから登録される前提）
 
 ## 検索フィルタ（UI横断）
-`ui_find_elements` のフィルタ指定は、UIシステムごとに意味が一部異なる。
+`find_ui_elements` のフィルタ指定は、UIシステムごとに意味が一部異なる。
 
 - **elementType**: uGUIはComponent型名 / UI ToolkitはVisualElement型名 / IMGUIは登録時controlType
 - **tagFilter**: uGUIはGameObjectタグ / UI ToolkitはUSSクラス（class） / IMGUIは未対応

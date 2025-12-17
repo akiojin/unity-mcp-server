@@ -41,14 +41,14 @@ export class VideoCaptureForToolHandler extends BaseToolHandler {
       let needPlay = !!params.play;
       if (params.play === undefined) {
         try {
-          const s0 = await this.unityConnection.sendCommand('playmode_get_state', {});
+          const s0 = await this.unityConnection.sendCommand('get_editor_state', {});
           needPlay = !(s0 && s0.isPlaying);
         } catch {
           needPlay = true;
         }
       }
       if (needPlay) {
-        await this.unityConnection.sendCommand('playmode_play', {});
+        await this.unityConnection.sendCommand('play_game', {});
         for (let i = 0; i < 60; i++) {
           const s = await this.unityConnection.sendCommand('get_editor_state', {});
           if (s && s.isPlaying) {
@@ -61,7 +61,7 @@ export class VideoCaptureForToolHandler extends BaseToolHandler {
 
       // Start with auto-stop
       const { WORKSPACE_ROOT } = await import('../../core/config.js');
-      const startResp = await this.unityConnection.sendCommand('video_capture_start', {
+      const startResp = await this.unityConnection.sendCommand('capture_video_start', {
         captureMode: params.captureMode || 'game',
         width: params.width ?? 1280,
         height: params.height ?? 720,
@@ -78,14 +78,14 @@ export class VideoCaptureForToolHandler extends BaseToolHandler {
         Date.now() + Math.max(0, Math.floor((params.durationSec || 0) * 1000)) + 1500; // small buffer
       let lastStatus = null;
       while (Date.now() < deadline) {
-        lastStatus = await this.unityConnection.sendCommand('video_capture_status', {});
+        lastStatus = await this.unityConnection.sendCommand('capture_video_status', {});
         if (lastStatus && lastStatus.isRecording === false) break;
         await sleep(250);
       }
 
       // Safety stop if still recording after deadline
       if (lastStatus && lastStatus.isRecording) {
-        await this.unityConnection.sendCommand('video_capture_stop', {});
+        await this.unityConnection.sendCommand('capture_video_stop', {});
       }
 
       // Final stop result
@@ -102,7 +102,7 @@ export class VideoCaptureForToolHandler extends BaseToolHandler {
     } finally {
       // If we entered play, attempt to leave play (best-effort)
       try {
-        if (enteredPlay) await this.unityConnection.sendCommand('playmode_stop', {});
+        if (enteredPlay) await this.unityConnection.sendCommand('stop_game', {});
       } catch {}
     }
   }

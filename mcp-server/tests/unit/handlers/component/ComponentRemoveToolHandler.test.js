@@ -41,7 +41,7 @@ describe('ComponentRemoveToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'component_remove');
+      assert.equal(handler.name, 'remove_component');
       assert.equal(handler.description, 'Remove a component from a GameObject in Unity');
       assert.deepEqual(handler.inputSchema.required, ['gameObjectPath', 'componentType']);
     });

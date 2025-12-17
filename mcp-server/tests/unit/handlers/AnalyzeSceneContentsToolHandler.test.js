@@ -10,18 +10,15 @@ describe('AnalyzeSceneContentsToolHandler', () => {
   beforeEach(() => {
     mockConnection = createMockUnityConnection({
       sendCommandResult: {
-        status: 'success',
-        result: {
-          totalObjects: 10,
-          statistics: {
-            byType: {
-              GameObject: 5,
-              Light: 2,
-              Camera: 3
-            }
-          },
-          summary: 'Scene contains 10 objects: 5 GameObjects, 2 Lights, 3 Cameras'
-        }
+        totalObjects: 10,
+        statistics: {
+          byType: {
+            GameObject: 5,
+            Light: 2,
+            Camera: 3
+          }
+        },
+        summary: 'Scene contains 10 objects: 5 GameObjects, 2 Lights, 3 Cameras'
       }
     });
     handler = new AnalyzeSceneContentsToolHandler(mockConnection);

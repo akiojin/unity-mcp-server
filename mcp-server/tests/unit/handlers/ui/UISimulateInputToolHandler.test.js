@@ -22,7 +22,7 @@ describe('UISimulateInputToolHandler', () => {
     });
 
     it('should have correct tool name', () => {
-      assert.strictEqual(handler.name, 'ui_simulate_input');
+      assert.strictEqual(handler.name, 'simulate_ui_input');
     });
 
     it('should have correct description', () => {
@@ -37,7 +37,7 @@ describe('UISimulateInputToolHandler', () => {
     it('should return correct tool definition', () => {
       const definition = handler.getDefinition();
 
-      assert.strictEqual(definition.name, 'ui_simulate_input');
+      assert.strictEqual(definition.name, 'simulate_ui_input');
       assert.strictEqual(definition.inputSchema.type, 'object');
       assert(definition.inputSchema.properties.inputSequence);
       assert(definition.inputSchema.properties.waitBetween);

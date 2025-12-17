@@ -28,7 +28,7 @@ describe('ScreenshotAnalyzeToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'screenshot_analyze');
+      assert.equal(handler.name, 'analyze_screenshot');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Analyze'));
     });

@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class AssetImportSettingsManageToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'asset_import_settings_manage',
+      'manage_asset_import_settings',
       'Manage Unity asset import settings (get, modify, apply presets, reimport)',
       {
         type: 'object',

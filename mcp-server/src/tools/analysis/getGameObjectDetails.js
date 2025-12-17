@@ -1,8 +1,8 @@
 /**
- * Tool definition for analysis_gameobject_details_get
+ * Tool definition for get_gameobject_details
  */
 export const getGameObjectDetailsToolDefinition = {
-  name: 'analysis_gameobject_details_get',
+  name: 'get_gameobject_details',
   description: 'Get details for a GameObject by name or path (children/components/materials).',
   inputSchema: {
     type: 'object',

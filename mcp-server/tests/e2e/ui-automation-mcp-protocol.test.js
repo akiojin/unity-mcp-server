@@ -160,7 +160,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
     await rpc.request('tools/list', {});
 
     const ping = await rpc.request('tools/call', {
-      name: 'system_ping',
+      name: 'ping',
       arguments: { message: 'ping' }
     });
     const pingJson = parseToolJson(ping);
@@ -186,13 +186,13 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
     try {
       await rpc.request(
         'tools/call',
-        { name: 'playmode_stop', arguments: { maxWaitMs: 60_000 } },
+        { name: 'stop_game', arguments: { maxWaitMs: 60_000 } },
         { timeoutMs: 120_000 }
       );
     } catch {}
   });
 
-  it('UGUI: scene_load → play → ui_* tools work', async t => {
+  it('UGUI: load_scene → play → ui_* tools work', async t => {
     if (!unityAvailable) {
       t.skip('Unity not available');
       return;
@@ -200,18 +200,18 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     await rpc.request(
       'tools/call',
-      { name: 'scene_load', arguments: { scenePath: SCENES.ugui, loadMode: 'Single' } },
+      { name: 'load_scene', arguments: { scenePath: SCENES.ugui, loadMode: 'Single' } },
       { timeoutMs: 60_000 }
     );
     await rpc.request(
       'tools/call',
-      { name: 'playmode_play', arguments: { maxWaitMs: 60_000 } },
+      { name: 'play_game', arguments: { maxWaitMs: 60_000 } },
       { timeoutMs: 120_000 }
     );
 
     await waitFor(async () => {
       const st = await rpc.request('tools/call', {
-        name: 'ui_get_element_state',
+        name: 'get_ui_element_state',
         arguments: { elementPath: '/Canvas/UGUI_Panel/UGUI_StatusText' }
       });
       const json = parseToolJson(st);
@@ -220,7 +220,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const findButtons = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_find_elements',
+        name: 'find_ui_elements',
         arguments: { elementType: 'Button', uiSystem: 'ugui' }
       })
     );
@@ -228,7 +228,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const before = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_get_element_state',
+        name: 'get_ui_element_state',
         arguments: { elementPath: '/Canvas/UGUI_Panel/UGUI_StatusText' }
       })
     );
@@ -236,7 +236,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const clickResult = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_click_element',
+        name: 'click_ui_element',
         arguments: { elementPath: '/Canvas/UGUI_Panel/UGUI_Button', clickType: 'left' }
       })
     );
@@ -245,7 +245,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
     await waitFor(async () => {
       const after = parseToolJson(
         await rpc.request('tools/call', {
-          name: 'ui_get_element_state',
+          name: 'get_ui_element_state',
           arguments: { elementPath: '/Canvas/UGUI_Panel/UGUI_StatusText' }
         })
       );
@@ -254,7 +254,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const setValueResult = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_set_element_value',
+        name: 'set_ui_element_value',
         arguments: {
           elementPath: '/Canvas/UGUI_Panel/UGUI_InputField',
           value: 'hello',
@@ -267,7 +267,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
     await waitFor(async () => {
       const after = parseToolJson(
         await rpc.request('tools/call', {
-          name: 'ui_get_element_state',
+          name: 'get_ui_element_state',
           arguments: { elementPath: '/Canvas/UGUI_Panel/UGUI_StatusText' }
         })
       );
@@ -275,7 +275,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
     });
   });
 
-  it('UI Toolkit: scene_load → play → ui_* tools work', async t => {
+  it('UI Toolkit: load_scene → play → ui_* tools work', async t => {
     if (!unityAvailable) {
       t.skip('Unity not available');
       return;
@@ -283,18 +283,18 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     await rpc.request(
       'tools/call',
-      { name: 'scene_load', arguments: { scenePath: SCENES.uitk, loadMode: 'Single' } },
+      { name: 'load_scene', arguments: { scenePath: SCENES.uitk, loadMode: 'Single' } },
       { timeoutMs: 60_000 }
     );
     await rpc.request(
       'tools/call',
-      { name: 'playmode_play', arguments: { maxWaitMs: 60_000 } },
+      { name: 'play_game', arguments: { maxWaitMs: 60_000 } },
       { timeoutMs: 120_000 }
     );
 
     await waitFor(async () => {
       const st = await rpc.request('tools/call', {
-        name: 'ui_get_element_state',
+        name: 'get_ui_element_state',
         arguments: { elementPath: 'uitk:/UITK/UIDocument#UITK_Status' }
       });
       const json = parseToolJson(st);
@@ -303,7 +303,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const findButtons = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_find_elements',
+        name: 'find_ui_elements',
         arguments: { elementType: 'Button', uiSystem: 'uitk' }
       })
     );
@@ -311,7 +311,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const before = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_get_element_state',
+        name: 'get_ui_element_state',
         arguments: { elementPath: 'uitk:/UITK/UIDocument#UITK_Status' }
       })
     );
@@ -319,7 +319,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const clickResult = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_click_element',
+        name: 'click_ui_element',
         arguments: { elementPath: 'uitk:/UITK/UIDocument#UITK_Button', clickType: 'left' }
       })
     );
@@ -328,7 +328,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
     await waitFor(async () => {
       const after = parseToolJson(
         await rpc.request('tools/call', {
-          name: 'ui_get_element_state',
+          name: 'get_ui_element_state',
           arguments: { elementPath: 'uitk:/UITK/UIDocument#UITK_Status' }
         })
       );
@@ -337,7 +337,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const setToggle = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_set_element_value',
+        name: 'set_ui_element_value',
         arguments: {
           elementPath: 'uitk:/UITK/UIDocument#UITK_Toggle',
           value: true,
@@ -349,7 +349,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const toggleState = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_get_element_state',
+        name: 'get_ui_element_state',
         arguments: {
           elementPath: 'uitk:/UITK/UIDocument#UITK_Toggle',
           includeInteractableInfo: true
@@ -359,7 +359,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
     assert.equal(toggleState.value, true);
   });
 
-  it('IMGUI: scene_load → play → ui_* tools work', async t => {
+  it('IMGUI: load_scene → play → ui_* tools work', async t => {
     if (!unityAvailable) {
       t.skip('Unity not available');
       return;
@@ -367,19 +367,19 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     await rpc.request(
       'tools/call',
-      { name: 'scene_load', arguments: { scenePath: SCENES.imgui, loadMode: 'Single' } },
+      { name: 'load_scene', arguments: { scenePath: SCENES.imgui, loadMode: 'Single' } },
       { timeoutMs: 60_000 }
     );
     await rpc.request(
       'tools/call',
-      { name: 'playmode_play', arguments: { maxWaitMs: 60_000 } },
+      { name: 'play_game', arguments: { maxWaitMs: 60_000 } },
       { timeoutMs: 120_000 }
     );
 
     await waitFor(async () => {
       const st = parseToolJson(
         await rpc.request('tools/call', {
-          name: 'ui_get_element_state',
+          name: 'get_ui_element_state',
           arguments: { elementPath: 'imgui:IMGUI/Button' }
         })
       );
@@ -388,7 +388,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const findButtons = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_find_elements',
+        name: 'find_ui_elements',
         arguments: { elementType: 'Button', uiSystem: 'imgui' }
       })
     );
@@ -396,7 +396,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const before = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_get_element_state',
+        name: 'get_ui_element_state',
         arguments: { elementPath: 'imgui:IMGUI/Button' }
       })
     );
@@ -404,7 +404,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const clickResult = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_click_element',
+        name: 'click_ui_element',
         arguments: { elementPath: 'imgui:IMGUI/Button', clickType: 'left' }
       })
     );
@@ -413,7 +413,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
     await waitFor(async () => {
       const after = parseToolJson(
         await rpc.request('tools/call', {
-          name: 'ui_get_element_state',
+          name: 'get_ui_element_state',
           arguments: { elementPath: 'imgui:IMGUI/Button' }
         })
       );
@@ -422,7 +422,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const setText = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_set_element_value',
+        name: 'set_ui_element_value',
         arguments: { elementPath: 'imgui:IMGUI/TextField', value: 'abc', triggerEvents: true }
       })
     );
@@ -430,7 +430,7 @@ describe('UI automation via MCP protocol (stdio tools/call → real Unity)', () 
 
     const textState = parseToolJson(
       await rpc.request('tools/call', {
-        name: 'ui_get_element_state',
+        name: 'get_ui_element_state',
         arguments: { elementPath: 'imgui:IMGUI/TextField' }
       })
     );

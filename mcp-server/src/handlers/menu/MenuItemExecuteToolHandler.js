@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class MenuItemExecuteToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'menu_item_execute',
+      'execute_menu_item',
       'Execute a Unity menu item or list available menus (with safety checks).',
       {
         type: 'object',

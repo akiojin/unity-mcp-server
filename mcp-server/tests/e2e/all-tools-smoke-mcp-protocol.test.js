@@ -158,6 +158,8 @@ function encodeFramedJson(obj) {
 function createMockUnityServer({ host = '127.0.0.1', port = 6400 } = {}) {
   const receivedTypes = new Set();
   const sockets = new Set();
+  let isPlaying = false;
+  let isPaused = false;
   const server = net.createServer(socket => {
     sockets.add(socket);
     socket.on('close', () => sockets.delete(socket));
@@ -181,14 +183,35 @@ function createMockUnityServer({ host = '127.0.0.1', port = 6400 } = {}) {
 
         if (cmd?.type) receivedTypes.add(String(cmd.type));
 
-        const result =
-          cmd?.type === 'ping'
-            ? {
-                message: 'pong',
-                echo: cmd?.params?.message || null,
-                timestamp: new Date().toISOString()
-              }
-            : {};
+        let result = {};
+        switch (cmd?.type) {
+          case 'ping':
+            result = {
+              message: 'pong',
+              echo: cmd?.params?.message || null,
+              timestamp: new Date().toISOString()
+            };
+            break;
+          case 'play_game':
+            isPlaying = true;
+            isPaused = false;
+            result = { message: 'Entered play mode', isPlaying, isPaused };
+            break;
+          case 'stop_game':
+            isPlaying = false;
+            isPaused = false;
+            result = { message: 'Exited play mode', isPlaying, isPaused };
+            break;
+          case 'pause_game':
+            isPaused = !isPaused;
+            result = { message: isPaused ? 'Paused' : 'Resumed', isPlaying, isPaused };
+            break;
+          case 'get_editor_state':
+            result = { isPlaying, isPaused };
+            break;
+          default:
+            result = {};
+        }
 
         const response = { id: cmd?.id, success: true, result };
         socket.write(encodeFramedJson(response));
@@ -257,7 +280,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       : [];
 
     const ping = await rpc.request('tools/call', {
-      name: 'system_ping',
+      name: 'ping',
       arguments: { message: 'ping' }
     });
     const pingJson = safeJson(toolText(ping));
@@ -285,7 +308,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
   });
 
   it(
-    'calls every tool once (except editor_quit) and fails on Unknown command type',
+    'calls every tool once (except quit_editor) and fails on Unknown command type',
     { timeout: 12 * 60_000 },
     async t => {
       if (!unityAvailable) {
@@ -294,7 +317,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
 
         await waitFor(async () => {
           const ping = await rpc.request('tools/call', {
-            name: 'system_ping',
+            name: 'ping',
             arguments: { message: 'ping' }
           });
           const pingJson = safeJson(toolText(ping));
@@ -364,7 +387,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         }
       }
 
-      await safeCall('system_ping', { message: 'smoke' }, { timeoutMs: 60_000 });
+      await safeCall('ping', { message: 'smoke' }, { timeoutMs: 60_000 });
 
       // Addressables (best-effort; may be unavailable in some projects)
       await safeCall(
@@ -376,65 +399,65 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       await safeCall('addressables_manage', { action: 'list_groups' }, { timeoutMs: 120_000 });
 
       // Ensure clean-ish starting state
-      await safeCall('playmode_stop', {}, { timeoutMs: 120_000 });
+      await safeCall('stop_game', {}, { timeoutMs: 120_000 });
       await safeCall(
-        'scene_load',
+        'load_scene',
         { scenePath: SCENES.all, loadMode: 'Single' },
         { timeoutMs: 120_000 }
       );
 
       // Prepare temp assets (folder + input actions copy)
       await safeCall(
-        'asset_database_manage',
+        'manage_asset_database',
         { action: 'create_folder', folderPath: TMP_DIR },
         { timeoutMs: 120_000 }
       );
       await safeCall(
-        'asset_database_manage',
+        'manage_asset_database',
         { action: 'delete_asset', assetPath: TMP_INPUT_ACTIONS },
         { timeoutMs: 120_000 }
       );
       await safeCall(
-        'asset_database_manage',
+        'manage_asset_database',
         { action: 'copy_asset', fromPath: SOURCE_INPUT_ACTIONS, toPath: TMP_INPUT_ACTIONS },
         { timeoutMs: 120_000 }
       );
 
       // Create a prefab + material for asset tools
       await safeCall(
-        'asset_material_create',
+        'create_material',
         { materialPath: TMP_MATERIAL, overwrite: true, shader: 'Unlit/Color' },
         { timeoutMs: 120_000 }
       );
       await safeCall(
-        'asset_material_modify',
+        'modify_material',
         { materialPath: TMP_MATERIAL, properties: { _Color: { r: 0, g: 1, b: 0, a: 1 } } },
         { timeoutMs: 120_000 }
       );
 
       await safeCall(
-        'asset_prefab_create',
+        'create_prefab',
         { prefabPath: TMP_PREFAB, createFromTemplate: true, overwrite: true },
         { timeoutMs: 120_000 }
       );
       await safeCall(
-        'asset_prefab_modify',
+        'modify_prefab',
         { prefabPath: TMP_PREFAB, modifications: {} },
         { timeoutMs: 120_000 }
       );
-      await safeCall('asset_prefab_open', { prefabPath: TMP_PREFAB }, { timeoutMs: 120_000 });
-      await safeCall('asset_prefab_save', {}, { timeoutMs: 120_000 });
-      await safeCall('asset_prefab_exit_mode', { saveChanges: true }, { timeoutMs: 120_000 });
+      await safeCall('open_prefab', { prefabPath: TMP_PREFAB }, { timeoutMs: 120_000 });
+      await safeCall('save_prefab', {}, { timeoutMs: 120_000 });
+      await safeCall('exit_prefab_mode', { saveChanges: true }, { timeoutMs: 120_000 });
       await safeCall(
-        'asset_prefab_instantiate',
+        'instantiate_prefab',
         { prefabPath: TMP_PREFAB, name: 'MCP_AllTools_PrefabInstance' },
         { timeoutMs: 120_000 }
       );
 
       // Create a GameObject for component tools and capture its path
-      await safeCall('gameobject_create', { name: SMOKE_GO_NAME }, { timeoutMs: 60_000 });
+      await safeCall('create_gameobject', { name: SMOKE_GO_NAME }, { timeoutMs: 60_000 });
       const found = await safeCall(
-        'gameobject_find',
+        'find_gameobject',
         { name: SMOKE_GO_NAME, exactMatch: true },
         { timeoutMs: 60_000 }
       );
@@ -446,39 +469,31 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       }
 
       await safeCall(
-        'gameobject_modify',
+        'modify_gameobject',
         { path: createdGoPath, position: { x: 1, y: 2, z: 3 } },
         { timeoutMs: 60_000 }
       );
-      await safeCall(
-        'gameobject_get_hierarchy',
-        { nameOnly: true, maxObjects: 100 },
-        { timeoutMs: 60_000 }
-      );
+      await safeCall('get_hierarchy', { nameOnly: true, maxObjects: 100 }, { timeoutMs: 60_000 });
 
       // Core analysis tools: these must not hit "Unknown command type"
+      await safeCall('analyze_scene_contents', { includeInactive: true }, { timeoutMs: 60_000 });
       await safeCall(
-        'analysis_scene_contents_analyze',
-        { includeInactive: true },
-        { timeoutMs: 60_000 }
-      );
-      await safeCall(
-        'analysis_component_find',
+        'find_by_component',
         { componentType: 'Camera', searchScope: 'scene' },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'analysis_component_values_get',
+        'get_component_values',
         { componentType: 'Camera', gameObjectName: 'Main Camera', componentIndex: 0 },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'analysis_gameobject_details_get',
+        'get_gameobject_details',
         { gameObjectName: 'Main Camera', includeChildren: false },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'analysis_object_references_get',
+        'get_object_references',
         { gameObjectName: 'Main Camera' },
         { timeoutMs: 60_000 }
       );
@@ -492,21 +507,31 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { gameObjectName: SMOKE_GO_NAME },
         { timeoutMs: 60_000 }
       );
+      await safeCall(
+        'get_animator_state',
+        { gameObjectName: SMOKE_GO_NAME },
+        { timeoutMs: 60_000 }
+      );
+      await safeCall(
+        'get_animator_runtime_info',
+        { gameObjectName: SMOKE_GO_NAME },
+        { timeoutMs: 60_000 }
+      );
 
       // Component operations against the smoke GameObject
       await safeCall(
-        'component_get_types',
+        'get_component_types',
         { onlyAddable: true, search: 'Collider' },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'component_add',
+        'add_component',
         { gameObjectPath: createdGoPath, componentType: 'BoxCollider' },
         { timeoutMs: 60_000 }
       );
-      await safeCall('component_list', { gameObjectPath: createdGoPath }, { timeoutMs: 60_000 });
+      await safeCall('list_components', { gameObjectPath: createdGoPath }, { timeoutMs: 60_000 });
       await safeCall(
-        'component_modify',
+        'modify_component',
         {
           gameObjectPath: createdGoPath,
           componentType: 'BoxCollider',
@@ -515,7 +540,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'component_field_set',
+        'set_component_field',
         {
           gameObjectPath: createdGoPath,
           componentType: 'BoxCollider',
@@ -527,36 +552,36 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'component_remove',
+        'remove_component',
         { gameObjectPath: createdGoPath, componentType: 'BoxCollider' },
         { timeoutMs: 60_000 }
       );
 
       // Asset/scene utilities
       await safeCall(
-        'asset_database_manage',
+        'manage_asset_database',
         { action: 'find_assets', filter: 't:Scene', searchInFolders: ['Assets/Scenes'] },
         { timeoutMs: 120_000 }
       );
       await safeCall(
-        'asset_dependency_analyze',
+        'analyze_asset_dependencies',
         { action: 'get_dependencies', assetPath: SCENES.all, recursive: false },
         { timeoutMs: 120_000 }
       );
       await safeCall(
-        'asset_import_settings_manage',
+        'manage_asset_import_settings',
         { action: 'get', assetPath: SCENES.all },
         { timeoutMs: 120_000 }
       );
 
-      await safeCall('scene_list', { includeBuildScenesOnly: false }, { timeoutMs: 60_000 });
+      await safeCall('list_scenes', { includeBuildScenesOnly: false }, { timeoutMs: 60_000 });
       await safeCall(
-        'scene_info_get',
+        'get_scene_info',
         { scenePath: SCENES.all, includeGameObjects: false },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'scene_create',
+        'create_scene',
         {
           sceneName: 'MCP_AllTools_SmokeScene',
           path: TMP_DIR,
@@ -566,38 +591,38 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 120_000 }
       );
       await safeCall(
-        'scene_save',
+        'save_scene',
         { saveAs: true, scenePath: `${TMP_DIR}/SavedScene.unity` },
         { timeoutMs: 120_000 }
       );
 
       // Console + editor queries
-      await safeCall('console_clear', { preserveErrors: true }, { timeoutMs: 60_000 });
-      await safeCall('console_read', { count: 5, format: 'compact' }, { timeoutMs: 60_000 });
-      await safeCall('editor_layers_manage', { action: 'get' }, { timeoutMs: 60_000 });
-      await safeCall('editor_selection_manage', { action: 'get' }, { timeoutMs: 60_000 });
-      await safeCall('editor_tags_manage', { action: 'get' }, { timeoutMs: 60_000 });
-      await safeCall('editor_tools_manage', { action: 'get' }, { timeoutMs: 60_000 });
+      await safeCall('clear_console', { preserveErrors: true }, { timeoutMs: 60_000 });
+      await safeCall('read_console', { count: 5, format: 'compact' }, { timeoutMs: 60_000 });
+      await safeCall('manage_layers', { action: 'get' }, { timeoutMs: 60_000 });
+      await safeCall('manage_selection', { action: 'get' }, { timeoutMs: 60_000 });
+      await safeCall('manage_tags', { action: 'get' }, { timeoutMs: 60_000 });
+      await safeCall('manage_tools', { action: 'get' }, { timeoutMs: 60_000 });
       await safeCall(
-        'editor_windows_manage',
+        'manage_windows',
         { action: 'get', includeHidden: true },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'menu_item_execute',
+        'execute_menu_item',
         { action: 'get_available_menus', menuPath: 'Assets', safetyCheck: true },
         { timeoutMs: 120_000 }
       );
 
       // Packages/settings
       await safeCall(
-        'package_manage',
+        'package_manager',
         { action: 'list', includeBuiltIn: false },
         { timeoutMs: 120_000 }
       );
-      await safeCall('package_registry_config', { action: 'list' }, { timeoutMs: 120_000 });
-      await safeCall('settings_get', { includePlayer: true }, { timeoutMs: 60_000 });
-      await safeCall('settings_update', { confirmChanges: false }, { timeoutMs: 60_000 });
+      await safeCall('registry_config', { action: 'list' }, { timeoutMs: 120_000 });
+      await safeCall('get_project_settings', { includePlayer: true }, { timeoutMs: 60_000 });
+      await safeCall('update_project_settings', { confirmChanges: false }, { timeoutMs: 60_000 });
 
       // Script/index tools (offline)
       await safeCall('script_packages_list', { includeBuiltIn: false }, { timeoutMs: 60_000 });
@@ -705,22 +730,22 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
 
       // Input Actions (analysis + editing) on a temporary copy
       await safeCall(
-        'input_actions_state_get',
+        'get_input_actions_state',
         { assetPath: TMP_INPUT_ACTIONS, includeJsonStructure: false },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_actions_asset_analyze',
+        'analyze_input_actions_asset',
         { assetPath: TMP_INPUT_ACTIONS, includeJsonStructure: false, includeStatistics: true },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_action_map_create',
+        'create_action_map',
         { assetPath: TMP_INPUT_ACTIONS, mapName: INPUT_MAP_NAME },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_action_add',
+        'add_input_action',
         {
           assetPath: TMP_INPUT_ACTIONS,
           mapName: INPUT_MAP_NAME,
@@ -730,7 +755,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_action_add',
+        'add_input_action',
         {
           assetPath: TMP_INPUT_ACTIONS,
           mapName: INPUT_MAP_NAME,
@@ -740,7 +765,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_binding_add',
+        'add_input_binding',
         {
           assetPath: TMP_INPUT_ACTIONS,
           mapName: INPUT_MAP_NAME,
@@ -750,7 +775,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_binding_remove',
+        'remove_input_binding',
         {
           assetPath: TMP_INPUT_ACTIONS,
           mapName: INPUT_MAP_NAME,
@@ -760,7 +785,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_binding_composite_create',
+        'create_composite_binding',
         {
           assetPath: TMP_INPUT_ACTIONS,
           mapName: INPUT_MAP_NAME,
@@ -776,27 +801,33 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_binding_remove_all',
+        'remove_input_binding_all',
+        { assetPath: TMP_INPUT_ACTIONS, mapName: INPUT_MAP_NAME, actionName: 'Move' },
+        { timeoutMs: 60_000 }
+      );
+      // New name (tools/list returns new names only) + keep legacy alias above for compatibility coverage.
+      await safeCall(
+        'remove_all_bindings',
         { assetPath: TMP_INPUT_ACTIONS, mapName: INPUT_MAP_NAME, actionName: 'Move' },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_action_remove',
+        'remove_input_action',
         { assetPath: TMP_INPUT_ACTIONS, mapName: INPUT_MAP_NAME, actionName: 'Jump' },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_action_remove',
+        'remove_input_action',
         { assetPath: TMP_INPUT_ACTIONS, mapName: INPUT_MAP_NAME, actionName: 'Move' },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_action_map_remove',
+        'remove_action_map',
         { assetPath: TMP_INPUT_ACTIONS, mapName: INPUT_MAP_NAME },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_control_schemes_manage',
+        'manage_control_schemes',
         {
           assetPath: TMP_INPUT_ACTIONS,
           operation: 'add',
@@ -806,7 +837,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'input_control_schemes_manage',
+        'manage_control_schemes',
         { assetPath: TMP_INPUT_ACTIONS, operation: 'remove', schemeName: 'MCP_SmokeScheme' },
         { timeoutMs: 60_000 }
       );
@@ -831,38 +862,38 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       );
 
       // Play mode + UI tools
-      await safeCall('playmode_get_state', {}, { timeoutMs: 60_000 });
-      await safeCall('playmode_play', {}, { timeoutMs: 180_000 });
+      await safeCall('get_editor_state', {}, { timeoutMs: 60_000 });
+      await safeCall('play_game', {}, { timeoutMs: 180_000 });
       await sleep(500);
       await safeCall(
-        'ui_find_elements',
+        'find_ui_elements',
         { elementType: 'Button', includeInactive: true },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'ui_get_element_state',
+        'get_ui_element_state',
         { elementPath: '/Canvas/UGUI_Panel/UGUI_StatusText' },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'ui_click_element',
+        'click_ui_element',
         { elementPath: '/Canvas/UGUI_Panel/UGUI_Button', clickType: 'left' },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'ui_set_element_value',
+        'set_ui_element_value',
         { elementPath: '/Canvas/UGUI_Panel/UGUI_InputField', value: 'hello', triggerEvents: true },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'ui_simulate_input',
+        'simulate_ui_input',
         { elementPath: '/Canvas/UGUI_Panel/UGUI_InputField', inputType: 'text', inputData: 'abc' },
         { timeoutMs: 60_000 }
       );
 
       // Screenshots
       const cap = await safeCall(
-        'screenshot_capture',
+        'capture_screenshot',
         {
           captureMode: 'explorer',
           encodeAsBase64: true,
@@ -874,13 +905,13 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       const base64 = capJson?.base64Data || capJson?.base64 || capJson?.data?.base64Data;
       if (typeof base64 === 'string' && base64.length > 0) {
         await safeCall(
-          'screenshot_analyze',
+          'analyze_screenshot',
           { analysisType: 'basic', base64Data: base64 },
           { timeoutMs: 120_000 }
         );
       } else {
         await safeCall(
-          'screenshot_analyze',
+          'analyze_screenshot',
           { analysisType: 'basic', base64Data: '' },
           { timeoutMs: 60_000 }
         );
@@ -896,9 +927,9 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       await safeCall('profiler_status', {}, { timeoutMs: 60_000 });
       await safeCall('profiler_stop', {}, { timeoutMs: 60_000 });
 
-      await safeCall('video_capture_status', {}, { timeoutMs: 60_000 });
+      await safeCall('capture_video_status', {}, { timeoutMs: 60_000 });
       await safeCall(
-        'video_capture_start',
+        'capture_video_start',
         { fps: 5, width: 320, height: 180, maxDurationSec: 1 },
         { timeoutMs: 60_000 }
       );
@@ -907,51 +938,51 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { durationSec: 1, fps: 5, width: 320, height: 180, play: false },
         { timeoutMs: 180_000 }
       );
-      await safeCall('video_capture_stop', {}, { timeoutMs: 60_000 });
+      await safeCall('capture_video_stop', {}, { timeoutMs: 60_000 });
 
-      await safeCall('playmode_pause', {}, { timeoutMs: 60_000 });
+      await safeCall('pause_game', {}, { timeoutMs: 60_000 });
       await safeCall(
         'playmode_wait_for_state',
         { isPlaying: false, timeoutMs: 1000, pollMs: 100 },
         { timeoutMs: 30_000 }
       );
-      await safeCall('playmode_stop', {}, { timeoutMs: 180_000 });
+      await safeCall('stop_game', {}, { timeoutMs: 180_000 });
 
       // Unity Test Runner tools (best-effort)
-      await safeCall('test_get_status', { includeTestResults: false }, { timeoutMs: 60_000 });
+      await safeCall('get_test_status', { includeTestResults: false }, { timeoutMs: 60_000 });
       await safeCall(
-        'test_run',
+        'run_tests',
         { testMode: 'EditMode', filter: 'NonExistentSmokeTest', includeDetails: false },
         { timeoutMs: 180_000 }
       );
 
       // Misc/system
       await safeCall(
-        'compilation_get_state',
+        'get_compilation_state',
         { includeMessages: false, maxMessages: 10 },
         { timeoutMs: 60_000 }
       );
-      await safeCall('system_get_command_stats', {}, { timeoutMs: 60_000 });
-      await safeCall('system_refresh_assets', {}, { timeoutMs: 180_000 });
+      await safeCall('get_command_stats', {}, { timeoutMs: 60_000 });
+      await safeCall('refresh_assets', {}, { timeoutMs: 180_000 });
 
       // Cleanup: delete the created GameObject + temporary assets
       await safeCall(
-        'gameobject_delete',
+        'delete_gameobject',
         { path: createdGoPath, includeChildren: true },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'asset_database_manage',
+        'manage_asset_database',
         { action: 'delete_asset', assetPath: TMP_DIR },
         { timeoutMs: 180_000 }
       );
 
-      // editor_quit is intentionally skipped
-      called.add('editor_quit');
-      report.skipped.push({ name: 'editor_quit', reason: 'dangerous (would quit Unity Editor)' });
+      // quit_editor is intentionally skipped
+      called.add('quit_editor');
+      report.skipped.push({ name: 'quit_editor', reason: 'dangerous (would quit Unity Editor)' });
 
-      // Coverage assertion: ensure we called every tool at least once (except editor_quit).
-      const expected = new Set(toolNames.filter(n => n && n !== 'editor_quit'));
+      // Coverage assertion: ensure we called every tool at least once (except quit_editor).
+      const expected = new Set(toolNames.filter(n => n && n !== 'quit_editor'));
       const missing = Array.from(expected).filter(n => !called.has(n));
       if (missing.length) {
         report.failures.push({
@@ -986,32 +1017,34 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       if (mockUnity) {
         const types = mockUnity.receivedTypes;
         const expectations = [
-          ['analysis_scene_contents_analyze', 'analyze_scene_contents'],
-          ['analysis_component_find', 'find_by_component'],
-          ['analysis_component_values_get', 'get_component_values'],
-          ['analysis_gameobject_details_get', 'get_gameobject_details'],
-          ['analysis_object_references_get', 'get_object_references'],
+          ['analyze_scene_contents', 'analyze_scene_contents'],
+          ['find_by_component', 'find_by_component'],
+          ['get_component_values', 'get_component_values'],
+          ['get_gameobject_details', 'get_gameobject_details'],
+          ['get_object_references', 'get_object_references'],
           ['analysis_animator_state_get', 'get_animator_state'],
           ['analysis_animator_runtime_info_get', 'get_animator_runtime_info'],
-          ['input_actions_state_get', 'get_input_actions_state'],
-          ['input_actions_asset_analyze', 'analyze_input_actions_asset'],
-          ['input_action_map_create', 'create_action_map'],
-          ['input_action_map_remove', 'remove_action_map'],
-          ['input_action_add', 'add_input_action'],
-          ['input_action_remove', 'remove_input_action'],
-          ['input_binding_add', 'add_input_binding'],
-          ['input_binding_remove', 'remove_input_binding'],
-          ['input_binding_remove_all', 'remove_all_bindings'],
-          ['input_binding_composite_create', 'create_composite_binding'],
-          ['input_control_schemes_manage', 'manage_control_schemes']
+          ['get_input_actions_state', 'get_input_actions_state'],
+          ['analyze_input_actions_asset', 'analyze_input_actions_asset'],
+          ['create_action_map', 'create_action_map'],
+          ['remove_action_map', 'remove_action_map'],
+          ['add_input_action', 'add_input_action'],
+          ['remove_input_action', 'remove_input_action'],
+          ['add_input_binding', 'add_input_binding'],
+          ['remove_input_binding', 'remove_input_binding'],
+          ['remove_input_binding_all', 'remove_all_bindings'],
+          ['create_composite_binding', 'create_composite_binding'],
+          ['manage_control_schemes', 'manage_control_schemes']
         ];
 
         for (const [toolName, unityCommand] of expectations) {
-          assert.equal(
-            types.has(toolName),
-            false,
-            `Mock Unity received tool name as command type: ${toolName}`
-          );
+          if (toolName !== unityCommand) {
+            assert.equal(
+              types.has(toolName),
+              false,
+              `Mock Unity received tool name as command type: ${toolName}`
+            );
+          }
           assert.equal(
             types.has(unityCommand),
             true,

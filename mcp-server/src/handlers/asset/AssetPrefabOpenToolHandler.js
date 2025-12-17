@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class AssetPrefabOpenToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'asset_prefab_open',
+      'open_prefab',
       'Open a prefab asset in prefab mode for editing. Once in prefab mode, use component tools (list_components, add_component, etc.) to inspect and modify components.',
       {
         type: 'object',

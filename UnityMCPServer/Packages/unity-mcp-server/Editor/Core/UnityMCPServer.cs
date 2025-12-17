@@ -772,14 +772,18 @@ namespace UnityMCPServer.Core
                         var setComponentFieldResult = ComponentHandler.SetComponentField(command.Parameters);
                         response = Response.SuccessResult(command.Id, setComponentFieldResult);
                         break;
-                    case "list_components":
-                        var listComponentsResult = ComponentHandler.ListComponents(command.Parameters);
-                        response = Response.SuccessResult(command.Id, listComponentsResult);
-                        break;
-                    case "get_compilation_state":
-                        var compilationStateResult = CompilationHandler.GetCompilationState(command.Parameters);
-                        response = Response.SuccessResult(command.Id, compilationStateResult);
-                        break;
+	                    case "list_components":
+	                        var listComponentsResult = ComponentHandler.ListComponents(command.Parameters);
+	                        response = Response.SuccessResult(command.Id, listComponentsResult);
+	                        break;
+	                    case "get_component_types":
+	                        var getComponentTypesResult = ComponentHandler.GetComponentTypes(command.Parameters);
+	                        response = Response.SuccessResult(command.Id, getComponentTypesResult);
+	                        break;
+	                    case "get_compilation_state":
+	                        var compilationStateResult = CompilationHandler.GetCompilationState(command.Parameters);
+	                        response = Response.SuccessResult(command.Id, compilationStateResult);
+	                        break;
                     // Test Execution commands
                     case "run_tests":
                         var runTestsResult = TestExecutionHandler.RunTests(command.Parameters);

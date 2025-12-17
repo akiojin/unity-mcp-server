@@ -1,8 +1,8 @@
 /**
- * Tool definition for scene_save
+ * Tool definition for save_scene
  */
 export const saveSceneToolDefinition = {
-  name: 'scene_save',
+  name: 'save_scene',
   description: 'Save the current scene in Unity',
   inputSchema: {
     type: 'object',
@@ -53,7 +53,7 @@ export async function saveSceneHandler(unityConnection, args) {
     }
 
     // Send command to Unity
-    const result = await unityConnection.sendCommand('scene_save', args);
+    const result = await unityConnection.sendCommand('save_scene', args);
 
     // Handle Unity response
     if (result.status === 'error') {

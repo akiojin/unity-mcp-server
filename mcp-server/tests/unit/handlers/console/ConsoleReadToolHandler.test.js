@@ -60,7 +60,7 @@ describe('ConsoleReadToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'console_read');
+      assert.equal(handler.name, 'read_console');
       assert.equal(handler.description, 'Read Unity console logs with advanced filtering');
       assert.ok(handler.inputSchema);
       assert.equal(typeof handler.execute, 'function');

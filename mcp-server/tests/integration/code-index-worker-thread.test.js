@@ -27,13 +27,13 @@ const describeSuite = isCI || !workerPoolAvailable ? describe.skip : describe;
  *
  * Requirements tested:
  * - FR-056: システムはインデックスビルド処理をWorker Threadで実行し、メインスレッドをブロックしない
- * - FR-057: システムはバックグラウンドビルド中もsystem_pingが1秒以内に応答する
+ * - FR-057: システムはバックグラウンドビルド中もpingが1秒以内に応答する
  * - FR-058: Worker Thread内でのエラーをメインスレッドに伝播
  * - FR-059: ビルド進捗をWorker Threadからメインスレッドに非同期で通知
  * - FR-060: 既存のcode_index_buildツールインターフェースを維持
  * - FR-061: indexWatcherからの呼び出しもWorker Thread経由で実行
  *
- * - NFR-019: バックグラウンドビルド中もsystem_pingが1秒以内に応答
+ * - NFR-019: バックグラウンドビルド中もpingが1秒以内に応答
  * - NFR-020: ビルド処理の速度低下は10%以内
  * - NFR-021: メモリ使用量の増加は50MB以内
  * - NFR-022: Node.js 18以上をサポート
@@ -516,7 +516,7 @@ describeSuite('SPEC-e757a01f US-10: Worker Threads Non-blocking Build', () => {
     it('should handle watcher tick without blocking during build', async () => {
       // Acceptance scenario 15:
       // Given: indexWatcherがバックグラウンドビルドを実行中
-      // When: system_ping
+      // When: ping
       // Then: 1秒以内に応答が返る
 
       const { IndexWatcher } = await import('../../src/core/indexWatcher.js');

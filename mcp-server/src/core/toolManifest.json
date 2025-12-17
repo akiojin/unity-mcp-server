@@ -145,7 +145,7 @@
     }
   },
   {
-    "name": "analysis_animator_runtime_info_get",
+    "name": "get_animator_runtime_info",
     "description": "Get Animator runtime info (IK, root motion, performance) — Play mode only.",
     "inputSchema": {
       "type": "object",
@@ -176,7 +176,7 @@
     }
   },
   {
-    "name": "analysis_animator_state_get",
+    "name": "get_animator_state",
     "description": "Get Animator state: layers, transitions, and parameter values for a GameObject.",
     "inputSchema": {
       "type": "object",
@@ -217,7 +217,7 @@
     }
   },
   {
-    "name": "analysis_component_find",
+    "name": "find_by_component",
     "description": "Find GameObjects that have a specific component type (scene/prefabs/all).",
     "inputSchema": {
       "type": "object",
@@ -250,7 +250,7 @@
     }
   },
   {
-    "name": "analysis_component_values_get",
+    "name": "get_component_values",
     "description": "Get properties/values from a component on a GameObject (scene or prefab mode).",
     "inputSchema": {
       "type": "object",
@@ -283,7 +283,7 @@
     }
   },
   {
-    "name": "analysis_gameobject_details_get",
+    "name": "get_gameobject_details",
     "description": "Get details for a GameObject by name or path (children/components/materials).",
     "inputSchema": {
       "type": "object",
@@ -319,7 +319,7 @@
     }
   },
   {
-    "name": "analysis_object_references_get",
+    "name": "get_object_references",
     "description": "Find references to and from a GameObject (hierarchy/assets/prefabs).",
     "inputSchema": {
       "type": "object",
@@ -347,7 +347,7 @@
     }
   },
   {
-    "name": "analysis_scene_contents_analyze",
+    "name": "analyze_scene_contents",
     "description": "Analyze current scene: object counts, types, prefabs, and memory stats.",
     "inputSchema": {
       "type": "object",
@@ -372,7 +372,7 @@
     }
   },
   {
-    "name": "asset_database_manage",
+    "name": "manage_asset_database",
     "description": "Manage Unity Asset Database operations (find, info, create folders, move, copy, delete, refresh). NOTE: The \"refresh\" action may take 5-120+ seconds for large projects as Unity needs to scan all assets, reimport changed files, and compile scripts. Please wait for the operation to complete.",
     "inputSchema": {
       "type": "object",
@@ -425,7 +425,7 @@
     }
   },
   {
-    "name": "asset_dependency_analyze",
+    "name": "analyze_asset_dependencies",
     "description": "Analyze Unity asset dependencies (get dependencies, dependents, circular deps, unused assets, size impact)",
     "inputSchema": {
       "type": "object",
@@ -461,7 +461,7 @@
     }
   },
   {
-    "name": "asset_import_settings_manage",
+    "name": "manage_asset_import_settings",
     "description": "Manage Unity asset import settings (get, modify, apply presets, reimport)",
     "inputSchema": {
       "type": "object",
@@ -496,7 +496,7 @@
     }
   },
   {
-    "name": "asset_material_create",
+    "name": "create_material",
     "description": "Create a material asset with a shader and property overrides (optional copyFrom).",
     "inputSchema": {
       "type": "object",
@@ -528,7 +528,7 @@
     }
   },
   {
-    "name": "asset_material_modify",
+    "name": "modify_material",
     "description": "Modify a material by updating property values and/or changing the shader.",
     "inputSchema": {
       "type": "object",
@@ -553,7 +553,7 @@
     }
   },
   {
-    "name": "asset_prefab_create",
+    "name": "create_prefab",
     "description": "Create a prefab from a GameObject path or create an empty prefab at a target asset path.",
     "inputSchema": {
       "type": "object",
@@ -581,7 +581,7 @@
     }
   },
   {
-    "name": "asset_prefab_exit_mode",
+    "name": "exit_prefab_mode",
     "description": "Exit prefab mode and return to the main scene",
     "inputSchema": {
       "type": "object",
@@ -594,7 +594,7 @@
     }
   },
   {
-    "name": "asset_prefab_instantiate",
+    "name": "instantiate_prefab",
     "description": "Instantiate a prefab in the scene with optional transform, parent, and name override.",
     "inputSchema": {
       "type": "object",
@@ -648,7 +648,7 @@
     }
   },
   {
-    "name": "asset_prefab_modify",
+    "name": "modify_prefab",
     "description": "Modify an existing prefab by applying property changes (optionally to instances).",
     "inputSchema": {
       "type": "object",
@@ -673,7 +673,7 @@
     }
   },
   {
-    "name": "asset_prefab_open",
+    "name": "open_prefab",
     "description": "Open a prefab asset in prefab mode for editing. Once in prefab mode, use component tools (list_components, add_component, etc.) to inspect and modify components.",
     "inputSchema": {
       "type": "object",
@@ -697,7 +697,7 @@
     }
   },
   {
-    "name": "asset_prefab_save",
+    "name": "save_prefab",
     "description": "Save current prefab changes in prefab mode or save a GameObject as prefab override",
     "inputSchema": {
       "type": "object",
@@ -770,7 +770,7 @@
     }
   },
   {
-    "name": "compilation_get_state",
+    "name": "get_compilation_state",
     "description": "Get current Unity compilation state, errors, and warnings with enhanced detection",
     "inputSchema": {
       "type": "object",
@@ -787,7 +787,7 @@
     }
   },
   {
-    "name": "component_add",
+    "name": "add_component",
     "description": "Add a component to a GameObject (scene or prefab mode) with optional initial properties.",
     "inputSchema": {
       "type": "object",
@@ -813,7 +813,7 @@
     }
   },
   {
-    "name": "component_field_set",
+    "name": "set_component_field",
     "description": "Update a serialized field on a component (scene hierarchy, prefab stage, or prefab asset).",
     "inputSchema": {
       "type": "object",
@@ -933,7 +933,7 @@
     }
   },
   {
-    "name": "component_get_types",
+    "name": "get_component_types",
     "description": "Get available component types in Unity",
     "inputSchema": {
       "type": "object",
@@ -954,7 +954,7 @@
     }
   },
   {
-    "name": "component_list",
+    "name": "list_components",
     "description": "List all components on a GameObject in Unity (works in both scene and prefab mode)",
     "inputSchema": {
       "type": "object",
@@ -974,7 +974,7 @@
     }
   },
   {
-    "name": "component_modify",
+    "name": "modify_component",
     "description": "Modify properties of a component on a GameObject in Unity (works in both scene and prefab mode)",
     "inputSchema": {
       "type": "object",
@@ -1005,7 +1005,7 @@
     }
   },
   {
-    "name": "component_remove",
+    "name": "remove_component",
     "description": "Remove a component from a GameObject (scene or prefab mode) by type/index.",
     "inputSchema": {
       "type": "object",
@@ -1030,7 +1030,7 @@
     }
   },
   {
-    "name": "console_clear",
+    "name": "clear_console",
     "description": "Clear Console logs (optionally set auto-clear and preserve levels).",
     "inputSchema": {
       "type": "object",
@@ -1059,7 +1059,7 @@
     }
   },
   {
-    "name": "console_read",
+    "name": "read_console",
     "description": "Read Console logs with filters (type/text/time), formatting, sort, and grouping.",
     "inputSchema": {
       "type": "object",
@@ -1135,7 +1135,7 @@
     }
   },
   {
-    "name": "editor_layers_manage",
+    "name": "manage_layers",
     "description": "Manage project layers: add/remove/list and convert (by name/index).",
     "inputSchema": {
       "type": "object",
@@ -1168,7 +1168,7 @@
     }
   },
   {
-    "name": "editor_quit",
+    "name": "quit_editor",
     "description": "Quit Unity Editor",
     "inputSchema": {
       "type": "object",
@@ -1176,7 +1176,7 @@
     }
   },
   {
-    "name": "editor_selection_manage",
+    "name": "manage_selection",
     "description": "Manage editor selection: get/set/clear and optionally include details.",
     "inputSchema": {
       "type": "object",
@@ -1209,7 +1209,7 @@
     }
   },
   {
-    "name": "editor_tags_manage",
+    "name": "manage_tags",
     "description": "Manage project tags: add/remove/list with validation for reserved names.",
     "inputSchema": {
       "type": "object",
@@ -1234,7 +1234,7 @@
     }
   },
   {
-    "name": "editor_tools_manage",
+    "name": "manage_tools",
     "description": "Manage editor tools/plugins: list, activate/deactivate, refresh cache.",
     "inputSchema": {
       "type": "object",
@@ -1264,7 +1264,7 @@
     }
   },
   {
-    "name": "editor_windows_manage",
+    "name": "manage_windows",
     "description": "Manage editor windows: list/focus/get_state including hidden windows.",
     "inputSchema": {
       "type": "object",
@@ -1293,7 +1293,7 @@
     }
   },
   {
-    "name": "gameobject_create",
+    "name": "create_gameobject",
     "description": "Create a GameObject in Unity scene",
     "inputSchema": {
       "type": "object",
@@ -1377,7 +1377,7 @@
     }
   },
   {
-    "name": "gameobject_delete",
+    "name": "delete_gameobject",
     "description": "Delete GameObject(s) by path or paths (optionally include children).",
     "inputSchema": {
       "type": "object",
@@ -1401,7 +1401,7 @@
     }
   },
   {
-    "name": "gameobject_find",
+    "name": "find_gameobject",
     "description": "Find GameObjects by name, tag, or layer with optional exact matching.",
     "inputSchema": {
       "type": "object",
@@ -1428,7 +1428,7 @@
     }
   },
   {
-    "name": "gameobject_get_hierarchy",
+    "name": "get_hierarchy",
     "description": "Get scene hierarchy. For large scenes, prefer nameOnly=true. With nameOnly, use maxObjects ~100–500; when requesting details, keep maxObjects ~10–50 to conserve tokens. Only enable includeComponents/includeTransform when necessary.",
     "inputSchema": {
       "type": "object",
@@ -1475,7 +1475,7 @@
     }
   },
   {
-    "name": "gameobject_modify",
+    "name": "modify_gameobject",
     "description": "Modify GameObject properties (transform/name/parent/active/tag/layer).",
     "inputSchema": {
       "type": "object",
@@ -1561,7 +1561,7 @@
     }
   },
   {
-    "name": "input_action_add",
+    "name": "add_input_action",
     "description": "Add a new Action to an Action Map",
     "inputSchema": {
       "type": "object",
@@ -1597,7 +1597,7 @@
     }
   },
   {
-    "name": "input_action_map_create",
+    "name": "create_action_map",
     "description": "Create a new Action Map in an Input Actions asset",
     "inputSchema": {
       "type": "object",
@@ -1638,7 +1638,7 @@
     }
   },
   {
-    "name": "input_action_map_remove",
+    "name": "remove_action_map",
     "description": "Remove an Action Map from an Input Actions asset",
     "inputSchema": {
       "type": "object",
@@ -1659,7 +1659,7 @@
     }
   },
   {
-    "name": "input_action_remove",
+    "name": "remove_input_action",
     "description": "Remove an Action from an Action Map",
     "inputSchema": {
       "type": "object",
@@ -1685,7 +1685,7 @@
     }
   },
   {
-    "name": "input_actions_asset_analyze",
+    "name": "analyze_input_actions_asset",
     "description": "Analyze an Input Actions asset in detail (statistics + device usage).",
     "inputSchema": {
       "type": "object",
@@ -1711,7 +1711,7 @@
     }
   },
   {
-    "name": "input_actions_state_get",
+    "name": "get_input_actions_state",
     "description": "Get Input Actions state: maps, actions, bindings, devices, JSON structure.",
     "inputSchema": {
       "type": "object",
@@ -1743,7 +1743,7 @@
     }
   },
   {
-    "name": "input_binding_add",
+    "name": "add_input_binding",
     "description": "Add a new Binding to an Action",
     "inputSchema": {
       "type": "object",
@@ -1786,7 +1786,7 @@
     }
   },
   {
-    "name": "input_binding_composite_create",
+    "name": "create_composite_binding",
     "description": "Create a composite binding (e.g., 2D Vector for WASD movement)",
     "inputSchema": {
       "type": "object",
@@ -1854,7 +1854,7 @@
     }
   },
   {
-    "name": "input_binding_remove",
+    "name": "remove_input_binding",
     "description": "Remove a Binding from an Action",
     "inputSchema": {
       "type": "object",
@@ -1888,7 +1888,7 @@
     }
   },
   {
-    "name": "input_binding_remove_all",
+    "name": "remove_all_bindings",
     "description": "Remove all Bindings from an Action",
     "inputSchema": {
       "type": "object",
@@ -1914,7 +1914,7 @@
     }
   },
   {
-    "name": "input_control_schemes_manage",
+    "name": "manage_control_schemes",
     "description": "Manage Control Schemes in an Input Actions asset",
     "inputSchema": {
       "type": "object",
@@ -2597,7 +2597,7 @@
     }
   },
   {
-    "name": "menu_item_execute",
+    "name": "execute_menu_item",
     "description": "Execute a Unity menu item or list available menus (with safety checks).",
     "inputSchema": {
       "type": "object",
@@ -2633,7 +2633,7 @@
     }
   },
   {
-    "name": "package_manage",
+    "name": "package_manager",
     "description": "Manage Unity packages - search, install, remove, and list packages",
     "inputSchema": {
       "type": "object",
@@ -2692,7 +2692,7 @@
     }
   },
   {
-    "name": "package_registry_config",
+    "name": "registry_config",
     "description": "Configure package registries (OpenUPM/NuGet): list/add/remove scopes or recommend.",
     "inputSchema": {
       "type": "object",
@@ -2743,7 +2743,7 @@
     }
   },
   {
-    "name": "playmode_get_state",
+    "name": "get_editor_state",
     "description": "Get current Unity editor state including play mode status",
     "inputSchema": {
       "type": "object",
@@ -2769,7 +2769,7 @@
     }
   },
   {
-    "name": "playmode_pause",
+    "name": "pause_game",
     "description": "Pause or resume Unity play mode",
     "inputSchema": {
       "type": "object",
@@ -2777,7 +2777,7 @@
     }
   },
   {
-    "name": "playmode_play",
+    "name": "play_game",
     "description": "Enter Play Mode.",
     "inputSchema": {
       "type": "object",
@@ -2785,7 +2785,7 @@
     }
   },
   {
-    "name": "playmode_stop",
+    "name": "stop_game",
     "description": "Exit Play Mode and return to Edit Mode.",
     "inputSchema": {
       "type": "object",
@@ -2894,7 +2894,7 @@
     }
   },
   {
-    "name": "scene_create",
+    "name": "create_scene",
     "description": "Create a new scene (optionally load it and add to build settings).",
     "inputSchema": {
       "type": "object",
@@ -2922,7 +2922,7 @@
     }
   },
   {
-    "name": "scene_info_get",
+    "name": "get_scene_info",
     "description": "Get detailed information about a scene",
     "inputSchema": {
       "type": "object",
@@ -2943,7 +2943,7 @@
     }
   },
   {
-    "name": "scene_list",
+    "name": "list_scenes",
     "description": "List scenes in project (filter to loaded/build scenes or by path).",
     "inputSchema": {
       "type": "object",
@@ -2964,7 +2964,7 @@
     }
   },
   {
-    "name": "scene_load",
+    "name": "load_scene",
     "description": "Load a scene by path or name (Single/Additive).",
     "inputSchema": {
       "type": "object",
@@ -2989,7 +2989,7 @@
     }
   },
   {
-    "name": "scene_save",
+    "name": "save_scene",
     "description": "Save current scene or save as a specified path.",
     "inputSchema": {
       "type": "object",
@@ -3006,7 +3006,7 @@
     }
   },
   {
-    "name": "screenshot_analyze",
+    "name": "analyze_screenshot",
     "description": "Analyze a screenshot: dimensions/colors, UI elements, and scene content (basic/ui/content/full). For LLMs, prefer basic/ui; use full only when necessary. Provide either imagePath (preferred) or base64 (not both).",
     "inputSchema": {
       "type": "object",
@@ -3037,7 +3037,7 @@
     }
   },
   {
-    "name": "screenshot_capture",
+    "name": "capture_screenshot",
     "description": "Capture Game/Scene/Window/Explorer screenshots. Output path is fixed to <workspace>/.unity/capture/. For LLM use, prefer explorer mode (auto-framing, clarity). Use encodeAsBase64=true only for immediate analysis, and keep resolution minimal.",
     "inputSchema": {
       "type": "object",
@@ -3812,7 +3812,7 @@
     }
   },
   {
-    "name": "settings_get",
+    "name": "get_project_settings",
     "description": "Get project settings by category via include flags (player/graphics/quality/physics/etc.).",
     "inputSchema": {
       "type": "object",
@@ -3865,7 +3865,7 @@
     }
   },
   {
-    "name": "settings_update",
+    "name": "update_project_settings",
     "description": "Update project settings by category with a confirmation safety flag.",
     "inputSchema": {
       "type": "object",
@@ -4048,7 +4048,7 @@
     }
   },
   {
-    "name": "system_get_command_stats",
+    "name": "get_command_stats",
     "description": "Retrieve aggregated counts and recent Unity command types to audit traffic.",
     "inputSchema": {
       "type": "object",
@@ -4056,7 +4056,7 @@
     }
   },
   {
-    "name": "system_ping",
+    "name": "ping",
     "description": "Test connection to Unity Editor",
     "inputSchema": {
       "type": "object",
@@ -4069,7 +4069,7 @@
     }
   },
   {
-    "name": "system_refresh_assets",
+    "name": "refresh_assets",
     "description": "Refresh assets and check compilation status.",
     "inputSchema": {
       "type": "object",
@@ -4077,7 +4077,7 @@
     }
   },
   {
-    "name": "test_get_status",
+    "name": "get_test_status",
     "description": "Get current Unity test execution status and results",
     "inputSchema": {
       "type": "object",
@@ -4096,7 +4096,7 @@
     }
   },
   {
-    "name": "test_run",
+    "name": "run_tests",
     "description": "Run Unity NUnit tests in the current project",
     "inputSchema": {
       "type": "object",
@@ -4136,7 +4136,7 @@
     }
   },
   {
-    "name": "ui_click_element",
+    "name": "click_ui_element",
     "description": "Simulate clicking on UI elements",
     "inputSchema": {
       "type": "object",
@@ -4185,7 +4185,7 @@
     }
   },
   {
-    "name": "ui_find_elements",
+    "name": "find_ui_elements",
     "description": "Find UI elements by component type, tag, or name pattern.",
     "inputSchema": {
       "type": "object",
@@ -4214,7 +4214,7 @@
     }
   },
   {
-    "name": "ui_get_element_state",
+    "name": "get_ui_element_state",
     "description": "Get detailed state information about UI elements",
     "inputSchema": {
       "type": "object",
@@ -4238,7 +4238,7 @@
     }
   },
   {
-    "name": "ui_set_element_value",
+    "name": "set_ui_element_value",
     "description": "Set values for UI input elements",
     "inputSchema": {
       "type": "object",
@@ -4282,7 +4282,7 @@
     }
   },
   {
-    "name": "ui_simulate_input",
+    "name": "simulate_ui_input",
     "description": "Simulate complex UI interactions and input sequences",
     "inputSchema": {
       "type": "object",
@@ -4381,7 +4381,7 @@
     }
   },
   {
-    "name": "video_capture_start",
+    "name": "capture_video_start",
     "description": "Start video recording (Game view). Requires com.unity.recorder.",
     "inputSchema": {
       "type": "object",
@@ -4413,7 +4413,7 @@
     }
   },
   {
-    "name": "video_capture_status",
+    "name": "capture_video_status",
     "description": "Get current video recording status.",
     "inputSchema": {
       "type": "object",
@@ -4421,7 +4421,7 @@
     }
   },
   {
-    "name": "video_capture_stop",
+    "name": "capture_video_stop",
     "description": "Stop current video recording and finalize the file.",
     "inputSchema": {
       "type": "object",

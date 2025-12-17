@@ -15,13 +15,13 @@ describe('SystemPingToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'system_ping');
+      assert.equal(handler.name, 'ping');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should test connection to Unity Editor', () => {
-      assert.equal(handler.name, 'system_ping');
+      assert.equal(handler.name, 'ping');
     });
   });
 

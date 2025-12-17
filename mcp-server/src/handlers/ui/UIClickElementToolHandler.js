@@ -2,7 +2,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 export class UIClickElementToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('ui_click_element', 'Simulate clicking on UI elements', {
+    super('click_ui_element', 'Simulate clicking on UI elements', {
       type: 'object',
       properties: {
         elementPath: {

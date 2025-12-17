@@ -8,7 +8,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export default class RegistryConfigToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'package_registry_config',
+      'registry_config',
       'Configure package registries (OpenUPM/NuGet): list/add/remove scopes or recommend.',
       {
         type: 'object',

@@ -63,7 +63,7 @@
     - MCPサーバーに接続
     - `tools/list`リクエストを送信
     - 107個のツール定義が返却されることを確認
-    - `system_ping`ツールが含まれることを確認
+    - `ping`ツールが含まれることを確認
   - **期待される結果**: ✅ GREENフェーズ（実装後に合格）
   - **ファイルパス**: `mcp-server/tests/integration/mcp-tools-list.test.js`
   - **依存関係**: T004, T005完了後
@@ -235,7 +235,7 @@
   - **検証項目**:
     - Claude Codeで「Capabilities: tools」と表示される
     - 107個のツールすべてが認識される
-    - system_pingツールが正常に実行される
+    - pingツールが正常に実行される
     - サーバーログにエラー/ワーニングが出力されない
   - **ファイルパス**: `specs/SPEC-1d1a194a/quickstart.md`
   - **依存関係**: T020完了後

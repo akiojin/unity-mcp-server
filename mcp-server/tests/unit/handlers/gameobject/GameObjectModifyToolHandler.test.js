@@ -14,13 +14,13 @@ describe('GameObjectModifyToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'gameobject_modify');
+      assert.equal(handler.name, 'modify_gameobject');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should modify GameObject properties', () => {
-      assert.equal(handler.name, 'gameobject_modify');
+      assert.equal(handler.name, 'modify_gameobject');
     });
   });
 });

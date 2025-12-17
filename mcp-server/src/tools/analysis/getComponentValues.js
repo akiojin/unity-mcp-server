@@ -1,8 +1,8 @@
 /**
- * Tool definition for analysis_component_values_get
+ * Tool definition for get_component_values
  */
 export const getComponentValuesToolDefinition = {
-  name: 'analysis_component_values_get',
+  name: 'get_component_values',
   description: 'Get properties/values from a component on a GameObject (scene or prefab mode).',
   inputSchema: {
     type: 'object',

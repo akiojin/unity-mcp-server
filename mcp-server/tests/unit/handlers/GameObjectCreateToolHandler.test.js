@@ -19,7 +19,7 @@ describe('GameObjectCreateToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'gameobject_create');
+      assert.equal(handler.name, 'create_gameobject');
       assert.equal(handler.description, 'Create a GameObject in Unity scene');
       assert.equal(handler.inputSchema.required, undefined);
     });

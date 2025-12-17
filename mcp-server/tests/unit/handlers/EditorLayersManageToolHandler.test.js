@@ -41,8 +41,8 @@ describe('EditorLayersManageToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'editor_layers_manage');
-      assert.equal(handler.description, 'Manage Unity project layers (add, remove, list, convert)');
+      assert.equal(handler.name, 'manage_layers');
+      assert.ok(handler.description.startsWith('Manage project layers'));
       assert.ok(handler.inputSchema);
       assert.equal(handler.inputSchema.type, 'object');
     });
@@ -67,7 +67,7 @@ describe('EditorLayersManageToolHandler', () => {
     it('should define layerIndex parameter', () => {
       const layerIndexProperty = handler.inputSchema.properties.layerIndex;
       assert.ok(layerIndexProperty);
-      assert.equal(layerIndexProperty.type, 'integer');
+      assert.equal(layerIndexProperty.type, 'number');
       assert.equal(layerIndexProperty.minimum, 0);
       assert.equal(layerIndexProperty.maximum, 31);
     });

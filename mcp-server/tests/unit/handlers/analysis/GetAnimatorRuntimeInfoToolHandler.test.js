@@ -22,10 +22,10 @@ describe('GetAnimatorRuntimeInfoToolHandler', () => {
   });
 
   it('should initialize with correct name', () => {
-    assert.equal(handler.name, 'analysis_animator_runtime_info_get');
+    assert.equal(handler.name, 'get_animator_runtime_info');
   });
 
-  it('should call analysis_animator_runtime_info_get command in Unity', async () => {
+  it('should call get_animator_runtime_info command in Unity', async () => {
     const result = await handler.execute({
       gameObjectName: 'Player'
     });
@@ -33,7 +33,7 @@ describe('GetAnimatorRuntimeInfoToolHandler', () => {
     assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
     assert.equal(
       mockConnection.sendCommand.mock.calls[0].arguments[0],
-      'analysis_animator_runtime_info_get'
+      'get_animator_runtime_info'
     );
 
     assert.equal(result.isError, false);

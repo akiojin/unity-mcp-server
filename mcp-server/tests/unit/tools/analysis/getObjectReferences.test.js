@@ -70,7 +70,7 @@ describe('GetObjectReferencesTool', () => {
   });
 
   it('should have correct tool definition', () => {
-    assert.equal(getObjectReferencesToolDefinition.name, 'analysis_object_references_get');
+    assert.equal(getObjectReferencesToolDefinition.name, 'get_object_references');
     assert.equal(
       getObjectReferencesToolDefinition.description,
       'Find references to and from a GameObject (hierarchy/assets/prefabs).'

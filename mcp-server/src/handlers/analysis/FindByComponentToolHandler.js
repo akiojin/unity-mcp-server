@@ -5,7 +5,7 @@ import {
 } from '../../tools/analysis/findByComponent.js';
 
 /**
- * Handler for the analysis_component_find tool
+ * Handler for the find_by_component tool
  */
 export class FindByComponentToolHandler extends BaseToolHandler {
   constructor(unityConnection) {

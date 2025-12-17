@@ -1,8 +1,8 @@
 /**
- * Tool definition for analysis_scene_contents_analyze
+ * Tool definition for analyze_scene_contents
  */
 export const analyzeSceneContentsToolDefinition = {
-  name: 'analysis_scene_contents_analyze',
+  name: 'analyze_scene_contents',
   description: 'Analyze current scene: object counts, types, prefabs, and memory stats.',
   inputSchema: {
     type: 'object',

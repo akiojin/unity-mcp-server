@@ -2,12 +2,12 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { validateVector3, validateLayer } from '../../utils/validators.js';
 
 /**
- * Handler for the gameobject_create tool
+ * Handler for the create_gameobject tool
  * Creates GameObjects in Unity scene
  */
 export class GameObjectCreateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('gameobject_create', 'Create a GameObject in Unity scene', {
+    super('create_gameobject', 'Create a GameObject in Unity scene', {
       type: 'object',
       properties: {
         name: {

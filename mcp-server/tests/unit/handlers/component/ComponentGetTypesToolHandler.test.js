@@ -41,7 +41,7 @@ describe('ComponentGetTypesToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'component_get_types');
+      assert.equal(handler.name, 'get_component_types');
       assert.equal(handler.description, 'Get available component types in Unity');
       assert.equal(handler.inputSchema.required, undefined);
     });

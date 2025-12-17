@@ -22,7 +22,7 @@ describe('UISetElementValueToolHandler', () => {
     });
 
     it('should have correct tool name', () => {
-      assert.strictEqual(handler.name, 'ui_set_element_value');
+      assert.strictEqual(handler.name, 'set_ui_element_value');
     });
 
     it('should have correct description', () => {
@@ -34,7 +34,7 @@ describe('UISetElementValueToolHandler', () => {
     it('should return correct tool definition', () => {
       const definition = handler.getDefinition();
 
-      assert.strictEqual(definition.name, 'ui_set_element_value');
+      assert.strictEqual(definition.name, 'set_ui_element_value');
       assert.strictEqual(definition.inputSchema.type, 'object');
       assert(definition.inputSchema.properties.elementPath);
       assert(definition.inputSchema.properties.value);

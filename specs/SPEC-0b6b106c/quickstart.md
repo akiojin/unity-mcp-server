@@ -2,7 +2,7 @@
 
 1. **ターゲットを特定する**
    - `UnityMCP__get_hierarchy` で GameObjectパスを取得。
-   - `UnityMCP__list_components` または `analysis_component_values_get` でコンポーネント名とフィールドを確認。
+   - `UnityMCP__list_components` または `get_component_values` でコンポーネント名とフィールドを確認。
    - Prefab資産を編集する場合は `Assets/.../Foo.prefab` のフルパスを控える。
 
 2. **dry-runで検証する**
@@ -47,7 +47,7 @@
 
 6. **エラー時のトラブルシュート**
    - `notes` にフィールド未発見/型不一致の理由が記載される。
-   - それでも解決しない場合は `UnityMCP__analysis_component_values_get` でフィールド名を再確認。
+   - それでも解決しない場合は `UnityMCP__get_component_values` でフィールド名を再確認。
 
 7. **監査ログ**
-   - すべての更新は `component_field_set` カテゴリで構造化ログが残る。dry-runも記録されるため、セッション後に差分を追跡できる。
+   - すべての更新は `set_component_field` カテゴリで構造化ログが残る。dry-runも記録されるため、セッション後に差分を追跡できる。

@@ -1,8 +1,8 @@
 /**
- * Tool definition for analysis_object_references_get
+ * Tool definition for get_object_references
  */
 export const getObjectReferencesToolDefinition = {
-  name: 'analysis_object_references_get',
+  name: 'get_object_references',
   description: 'Find references to and from a GameObject (hierarchy/assets/prefabs).',
   inputSchema: {
     type: 'object',

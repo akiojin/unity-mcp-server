@@ -22,7 +22,7 @@ describe('TestGetStatusToolHandler', () => {
   });
 
   it('should have correct tool name and description', () => {
-    assert.equal(handler.name, 'test_get_status');
+    assert.equal(handler.name, 'get_test_status');
     assert.ok(handler.description.includes('test execution status'));
   });
 

@@ -19,7 +19,7 @@ describe('TestRunToolHandler', () => {
   });
 
   it('should have correct tool name and description', () => {
-    assert.equal(handler.name, 'test_run');
+    assert.equal(handler.name, 'run_tests');
     assert.ok(handler.description.includes('Unity NUnit tests'));
   });
 

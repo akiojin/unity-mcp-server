@@ -3,7 +3,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class AssetMaterialCreateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'asset_material_create',
+      'create_material',
       'Create a material asset with a shader and property overrides (optional copyFrom).',
       {
         type: 'object',
