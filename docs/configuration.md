@@ -29,6 +29,7 @@ export UNITY_PROJECT_ROOT=.
 | `UNITY_MCP_MCP_HOST` | `localhost` | Host where the Node server connects to Unity |
 | `UNITY_MCP_PORT` | `6400` | Unity Editor TCP port |
 | `UNITY_MCP_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
+| `UNITY_MCP_VERSION_MISMATCH` | `warn` | `warn` (default), `error`, `off` |
 | `UNITY_MCP_HTTP_ENABLED` | `false` | Enable HTTP transport (`/healthz` exposed) |
 | `UNITY_MCP_HTTP_PORT` | `6401` | HTTP port (when enabled) |
 | `UNITY_MCP_TELEMETRY_ENABLED` | `false` | Can also be controlled by command flags |
@@ -74,6 +75,7 @@ export UNITY_PROJECT_ROOT=.
 | `UNITY_MCP_MCP_HOST` | `localhost` | Node が Unity に接続するホスト |
 | `UNITY_MCP_PORT` | `6400` | Unity Editor TCPポート |
 | `UNITY_MCP_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` |
+| `UNITY_MCP_VERSION_MISMATCH` | `warn` | `warn`（デフォルト）, `error`, `off` |
 | `UNITY_MCP_HTTP_ENABLED` | `false` | HTTPトランスポート有効化（`/healthz`） |
 | `UNITY_MCP_HTTP_PORT` | `6401` | HTTPポート |
 | `UNITY_MCP_TELEMETRY_ENABLED` | `false` | コマンドフラグでも切替可能 |

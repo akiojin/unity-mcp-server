@@ -10,6 +10,7 @@ describe('UnityConnection', () => {
   let mockSocket;
   let originalSocket;
   let originalConfig;
+  let originalVersionMismatch;
   let originalNodeEnv;
 
   beforeEach(() => {
@@ -18,6 +19,7 @@ describe('UnityConnection', () => {
     process.env.UNITY_MCP_ALLOW_TEST_CONNECT = '1';
 
     originalConfig = { ...config.unity };
+    originalVersionMismatch = config.compat?.versionMismatch;
     config.unity.commandTimeout = 50;
     config.unity.unityHost = 'localhost';
     config.unity.mcpHost = 'localhost';
@@ -48,6 +50,8 @@ describe('UnityConnection', () => {
     // Ensure connection is properly cleaned up
     connection.isDisconnecting = true;
     Object.assign(config.unity, originalConfig);
+    if (config.compat && originalVersionMismatch)
+      config.compat.versionMismatch = originalVersionMismatch;
 
     // Clear any reconnect timer first
     if (connection.reconnectTimer) {
@@ -244,6 +248,72 @@ describe('UnityConnection', () => {
       mockSocket.emit('data', Buffer.from(JSON.stringify(response)));
 
       await assert.rejects(sendPromise, /Unknown command/);
+    });
+
+    it('should continue on version mismatch when policy is warn', async () => {
+      config.compat.versionMismatch = 'warn';
+
+      const sendPromise = connection.sendCommand('ping', { echo: 'test' });
+
+      const response = {
+        id: '1',
+        status: 'success',
+        version: '0.0.0',
+        data: { message: 'pong' }
+      };
+      const responseBuffer = Buffer.from(JSON.stringify(response), 'utf8');
+      const responseLength = Buffer.allocUnsafe(4);
+      responseLength.writeInt32BE(responseBuffer.length, 0);
+      mockSocket.emit('data', Buffer.concat([responseLength, responseBuffer]));
+
+      const result = await sendPromise;
+      assert.deepEqual(result, { message: 'pong', _version: '0.0.0' });
+    });
+
+    it('should reject on version mismatch when policy is error', async () => {
+      config.compat.versionMismatch = 'error';
+
+      const sendPromise = connection.sendCommand('ping', { echo: 'test' });
+
+      const response = {
+        id: '1',
+        status: 'success',
+        version: '0.0.0',
+        data: { message: 'pong' }
+      };
+      const responseBuffer = Buffer.from(JSON.stringify(response), 'utf8');
+      const responseLength = Buffer.allocUnsafe(4);
+      responseLength.writeInt32BE(responseBuffer.length, 0);
+      mockSocket.emit('data', Buffer.concat([responseLength, responseBuffer]));
+
+      await assert.rejects(sendPromise, err => {
+        assert.equal(err.code, 'UNITY_VERSION_MISMATCH');
+        assert.match(err.message, /Version mismatch detected/);
+        return true;
+      });
+
+      const writesAfterMismatch = mockSocket.write.mock.calls.length;
+      await assert.rejects(connection.sendCommand('ping', { echo: 'again' }), /Version mismatch/);
+      assert.equal(mockSocket.write.mock.calls.length, writesAfterMismatch);
+    });
+
+    it('should detect version from editorState.version', async () => {
+      config.compat.versionMismatch = 'error';
+
+      const sendPromise = connection.sendCommand('ping', { echo: 'test' });
+
+      const response = {
+        id: '1',
+        status: 'success',
+        editorState: { version: '0.0.0' },
+        result: { message: 'pong' }
+      };
+      const responseBuffer = Buffer.from(JSON.stringify(response), 'utf8');
+      const responseLength = Buffer.allocUnsafe(4);
+      responseLength.writeInt32BE(responseBuffer.length, 0);
+      mockSocket.emit('data', Buffer.concat([responseLength, responseBuffer]));
+
+      await assert.rejects(sendPromise, /Version mismatch detected/);
     });
   });
 
