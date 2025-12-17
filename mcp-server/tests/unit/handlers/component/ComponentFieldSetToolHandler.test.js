@@ -34,7 +34,7 @@ describe('ComponentFieldSetToolHandler', () => {
   });
 
   it('should initialize with correct definition', () => {
-    assert.equal(handler.name, 'component_field_set');
+    assert.equal(handler.name, 'set_component_field');
     assert.ok(handler.description.includes('serialized field'));
     assert.deepEqual(handler.inputSchema.required, ['componentType', 'fieldPath']);
   });

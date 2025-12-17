@@ -27,7 +27,7 @@ describe('AnalyzeSceneContentsTool', () => {
   });
 
   it('should have correct tool definition', () => {
-    assert.equal(analyzeSceneContentsToolDefinition.name, 'analysis_scene_contents_analyze');
+    assert.equal(analyzeSceneContentsToolDefinition.name, 'analyze_scene_contents');
     assert.equal(
       analyzeSceneContentsToolDefinition.description,
       'Analyze current scene: object counts, types, prefabs, and memory stats.'

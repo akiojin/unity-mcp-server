@@ -195,11 +195,8 @@ describe('AssetDatabaseManageToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'asset_database_manage');
-      assert.equal(
-        handler.description,
-        'Manage Unity Asset Database operations (find, info, create folders, move, copy, delete, refresh)'
-      );
+      assert.equal(handler.name, 'manage_asset_database');
+      assert.ok(handler.description.startsWith('Manage Unity Asset Database operations'));
       assert.ok(handler.inputSchema);
       assert.equal(handler.inputSchema.type, 'object');
     });

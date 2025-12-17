@@ -10,15 +10,12 @@ describe('FindByComponentToolHandler', () => {
   beforeEach(() => {
     mockConnection = createMockUnityConnection({
       sendCommandResult: {
-        status: 'success',
-        result: {
-          objects: [
-            { name: 'MainLight', path: '/Lights/MainLight' },
-            { name: 'PlayerLight', path: '/Player/PlayerLight' }
-          ],
-          count: 2,
-          summary: 'Found 2 objects with Light component'
-        }
+        objects: [
+          { name: 'MainLight', path: '/Lights/MainLight' },
+          { name: 'PlayerLight', path: '/Player/PlayerLight' }
+        ],
+        count: 2,
+        summary: 'Found 2 objects with Light component'
       }
     });
     handler = new FindByComponentToolHandler(mockConnection);

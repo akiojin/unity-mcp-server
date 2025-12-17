@@ -10,15 +10,12 @@ describe('GetComponentValuesToolHandler', () => {
   beforeEach(() => {
     mockConnection = createMockUnityConnection({
       sendCommandResult: {
-        status: 'success',
-        result: {
-          componentType: 'Light',
-          values: {
-            intensity: 1.5,
-            color: { r: 1, g: 1, b: 1, a: 1 }
-          },
-          summary: 'Light component on TestObject'
-        }
+        componentType: 'Light',
+        values: {
+          intensity: 1.5,
+          color: { r: 1, g: 1, b: 1, a: 1 }
+        },
+        summary: 'Light component on TestObject'
       }
     });
     handler = new GetComponentValuesToolHandler(mockConnection);

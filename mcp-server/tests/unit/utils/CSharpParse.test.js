@@ -10,7 +10,11 @@ test('parseFileSymbols detects classes and methods roughly', async () => {
   const rel = 'Packages/My/Symbols.cs';
   const abs = path.join(root, rel);
   mkdirSync(path.dirname(abs), { recursive: true });
-  writeFileSync(abs, 'namespace Demo { public class Symbol { public void Foo(){} } }', 'utf8');
+  writeFileSync(
+    abs,
+    'namespace Demo {\n  public class Symbol {\n    public void Foo(){}\n  }\n}\n',
+    'utf8'
+  );
   const out = parseFileSymbols(rel, await (await import('node:fs/promises')).readFile(abs, 'utf8'));
   const classes = out.symbols.filter(s => s.kind === 'class').map(s => s.name);
   assert.ok(classes.includes('Symbol'));

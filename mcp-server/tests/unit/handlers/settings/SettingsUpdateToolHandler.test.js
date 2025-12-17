@@ -14,13 +14,13 @@ describe('SettingsUpdateToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'settings_update');
+      assert.equal(handler.name, 'update_project_settings');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should update project settings', () => {
-      assert.equal(handler.name, 'settings_update');
+      assert.equal(handler.name, 'update_project_settings');
     });
   });
 });

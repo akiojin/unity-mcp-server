@@ -10,14 +10,11 @@ describe('GetObjectReferencesToolHandler', () => {
   beforeEach(() => {
     mockConnection = createMockUnityConnection({
       sendCommandResult: {
-        status: 'success',
-        result: {
-          references: {
-            outgoing: [{ gameObjectName: 'Target', component: 'Script', field: 'target' }],
-            incoming: []
-          },
-          summary: 'TestObject has 1 outgoing reference and 0 incoming references'
-        }
+        references: {
+          outgoing: [{ gameObjectName: 'Target', component: 'Script', field: 'target' }],
+          incoming: []
+        },
+        summary: 'TestObject has 1 outgoing reference and 0 incoming references'
       }
     });
     handler = new GetObjectReferencesToolHandler(mockConnection);

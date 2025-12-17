@@ -14,13 +14,13 @@ describe('SceneSaveToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'scene_save');
+      assert.equal(handler.name, 'save_scene');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should save current scene', () => {
-      assert.equal(handler.name, 'scene_save');
+      assert.equal(handler.name, 'save_scene');
     });
   });
 });

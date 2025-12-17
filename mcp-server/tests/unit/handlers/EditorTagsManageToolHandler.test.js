@@ -41,8 +41,8 @@ describe('EditorTagsManageToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'editor_tags_manage');
-      assert.equal(handler.description, 'Manage Unity project tags (add, remove, list)');
+      assert.equal(handler.name, 'manage_tags');
+      assert.ok(handler.description.startsWith('Manage project tags'));
       assert.ok(handler.inputSchema);
       assert.equal(handler.inputSchema.type, 'object');
     });

@@ -34,7 +34,7 @@ describe('CreateSceneTool', () => {
   });
 
   it('should have correct tool definition', () => {
-    assert.equal(createSceneToolDefinition.name, 'scene_create');
+    assert.equal(createSceneToolDefinition.name, 'create_scene');
     assert.equal(createSceneToolDefinition.description, 'Create a new scene in Unity');
   });
 
@@ -56,7 +56,7 @@ describe('CreateSceneTool', () => {
     const result = await createSceneHandler(mockUnityConnection, args);
 
     assert.equal(sendCommandSpy.mock.calls.length, 1);
-    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'scene_create');
+    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'create_scene');
     assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
 
     assert.equal(result.isError, false);

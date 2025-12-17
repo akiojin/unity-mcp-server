@@ -7,13 +7,16 @@ describe('LspProcessManager', () => {
 
   beforeEach(() => {
     manager = new LspProcessManager();
+    // LspProcessManager shares state across instances. Reset between tests.
+    manager.state.proc = null;
+    manager.state.starting = null;
   });
 
   describe('constructor', () => {
     it('should construct without parameters', () => {
       assert.ok(manager);
-      assert.equal(manager.proc, null);
-      assert.equal(manager.starting, null);
+      assert.equal(manager.state.proc, null);
+      assert.equal(manager.state.starting, null);
     });
 
     it('should initialize with CSharpLspUtils', () => {
@@ -28,11 +31,8 @@ describe('LspProcessManager', () => {
       assert.equal(typeof manager.ensureStarted, 'function');
     });
 
-    it('should return Promise', () => {
-      const result = manager.ensureStarted();
-      assert.ok(result instanceof Promise);
-      // Don't await - just verify it returns a Promise
-      result.catch(() => {}); // Prevent unhandled rejection
+    it('should be async (returns Promise)', () => {
+      assert.equal(manager.ensureStarted.constructor.name, 'AsyncFunction');
     });
   });
 
@@ -58,11 +58,11 @@ describe('LspProcessManager', () => {
 
   describe('process lifecycle', () => {
     it('should return null proc initially', () => {
-      assert.equal(manager.proc, null);
+      assert.equal(manager.state.proc, null);
     });
 
     it('should track starting state', () => {
-      assert.equal(manager.starting, null);
+      assert.equal(manager.state.starting, null);
     });
   });
 

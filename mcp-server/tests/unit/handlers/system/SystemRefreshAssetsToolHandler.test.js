@@ -14,13 +14,13 @@ describe('SystemRefreshAssetsToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'system_refresh_assets');
+      assert.equal(handler.name, 'refresh_assets');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should refresh assets and check compilation', () => {
-      assert.equal(handler.name, 'system_refresh_assets');
+      assert.equal(handler.name, 'refresh_assets');
     });
   });
 });

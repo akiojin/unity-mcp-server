@@ -51,7 +51,7 @@ describe('FindByComponentTool', () => {
   });
 
   it('should have correct tool definition', () => {
-    assert.equal(findByComponentToolDefinition.name, 'analysis_component_find');
+    assert.equal(findByComponentToolDefinition.name, 'find_by_component');
     assert.equal(
       findByComponentToolDefinition.description,
       'Find GameObjects that have a specific component type (scene/prefabs/all).'

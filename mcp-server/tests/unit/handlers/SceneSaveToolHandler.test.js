@@ -32,7 +32,7 @@ describe('SceneSaveToolHandler', () => {
 
   it('should have correct tool definition', () => {
     const definition = handler.getDefinition();
-    assert.equal(definition.name, 'scene_save');
+    assert.equal(definition.name, 'save_scene');
     assert.equal(definition.description, 'Save current scene or save as a specified path.');
     assert.ok(definition.inputSchema);
     assert.ok(definition.inputSchema.properties.scenePath);

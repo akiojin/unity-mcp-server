@@ -87,7 +87,7 @@ describe('UI automation scenes (real Unity)', () => {
     } catch {}
   });
 
-  it('UGUI: scene_load → play → MCP UI tools work', async t => {
+  it('UGUI: load_scene → play → MCP UI tools work', async t => {
     if (!connection) {
       t.skip('Unity not available');
       return;
@@ -139,7 +139,7 @@ describe('UI automation scenes (real Unity)', () => {
     });
   });
 
-  it('UI Toolkit: scene_load → play → MCP UI tools work', async t => {
+  it('UI Toolkit: load_scene → play → MCP UI tools work', async t => {
     if (!connection) {
       t.skip('Unity not available');
       return;
@@ -186,7 +186,7 @@ describe('UI automation scenes (real Unity)', () => {
     assert.equal(toggleState.value, true);
   });
 
-  it('IMGUI: scene_load → play → MCP UI tools work', async t => {
+  it('IMGUI: load_scene → play → MCP UI tools work', async t => {
     if (!connection) {
       t.skip('Unity not available');
       return;

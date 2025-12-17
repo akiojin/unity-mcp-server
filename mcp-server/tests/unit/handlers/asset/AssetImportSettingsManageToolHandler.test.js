@@ -14,7 +14,7 @@ describe('AssetImportSettingsManageToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'asset_import_settings_manage');
+      assert.equal(handler.name, 'manage_asset_import_settings');
     });
 
     it('should have description', () => {
@@ -24,7 +24,7 @@ describe('AssetImportSettingsManageToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should manage asset import settings', () => {
-      assert.equal(handler.name, 'asset_import_settings_manage');
+      assert.equal(handler.name, 'manage_asset_import_settings');
     });
   });
 });

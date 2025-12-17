@@ -15,6 +15,7 @@ describe('normalizeUnityCommandType (legacy tool aliases)', () => {
       ['video_capture_start', 'capture_video_start'],
       ['component_add', 'add_component'],
       ['compilation_get_state', 'get_compilation_state'],
+      ['remove_input_binding_all', 'remove_all_bindings'],
       ['test_run', 'run_tests']
     ];
 

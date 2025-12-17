@@ -149,38 +149,32 @@ describe('CSharpLspUtils', () => {
       return dir;
     };
 
-    it('prefers global tool cache path', () => {
-      const fakeHome = makeTmp('lsp-home-');
-      const fakeLegacy = makeTmp('lsp-legacy-');
-
-      mock.method(utils, 'getPrimaryToolRoot', () => fakeHome);
-      mock.method(utils, 'getLegacyToolRoot', () => fakeLegacy);
-
-      const resolved = utils.getLocalPath(rid);
-      assert.ok(resolved.startsWith(path.join(fakeHome, 'csharp-lsp', rid)));
-      assert.ok(resolved.endsWith(utils.getExecutableName()));
+    it('prefers UNITY_MCP_TOOLS_ROOT when set', () => {
+      const fakeRoot = makeTmp('lsp-tools-root-');
+      const original = process.env.UNITY_MCP_TOOLS_ROOT;
+      process.env.UNITY_MCP_TOOLS_ROOT = fakeRoot;
+      try {
+        const resolved = utils.getLocalPath(rid);
+        assert.ok(resolved.startsWith(path.join(fakeRoot, 'csharp-lsp', rid)));
+        assert.ok(resolved.endsWith(utils.getExecutableName()));
+      } finally {
+        if (original === undefined) delete process.env.UNITY_MCP_TOOLS_ROOT;
+        else process.env.UNITY_MCP_TOOLS_ROOT = original;
+      }
     });
 
-    it('migrates legacy binaries to global cache when missing', () => {
-      const fakeHome = makeTmp('lsp-home-');
-      const fakeLegacy = makeTmp('lsp-legacy-');
-      const legacyBinDir = path.join(fakeLegacy, 'csharp-lsp', rid);
-      fs.mkdirSync(legacyBinDir, { recursive: true });
-      const legacyBin = path.join(legacyBinDir, utils.getExecutableName());
-      const legacyVersion = path.join(legacyBinDir, 'VERSION');
-      fs.writeFileSync(legacyBin, 'legacy-binary');
-      fs.writeFileSync(legacyVersion, 'legacy-version');
-
-      mock.method(utils, 'getPrimaryToolRoot', () => fakeHome);
-      mock.method(utils, 'getLegacyToolRoot', () => fakeLegacy);
-
-      const resolved = utils.getLocalPath(rid);
-      assert.equal(resolved, path.join(fakeHome, 'csharp-lsp', rid, utils.getExecutableName()));
-      assert.ok(fs.existsSync(resolved));
-      assert.equal(fs.readFileSync(resolved, 'utf8'), 'legacy-binary');
-      const migratedVersion = path.join(fakeHome, 'csharp-lsp', rid, 'VERSION');
-      assert.ok(fs.existsSync(migratedVersion));
-      assert.equal(fs.readFileSync(migratedVersion, 'utf8').trim(), 'legacy-version');
+    it('falls back to ~/.unity/tools when UNITY_MCP_TOOLS_ROOT is unset', () => {
+      const original = process.env.UNITY_MCP_TOOLS_ROOT;
+      delete process.env.UNITY_MCP_TOOLS_ROOT;
+      try {
+        const resolved = utils.getLocalPath(rid);
+        assert.ok(
+          resolved.startsWith(path.join(os.homedir(), '.unity', 'tools', 'csharp-lsp', rid))
+        );
+        assert.ok(resolved.endsWith(utils.getExecutableName()));
+      } finally {
+        if (original !== undefined) process.env.UNITY_MCP_TOOLS_ROOT = original;
+      }
     });
   });
 });

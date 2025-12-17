@@ -47,10 +47,8 @@ describe('LspRpcClient', () => {
       assert.equal(typeof client.ensure, 'function');
     });
 
-    it('should return Promise', () => {
-      const result = client.ensure();
-      assert.ok(result instanceof Promise);
-      result.catch(() => {}); // Prevent unhandled rejection
+    it('should be async (returns Promise)', () => {
+      assert.equal(client.ensure.constructor.name, 'AsyncFunction');
     });
   });
 
@@ -86,10 +84,8 @@ describe('LspRpcClient', () => {
       assert.equal(typeof client.initialize, 'function');
     });
 
-    it('should return Promise', () => {
-      const result = client.initialize();
-      assert.ok(result instanceof Promise);
-      result.catch(() => {}); // Prevent unhandled rejection
+    it('should be async (returns Promise)', () => {
+      assert.equal(client.initialize.constructor.name, 'AsyncFunction');
     });
   });
 
@@ -99,10 +95,8 @@ describe('LspRpcClient', () => {
       assert.equal(typeof client.request, 'function');
     });
 
-    it('should return Promise', () => {
-      const result = client.request('test', {});
-      assert.ok(result instanceof Promise);
-      result.catch(() => {}); // Prevent unhandled rejection
+    it('should be async (returns Promise)', () => {
+      assert.equal(client.request.constructor.name, 'AsyncFunction');
     });
   });
 

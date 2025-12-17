@@ -19,7 +19,7 @@ describe('InputActionMapCreateToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'input_action_map_create');
+      assert.equal(handler.name, 'create_action_map');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Action Map'));
     });

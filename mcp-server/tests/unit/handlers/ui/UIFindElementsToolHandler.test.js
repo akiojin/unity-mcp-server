@@ -22,7 +22,7 @@ describe('UIFindElementsToolHandler', () => {
     });
 
     it('should have correct tool name', () => {
-      assert.strictEqual(handler.name, 'ui_find_elements');
+      assert.strictEqual(handler.name, 'find_ui_elements');
     });
 
     it('should have correct description', () => {
@@ -37,7 +37,7 @@ describe('UIFindElementsToolHandler', () => {
     it('should return correct tool definition', () => {
       const definition = handler.getDefinition();
 
-      assert.strictEqual(definition.name, 'ui_find_elements');
+      assert.strictEqual(definition.name, 'find_ui_elements');
       assert.strictEqual(
         definition.description,
         'Find UI elements by component type, tag, or name pattern.'
@@ -257,7 +257,7 @@ describe('UIFindElementsToolHandler', () => {
       assert.strictEqual(result.status, 'error');
       assert.strictEqual(result.error, 'Connection failed');
       assert.strictEqual(result.code, 'TOOL_ERROR');
-      assert.strictEqual(result.details.tool, 'ui_find_elements');
+      assert.strictEqual(result.details.tool, 'find_ui_elements');
     });
   });
 });

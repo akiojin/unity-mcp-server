@@ -41,7 +41,7 @@ describe('PlaymodePlayToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'playmode_play');
+      assert.equal(handler.name, 'play_game');
       assert.equal(handler.description, 'Enter Play Mode.');
       assert.equal(handler.inputSchema.required, undefined);
     });

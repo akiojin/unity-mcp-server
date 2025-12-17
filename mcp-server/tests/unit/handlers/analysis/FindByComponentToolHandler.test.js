@@ -23,7 +23,7 @@ describe('FindByComponentToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'analysis_component_find');
+      assert.equal(handler.name, 'find_by_component');
     });
 
     it('should have description', () => {
@@ -53,7 +53,7 @@ describe('FindByComponentToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should find GameObjects by component type', () => {
-      assert.equal(handler.name, 'analysis_component_find');
+      assert.equal(handler.name, 'find_by_component');
     });
   });
 });
