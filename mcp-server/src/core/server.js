@@ -15,7 +15,6 @@
  */
 import fs from 'node:fs';
 import { StdioRpcServer } from './stdioRpcServer.js';
-import { normalizeUnityCommandType } from './unityCommandType.js';
 
 // Deferred state - will be initialized after transport connection
 let unityConnection = null;
@@ -325,26 +324,21 @@ export async function startServer(options = {}) {
       await ensureInitialized();
 
       const { name, arguments: args } = request.params || {};
-      const normalizedName = normalizeUnityCommandType(name);
       const requestTime = Date.now();
 
       logger.info(
         `[MCP] Received tool call request: ${name} at ${new Date(requestTime).toISOString()}`,
-        { args, normalizedName: normalizedName === name ? undefined : normalizedName }
+        { args }
       );
 
-      const handler = handlers.get(normalizedName);
+      const handler = handlers.get(name);
       if (!handler) {
-        logger.error(`[MCP] Tool not found: ${name}`, {
-          normalizedName: normalizedName === name ? undefined : normalizedName
-        });
+        logger.error(`[MCP] Tool not found: ${name}`);
         throw new Error(`Tool not found: ${name}`);
       }
 
       try {
-        logger.info(
-          `[MCP] Starting handler execution for: ${normalizedName} at ${new Date().toISOString()}`
-        );
+        logger.info(`[MCP] Starting handler execution for: ${name} at ${new Date().toISOString()}`);
         const startTime = Date.now();
 
         // Handler returns response in our format
@@ -352,7 +346,7 @@ export async function startServer(options = {}) {
 
         const duration = Date.now() - startTime;
         const totalDuration = Date.now() - requestTime;
-        logger.info(`[MCP] Handler completed at ${new Date().toISOString()}: ${normalizedName}`, {
+        logger.info(`[MCP] Handler completed at ${new Date().toISOString()}: ${name}`, {
           handlerDuration: `${duration}ms`,
           totalDuration: `${totalDuration}ms`,
           status: result.status
@@ -360,7 +354,7 @@ export async function startServer(options = {}) {
 
         // Convert to MCP format
         if (result.status === 'error') {
-          logger.error(`[MCP] Handler returned error: ${normalizedName}`, {
+          logger.error(`[MCP] Handler returned error: ${name}`, {
             error: result.error,
             code: result.code
           });
@@ -375,9 +369,7 @@ export async function startServer(options = {}) {
         }
 
         // Success response
-        logger.info(
-          `[MCP] Returning success response for: ${normalizedName} at ${new Date().toISOString()}`
-        );
+        logger.info(`[MCP] Returning success response for: ${name} at ${new Date().toISOString()}`);
 
         // Handle undefined or null results from handlers
         let responseText;
@@ -386,7 +378,7 @@ export async function startServer(options = {}) {
             {
               status: 'success',
               message: 'Operation completed successfully but no details were returned',
-              tool: normalizedName
+              tool: name
             },
             null,
             2

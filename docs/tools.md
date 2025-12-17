@@ -8,11 +8,6 @@ Unity MCP Server exposes **100+ tools** for Unity Editor automation.
 
 Tool names match the Unity TCP command `type` (for example: `ping`, `create_gameobject`, `find_ui_elements`).
 
-For backward compatibility:
-
-- `tools/list` returns **new names only**
-- `tools/call` accepts **legacy aliases** too (example: `system_ping` → `ping`)
-
 ## Recommended: `search_tools`
 
 Instead of scrolling a giant tool list, use the `search_tools` meta-tool to discover the best tools for your task.
@@ -55,11 +50,6 @@ Unity MCP Server は Unity Editor 自動化の **100+ ツール**を提供しま
 ## ツール名について
 
 ツール名は Unity TCP コマンドの `type` と一致します（例: `ping`, `create_gameobject`, `find_ui_elements`）。
-
-後方互換のため:
-
-- `tools/list` は **新しい名前のみ**返します
-- `tools/call` は **旧名（alias）**も受け付けます（例: `system_ping` → `ping`）
 
 ## 推奨: `search_tools`
 
