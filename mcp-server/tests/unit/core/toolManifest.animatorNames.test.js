@@ -27,10 +27,19 @@ describe('toolManifest (animator tool naming)', () => {
 
     const names = new Set(tools.map(t => t?.name).filter(Boolean));
 
-    assert.ok(names.has('get_animator_state'));
-    assert.ok(names.has('get_animator_runtime_info'));
+    assert.ok(names.has('get_animator_state'), "expected manifest to include 'get_animator_state'");
+    assert.ok(
+      names.has('get_animator_runtime_info'),
+      "expected manifest to include 'get_animator_runtime_info'"
+    );
 
-    assert.ok(!names.has('analysis_animator_state_get'));
-    assert.ok(!names.has('analysis_animator_runtime_info_get'));
+    assert.ok(
+      !names.has('analysis_animator_state_get'),
+      "expected manifest to hide legacy name 'analysis_animator_state_get'"
+    );
+    assert.ok(
+      !names.has('analysis_animator_runtime_info_get'),
+      "expected manifest to hide legacy name 'analysis_animator_runtime_info_get'"
+    );
   });
 });
