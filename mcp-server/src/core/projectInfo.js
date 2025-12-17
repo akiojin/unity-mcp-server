@@ -21,14 +21,29 @@ const inferUnityProjectRootFromDir = startDir => {
   try {
     let dir = startDir;
     const { root } = path.parse(dir);
+    // First, walk up to find a Unity project
     while (true) {
       if (looksLikeUnityProjectRoot(dir)) return dir;
-      if (dir === root) return null;
+      if (dir === root) break;
       dir = path.dirname(dir);
     }
   } catch {
-    return null;
+    // Fall through to child search
   }
+  // If not found, search immediate child directories (1 level deep)
+  try {
+    const entries = fs.readdirSync(startDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      // Skip hidden directories and common non-project directories
+      if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+      const childDir = path.join(startDir, entry.name);
+      if (looksLikeUnityProjectRoot(childDir)) return childDir;
+    }
+  } catch {
+    // Ignore errors (e.g., permission denied)
+  }
+  return null;
 };
 
 const resolveDefaultCodeIndexRoot = projectRoot => {
