@@ -10,6 +10,24 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [4.1.0](https://github.com/akiojin/unity-mcp-server/compare/v4.0.0...v4.1.0) (2025-12-17)
+
+
+### Features
+
+* Node/Unityパッケージversion不一致を検出 ([c0af5ae](https://github.com/akiojin/unity-mcp-server/commit/c0af5aec91ba19323b2cbfc78c14179626700799))
+* Node/Unityパッケージversion不一致検出 ([175cdaa](https://github.com/akiojin/unity-mcp-server/commit/175cdaa3ed887452c5e9656ba4cf33f8c9c64285))
+* publish signed OpenUPM Unity package ([2b98975](https://github.com/akiojin/unity-mcp-server/commit/2b98975938ff00f04fbad6d50a8183b8f57bc00e))
+* publish signed OpenUPM Unity package ([db60249](https://github.com/akiojin/unity-mcp-server/commit/db602499d4fdd071af672e7493b94510e72044b9))
+
+
+### Bug Fixes
+
+* **mcp-server:** add child directory search for Unity project root ([1b1439c](https://github.com/akiojin/unity-mcp-server/commit/1b1439cba0fd7c36acb220d5ae999b10108a96c8))
+* **mcp-server:** prioritize child directory search for Unity project root ([883c8a8](https://github.com/akiojin/unity-mcp-server/commit/883c8a841d971d82f3bc0b59d74ecf7ae294e3ba))
+* **mcp-server:** prioritize child directory search for Unity project root ([f71edbe](https://github.com/akiojin/unity-mcp-server/commit/f71edbee128203f1cf3e9ed9fb6bbacd80c8bad6))
+* Unity側のpackage version取得を改善 ([c1cfdcf](https://github.com/akiojin/unity-mcp-server/commit/c1cfdcf5c4f693eca7184a8ce7db0fe7701cabd7))
+
 ## [4.0.0](https://github.com/akiojin/unity-mcp-server/compare/v3.2.1...v4.0.0) (2025-12-17)
 
 
