@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityMCPServer.Logging;
 
@@ -14,20 +15,56 @@ namespace UnityMCPServer.Helpers
     /// </summary>
     public static class Response
     {
+        private static string _cachedPackageVersion;
+        private static bool _packageVersionResolved;
+
         /// <summary>
         /// Gets the package version from package.json
         /// </summary>
         /// <returns>Package version string</returns>
         private static string GetPackageVersion()
         {
+            if (_packageVersionResolved)
+            {
+                return _cachedPackageVersion ?? "unknown";
+            }
+
             try
             {
-                // Try multiple potential paths for package.json
+                // First try PackageManager metadata (works for registry/cached packages too)
+                try
+                {
+                    var assetPathCandidates = new string[]
+                    {
+                        "Packages/com.akiojin.unity-mcp-server/package.json",
+                        "Packages/unity-mcp-server/package.json", // embedded in this repo
+                        "Packages/com.unity.editor-mcp/package.json" // legacy
+                    };
+
+                    foreach (var assetPath in assetPathCandidates)
+                    {
+                        var pkg = PackageInfo.FindForAssetPath(assetPath);
+                        if (pkg != null && !string.IsNullOrEmpty(pkg.version))
+                        {
+                            _cachedPackageVersion = pkg.version;
+                            return _cachedPackageVersion;
+                        }
+                    }
+                }
+                catch
+                {
+                    // fall through to filesystem heuristics
+                }
+
+                // Try multiple potential filesystem paths for package.json (embedded packages)
                 string[] possiblePaths = new string[]
                 {
+                    "Packages/com.akiojin.unity-mcp-server/package.json",
+                    "Packages/unity-mcp-server/package.json",
                     "Packages/com.unity.editor-mcp/package.json",
-                    Path.Combine(Application.dataPath, "../Packages/com.unity.editor-mcp/package.json"),
-                    Path.Combine(Application.dataPath, "../Library/PackageCache/com.unity.editor-mcp/package.json")
+                    Path.Combine(Application.dataPath, "../Packages/com.akiojin.unity-mcp-server/package.json"),
+                    Path.Combine(Application.dataPath, "../Packages/unity-mcp-server/package.json"),
+                    Path.Combine(Application.dataPath, "../Packages/com.unity.editor-mcp/package.json")
                 };
 
                 foreach (var path in possiblePaths)
@@ -44,9 +81,43 @@ namespace UnityMCPServer.Helpers
                         var packageInfo = JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonContent);
                         if (packageInfo != null && packageInfo.ContainsKey("version"))
                         {
-                            return packageInfo["version"].ToString();
+                            _cachedPackageVersion = packageInfo["version"].ToString();
+                            return _cachedPackageVersion;
                         }
                     }
+                }
+
+                // Fallback: scan PackageCache directory
+                try
+                {
+                    var projectRoot = Application.dataPath.Substring(0, Application.dataPath.Length - "/Assets".Length);
+                    var packageCacheRoot = Path.GetFullPath(Path.Combine(projectRoot, "Library/PackageCache"));
+                    var ids = new string[] { "com.akiojin.unity-mcp-server", "com.unity.editor-mcp" };
+
+                    foreach (var id in ids)
+                    {
+                        var dirs = Directory.Exists(packageCacheRoot)
+                            ? Directory.GetDirectories(packageCacheRoot, $"{id}@*")
+                            : Array.Empty<string>();
+
+                        foreach (var dir in dirs)
+                        {
+                            var pkgJson = Path.Combine(dir, "package.json");
+                            if (!File.Exists(pkgJson)) continue;
+
+                            string jsonContent = File.ReadAllText(pkgJson);
+                            var packageInfo = JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonContent);
+                            if (packageInfo != null && packageInfo.ContainsKey("version"))
+                            {
+                                _cachedPackageVersion = packageInfo["version"].ToString();
+                                return _cachedPackageVersion;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore and fall through to assembly heuristic
                 }
 
                 // Fallback: try to get from assembly
@@ -54,13 +125,14 @@ namespace UnityMCPServer.Helpers
                 if (assembly != null)
                 {
                     var location = assembly.Location;
-                    if (!string.IsNullOrEmpty(location) && location.Contains("com.unity.editor-mcp"))
+                    if (!string.IsNullOrEmpty(location) && (location.Contains("com.akiojin.unity-mcp-server") || location.Contains("com.unity.editor-mcp")))
                     {
                         // Try to extract version from path if it contains version info
-                        var match = System.Text.RegularExpressions.Regex.Match(location, @"com\.unity\.editor-mcp@([0-9]+\.[0-9]+\.[0-9]+)");
+                        var match = System.Text.RegularExpressions.Regex.Match(location, @"com\.(akiojin\.unity-mcp-server|unity\.editor-mcp)@([0-9]+\.[0-9]+\.[0-9]+)");
                         if (match.Success)
                         {
-                            return match.Groups[1].Value;
+                            _cachedPackageVersion = match.Groups[2].Value;
+                            return _cachedPackageVersion;
                         }
                     }
                 }
@@ -69,7 +141,12 @@ namespace UnityMCPServer.Helpers
             {
                 McpLogger.LogWarning("Response", $"Failed to get package version: {e.Message}");
             }
+            finally
+            {
+                _packageVersionResolved = true;
+            }
 
+            _cachedPackageVersion = "unknown";
             return "unknown";
         }
 

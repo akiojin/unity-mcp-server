@@ -18,17 +18,32 @@ const looksLikeUnityProjectRoot = dir => {
 };
 
 const inferUnityProjectRootFromDir = startDir => {
+  // First, search immediate child directories (1 level deep)
+  try {
+    const entries = fs.readdirSync(startDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      // Skip hidden directories and common non-project directories
+      if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+      const childDir = path.join(startDir, entry.name);
+      if (looksLikeUnityProjectRoot(childDir)) return childDir;
+    }
+  } catch {
+    // Fall through to upward search
+  }
+  // If not found in children, walk up to find a Unity project
   try {
     let dir = startDir;
     const { root } = path.parse(dir);
     while (true) {
       if (looksLikeUnityProjectRoot(dir)) return dir;
-      if (dir === root) return null;
+      if (dir === root) break;
       dir = path.dirname(dir);
     }
   } catch {
-    return null;
+    // Ignore errors (e.g., permission denied)
   }
+  return null;
 };
 
 const resolveDefaultCodeIndexRoot = projectRoot => {

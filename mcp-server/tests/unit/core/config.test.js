@@ -8,6 +8,7 @@ const ENV_KEYS = [
   'UNITY_MCP_UNITY_HOST',
   'UNITY_MCP_PORT',
   'UNITY_MCP_LOG_LEVEL',
+  'UNITY_MCP_VERSION_MISMATCH',
   'UNITY_MCP_HTTP_ENABLED',
   'UNITY_MCP_HTTP_PORT',
   'UNITY_MCP_TELEMETRY_ENABLED',
@@ -76,6 +77,34 @@ describe('Config', () => {
 
     assert.equal(config.logging.level, 'info');
     assert.equal(config.logging.prefix, '[unity-mcp-server]');
+  });
+
+  it('should have correct compat settings', async () => {
+    const { config } = await importConfigFresh();
+
+    assert.equal(config.compat.versionMismatch, 'warn');
+  });
+
+  it('should load version mismatch policy from environment variables', async () => {
+    process.env.UNITY_MCP_VERSION_MISMATCH = 'error';
+    let { config } = await importConfigFresh();
+    assert.equal(config.compat.versionMismatch, 'error');
+
+    process.env.UNITY_MCP_VERSION_MISMATCH = 'warning';
+    ({ config } = await importConfigFresh());
+    assert.equal(config.compat.versionMismatch, 'warn');
+
+    process.env.UNITY_MCP_VERSION_MISMATCH = 'ignore';
+    ({ config } = await importConfigFresh());
+    assert.equal(config.compat.versionMismatch, 'off');
+  });
+
+  it('should normalize invalid version mismatch policy to default', async () => {
+    process.env.UNITY_MCP_VERSION_MISMATCH = 'nope';
+
+    const { config } = await importConfigFresh();
+
+    assert.equal(config.compat.versionMismatch, 'warn');
   });
 
   it('should load unity host/port from environment variables', async () => {

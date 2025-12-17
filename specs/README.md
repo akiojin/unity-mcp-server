@@ -17,6 +17,7 @@
 | `SPEC-56860fa4` | [UI自動化・操作機能](SPEC-56860fa4/spec.md) | 完了 | 2025-10-17 |
 | `SPEC-5873e340` | [Component管理機能](SPEC-5873e340/spec.md) | 完了 | 2025-10-17 |
 | `SPEC-5c438276` | [PlayMode制御機能](SPEC-5c438276/spec.md) | 完了 | 2025-10-17 |
+| `SPEC-636fc0af` | [OpenUPM配布のUPMパッケージ署名対応（Unity 6.3+）](SPEC-636fc0af/spec.md) | 下書き   | 2025-12-17   |
 | `SPEC-7a2c8e6d` | [プロジェクト設定管理機能](SPEC-7a2c8e6d/spec.md) | 完了 | 2025-10-17 |
 | `SPEC-83cb078a` | [Asset/Prefab/Material管理機能](SPEC-83cb078a/spec.md) | 完了 | 2025-10-17 |
 | `SPEC-911befe7` | [マルチインスタンス安全切替 CLI](SPEC-911befe7/spec.md) | 下書き | 2025-12-04 |
@@ -34,3 +35,4 @@
 | `SPEC-e7c9b50c` | [Unity Test Execution（ユニットテスト実行）機能](SPEC-e7c9b50c/spec.md) | 完了 | 2025-10-17 |
 | `SPEC-e8f7a2c1` | [シーン分析・デバッグ機能](SPEC-e8f7a2c1/spec.md) | 完了 | 2025-10-17 |
 | `SPEC-e9854a10` | SPEC-e9854a10 | - | - |
+| `SPEC-f9db125c` | [Node/Unityパッケージversion不一致検出](SPEC-f9db125c/spec.md) | 実装完了 | 2025-12-17 |

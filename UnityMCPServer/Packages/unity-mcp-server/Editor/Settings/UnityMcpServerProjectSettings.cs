@@ -21,6 +21,10 @@ namespace UnityMCPServer.Settings
         {
             port = Mathf.Clamp(value, 1, 65535);
         }
+
+        public void SaveProjectSettings(bool saveAsText)
+        {
+            Save(saveAsText);
+        }
     }
 }
-

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityMCPServer.Core;
 
 namespace UnityMCPServer.Settings
 {
@@ -44,9 +43,9 @@ namespace UnityMCPServer.Settings
                 if (GUILayout.Button("Apply & Restart"))
                 {
                     so.ApplyModifiedProperties();
-                    settings.Save(true);
+                    settings.SaveProjectSettings(true);
 
-                    UnityMCPServer.Restart();
+                    UnityMCPServer.Core.UnityMCPServer.Restart();
                     TriggerReimport();
                 }
             }
@@ -65,4 +64,3 @@ namespace UnityMCPServer.Settings
         }
     }
 }
-
