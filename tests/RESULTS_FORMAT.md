@@ -29,7 +29,6 @@
   - `total`: チェックリスト行（`- [ ]` または `- [x]`）の合計
 - latest 更新: 再計算後のレポート全文を `tests/.reports/latest.md` にも上書きする。
 
-
 テンプレート（ランファイルの雛形・例）
 ```
 # <Run Title> テストレポート
@@ -54,10 +53,10 @@
 - [x] S00-00 ラン初期化 — pass (0 ms) restored:true
 
 ## Scene
-- [ ] U10-01 scene_create … restored:true
+- [ ] U10-01 create_scene … restored:true
 
 ## GameObject
-- [ ] U20-01 gameobject_create … restored:true
+- [ ] U20-01 create_gameobject … restored:true
 
 ## 詳細（必要なケースのみ）
 <details>

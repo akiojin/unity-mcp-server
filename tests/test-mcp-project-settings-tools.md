@@ -8,7 +8,7 @@
 - 各ケースの details には `targetPaths: [<相対パス>...]` を付記（単一でも配列）。
 
 観測不能時の二次検証（エビデンス・エスカレーション）
-- 差分検証: `settings_get` の前後比較（適用前/適用後）。
+- 差分検証: `get_project_settings` の前後比較（適用前/適用後）。
 - 構造検証: 変更対象カテゴリ（player/graphics/quality 等）のキー値が期待どおり変化しているか確認。
 - 参照検証: Quality/Graphics の変更が GameView などに反映されるかは必要に応じて補助。
 - なお判定不能時のみ `skip（OBSERVATION_GAP）`。
@@ -17,16 +17,16 @@
 - 変更前の設定値（例: `vSyncCount`）を必ず保存し、テスト終了時に元の値へ復元する。
 
 チェックリスト（Markdown）
-- [ ] U110-01: settings_get（quality.vSyncCount 確認）
-- [ ] U110-02: settings_update（confirmChanges=true で一時変更）
+- [ ] U110-01: get_project_settings（quality.vSyncCount 確認）
+- [ ] U110-02: update_project_settings（confirmChanges=true で一時変更）
 - [ ] U110-03: 変更確認→復元
 - [ ] U110-E01: confirmChanges=false で fail
 - [ ] U110-E02: 不正値（例: vSyncCount=-1）で fail
 
 ## 正常系
 
-- U110-01: `settings_get`（quality）→ `vSyncCount` を取得
-- U110-02: `settings_update`（`confirmChanges=true`）で一時変更（0↔1）
+- U110-01: `get_project_settings`（quality）→ `vSyncCount` を取得
+- U110-02: `update_project_settings`（`confirmChanges=true`）で一時変更（0↔1）
 - U110-03: 変更確認後に復元
 
 ## 異常系

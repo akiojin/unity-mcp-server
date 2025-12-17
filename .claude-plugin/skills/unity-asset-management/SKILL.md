@@ -14,13 +14,13 @@ allowed-tools: Read, Grep, Glob
 
 ```javascript
 // GameObjectからプレハブ作成
-mcp__unity-mcp-server__asset_prefab_create({
+mcp__unity-mcp-server__create_prefab({
   prefabPath: "Assets/Prefabs/Enemy.prefab",
   gameObjectPath: "/Enemy"
 })
 
 // プレハブをシーンにインスタンス化
-mcp__unity-mcp-server__asset_prefab_instantiate({
+mcp__unity-mcp-server__instantiate_prefab({
   prefabPath: "Assets/Prefabs/Enemy.prefab",
   position: { x: 5, y: 0, z: 0 },
   name: "Enemy_01"
@@ -31,7 +31,7 @@ mcp__unity-mcp-server__asset_prefab_instantiate({
 
 ```javascript
 // 基本マテリアル作成
-mcp__unity-mcp-server__asset_material_create({
+mcp__unity-mcp-server__create_material({
   materialPath: "Assets/Materials/RedMetal.mat",
   shader: "Standard",
   properties: {
@@ -46,7 +46,7 @@ mcp__unity-mcp-server__asset_material_create({
 
 ```javascript
 // テクスチャを検索
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "find_assets",
   filter: "t:Texture2D"
 })
@@ -58,19 +58,19 @@ mcp__unity-mcp-server__asset_database_manage({
 
 ```javascript
 // シーンのGameObjectからプレハブ作成
-mcp__unity-mcp-server__asset_prefab_create({
+mcp__unity-mcp-server__create_prefab({
   prefabPath: "Assets/Prefabs/Player.prefab",
   gameObjectPath: "/Player"
 })
 
 // 空のプレハブを作成
-mcp__unity-mcp-server__asset_prefab_create({
+mcp__unity-mcp-server__create_prefab({
   prefabPath: "Assets/Prefabs/Empty.prefab",
   createFromTemplate: true
 })
 
 // 上書き許可
-mcp__unity-mcp-server__asset_prefab_create({
+mcp__unity-mcp-server__create_prefab({
   prefabPath: "Assets/Prefabs/Player.prefab",
   gameObjectPath: "/Player",
   overwrite: true
@@ -81,41 +81,41 @@ mcp__unity-mcp-server__asset_prefab_create({
 
 ```javascript
 // プレハブを開く
-mcp__unity-mcp-server__asset_prefab_open({
+mcp__unity-mcp-server__open_prefab({
   prefabPath: "Assets/Prefabs/Player.prefab"
 })
 
 // 特定のオブジェクトにフォーカス
-mcp__unity-mcp-server__asset_prefab_open({
+mcp__unity-mcp-server__open_prefab({
   prefabPath: "Assets/Prefabs/Player.prefab",
   focusObject: "Weapon",  // プレハブルート相対パス
   isolateObject: true
 })
 
 // プレハブモード中の編集（コンポーネント操作等）
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Player",  // プレハブモード中はプレハブルートがルート
   componentType: "AudioSource"
 })
 
 // 保存してプレハブモード終了
-mcp__unity-mcp-server__asset_prefab_save()
-mcp__unity-mcp-server__asset_prefab_exit_mode({ saveChanges: true })
+mcp__unity-mcp-server__save_prefab()
+mcp__unity-mcp-server__exit_prefab_mode({ saveChanges: true })
 
 // 保存せずに終了
-mcp__unity-mcp-server__asset_prefab_exit_mode({ saveChanges: false })
+mcp__unity-mcp-server__exit_prefab_mode({ saveChanges: false })
 ```
 
 ### プレハブインスタンス化
 
 ```javascript
 // 基本インスタンス化
-mcp__unity-mcp-server__asset_prefab_instantiate({
+mcp__unity-mcp-server__instantiate_prefab({
   prefabPath: "Assets/Prefabs/Enemy.prefab"
 })
 
 // Transform指定
-mcp__unity-mcp-server__asset_prefab_instantiate({
+mcp__unity-mcp-server__instantiate_prefab({
   prefabPath: "Assets/Prefabs/Enemy.prefab",
   position: { x: 10, y: 0, z: 5 },
   rotation: { x: 0, y: 90, z: 0 },
@@ -123,7 +123,7 @@ mcp__unity-mcp-server__asset_prefab_instantiate({
 })
 
 // 親オブジェクト指定
-mcp__unity-mcp-server__asset_prefab_instantiate({
+mcp__unity-mcp-server__instantiate_prefab({
   prefabPath: "Assets/Prefabs/Coin.prefab",
   parent: "/Collectibles",
   position: { x: 0, y: 1, z: 0 }
@@ -134,7 +134,7 @@ mcp__unity-mcp-server__asset_prefab_instantiate({
 
 ```javascript
 // プロパティ変更（インスタンスにも適用）
-mcp__unity-mcp-server__asset_prefab_modify({
+mcp__unity-mcp-server__modify_prefab({
   prefabPath: "Assets/Prefabs/Enemy.prefab",
   modifications: {
     "health": 150,
@@ -144,7 +144,7 @@ mcp__unity-mcp-server__asset_prefab_modify({
 })
 
 // インスタンスには適用しない
-mcp__unity-mcp-server__asset_prefab_modify({
+mcp__unity-mcp-server__modify_prefab({
   prefabPath: "Assets/Prefabs/Enemy.prefab",
   modifications: { "debugMode": true },
   applyToInstances: false
@@ -157,7 +157,7 @@ mcp__unity-mcp-server__asset_prefab_modify({
 
 ```javascript
 // Standardシェーダー
-mcp__unity-mcp-server__asset_material_create({
+mcp__unity-mcp-server__create_material({
   materialPath: "Assets/Materials/Metal.mat",
   shader: "Standard",
   properties: {
@@ -168,7 +168,7 @@ mcp__unity-mcp-server__asset_material_create({
 })
 
 // Unlitシェーダー
-mcp__unity-mcp-server__asset_material_create({
+mcp__unity-mcp-server__create_material({
   materialPath: "Assets/Materials/Unlit.mat",
   shader: "Unlit/Color",
   properties: {
@@ -177,7 +177,7 @@ mcp__unity-mcp-server__asset_material_create({
 })
 
 // URPシェーダー
-mcp__unity-mcp-server__asset_material_create({
+mcp__unity-mcp-server__create_material({
   materialPath: "Assets/Materials/URPLit.mat",
   shader: "Universal Render Pipeline/Lit",
   properties: {
@@ -187,7 +187,7 @@ mcp__unity-mcp-server__asset_material_create({
 })
 
 // 既存マテリアルをコピー
-mcp__unity-mcp-server__asset_material_create({
+mcp__unity-mcp-server__create_material({
   materialPath: "Assets/Materials/MetalRed.mat",
   copyFrom: "Assets/Materials/Metal.mat",
   properties: {
@@ -200,7 +200,7 @@ mcp__unity-mcp-server__asset_material_create({
 
 ```javascript
 // プロパティ変更
-mcp__unity-mcp-server__asset_material_modify({
+mcp__unity-mcp-server__modify_material({
   materialPath: "Assets/Materials/Metal.mat",
   properties: {
     "_Color": [0, 0, 1, 1],
@@ -209,7 +209,7 @@ mcp__unity-mcp-server__asset_material_modify({
 })
 
 // シェーダー変更
-mcp__unity-mcp-server__asset_material_modify({
+mcp__unity-mcp-server__modify_material({
   materialPath: "Assets/Materials/Debug.mat",
   shader: "Unlit/Color",
   properties: {
@@ -238,31 +238,31 @@ mcp__unity-mcp-server__asset_material_modify({
 
 ```javascript
 // 型フィルタ
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "find_assets",
   filter: "t:Texture2D"
 })
 
 // 名前フィルタ
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "find_assets",
   filter: "Player"
 })
 
 // ラベルフィルタ
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "find_assets",
   filter: "l:UI"
 })
 
 // 複合フィルタ
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "find_assets",
   filter: "t:Material Player"
 })
 
 // フォルダ指定
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "find_assets",
   filter: "t:Prefab",
   searchInFolders: ["Assets/Prefabs", "Assets/Characters"]
@@ -281,7 +281,7 @@ mcp__unity-mcp-server__asset_database_manage({
 ### アセット情報取得
 
 ```javascript
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "get_asset_info",
   assetPath: "Assets/Textures/Player.png"
 })
@@ -292,7 +292,7 @@ mcp__unity-mcp-server__asset_database_manage({
 
 ```javascript
 // フォルダ作成
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "create_folder",
   folderPath: "Assets/NewFeature/Prefabs"
 })
@@ -302,21 +302,21 @@ mcp__unity-mcp-server__asset_database_manage({
 
 ```javascript
 // 移動
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "move_asset",
   fromPath: "Assets/Old/Player.prefab",
   toPath: "Assets/New/Player.prefab"
 })
 
 // コピー
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "copy_asset",
   fromPath: "Assets/Templates/Enemy.prefab",
   toPath: "Assets/Enemies/Enemy_01.prefab"
 })
 
 // 削除
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "delete_asset",
   assetPath: "Assets/Unused/OldPrefab.prefab"
 })
@@ -326,12 +326,12 @@ mcp__unity-mcp-server__asset_database_manage({
 
 ```javascript
 // アセットデータベースをリフレッシュ
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "refresh"
 })
 
 // 全アセットを保存
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "save"
 })
 ```
@@ -342,7 +342,7 @@ mcp__unity-mcp-server__asset_database_manage({
 
 ```javascript
 // アセットの依存先を取得
-mcp__unity-mcp-server__asset_dependency_analyze({
+mcp__unity-mcp-server__analyze_asset_dependencies({
   action: "get_dependencies",
   assetPath: "Assets/Prefabs/Player.prefab",
   recursive: true  // 間接依存も含む
@@ -353,7 +353,7 @@ mcp__unity-mcp-server__asset_dependency_analyze({
 
 ```javascript
 // このアセットを参照しているアセットを検索
-mcp__unity-mcp-server__asset_dependency_analyze({
+mcp__unity-mcp-server__analyze_asset_dependencies({
   action: "get_dependents",
   assetPath: "Assets/Materials/PlayerMat.mat"
 })
@@ -362,7 +362,7 @@ mcp__unity-mcp-server__asset_dependency_analyze({
 ### 循環依存検出
 
 ```javascript
-mcp__unity-mcp-server__asset_dependency_analyze({
+mcp__unity-mcp-server__analyze_asset_dependencies({
   action: "analyze_circular"
 })
 ```
@@ -370,7 +370,7 @@ mcp__unity-mcp-server__asset_dependency_analyze({
 ### 未使用アセット検出
 
 ```javascript
-mcp__unity-mcp-server__asset_dependency_analyze({
+mcp__unity-mcp-server__analyze_asset_dependencies({
   action: "find_unused",
   includeBuiltIn: false
 })
@@ -380,7 +380,7 @@ mcp__unity-mcp-server__asset_dependency_analyze({
 
 ```javascript
 // アセットとその依存関係の合計サイズ
-mcp__unity-mcp-server__asset_dependency_analyze({
+mcp__unity-mcp-server__analyze_asset_dependencies({
   action: "analyze_size_impact",
   assetPath: "Assets/Prefabs/Boss.prefab"
 })
@@ -390,7 +390,7 @@ mcp__unity-mcp-server__asset_dependency_analyze({
 
 ```javascript
 // 壊れた参照を検出
-mcp__unity-mcp-server__asset_dependency_analyze({
+mcp__unity-mcp-server__analyze_asset_dependencies({
   action: "validate_references"
 })
 ```
@@ -515,7 +515,7 @@ mcp__unity-mcp-server__addressables_analyze({
 ### インポート設定取得
 
 ```javascript
-mcp__unity-mcp-server__asset_import_settings_manage({
+mcp__unity-mcp-server__manage_asset_import_settings({
   action: "get",
   assetPath: "Assets/Textures/Player.png"
 })
@@ -524,7 +524,7 @@ mcp__unity-mcp-server__asset_import_settings_manage({
 ### テクスチャ設定
 
 ```javascript
-mcp__unity-mcp-server__asset_import_settings_manage({
+mcp__unity-mcp-server__manage_asset_import_settings({
   action: "modify",
   assetPath: "Assets/Textures/Player.png",
   settings: {
@@ -540,7 +540,7 @@ mcp__unity-mcp-server__asset_import_settings_manage({
 ### オーディオ設定
 
 ```javascript
-mcp__unity-mcp-server__asset_import_settings_manage({
+mcp__unity-mcp-server__manage_asset_import_settings({
   action: "modify",
   assetPath: "Assets/Audio/BGM.mp3",
   settings: {
@@ -556,7 +556,7 @@ mcp__unity-mcp-server__asset_import_settings_manage({
 
 ```javascript
 // 保存済みプリセットを適用
-mcp__unity-mcp-server__asset_import_settings_manage({
+mcp__unity-mcp-server__manage_asset_import_settings({
   action: "apply_preset",
   assetPath: "Assets/Textures/UI_Icon.png",
   preset: "UISprite"
@@ -566,7 +566,7 @@ mcp__unity-mcp-server__asset_import_settings_manage({
 ### 再インポート
 
 ```javascript
-mcp__unity-mcp-server__asset_import_settings_manage({
+mcp__unity-mcp-server__manage_asset_import_settings({
   action: "reimport",
   assetPath: "Assets/Textures/Player.png"
 })
@@ -578,29 +578,29 @@ mcp__unity-mcp-server__asset_import_settings_manage({
 
 ```javascript
 // 1. シーンでGameObjectを構築
-mcp__unity-mcp-server__gameobject_create({
+mcp__unity-mcp-server__create_gameobject({
   name: "NewEnemy",
   primitiveType: "capsule"
 })
 
-mcp__unity-mcp-server__component_add({
+mcp__unity-mcp-server__add_component({
   gameObjectPath: "/NewEnemy",
   componentType: "Rigidbody"
 })
 
 // 2. プレハブ化
-mcp__unity-mcp-server__asset_prefab_create({
+mcp__unity-mcp-server__create_prefab({
   prefabPath: "Assets/Prefabs/Enemies/NewEnemy.prefab",
   gameObjectPath: "/NewEnemy"
 })
 
 // 3. シーンのオリジナルを削除
-mcp__unity-mcp-server__gameobject_delete({
+mcp__unity-mcp-server__delete_gameobject({
   path: "/NewEnemy"
 })
 
 // 4. プレハブからインスタンス化
-mcp__unity-mcp-server__asset_prefab_instantiate({
+mcp__unity-mcp-server__instantiate_prefab({
   prefabPath: "Assets/Prefabs/Enemies/NewEnemy.prefab",
   position: { x: 0, y: 0, z: 0 }
 })
@@ -610,7 +610,7 @@ mcp__unity-mcp-server__asset_prefab_instantiate({
 
 ```javascript
 // ベースマテリアル作成
-mcp__unity-mcp-server__asset_material_create({
+mcp__unity-mcp-server__create_material({
   materialPath: "Assets/Materials/Enemy_Base.mat",
   shader: "Standard",
   properties: {
@@ -627,7 +627,7 @@ const colors = [
 ]
 
 for (const variant of colors) {
-  mcp__unity-mcp-server__asset_material_create({
+  mcp__unity-mcp-server__create_material({
     materialPath: `Assets/Materials/Enemy_${variant.name}.mat`,
     copyFrom: "Assets/Materials/Enemy_Base.mat",
     properties: { "_Color": variant.color }
@@ -704,9 +704,9 @@ materialPath: "Assets/Materials/Red.mat"
 
 ```javascript
 // ✅ 必ずプレハブモードを終了
-mcp__unity-mcp-server__asset_prefab_open({ prefabPath: "..." })
+mcp__unity-mcp-server__open_prefab({ prefabPath: "..." })
 // ... 編集 ...
-mcp__unity-mcp-server__asset_prefab_exit_mode({ saveChanges: true })
+mcp__unity-mcp-server__exit_prefab_mode({ saveChanges: true })
 ```
 
 ### 4. リフレッシュ忘れ
@@ -714,7 +714,7 @@ mcp__unity-mcp-server__asset_prefab_exit_mode({ saveChanges: true })
 ```javascript
 // 外部でファイルを変更した後
 // ✅ リフレッシュで変更を反映
-mcp__unity-mcp-server__asset_database_manage({
+mcp__unity-mcp-server__manage_asset_database({
   action: "refresh"
 })
 ```
@@ -746,17 +746,17 @@ mcp__unity-mcp-server__addressables_manage({
 
 | ツール | 用途 |
 |--------|------|
-| `asset_prefab_create` | プレハブ作成 |
-| `asset_prefab_open` | プレハブモード開始 |
-| `asset_prefab_exit_mode` | プレハブモード終了 |
-| `asset_prefab_save` | プレハブ保存 |
-| `asset_prefab_instantiate` | プレハブ配置 |
-| `asset_prefab_modify` | プレハブ修正 |
-| `asset_material_create` | マテリアル作成 |
-| `asset_material_modify` | マテリアル修正 |
-| `asset_database_manage` | アセットDB操作 |
-| `asset_dependency_analyze` | 依存関係分析 |
-| `asset_import_settings_manage` | インポート設定 |
+| `create_prefab` | プレハブ作成 |
+| `open_prefab` | プレハブモード開始 |
+| `exit_prefab_mode` | プレハブモード終了 |
+| `save_prefab` | プレハブ保存 |
+| `instantiate_prefab` | プレハブ配置 |
+| `modify_prefab` | プレハブ修正 |
+| `create_material` | マテリアル作成 |
+| `modify_material` | マテリアル修正 |
+| `manage_asset_database` | アセットDB操作 |
+| `analyze_asset_dependencies` | 依存関係分析 |
+| `manage_asset_import_settings` | インポート設定 |
 | `addressables_manage` | Addressables管理 |
 | `addressables_build` | Addressablesビルド |
 | `addressables_analyze` | Addressables分析 |
