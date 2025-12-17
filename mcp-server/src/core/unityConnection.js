@@ -23,6 +23,11 @@ export class UnityConnection extends EventEmitter {
     this.maxInFlight = 1; // process one command at a time by default
     this.connectedAt = null; // Timestamp when connection was established
     this.hasConnectedOnce = false;
+
+    // Version compatibility between Node package and Unity package
+    this._versionCompatibilityChecked = false;
+    this._unityPackageVersion = null;
+    this._versionMismatchError = null;
   }
 
   /**
@@ -360,6 +365,10 @@ export class UnityConnection extends EventEmitter {
    * @returns {Promise<any>} - Response from Unity
    */
   async sendCommand(type, params = {}) {
+    if (this._versionMismatchError) {
+      throw this._versionMismatchError;
+    }
+
     logger.info(`[Unity] enqueue sendCommand: ${type}`, { connected: this.connected });
 
     if (!this.connected) {
@@ -380,6 +389,18 @@ export class UnityConnection extends EventEmitter {
   _pumpQueue() {
     if (!this.connected) return;
     if (this.inFlight >= this.maxInFlight) return;
+
+    if (this._versionMismatchError) {
+      const err = this._versionMismatchError;
+      while (this.sendQueue.length) {
+        const task = this.sendQueue.shift();
+        try {
+          task.outerReject(err);
+        } catch {}
+      }
+      return;
+    }
+
     const task = this.sendQueue.shift();
     if (!task) return;
 
@@ -447,6 +468,8 @@ export class UnityConnection extends EventEmitter {
       `[Unity] Parsed response id=${response?.id || 'n/a'} status=${response?.status || (response?.success === false ? 'error' : 'success')}`
     );
 
+    this._checkVersionCompatibility(response);
+
     const id = response?.id != null ? String(response.id) : null;
 
     const hasExplicitPending = id && this.pendingCommands.has(id);
@@ -470,10 +493,15 @@ export class UnityConnection extends EventEmitter {
             logger.warning(`[Unity] Failed to parse result as JSON: ${parseError.message}`);
           }
         }
-        if (response.version) result._version = response.version;
+        const responseVersion = response?.version || response?.editorState?.version;
+        if (responseVersion && result._version == null) result._version = responseVersion;
         if (response.editorState) result._editorState = response.editorState;
-        logger.info(`[Unity] Command ${targetId} resolved successfully`);
-        pending.resolve(result);
+        if (this._versionMismatchError) {
+          pending.reject(this._versionMismatchError);
+        } else {
+          logger.info(`[Unity] Command ${targetId} resolved successfully`);
+          pending.resolve(result);
+        }
       } else if (response.status === 'error' || response.success === false) {
         logger.error(`[Unity] Command ${targetId} failed:`, response.error);
         const err = new Error(response.error || 'Command failed');
@@ -489,6 +517,47 @@ export class UnityConnection extends EventEmitter {
     // Unsolicited message
     logger.debug(`[Unity] Received unsolicited message id=${response?.id || 'n/a'}`);
     this.emit('message', response);
+  }
+
+  _checkVersionCompatibility(response) {
+    if (this._versionCompatibilityChecked) return;
+
+    const policy = String(config?.compat?.versionMismatch || 'warn')
+      .trim()
+      .toLowerCase();
+    if (policy === 'off') {
+      this._versionCompatibilityChecked = true;
+      return;
+    }
+
+    const unityVersionRaw = response?.version ?? response?.editorState?.version;
+    if (typeof unityVersionRaw !== 'string') return;
+    const unityVersion = unityVersionRaw.trim();
+    if (!unityVersion || unityVersion.toLowerCase() === 'unknown') return;
+
+    const nodeVersion = String(config?.server?.version || '').trim();
+    if (!nodeVersion || nodeVersion.toLowerCase() === 'unknown') {
+      this._versionCompatibilityChecked = true;
+      return;
+    }
+
+    this._unityPackageVersion = unityVersion;
+    this._versionCompatibilityChecked = true;
+
+    if (unityVersion === nodeVersion) return;
+
+    const message =
+      `Version mismatch detected: Node package v${nodeVersion} != Unity package v${unityVersion}. ` +
+      `Update @akiojin/unity-mcp-server or the Unity UPM package so they match.`;
+
+    if (policy === 'error') {
+      const err = new Error(message);
+      err.code = 'UNITY_VERSION_MISMATCH';
+      this._versionMismatchError = err;
+      logger.error(message);
+    } else {
+      logger.warning(`${message} (Set UNITY_MCP_VERSION_MISMATCH=error to fail fast.)`);
+    }
   }
 
   /**
