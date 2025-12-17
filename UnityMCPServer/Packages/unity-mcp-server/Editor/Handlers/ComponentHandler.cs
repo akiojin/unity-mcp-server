@@ -666,7 +666,123 @@ namespace UnityMCPServer.Handlers
             }
         }
 
+        /// <summary>
+        /// Gets available component types in the current Unity project.
+        /// Intended for discovery/autocomplete in MCP clients.
+        /// </summary>
+        public static object GetComponentTypes(JObject parameters)
+        {
+            try
+            {
+                string categoryFilter = parameters["category"]?.ToString();
+                string search = parameters["search"]?.ToString();
+                bool onlyAddable = parameters["onlyAddable"]?.ToObject<bool>() ?? false;
+
+                var types = TypeCache.GetTypesDerivedFrom<Component>();
+
+                var categories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var componentTypes = new List<string>();
+
+                foreach (var type in types)
+                {
+                    if (type == null) continue;
+                    if (!type.IsClass || type.IsAbstract) continue;
+
+                    if (onlyAddable)
+                    {
+                        // Unity disallows adding these built-in transform components via AddComponent.
+                        if (type == typeof(Transform) || type == typeof(RectTransform))
+                        {
+                            continue;
+                        }
+
+                        // Exclude editor-only component-like types (best-effort).
+                        if (!string.IsNullOrEmpty(type.Namespace) &&
+                            type.Namespace.StartsWith("UnityEditor", StringComparison.Ordinal))
+                        {
+                            continue;
+                        }
+                    }
+
+                    var category = GetComponentTypeCategory(type);
+                    categories.Add(category);
+
+                    if (!string.IsNullOrEmpty(categoryFilter) &&
+                        !string.Equals(category, categoryFilter, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (!string.IsNullOrEmpty(search))
+                    {
+                        var name = type.Name ?? string.Empty;
+                        var fullName = type.FullName ?? string.Empty;
+                        if (name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0 &&
+                            fullName.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0)
+                        {
+                            continue;
+                        }
+                    }
+
+                    componentTypes.Add(type.Name);
+                }
+
+                componentTypes.Sort(StringComparer.OrdinalIgnoreCase);
+
+                return new
+                {
+                    componentTypes,
+                    totalCount = componentTypes.Count,
+                    categories = categories.OrderBy(c => c, StringComparer.OrdinalIgnoreCase).ToArray(),
+                    searchTerm = string.IsNullOrEmpty(search) ? null : search,
+                    onlyAddable = onlyAddable
+                };
+            }
+            catch (Exception ex)
+            {
+                McpLogger.LogError("ComponentHandler", $"Error in GetComponentTypes: {ex.Message}");
+                return new { error = $"Failed to get component types: {ex.Message}" };
+            }
+        }
+
         #region Helper Methods
+
+        private static string GetComponentTypeCategory(Type type)
+        {
+            var ns = type.Namespace ?? string.Empty;
+            var name = type.Name ?? string.Empty;
+
+            if (ns.Contains(".UI") ||
+                ns.Contains("UIElements") ||
+                name.Contains("Canvas") ||
+                name.Contains("RectTransform") ||
+                name.Contains("EventSystem") ||
+                name.Contains("Graphic") ||
+                name.Contains("Button") ||
+                name.Contains("Text"))
+            {
+                return "UI";
+            }
+
+            if (ns.Contains("Physics") ||
+                name.Contains("Collider") ||
+                name.Contains("Rigidbody") ||
+                name.Contains("Joint") ||
+                name.Contains("CharacterController"))
+            {
+                return "Physics";
+            }
+
+            if (ns.Contains("Rendering") ||
+                name.Contains("Renderer") ||
+                name.Contains("Camera") ||
+                name.Contains("Light"))
+            {
+                return "Rendering";
+            }
+
+            return "Other";
+        }
 
         /// <summary>
         /// Resolves a component type from string name

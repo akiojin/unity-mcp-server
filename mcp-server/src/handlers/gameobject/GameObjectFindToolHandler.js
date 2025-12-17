@@ -1,13 +1,13 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 /**
- * Handler for the gameobject_find tool
+ * Handler for the find_gameobject tool
  * Finds GameObjects in Unity scene by various criteria
  */
 export class GameObjectFindToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'gameobject_find',
+      'find_gameobject',
       'Find GameObjects by name, tag, or layer with optional exact matching.',
       {
         type: 'object',
@@ -46,6 +46,18 @@ export class GameObjectFindToolHandler extends BaseToolHandler {
   validate(params) {
     super.validate(params);
 
+    if (params.name !== undefined && typeof params.name !== 'string') {
+      throw new Error('name must be a string');
+    }
+
+    if (params.tag !== undefined && typeof params.tag !== 'string') {
+      throw new Error('tag must be a string');
+    }
+
+    if (params.exactMatch !== undefined && typeof params.exactMatch !== 'boolean') {
+      throw new Error('exactMatch must be a boolean');
+    }
+
     // At least one search criteria must be provided
     if (!params.name && !params.tag && params.layer === undefined) {
       throw new Error('At least one search criteria (name, tag, or layer) must be provided');
@@ -53,9 +65,11 @@ export class GameObjectFindToolHandler extends BaseToolHandler {
 
     // Validate layer
     if (params.layer !== undefined) {
-      const layer = Number(params.layer);
-      if (isNaN(layer) || layer < 0 || layer > 31) {
-        throw new Error('layer must be a number between 0 and 31');
+      if (typeof params.layer !== 'number') {
+        throw new Error('layer must be a number');
+      }
+      if (params.layer < 0 || params.layer > 31) {
+        throw new Error('layer must be between 0 and 31');
       }
     }
   }

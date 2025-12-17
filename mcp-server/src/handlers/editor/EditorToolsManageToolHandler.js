@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class EditorToolsManageToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'editor_tools_manage',
+      'manage_tools',
       'Manage editor tools/plugins: list, activate/deactivate, refresh cache.',
       {
         type: 'object',

@@ -1,8 +1,8 @@
 /**
- * Tool definition for analysis_component_find
+ * Tool definition for find_by_component
  */
 export const findByComponentToolDefinition = {
-  name: 'analysis_component_find',
+  name: 'find_by_component',
   description: 'Find GameObjects that have a specific component type (scene/prefabs/all).',
   inputSchema: {
     type: 'object',

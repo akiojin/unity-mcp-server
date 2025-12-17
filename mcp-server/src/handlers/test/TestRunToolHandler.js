@@ -8,7 +8,7 @@ import * as testRunState from '../../utils/testRunState.js';
  */
 export class TestRunToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('test_run', 'Run Unity NUnit tests in the current project', {
+    super('run_tests', 'Run Unity NUnit tests in the current project', {
       type: 'object',
       properties: {
         testMode: {

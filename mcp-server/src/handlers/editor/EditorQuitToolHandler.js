@@ -5,7 +5,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class EditorQuitToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('editor_quit', 'Quit Unity Editor', {
+    super('quit_editor', 'Quit Unity Editor', {
       type: 'object',
       properties: {}
     });

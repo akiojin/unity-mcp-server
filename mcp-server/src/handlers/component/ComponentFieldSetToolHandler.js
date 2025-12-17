@@ -142,7 +142,7 @@ function isPlainObject(value) {
 export class ComponentFieldSetToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'component_field_set',
+      'set_component_field',
       'Update a serialized field on a component (scene hierarchy, prefab stage, or prefab asset).',
       {
         type: 'object',

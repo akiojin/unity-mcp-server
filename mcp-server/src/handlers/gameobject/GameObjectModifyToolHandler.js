@@ -2,13 +2,13 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { validateVector3, validateLayer, validateGameObjectPath } from '../../utils/validators.js';
 
 /**
- * Handler for the gameobject_modify tool
+ * Handler for the modify_gameobject tool
  * Modifies properties of existing GameObjects
  */
 export class GameObjectModifyToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'gameobject_modify',
+      'modify_gameobject',
       'Modify GameObject properties (transform/name/parent/active/tag/layer).',
       {
         type: 'object',

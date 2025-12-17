@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class VideoCaptureStartToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'video_capture_start',
+      'capture_video_start',
       'Start video recording (Game view). Requires com.unity.recorder.',
       {
         type: 'object',

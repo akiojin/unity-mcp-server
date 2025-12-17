@@ -2,7 +2,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 export class UISimulateInputToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('ui_simulate_input', 'Simulate complex UI interactions and input sequences', {
+    super('simulate_ui_input', 'Simulate complex UI interactions and input sequences', {
       type: 'object',
       properties: {
         // Option 1: Simple single input

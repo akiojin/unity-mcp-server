@@ -1,8 +1,8 @@
 /**
- * Tool definition for scene_load
+ * Tool definition for load_scene
  */
 export const loadSceneToolDefinition = {
-  name: 'scene_load',
+  name: 'load_scene',
   description: 'Load a scene in Unity',
   inputSchema: {
     type: 'object',
@@ -85,7 +85,7 @@ export async function loadSceneHandler(unityConnection, args) {
     }
 
     // Send command to Unity
-    const result = await unityConnection.sendCommand('scene_load', args);
+    const result = await unityConnection.sendCommand('load_scene', args);
 
     // Handle Unity response
     if (result.status === 'error') {

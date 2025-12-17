@@ -5,7 +5,7 @@ import {
 } from '../../tools/analysis/getComponentValues.js';
 
 /**
- * Handler for the analysis_component_values_get tool
+ * Handler for the get_component_values tool
  */
 export class GetComponentValuesToolHandler extends BaseToolHandler {
   constructor(unityConnection) {

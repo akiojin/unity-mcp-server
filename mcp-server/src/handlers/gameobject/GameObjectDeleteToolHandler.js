@@ -1,13 +1,13 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 /**
- * Handler for the gameobject_delete tool
+ * Handler for the delete_gameobject tool
  * Deletes GameObjects from the Unity scene
  */
 export class GameObjectDeleteToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'gameobject_delete',
+      'delete_gameobject',
       'Delete GameObject(s) by path or paths (optionally include children).',
       {
         type: 'object',

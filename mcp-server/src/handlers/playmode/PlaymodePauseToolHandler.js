@@ -1,11 +1,11 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 /**
- * Handler for the playmode_pause tool
+ * Handler for the pause_game tool
  */
 export class PlaymodePauseToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('playmode_pause', 'Pause or resume Unity play mode', {
+    super('pause_game', 'Pause or resume Unity play mode', {
       type: 'object',
       properties: {},
       required: []

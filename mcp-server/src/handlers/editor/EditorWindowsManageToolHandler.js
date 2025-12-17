@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export class EditorWindowsManageToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'editor_windows_manage',
+      'manage_windows',
       'Manage editor windows: list/focus/get_state including hidden windows.',
       {
         type: 'object',

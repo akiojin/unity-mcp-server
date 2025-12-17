@@ -2,11 +2,11 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { extractEditorState } from '../../utils/editorState.js';
 
 /**
- * Handler for the playmode_stop tool
+ * Handler for the stop_game tool
  */
 export class PlaymodeStopToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('playmode_stop', 'Exit Play Mode and return to Edit Mode.', {
+    super('stop_game', 'Exit Play Mode and return to Edit Mode.', {
       type: 'object',
       properties: {},
       required: []
