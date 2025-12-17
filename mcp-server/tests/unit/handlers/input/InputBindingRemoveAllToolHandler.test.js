@@ -19,7 +19,7 @@ describe('InputBindingRemoveAllToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'remove_input_binding_all');
+      assert.equal(handler.name, 'remove_all_bindings');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('Binding'));
     });

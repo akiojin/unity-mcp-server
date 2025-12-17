@@ -221,33 +221,33 @@ namespace UnityMCPServer.Handlers
 
                     SaveRunState("running");
 
-                    return new
-                    {
-                        status = "running",
-                        message = "Test execution in progress",
-                        testMode = currentTestMode,
-                        runId = currentRunId,
-                        source = "test_run",
-                        elapsedSeconds = runStartedAtUtc.HasValue ? (DateTime.UtcNow - runStartedAtUtc.Value).TotalSeconds : (double?)null
-                    };
-                }
+	                    return new
+	                    {
+	                        status = "running",
+	                        message = "Test execution in progress",
+	                        testMode = currentTestMode,
+	                        runId = currentRunId,
+	                        source = "run_tests",
+	                        elapsedSeconds = runStartedAtUtc.HasValue ? (DateTime.UtcNow - runStartedAtUtc.Value).TotalSeconds : (double?)null
+	                    };
+	                }
 
                 if (currentCollector == null)
                 {
                     var persisted = LoadRunState();
                     if (persisted != null && persisted.status == "running")
                     {
-                        return new
-                        {
-                            status = "running",
-                            message = "Test execution in progress (persisted state)",
-                            testMode = persisted.testMode,
-                            runId = persisted.runId,
-                            source = "test_run",
-                            persisted = true,
-                            elapsedSeconds = persisted.runStartedAt.HasValue ? (DateTime.UtcNow - persisted.runStartedAt.Value).TotalSeconds : (double?)null
-                        };
-                    }
+	                        return new
+	                        {
+	                            status = "running",
+	                            message = "Test execution in progress (persisted state)",
+	                            testMode = persisted.testMode,
+	                            runId = persisted.runId,
+	                            source = "run_tests",
+	                            persisted = true,
+	                            elapsedSeconds = persisted.runStartedAt.HasValue ? (DateTime.UtcNow - persisted.runStartedAt.Value).TotalSeconds : (double?)null
+	                        };
+	                    }
 
                     return new
                     {
