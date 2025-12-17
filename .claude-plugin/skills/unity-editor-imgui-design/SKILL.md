@@ -9,9 +9,9 @@ allowed-tools:
   - mcp__unity-mcp-server__script_search
   - mcp__unity-mcp-server__script_symbols_get
   - mcp__unity-mcp-server__script_symbol_find
-  - mcp__unity-mcp-server__asset_database_manage
-  - mcp__unity-mcp-server__menu_item_execute
-  - mcp__unity-mcp-server__compilation_get_state
+  - mcp__unity-mcp-server__manage_asset_database
+  - mcp__unity-mcp-server__execute_menu_item
+  - mcp__unity-mcp-server__get_compilation_state
 ---
 
 # Unity Editor IMGUI Design Skill
