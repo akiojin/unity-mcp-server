@@ -492,6 +492,16 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { gameObjectName: SMOKE_GO_NAME },
         { timeoutMs: 60_000 }
       );
+      await safeCall(
+        'get_animator_state',
+        { gameObjectName: SMOKE_GO_NAME },
+        { timeoutMs: 60_000 }
+      );
+      await safeCall(
+        'get_animator_runtime_info',
+        { gameObjectName: SMOKE_GO_NAME },
+        { timeoutMs: 60_000 }
+      );
 
       // Component operations against the smoke GameObject
       await safeCall(

@@ -1,6 +1,6 @@
-// Tool definition for analysis_animator_state_get
+// Tool definition for get_animator_state
 export const getAnimatorStateToolDefinition = {
-  name: 'analysis_animator_state_get',
+  name: 'get_animator_state',
   description: 'Get Animator state: layers, transitions, and parameter values for a GameObject.',
   inputSchema: {
     type: 'object',
@@ -39,9 +39,9 @@ export const getAnimatorStateToolDefinition = {
   }
 };
 
-// Tool definition for analysis_animator_runtime_info_get
+// Tool definition for get_animator_runtime_info
 export const getAnimatorRuntimeInfoToolDefinition = {
-  name: 'analysis_animator_runtime_info_get',
+  name: 'get_animator_runtime_info',
   description: 'Get Animator runtime info (IK, root motion, performance) — Play mode only.',
   inputSchema: {
     type: 'object',

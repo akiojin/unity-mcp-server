@@ -145,7 +145,7 @@
     }
   },
   {
-    "name": "analysis_animator_runtime_info_get",
+    "name": "get_animator_runtime_info",
     "description": "Get Animator runtime info (IK, root motion, performance) — Play mode only.",
     "inputSchema": {
       "type": "object",
@@ -176,7 +176,7 @@
     }
   },
   {
-    "name": "analysis_animator_state_get",
+    "name": "get_animator_state",
     "description": "Get Animator state: layers, transitions, and parameter values for a GameObject.",
     "inputSchema": {
       "type": "object",
