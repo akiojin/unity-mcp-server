@@ -34,3 +34,4 @@
 | `SPEC-e7c9b50c` | [Unity Test Execution（ユニットテスト実行）機能](SPEC-e7c9b50c/spec.md) | 完了 | 2025-10-17 |
 | `SPEC-e8f7a2c1` | [シーン分析・デバッグ機能](SPEC-e8f7a2c1/spec.md) | 完了 | 2025-10-17 |
 | `SPEC-e9854a10` | SPEC-e9854a10 | - | - |
+| `SPEC-f9db125c` | [Node/Unityパッケージversion不一致検出](SPEC-f9db125c/spec.md) | 実装完了 | 2025-12-17 |
