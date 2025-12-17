@@ -8,7 +8,9 @@ describe('AnalyzeSceneContentsToolHandler', () => {
   let mockConnection;
 
   beforeEach(() => {
-    mockConnection = createMockUnityConnection({ sendCommandResult: { success: true } });
+    mockConnection = createMockUnityConnection({
+      sendCommandResult: { summary: 'Scene analysis complete' }
+    });
     handler = new AnalyzeSceneContentsToolHandler(mockConnection);
   });
 
@@ -28,10 +30,17 @@ describe('AnalyzeSceneContentsToolHandler', () => {
       await assert.rejects(async () => await handler.execute({}), /Unity connection not available/);
     });
 
-    it('should execute when Unity connected', async () => {
+    it('should call analyze_scene_contents in Unity', async () => {
       mockConnection.isConnected.mock.mockImplementation(() => true);
-      // Execution depends on tool handler implementation
-      assert.ok(handler.execute);
+
+      const result = await handler.execute({
+        groupByType: true,
+        includeInactive: true
+      });
+
+      assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'analyze_scene_contents');
+      assert.equal(result.isError, false);
     });
   });
 

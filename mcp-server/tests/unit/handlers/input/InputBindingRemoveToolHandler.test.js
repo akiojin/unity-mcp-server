@@ -92,7 +92,7 @@ describe('InputBindingRemoveToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_binding_remove');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'remove_input_binding');
 
       assert.ok(result);
       assert.ok(result.content);

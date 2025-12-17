@@ -48,10 +48,23 @@ export async function findByComponentHandler(unityConnection, args) {
     }
 
     // Send command to Unity
-    const result = await unityConnection.sendCommand('analysis_component_find', args);
+    const result = await unityConnection.sendCommand('find_by_component', args);
 
-    // Handle Unity response
-    if (result.status === 'error') {
+    // The unityConnection.sendCommand already extracts the result field
+    // from the response, so we access properties directly on result
+    if (!result || typeof result === 'string') {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Failed to find GameObjects: Invalid response format`
+          }
+        ],
+        isError: true
+      };
+    }
+
+    if (result.error) {
       return {
         content: [
           {
@@ -63,12 +76,14 @@ export async function findByComponentHandler(unityConnection, args) {
       };
     }
 
+    const summary = result.summary || `Found ${result.totalFound ?? 0} GameObjects`;
+
     // Success response
     return {
       content: [
         {
           type: 'text',
-          text: result.result.summary || `Found ${result.result.totalFound} GameObjects`
+          text: summary
         }
       ],
       isError: false

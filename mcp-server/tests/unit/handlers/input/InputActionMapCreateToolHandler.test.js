@@ -81,10 +81,7 @@ describe('InputActionMapCreateToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(
-        mockConnection.sendCommand.mock.calls[0].arguments[0],
-        'input_action_map_create'
-      );
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'create_action_map');
 
       assert.ok(result);
       assert.ok(result.content);

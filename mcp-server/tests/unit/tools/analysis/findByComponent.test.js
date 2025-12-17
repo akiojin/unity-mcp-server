@@ -12,34 +12,31 @@ describe('FindByComponentTool', () => {
   beforeEach(() => {
     sendCommandSpy = mock.fn(() =>
       Promise.resolve({
-        status: 'success',
-        result: {
-          componentType: 'Light',
-          searchScope: 'scene',
-          results: [
-            {
-              gameObject: 'Directional Light',
-              path: '/Directional Light',
-              componentCount: 1,
-              isActive: true
-            },
-            {
-              gameObject: 'Point Light',
-              path: '/Lights/Point Light',
-              componentCount: 1,
-              isActive: true
-            },
-            {
-              gameObject: 'Spot Light',
-              path: '/Lights/Spot Light',
-              componentCount: 1,
-              isActive: false
-            }
-          ],
-          totalFound: 3,
-          activeCount: 2,
-          summary: 'Found 3 GameObjects with Light component (2 active)'
-        }
+        componentType: 'Light',
+        searchScope: 'scene',
+        results: [
+          {
+            gameObject: 'Directional Light',
+            path: '/Directional Light',
+            componentCount: 1,
+            isActive: true
+          },
+          {
+            gameObject: 'Point Light',
+            path: '/Lights/Point Light',
+            componentCount: 1,
+            isActive: true
+          },
+          {
+            gameObject: 'Spot Light',
+            path: '/Lights/Spot Light',
+            componentCount: 1,
+            isActive: false
+          }
+        ],
+        totalFound: 3,
+        activeCount: 2,
+        summary: 'Found 3 GameObjects with Light component (2 active)'
       })
     );
 
@@ -79,7 +76,7 @@ describe('FindByComponentTool', () => {
     const result = await findByComponentHandler(mockUnityConnection, args);
 
     assert.equal(sendCommandSpy.mock.calls.length, 1);
-    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'analysis_component_find');
+    assert.equal(sendCommandSpy.mock.calls[0].arguments[0], 'find_by_component');
     assert.deepEqual(sendCommandSpy.mock.calls[0].arguments[1], args);
 
     assert.equal(result.isError, false);
@@ -97,30 +94,27 @@ describe('FindByComponentTool', () => {
 
     sendCommandSpy.mock.mockImplementation(() =>
       Promise.resolve({
-        status: 'success',
-        result: {
-          componentType: 'Collider',
-          searchScope: 'prefabs',
-          results: [
-            {
-              gameObject: 'PlayerPrefab',
-              path: 'Assets/Prefabs/PlayerPrefab.prefab',
-              componentCount: 2,
-              isActive: true,
-              componentTypes: ['BoxCollider', 'CapsuleCollider']
-            },
-            {
-              gameObject: 'EnemyPrefab',
-              path: 'Assets/Prefabs/EnemyPrefab.prefab',
-              componentCount: 1,
-              isActive: true,
-              componentTypes: ['SphereCollider']
-            }
-          ],
-          totalFound: 2,
-          activeCount: 2,
-          summary: 'Found 2 prefabs with Collider-derived components'
-        }
+        componentType: 'Collider',
+        searchScope: 'prefabs',
+        results: [
+          {
+            gameObject: 'PlayerPrefab',
+            path: 'Assets/Prefabs/PlayerPrefab.prefab',
+            componentCount: 2,
+            isActive: true,
+            componentTypes: ['BoxCollider', 'CapsuleCollider']
+          },
+          {
+            gameObject: 'EnemyPrefab',
+            path: 'Assets/Prefabs/EnemyPrefab.prefab',
+            componentCount: 1,
+            isActive: true,
+            componentTypes: ['SphereCollider']
+          }
+        ],
+        totalFound: 2,
+        activeCount: 2,
+        summary: 'Found 2 prefabs with Collider-derived components'
       })
     );
 
@@ -140,37 +134,34 @@ describe('FindByComponentTool', () => {
 
     sendCommandSpy.mock.mockImplementation(() =>
       Promise.resolve({
-        status: 'success',
-        result: {
-          componentType: 'Renderer',
-          searchScope: 'scene',
-          results: [
-            {
-              gameObject: 'Cube',
-              path: '/Cube',
-              componentCount: 1,
-              isActive: true,
-              componentTypes: ['MeshRenderer']
-            },
-            {
-              gameObject: 'Sphere',
-              path: '/Sphere',
-              componentCount: 1,
-              isActive: true,
-              componentTypes: ['MeshRenderer']
-            },
-            {
-              gameObject: 'Particles',
-              path: '/Effects/Particles',
-              componentCount: 1,
-              isActive: true,
-              componentTypes: ['ParticleSystemRenderer']
-            }
-          ],
-          totalFound: 3,
-          activeCount: 3,
-          summary: 'Found 3 GameObjects with Renderer-derived components'
-        }
+        componentType: 'Renderer',
+        searchScope: 'scene',
+        results: [
+          {
+            gameObject: 'Cube',
+            path: '/Cube',
+            componentCount: 1,
+            isActive: true,
+            componentTypes: ['MeshRenderer']
+          },
+          {
+            gameObject: 'Sphere',
+            path: '/Sphere',
+            componentCount: 1,
+            isActive: true,
+            componentTypes: ['MeshRenderer']
+          },
+          {
+            gameObject: 'Particles',
+            path: '/Effects/Particles',
+            componentCount: 1,
+            isActive: true,
+            componentTypes: ['ParticleSystemRenderer']
+          }
+        ],
+        totalFound: 3,
+        activeCount: 3,
+        summary: 'Found 3 GameObjects with Renderer-derived components'
       })
     );
 
@@ -183,15 +174,12 @@ describe('FindByComponentTool', () => {
   it('should handle no results found', async () => {
     sendCommandSpy.mock.mockImplementation(() =>
       Promise.resolve({
-        status: 'success',
-        result: {
-          componentType: 'CustomScript',
-          searchScope: 'scene',
-          results: [],
-          totalFound: 0,
-          activeCount: 0,
-          summary: 'No GameObjects found with CustomScript component'
-        }
+        componentType: 'CustomScript',
+        searchScope: 'scene',
+        results: [],
+        totalFound: 0,
+        activeCount: 0,
+        summary: 'No GameObjects found with CustomScript component'
       })
     );
 
@@ -217,7 +205,6 @@ describe('FindByComponentTool', () => {
   it('should handle error response', async () => {
     sendCommandSpy.mock.mockImplementation(() =>
       Promise.resolve({
-        status: 'error',
         error: 'Invalid component type: NonExistentComponent'
       })
     );
@@ -238,7 +225,6 @@ describe('FindByComponentTool', () => {
 
     sendCommandSpy.mock.mockImplementation(() =>
       Promise.resolve({
-        status: 'error',
         error: 'Invalid searchScope. Must be one of: scene, prefabs, all'
       })
     );
@@ -270,32 +256,29 @@ describe('FindByComponentTool', () => {
 
     sendCommandSpy.mock.mockImplementation(() =>
       Promise.resolve({
-        status: 'success',
-        result: {
-          componentType: 'AudioSource',
-          searchScope: 'all',
-          results: [
-            {
-              gameObject: 'BackgroundMusic',
-              path: '/Audio/BackgroundMusic',
-              componentCount: 1,
-              isActive: true,
-              location: 'scene'
-            },
-            {
-              gameObject: 'PlayerPrefab',
-              path: 'Assets/Prefabs/PlayerPrefab.prefab',
-              componentCount: 2,
-              isActive: true,
-              location: 'prefab'
-            }
-          ],
-          totalFound: 2,
-          activeCount: 2,
-          sceneCount: 1,
-          prefabCount: 1,
-          summary: 'Found 2 GameObjects with AudioSource component (1 in scene, 1 in prefabs)'
-        }
+        componentType: 'AudioSource',
+        searchScope: 'all',
+        results: [
+          {
+            gameObject: 'BackgroundMusic',
+            path: '/Audio/BackgroundMusic',
+            componentCount: 1,
+            isActive: true,
+            location: 'scene'
+          },
+          {
+            gameObject: 'PlayerPrefab',
+            path: 'Assets/Prefabs/PlayerPrefab.prefab',
+            componentCount: 2,
+            isActive: true,
+            location: 'prefab'
+          }
+        ],
+        totalFound: 2,
+        activeCount: 2,
+        sceneCount: 1,
+        prefabCount: 1,
+        summary: 'Found 2 GameObjects with AudioSource component (1 in scene, 1 in prefabs)'
       })
     );
 

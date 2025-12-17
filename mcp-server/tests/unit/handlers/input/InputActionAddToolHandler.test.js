@@ -80,7 +80,7 @@ describe('InputActionAddToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_action_add');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'add_input_action');
 
       assert.ok(result);
       assert.ok(result.content);

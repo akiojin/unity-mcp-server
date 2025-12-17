@@ -75,7 +75,7 @@ export async function getInputActionsStateHandler(unityConnection, args) {
     }
 
     // Send command to Unity
-    const result = await unityConnection.sendCommand('input_actions_state_get', args);
+    const result = await unityConnection.sendCommand('get_input_actions_state', args);
 
     // Check for errors
     if (!result || typeof result === 'string') {
@@ -216,7 +216,7 @@ export async function analyzeInputActionsAssetHandler(unityConnection, args) {
     }
 
     // Send command to Unity
-    const result = await unityConnection.sendCommand('input_actions_asset_analyze', args);
+    const result = await unityConnection.sendCommand('analyze_input_actions_asset', args);
 
     // Check for errors
     if (!result || typeof result === 'string') {

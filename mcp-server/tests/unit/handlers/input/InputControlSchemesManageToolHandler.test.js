@@ -99,10 +99,7 @@ describe('InputControlSchemesManageToolHandler', () => {
       });
 
       assert.equal(mockConnection.sendCommand.mock.calls.length, 1);
-      assert.equal(
-        mockConnection.sendCommand.mock.calls[0].arguments[0],
-        'input_control_schemes_manage'
-      );
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'manage_control_schemes');
 
       assert.ok(result);
       assert.ok(result.content);

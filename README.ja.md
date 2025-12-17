@@ -20,11 +20,11 @@ Unity MCP Server は、LLMクライアントからUnity Editorを自動化しま
 
 コードインデックスツールは標準ファイル操作を上回る性能を発揮:
 
-| 操作 | コードインデックスツール | 標準ツール | 優位性 |
-|------|------------------------|------------|--------|
-| シンボル検索 | `script_symbol_find` | `grep` | **瞬時** vs 350ms |
-| 参照検索 | `script_refs_find` | `grep` | **構造化**された結果 |
-| コード検索 | `script_search` | `grep` | **3〜5倍小さい**レスポンス |
+| 操作         | コードインデックスツール | 標準ツール | 優位性                     |
+| ------------ | ------------------------ | ---------- | -------------------------- |
+| シンボル検索 | `script_symbol_find`     | `grep`     | **瞬時** vs 350ms          |
+| 参照検索     | `script_refs_find`       | `grep`     | **構造化**された結果       |
+| コード検索   | `script_search`          | `grep`     | **3〜5倍小さい**レスポンス |
 
 主な利点:
 
@@ -128,12 +128,16 @@ Unity MCP Server は **100+ ツール**を提供します。`search_tools` を�
 
 ### 利用可能なスキル
 
-| スキル | 説明 | トリガーキーワード |
-|--------|------|-------------------|
-| `unity-csharp-editing` | C#スクリプト編集、検索、TDDワークフローでのリファクタリング | "C#編集", "スクリプト検索", "リファクタリング" |
-| `unity-scene-management` | シーン、GameObject、コンポーネント管理 | "シーン作成", "GameObject", "コンポーネント追加" |
-| `unity-playmode-testing` | プレイモード制御、入力シミュレーション、UI自動化 | "プレイモード", "入力シミュレーション", "UIクリック" |
-| `unity-asset-management` | プレハブ、マテリアル、Addressables管理 | "プレハブ作成", "マテリアル", "Addressables" |
+| スキル                         | 説明                                                                                    | トリガーキーワード                                                |
+| ------------------------------ | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `mcp-server-development`       | MCPサーバー（TypeScript SDK）の開発、ツール/リソース/プロンプト実装、JSON-RPCパターン   | "MCPサーバー", "ツール実装", "JSON-RPC", "TypeScript"             |
+| `unity-csharp-editing`         | C#スクリプト編集、検索、TDDワークフローでのリファクタリング                             | "C#編集", "スクリプト検索", "リファクタリング"                    |
+| `unity-scene-management`       | シーン、GameObject、コンポーネント管理                                                  | "シーン作成", "GameObject", "コンポーネント追加"                  |
+| `unity-playmode-testing`       | プレイモード制御、入力シミュレーション、UI自動化                                        | "プレイモード", "入力シミュレーション", "UIクリック"              |
+| `unity-asset-management`       | プレハブ、マテリアル、Addressables管理                                                  | "プレハブ作成", "マテリアル", "Addressables"                      |
+| `unity-editor-imgui-design`    | Unity Editor拡張向けIMGUI（EditorWindow/Inspector/PropertyDrawer）※ゲームUI用途ではない | "EditorWindow", "カスタムインスペクタ", "PropertyDrawer", "IMGUI" |
+| `unity-game-ugui-design`       | ゲームUI向けuGUI（Canvas/RectTransform/Anchors）設計                                    | "uGUI", "Canvas", "RectTransform", "アンカー", "HUD"              |
+| `unity-game-ui-toolkit-design` | ゲームUI向けUI Toolkit（UXML/USS/Flexbox）設計                                          | "UI Toolkit", "UXML", "USS", "VisualElement", "Flexbox"           |
 
 ### インストール
 
