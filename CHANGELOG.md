@@ -10,6 +10,23 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [4.0.0](https://github.com/akiojin/unity-mcp-server/compare/v3.2.1...v4.0.0) (2025-12-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* tools/call no longer accepts legacy tool names.
+
+### Bug Fixes
+
+* 旧ツール名の漏れを解消 ([c422899](https://github.com/akiojin/unity-mcp-server/commit/c4228990cb3d32cc9accf0db5a121efa56146460))
+* 旧ツール名の漏れを解消 ([09cdedf](https://github.com/akiojin/unity-mcp-server/commit/09cdedf9855f05e1764d34bb1e82de18c6ce4dab))
+
+
+### Code Refactoring
+
+* remove legacy MCP tool aliases ([6325d6f](https://github.com/akiojin/unity-mcp-server/commit/6325d6f8b9611f2ae1a44ffdd17ee99a374405d6))
+
 ## [3.2.1](https://github.com/akiojin/unity-mcp-server/compare/v3.2.0...v3.2.1) (2025-12-16)
 
 
