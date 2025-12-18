@@ -43,7 +43,7 @@ namespace UnityMCPServer.Helpers
 
                     foreach (var assetPath in assetPathCandidates)
                     {
-                        var pkg = PackageInfo.FindForAssetPath(assetPath);
+                        var pkg = UnityEditor.PackageManager.PackageInfo.FindForAssetPath(assetPath);
                         if (pkg != null && !string.IsNullOrEmpty(pkg.version))
                         {
                             _cachedPackageVersion = pkg.version;
