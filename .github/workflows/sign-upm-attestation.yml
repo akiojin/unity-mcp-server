@@ -1,0 +1,95 @@
+name: Sign UPM Attestation
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sign-attestation:
+    name: Generate .attestation.p7m for OpenUPM
+    runs-on: ubuntu-latest
+    if: |
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'release-please--') &&
+      github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Skip if attestation already exists
+        id: exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -s "UnityMCPServer/Packages/unity-mcp-server/.attestation.p7m" ]; then
+            echo "present=true" >> $GITHUB_OUTPUT
+          else
+            echo "present=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Pack & sign Unity UPM package (Unity 6.3+)
+        if: steps.exists.outputs.present != 'true'
+        uses: game-ci/unity-builder@v4
+        with:
+          projectPath: UnityMCPServer
+          unityVersion: 6000.3.0f1
+          targetPlatform: StandaloneLinux64
+          buildMethod: UnityMCPServer.Editor.UpmSigning.UpmPackSigner.PackSignedFromCommandLine
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_CLOUD_ORG_ID: ${{ secrets.UNITY_CLOUD_ORG_ID }}
+
+      - name: Extract .attestation.p7m into package folder
+        if: steps.exists.outputs.present != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          PKG_NAME=$(node -p "require('./UnityMCPServer/Packages/unity-mcp-server/package.json').name")
+          PKG_VER=$(node -p "require('./UnityMCPServer/Packages/unity-mcp-server/package.json').version")
+          SAFE_NAME=$(node -p "process.argv[1].replace(/^@/,'').replaceAll('/','-')" "$PKG_NAME")
+          TGZ="dist/upm/${SAFE_NAME}-${PKG_VER}.tgz"
+
+          test -f "$TGZ" || { echo "Signed tgz not found: $TGZ" >&2; ls -la dist/upm || true; exit 1; }
+
+          ATT_PATH=$(tar -tzf "$TGZ" | grep -m1 -E '(^|/)\.attestation\.p7m$' || true)
+          test -n "$ATT_PATH" || { echo "Missing .attestation.p7m in $TGZ" >&2; exit 1; }
+
+          tar -xOzf "$TGZ" "$ATT_PATH" > "UnityMCPServer/Packages/unity-mcp-server/.attestation.p7m"
+          test -s "UnityMCPServer/Packages/unity-mcp-server/.attestation.p7m" || { echo "Extracted attestation is empty" >&2; exit 1; }
+
+      - name: Commit attestation to PR branch
+        if: steps.exists.outputs.present != 'true'
+        shell: bash
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add UnityMCPServer/Packages/unity-mcp-server/.attestation.p7m
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          PKG_VER=$(node -p "require('./UnityMCPServer/Packages/unity-mcp-server/package.json').version")
+          git commit -m "chore(upm-sign): add .attestation.p7m for v${PKG_VER}"
+          git push origin "HEAD:${BRANCH}"
