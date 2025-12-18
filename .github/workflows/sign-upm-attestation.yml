@@ -1,14 +1,7 @@
-name: Sign UPM Attestation
+name: Sign UPM Attestation (disabled)
 
 on:
-  pull_request_target:
-    branches:
-      - main
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -17,11 +10,9 @@ permissions:
 jobs:
   sign-attestation:
     name: Generate .attestation.p7m for OpenUPM
+    # OpenUPMの署名付き配布は現時点では見送りのため、このワークフローは無効化しています。
+    if: false
     runs-on: ubuntu-latest
-    if: |
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      startsWith(github.event.pull_request.head.ref, 'release-please--') &&
-      github.event.pull_request.draft == false
 
     steps:
       - name: Checkout PR head
