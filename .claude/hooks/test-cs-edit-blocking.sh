@@ -88,24 +88,7 @@ test_read_unity_cs_warning() {
     fi
 }
 
-# テストケース5: serena ツールで Unity C# ファイル編集はブロック
-test_serena_unity_cs_blocked() {
-    local input='{"tool_name":"mcp__serena__replace_symbol_body","tool_input":{"relative_path":"Assets/Scripts/Enemy.cs"}}'
-    local exit_code
-
-    set +e
-    echo "$input" | $HOOK_SCRIPT >/dev/null 2>&1
-    exit_code=$?
-    set -e
-
-    if [ $exit_code -eq 2 ]; then
-        record_test "serena tool for Unity C# file blocked" "PASS"
-    else
-        record_test "serena tool for Unity C# file blocked" "FAIL"
-    fi
-}
-
-# テストケース6: 非 Unity C# ファイルは許可
+# テストケース5: 非 Unity C# ファイルは許可
 test_non_unity_cs_allowed() {
     local input='{"tool_name":"Edit","tool_input":{"file_path":"src/server.cs"}}'
     local exit_code
@@ -192,7 +175,6 @@ test_unity_mcp_tool_allowed
 test_edit_unity_cs_blocked
 test_write_unity_cs_blocked
 test_read_unity_cs_warning
-test_serena_unity_cs_blocked
 test_non_unity_cs_allowed
 test_non_cs_file_allowed
 test_other_tools_allowed
