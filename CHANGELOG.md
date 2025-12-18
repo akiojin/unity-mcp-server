@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [4.1.2](https://github.com/akiojin/unity-mcp-server/compare/v4.1.1...v4.1.2) (2025-12-18)
+
+
+### Bug Fixes
+
+* **ci:** OpenUPM既存versionの署名有無を判定 ([9cdf13c](https://github.com/akiojin/unity-mcp-server/commit/9cdf13cbf953f27f6150a8e9566589870faa4fea))
+* **ci:** OpenUPM既存versionの署名有無を判定 ([dbc2bc8](https://github.com/akiojin/unity-mcp-server/commit/dbc2bc8b11a43c6a460543dc1468637d074a839b))
+
 ## [4.1.1](https://github.com/akiojin/unity-mcp-server/compare/v4.1.0...v4.1.1) (2025-12-18)
 
 
