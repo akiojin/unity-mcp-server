@@ -344,15 +344,57 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
+  openupm-precheck:
+    name: Check OpenUPM publish prerequisites
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+
+    steps:
+      - name: Check required secrets
+        id: check
+        shell: bash
+        env:
+          OPENUPM_TOKEN: ${{ secrets.OPENUPM_TOKEN }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_CLOUD_ORG_ID: ${{ secrets.UNITY_CLOUD_ORG_ID }}
+        run: |
+          set -euo pipefail
+
+          missing=0
+
+          if [ -z "${OPENUPM_TOKEN:-}" ]; then
+            echo "[skip] missing OPENUPM_TOKEN" >&2
+            missing=1
+          fi
+
+          if [ -z "${UNITY_CLOUD_ORG_ID:-}" ]; then
+            echo "[skip] missing UNITY_CLOUD_ORG_ID" >&2
+            missing=1
+          fi
+
+          if [ -z "${UNITY_LICENSE:-}" ]; then
+            if [ -z "${UNITY_EMAIL:-}" ] || [ -z "${UNITY_PASSWORD:-}" ] || [ -z "${UNITY_SERIAL:-}" ]; then
+              echo "[skip] missing Unity activation (UNITY_LICENSE or UNITY_EMAIL/UNITY_PASSWORD/UNITY_SERIAL)" >&2
+              missing=1
+            fi
+          fi
+
+          if [ "$missing" -eq 0 ]; then
+            echo "enabled=true" >> $GITHUB_OUTPUT
+          else
+            echo "enabled=false" >> $GITHUB_OUTPUT
+          fi
+
   openupm-publish:
     name: Publish to OpenUPM
-    needs: build-csharp-lsp
+    needs: [build-csharp-lsp, openupm-precheck]
     runs-on: ubuntu-latest
-    if: ${{ env.OPENUPM_TOKEN != '' && env.UNITY_LICENSE != '' && env.UNITY_CLOUD_ORG_ID != '' }}
+    if: needs.openupm-precheck.outputs.enabled == 'true'
     env:
-      OPENUPM_TOKEN: ${{ secrets.OPENUPM_TOKEN }}
-      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-      UNITY_CLOUD_ORG_ID: ${{ secrets.UNITY_CLOUD_ORG_ID }}
       RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
 
     steps:
