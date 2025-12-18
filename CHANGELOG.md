@@ -10,6 +10,13 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [4.1.1](https://github.com/akiojin/unity-mcp-server/compare/v4.1.0...v4.1.1) (2025-12-18)
+
+
+### Bug Fixes
+
+* **ci:** fix GitHub Actions workflow syntax error in publish.yml ([ffecd68](https://github.com/akiojin/unity-mcp-server/commit/ffecd689bc066071634aaab482c4eae77ec43d5b))
+
 ## [4.1.0](https://github.com/akiojin/unity-mcp-server/compare/v4.0.0...v4.1.0) (2025-12-17)
 
 
