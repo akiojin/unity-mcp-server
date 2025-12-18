@@ -1,48 +1,52 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityMCPServer.Settings
 {
-    internal static class UnityMcpServerSettingsProvider
+    internal class UnityMcpServerSettingsProvider : SettingsProvider
     {
         private const string SettingsPath = "Project/Unity MCP Server";
         private const string ServerScriptPath = "Packages/unity-mcp-server/Editor/Core/UnityMCPServer.cs";
 
-        [SettingsProvider]
-        public static SettingsProvider CreateProvider()
-        {
-            return new SettingsProvider(SettingsPath, SettingsScope.Project)
-            {
-                label = "Unity MCP Server",
-                guiHandler = _ => DrawGui(),
-                keywords = new HashSet<string>(new[] { "Unity", "MCP", "Server", "TCP", "Host", "Port" })
-            };
-        }
+        private SerializedObject _serializedSettings;
 
-        private static void DrawGui()
+        public UnityMcpServerSettingsProvider(string path, SettingsScope scopes)
+            : base(path, scopes) { }
+
+        public override void OnActivate(string searchContext, VisualElement rootElement)
         {
             var settings = UnityMcpServerProjectSettings.instance;
-            if (settings == null)
+            if (settings != null)
+            {
+                _serializedSettings = new SerializedObject(settings);
+            }
+        }
+
+        public override void OnGUI(string searchContext)
+        {
+            if (_serializedSettings == null || _serializedSettings.targetObject == null)
             {
                 EditorGUILayout.HelpBox("Failed to load Unity MCP Server settings.", MessageType.Error);
                 return;
             }
 
-            var so = new SerializedObject(settings);
-            so.Update();
+            _serializedSettings.Update();
 
             EditorGUILayout.LabelField("TCP Listener", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(so.FindProperty("unityHost"), new GUIContent("Host"));
-            EditorGUILayout.PropertyField(so.FindProperty("port"), new GUIContent("Port"));
+            EditorGUILayout.PropertyField(_serializedSettings.FindProperty("unityHost"), new GUIContent("Host"));
+            EditorGUILayout.PropertyField(_serializedSettings.FindProperty("port"), new GUIContent("Port"));
 
             EditorGUILayout.Space();
 
-            using (new EditorGUI.DisabledScope(!so.hasModifiedProperties))
+            using (new EditorGUI.DisabledScope(!_serializedSettings.hasModifiedProperties))
             {
                 if (GUILayout.Button("Apply & Restart"))
                 {
-                    so.ApplyModifiedProperties();
+                    _serializedSettings.ApplyModifiedProperties();
+
+                    var settings = (UnityMcpServerProjectSettings)_serializedSettings.targetObject;
                     settings.SaveProjectSettings(true);
 
                     UnityMCPServer.Core.UnityMCPServer.Restart();
@@ -50,6 +54,17 @@ namespace UnityMCPServer.Settings
                 }
             }
         }
+
+        [SettingsProvider]
+        public static SettingsProvider CreateProvider()
+{
+            return new UnityMcpServerSettingsProvider(SettingsPath, SettingsScope.Project)
+            {
+                label = "Unity MCP Server",
+                keywords = new HashSet<string>(new[] { "Unity", "MCP", "Server", "TCP", "Host", "Port" })
+            };
+        }
+        
 
         private static void TriggerReimport()
         {
