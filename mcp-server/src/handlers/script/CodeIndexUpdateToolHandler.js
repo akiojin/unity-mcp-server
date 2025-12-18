@@ -16,7 +16,7 @@ import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 export class CodeIndexUpdateToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'update_code_index',
+      'update_index',
       '[OFFLINE] No Unity connection required. Refresh code index entries for specific C# files. Use this after modifying files so script editing tools see the latest symbols.',
       {
         type: 'object',

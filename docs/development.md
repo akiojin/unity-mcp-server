@@ -80,13 +80,13 @@ MCP Client → Node MCP Server → C# LSP (Roslyn) → File System
 
 ```javascript
 // Symbol search
-find_script_symbol { "name": "ClassName", "kind": "class" }
+find_symbol { "name": "ClassName", "kind": "class" }
 
 // Reference search
-find_script_refs { "name": "MethodName" }
+find_refs { "name": "MethodName" }
 
 // Method body replacement (preflight → apply)
-edit_script_structured {
+edit_structured {
   "operation": "replace_body",
   "path": "Packages/.../File.cs",
   "symbolName": "Class/Method",
@@ -95,7 +95,7 @@ edit_script_structured {
 }
 
 // Class insertion
-edit_script_structured {
+edit_structured {
   "operation": "insert_after",
   "path": "...",
   "symbolName": "ClassName",
@@ -104,7 +104,7 @@ edit_script_structured {
 }
 
 // Snippet editing (≤80 chars)
-edit_script_snippet {
+edit_snippet {
   "path": "Assets/Scripts/Foo.cs",
   "instructions": [{
     "operation": "delete",
@@ -225,18 +225,18 @@ Guidelines for tool responses to minimize token usage:
 
 ### Safe Structured Edit Playbook
 
-1. **Locate symbols**: `get_script_symbols` or `find_script_symbol` (use `kind`/`exact`)
+1. **Locate symbols**: `get_symbols` or `find_symbol` (use `kind`/`exact`)
    - Use project-relative paths under `Assets/` or `Packages/` only
    - Build `namePath` like `Outer/Nested/Member` from results
 
-2. **Inspect minimal code**: `read_script` with 30-40 lines around symbol
+2. **Inspect minimal code**: `read` with 30-40 lines around symbol
 
 3. **Edit safely**:
-   - `edit_script_snippet`: ≤80-char changes with exact text anchors
-   - `edit_script_structured`: class/namespace insertions, method body replacements
+   - `edit_snippet`: ≤80-char changes with exact text anchors
+   - `edit_structured`: class/namespace insertions, method body replacements
    - Use `preview=true` only for high-risk edits
 
-4. **Optional refactor**: `rename_script_symbol`, `remove_script_symbol` with preflight
+4. **Optional refactor**: `rename_symbol`, `remove_symbol` with preflight
 
 5. **Verify**: Check compile state, re-read if needed
 
@@ -317,7 +317,7 @@ C#の探索/参照/構造化編集は、同梱の自己完結C# LSPで行いま�
 |-----------|---------|
 | 検索 | `pageSize≤20`, `maxBytes≤64KB` |
 | ヒエラルキー | `nameOnly=true`, `maxObjects 100-500` |
-| read_script | 対象の前後30-40行 |
+| read | 対象の前後30-40行 |
 
 ### Claude Code のトラブルシューティング
 

@@ -8,7 +8,7 @@ import { ProjectInfoProvider } from '../../core/projectInfo.js';
 export class ScriptRefsFindToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'find_script_refs',
+      'find_refs',
       '[OFFLINE] No Unity connection required. Find code references/usages using fast file-based search. LLM-friendly paging/summary: respects pageSize and maxBytes, caps matches per file (maxMatchesPerFile), and trims snippet text to ~400 chars. Use scope/name/kind/path to narrow results.',
       {
         type: 'object',
@@ -129,8 +129,8 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
         success: false,
         error: 'index_not_ready',
         message:
-          'Code index is not built. Run build_code_index first, or wait for auto-build to complete on server startup.',
-        hint: 'Use get_code_index_status to check index state, or build_code_index to start a build manually.'
+          'Code index is not built. Run build_index first, or wait for auto-build to complete on server startup.',
+        hint: 'Use get_index_status to check index state, or build_index to start a build manually.'
       };
     }
 

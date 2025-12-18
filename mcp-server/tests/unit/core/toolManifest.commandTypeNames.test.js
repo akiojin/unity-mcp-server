@@ -38,10 +38,16 @@ function isAllowedNonUnityToolName(name) {
   if (name === 'input_system_control') return true;
   if (name === 'playmode_wait_for_state') return true;
   if (name === 'video_capture_for') return true;
-  // Script tools (verb-first naming: read_script, edit_script_*, find_script_*, etc.)
-  if (name.includes('_script')) return true;
-  // Code index tools (verb-first naming: build_code_index, get_code_index_status, update_code_index)
-  if (name.includes('code_index')) return true;
+  // Script tools (simplified names: read, search, create_class, edit_*, list_packages, find_*, *_symbol)
+  if (name === 'read') return true;
+  if (name === 'search') return true;
+  if (name === 'create_class') return true;
+  if (name === 'list_packages') return true;
+  if (name === 'find_refs') return true;
+  if (name.startsWith('edit_')) return true;
+  if (name.endsWith('_symbol') || name === 'get_symbols') return true;
+  // Code index tools (simplified names: build_index, get_index_status, update_index)
+  if (name.endsWith('_index') || name === 'get_index_status') return true;
   return false;
 }
 

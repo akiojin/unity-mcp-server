@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "build_code_index Contract",
+  "title": "build_index Contract",
   "description": "MCP tool contract for background code index building",
-  "tool": "build_code_index",
+  "tool": "build_index",
   "request": {
     "type": "object",
     "properties": {
@@ -60,7 +60,7 @@
           },
           "checkStatus": {
             "type": "string",
-            "example": "Use get_code_index_status to check progress"
+            "example": "Use get_index_status to check progress"
           }
         },
         "required": ["success", "message", "jobId", "checkStatus"]
@@ -99,7 +99,7 @@
         "success": true,
         "message": "Code index build started in background",
         "jobId": "build-1730188800000-abc123",
-        "checkStatus": "Use get_code_index_status to check progress"
+        "checkStatus": "Use get_index_status to check progress"
       }
     },
     {
@@ -111,7 +111,7 @@
         "success": true,
         "message": "Code index build started in background",
         "jobId": "build-1730188805000-def456",
-        "checkStatus": "Use get_code_index_status to check progress"
+        "checkStatus": "Use get_index_status to check progress"
       }
     },
     {

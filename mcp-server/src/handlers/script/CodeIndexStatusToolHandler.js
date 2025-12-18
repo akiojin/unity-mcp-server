@@ -5,7 +5,7 @@ import { CodeIndex } from '../../core/codeIndex.js';
 export class CodeIndexStatusToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'get_code_index_status',
+      'get_index_status',
       '[OFFLINE] No Unity connection required. Report code index status and readiness for symbol/search operations. BEST PRACTICES: Check before heavy symbol operations. Shows total files indexed and coverage percentage. If coverage is low, some symbol operations may be incomplete. Index is automatically built on first use. No parameters needed - lightweight status check.',
       {
         type: 'object',
@@ -54,7 +54,7 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
       return {
         success: false,
         error: 'index_not_built',
-        message: 'Code index is not built. Please run UnityMCP.build_code_index first.'
+        message: 'Code index is not built. Please run UnityMCP.build_index first.'
       };
     }
 

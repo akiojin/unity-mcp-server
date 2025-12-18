@@ -17,7 +17,7 @@ describe('ScriptRefsFindToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'find_script_refs');
+      assert.equal(handler.name, 'find_refs');
     });
 
     it('should have [OFFLINE] tag in description', () => {
@@ -31,7 +31,7 @@ describe('ScriptRefsFindToolHandler', () => {
 
   describe('SPEC compliance', () => {
     it('should find code references using file-based search', () => {
-      assert.equal(handler.name, 'find_script_refs');
+      assert.equal(handler.name, 'find_refs');
     });
   });
 
@@ -50,7 +50,7 @@ describe('ScriptRefsFindToolHandler', () => {
       assert.equal(result.success, false);
       assert.equal(result.error, 'index_not_ready');
       assert.ok(result.message.includes('Code index is not built'));
-      assert.ok(result.hint.includes('build_code_index'));
+      assert.ok(result.hint.includes('build_index'));
     });
   });
 
@@ -88,7 +88,7 @@ describe('ScriptRefsFindToolHandler', () => {
   });
 
   describe('FR-054: index_not_ready with hint', () => {
-    it('should include hint about get_code_index_status and build_code_index', async () => {
+    it('should include hint about get_index_status and build_index', async () => {
       // Mock index as not ready
       handler.index.isReady = mock.fn(async () => false);
       // Mock JobManager to return no running jobs
@@ -100,8 +100,8 @@ describe('ScriptRefsFindToolHandler', () => {
       const result = await handler.execute({ name: 'TestClass' });
 
       assert.equal(result.error, 'index_not_ready');
-      assert.ok(result.hint.includes('get_code_index_status'));
-      assert.ok(result.hint.includes('build_code_index'));
+      assert.ok(result.hint.includes('get_index_status'));
+      assert.ok(result.hint.includes('build_index'));
     });
   });
 

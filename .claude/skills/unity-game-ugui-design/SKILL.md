@@ -16,10 +16,10 @@ allowed-tools:
   - mcp__unity-mcp-server__modify_gameobject
   - mcp__unity-mcp-server__find_gameobject
   - mcp__unity-mcp-server__get_hierarchy
-  - mcp__unity-mcp-server__edit_script_structured
-  - mcp__unity-mcp-server__create_script_class
-  - mcp__unity-mcp-server__read_script
-  - mcp__unity-mcp-server__get_script_symbols
+  - mcp__unity-mcp-server__edit_structured
+  - mcp__unity-mcp-server__create_class
+  - mcp__unity-mcp-server__read
+  - mcp__unity-mcp-server__get_symbols
 ---
 
 # Unity Game uGUI Design Skill
@@ -1466,7 +1466,7 @@ mcp__unity-mcp-server__add_component({
 | UI要素検索 | `find_ui_elements` |
 | UIクリックテスト | `click_ui_element` |
 | UI状態確認 | `get_ui_element_state` |
-| スクリプト作成 | `create_script_class` |
+| スクリプト作成 | `create_class` |
 
 ## Common Workflows
 
