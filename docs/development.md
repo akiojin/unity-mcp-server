@@ -130,7 +130,7 @@ feature branch → develop → main → tag → publish
 1. **Feature → develop**: PR with Conventional Commits, auto-merge on CI pass
 2. **Create Release Branch** (manual): release-please opens release PR to `main`
 3. **Release** (main merge): release-please tags `vX.Y.Z`, creates GitHub Release
-4. **Publish** (tag trigger): Build csharp-lsp, npm publish, publish signed Unity package to OpenUPM, backmerge to `develop`
+4. **Publish** (tag trigger): Build csharp-lsp, npm publish, backmerge to `develop` (OpenUPM is tag auto-detection; signing currently disabled)
 
 ### Version Scope
 
@@ -163,14 +163,12 @@ feature branch → develop → main → tag → publish
 4. **Publish (tag trigger)**
    - `Publish` workflow builds csharp-lsp for all platforms
    - npm publish `mcp-server`
-   - Pack & sign Unity package (Unity 6.3+) and publish to OpenUPM
+   - OpenUPM distribution is handled by tag auto-detection (unsigned)
    - Backmerge `main` → `develop`
 
-#### OpenUPM (signed) prerequisites
+#### OpenUPM signing note
 
-- GitHub Secrets: `OPENUPM_TOKEN`, `UNITY_CLOUD_ORG_ID`, and a Unity activation method (recommended: `UNITY_LICENSE`; alternatively `UNITY_EMAIL`/`UNITY_PASSWORD`/`UNITY_SERIAL`)
-- If the package is registered for OpenUPM tag auto-detection, disable it to avoid publishing an unsigned version first (the signed publish job fails if the version already exists).
-- Local dry-run: `node scripts/upm/sign-upm-package.mjs --dry-run --org-id <org> --unity-path <Unity> --tag vX.Y.Z`
+- Signed UPM distribution (Unity 6.3+ `.attestation.p7m`) is currently postponed/disabled.
 
 ### Commit Message Format
 
@@ -298,7 +296,7 @@ C#の探索/参照/構造化編集は、同梱の自己完結C# LSPで行いま�
 1. `feature` → `develop`: PR作成→自動マージ
 2. リリースPR（手動トリガー）: release-pleaseがmain向けPR作成
 3. タグ＆Release: mainマージで`vX.Y.Z`タグ作成
-4. Publish: csharp-lspビルド、npm publish、Unityパッケージを署名してOpenUPMへpublish
+4. Publish: csharp-lspビルド、npm publish（OpenUPM配布はタグ自動検知。署名は現時点で見送り）
 
 #### コミットメッセージとバージョン
 
