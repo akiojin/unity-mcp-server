@@ -348,8 +348,11 @@ jobs:
     name: Publish to OpenUPM
     needs: build-csharp-lsp
     runs-on: ubuntu-latest
-    if: ${{ secrets.OPENUPM_TOKEN != '' && secrets.UNITY_LICENSE != '' && secrets.UNITY_CLOUD_ORG_ID != '' }}
+    if: ${{ env.OPENUPM_TOKEN != '' && env.UNITY_LICENSE != '' && env.UNITY_CLOUD_ORG_ID != '' }}
     env:
+      OPENUPM_TOKEN: ${{ secrets.OPENUPM_TOKEN }}
+      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+      UNITY_CLOUD_ORG_ID: ${{ secrets.UNITY_CLOUD_ORG_ID }}
       RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
 
     steps:
