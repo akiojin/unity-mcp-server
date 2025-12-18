@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - develop
+      - main
 
 permissions:
   contents: write
@@ -14,7 +15,16 @@ jobs:
   auto-merge:
     name: Enable auto-merge
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
+    if: |
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (
+        github.event.pull_request.base.ref == 'develop' ||
+        (
+          github.event.pull_request.base.ref == 'main' &&
+          startsWith(github.event.pull_request.head.ref, 'release-please--')
+        )
+      )
     steps:
       - name: Enable auto-merge
         env:
