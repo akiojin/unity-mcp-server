@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [4.1.5](https://github.com/akiojin/unity-mcp-server/compare/v4.1.4...v4.1.5) (2025-12-18)
+
+
+### Bug Fixes
+
+* **unity:** resolve PackageInfo ambiguous reference error ([63c8056](https://github.com/akiojin/unity-mcp-server/commit/63c8056b1bd01a95b4fd2307bb228fab16cc6e37))
+* **unity:** resolve PackageInfo ambiguous reference error ([c0f1ef7](https://github.com/akiojin/unity-mcp-server/commit/c0f1ef7f94bf1802c285526a855b6bfdf6416823))
+
 ## [4.1.4](https://github.com/akiojin/unity-mcp-server/compare/v4.1.3...v4.1.4) (2025-12-18)
 
 
