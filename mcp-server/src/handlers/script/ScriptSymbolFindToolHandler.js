@@ -5,7 +5,7 @@ import { JobManager } from '../../core/jobManager.js';
 export class ScriptSymbolFindToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'script_symbol_find',
+      'find_script_symbol',
       '[OFFLINE] No Unity connection required. Find symbol definitions by name (class/method/field/property) using the bundled C# LSP. Guidance: prefer narrowing by kind and set exact=true when possible; use scope=assets|packages to avoid large outputs. Use results (container, namespace) to construct container namePath like Outer/Nested/Member for subsequent edit tools.',
       {
         type: 'object',
@@ -95,8 +95,8 @@ export class ScriptSymbolFindToolHandler extends BaseToolHandler {
         success: false,
         error: 'index_not_ready',
         message:
-          'Code index is not built. Run code_index_build first, or wait for auto-build to complete on server startup.',
-        hint: 'Use code_index_status to check index state, or code_index_build to start a build manually.'
+          'Code index is not built. Run build_code_index first, or wait for auto-build to complete on server startup.',
+        hint: 'Use get_code_index_status to check index state, or build_code_index to start a build manually.'
       };
     }
 

@@ -7,7 +7,7 @@ import { logger } from '../../core/config.js';
 export class ScriptPackagesListToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'script_packages_list',
+      'list_script_packages',
       '[OFFLINE] No Unity connection required. List Unity packages in the project (optionally include built‑in). BEST PRACTICES: Use to discover available packages and their paths. Set includeBuiltIn=false to see only user packages. Returns package IDs, versions, and resolved paths. Embedded packages can be edited directly. Essential for understanding project dependencies.',
       {
         type: 'object',
@@ -92,7 +92,7 @@ export class ScriptPackagesListToolHandler extends BaseToolHandler {
         return { success: true, packages: [], totalCount: 0 };
       }
     } catch (e) {
-      logger.error(`[script_packages_list] local parse failed: ${e.message}`);
+      logger.error(`[list_script_packages] local parse failed: ${e.message}`);
       return { error: e.message };
     }
 

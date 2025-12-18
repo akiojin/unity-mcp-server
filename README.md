@@ -22,9 +22,9 @@ Code index tools outperform standard file operations:
 
 | Operation        | Code Index Tool      | Standard Tool | Advantage                  |
 | ---------------- | -------------------- | ------------- | -------------------------- |
-| Symbol lookup    | `script_symbol_find` | `grep`        | **Instant** vs 350ms       |
-| Reference search | `script_refs_find`   | `grep`        | **Structured** results     |
-| Code search      | `script_search`      | `grep`        | **3-5x smaller** responses |
+| Symbol lookup    | `find_script_symbol` | `grep`        | **Instant** vs 350ms       |
+| Reference search | `find_script_refs`   | `grep`        | **Structured** results     |
+| Code search      | `search_script`      | `grep`        | **3-5x smaller** responses |
 
 Key benefits:
 

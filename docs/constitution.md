@@ -38,7 +38,7 @@
 - すべてのC# symbol/search/editはバンドルLSP経由で実行
 - Unity通信は不要 (LSPは自己完結)
 - **禁止**: 行ベース編集 (構造化操作のみ許可)
-  - 許可: `script_edit_structured`, `script_edit_snippet`, `script_refactor_rename`, `script_symbol_find`
+  - 許可: `edit_script_structured`, `edit_script_snippet`, `rename_script_symbol`, `find_script_symbol`
   - 禁止: パターン置換、行番号ベース編集
 - インデックスベースのシンボル解決を使用
 - LSPエラーは詳細なコンテキストと共に返す

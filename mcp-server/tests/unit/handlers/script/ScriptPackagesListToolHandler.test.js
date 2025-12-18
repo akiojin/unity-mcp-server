@@ -18,7 +18,7 @@ describe('ScriptPackagesListToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'script_packages_list');
+      assert.equal(handler.name, 'list_script_packages');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('package'));
     });
@@ -192,7 +192,7 @@ describe('ScriptPackagesListToolHandler', () => {
 
   describe('SPEC-e757a01f compliance', () => {
     it('FR-006: should list Unity packages', async () => {
-      assert.equal(handler.name, 'script_packages_list');
+      assert.equal(handler.name, 'list_script_packages');
       assert.ok(handler.description.includes('packages'));
     });
 

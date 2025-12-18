@@ -14,7 +14,7 @@ describe('ScriptEditStructuredToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'script_edit_structured');
+      assert.equal(handler.name, 'edit_script_structured');
     });
 
     it('should have operation, path, symbolName as required parameters', () => {
@@ -172,7 +172,7 @@ describe('ScriptEditStructuredToolHandler', () => {
   describe('SPEC compliance', () => {
     it('should support replace_body operation', async () => {
       // Mock LSP client would be needed for full integration test
-      assert.equal(handler.name, 'script_edit_structured');
+      assert.equal(handler.name, 'edit_script_structured');
     });
 
     it('should support insert_before operation', async () => {

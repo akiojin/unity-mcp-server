@@ -26,7 +26,7 @@ record_test() {
 
 # テストケース1: unity-mcp-server ツールは許可
 test_unity_mcp_tool_allowed() {
-    local input='{"tool_name":"mcp__unity-mcp-server__script_edit_structured","tool_input":{"path":"Assets/Scripts/Foo.cs"}}'
+    local input='{"tool_name":"mcp__unity-mcp-server__edit_script_structured","tool_input":{"path":"Assets/Scripts/Foo.cs"}}'
     local exit_code
 
     echo "$input" | $HOOK_SCRIPT >/dev/null 2>&1

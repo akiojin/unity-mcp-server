@@ -244,7 +244,7 @@ export async function startServer(options = {}) {
 
             if (result.success) {
               logger.info(
-                `[startup] Code index auto-build started: jobId=${result.jobId}. Use code_index_status to check progress.`
+                `[startup] Code index auto-build started: jobId=${result.jobId}. Use get_code_index_status to check progress.`
               );
             } else {
               logger.warning(`[startup] Code index auto-build failed: ${result.message}`);

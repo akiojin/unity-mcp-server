@@ -17,7 +17,7 @@
 ### Core Implementation
 - [ ] T006 `mcp-server/src/handlers/script/ScriptEditSnippetToolHandler.js` を実装（検証・diff整形・レスポンスハッシュ）
 - [ ] T007 `mcp-server/src/lsp/LspRpcClient.js` に複数テキスト編集サポートと診断呼び出しヘルパーを追加
-- [ ] T008 `mcp-server/src/handlers/index.js` と 初期化コードへ `script_edit_snippet` の登録を追加
+- [ ] T008 `mcp-server/src/handlers/index.js` と 初期化コードへ `edit_script_snippet` の登録を追加
 
 ### Integration
 - [ ] T009 `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/ToolManagementHandler.cs` などツール公開リストを更新し、新ツールをエクスポート

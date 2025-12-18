@@ -615,11 +615,11 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       await safeCall('update_project_settings', { confirmChanges: false }, { timeoutMs: 60_000 });
 
       // Script/index tools (offline)
-      await safeCall('script_packages_list', { includeBuiltIn: false }, { timeoutMs: 60_000 });
-      await safeCall('code_index_status', {}, { timeoutMs: 60_000 });
-      await safeCall('code_index_build', {}, { timeoutMs: 60_000 });
+      await safeCall('list_script_packages', { includeBuiltIn: false }, { timeoutMs: 60_000 });
+      await safeCall('get_code_index_status', {}, { timeoutMs: 60_000 });
+      await safeCall('build_code_index', {}, { timeoutMs: 60_000 });
       await safeCall(
-        'script_search',
+        'search_script',
         {
           pattern: 'McpAllUiSystemsTestBootstrap',
           include: 'Assets/**/*.cs',
@@ -629,17 +629,17 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'script_symbol_find',
+        'find_script_symbol',
         { name: 'McpAllUiSystemsTestBootstrap', exact: true, kind: 'class', scope: 'assets' },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'script_symbols_get',
+        'get_script_symbols',
         { path: 'Assets/Scripts/McpUiTest/McpAllUiSystemsTestBootstrap.cs' },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'script_read',
+        'read_script',
         {
           path: 'Assets/Scripts/McpUiTest/McpAllUiSystemsTestBootstrap.cs',
           startLine: 1,
@@ -648,17 +648,17 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'script_refs_find',
+        'find_script_refs',
         { name: 'McpAllUiSystemsTestBootstrap', scope: 'assets', pageSize: 5, snippetContext: 1 },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'code_index_update',
+        'update_code_index',
         { paths: ['Assets/Scripts/McpUiTest/McpAllUiSystemsTestBootstrap.cs'] },
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'script_create_class',
+        'create_script_class',
         {
           path: `${TMP_DIR}/McpSmokeDummy.cs`,
           className: 'McpSmokeDummy',
@@ -668,7 +668,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'script_edit_snippet',
+        'edit_script_snippet',
         {
           path: 'Assets/Scripts/McpUiTest/McpAllUiSystemsTestBootstrap.cs',
           preview: true,
@@ -686,7 +686,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'script_edit_structured',
+        'edit_script_structured',
         {
           path: 'Assets/Scripts/McpUiTest/McpAllUiSystemsTestBootstrap.cs',
           symbolName: 'McpAllUiSystemsTestBootstrap',
@@ -697,7 +697,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'script_refactor_rename',
+        'rename_script_symbol',
         {
           relative: 'Assets/Scripts/McpUiTest/McpAllUiSystemsTestBootstrap.cs',
           namePath: 'McpAllUiSystemsTestBootstrap',
@@ -707,7 +707,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { timeoutMs: 60_000 }
       );
       await safeCall(
-        'script_remove_symbol',
+        'remove_script_symbol',
         {
           path: 'Assets/Scripts/McpUiTest/McpAllUiSystemsTestBootstrap.cs',
           namePath: 'McpAllUiSystemsTestBootstrap',

@@ -6,7 +6,7 @@ import path from 'path';
 export class ScriptCreateClassToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'script_create_class',
+      'create_script_class',
       'Create a new C# class file. Required: path under Assets/ or Packages/ (".cs" appended if missing), className. Optional: namespace, baseType (adds using UnityEngine if MonoBehaviour), usings (CSV), partial. Roslyn preflight (no Unity comms). Responses summarized for LLMs (errors≤30, message≤200 chars, preview≤1000 chars).',
       {
         type: 'object',
