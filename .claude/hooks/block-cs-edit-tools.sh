@@ -20,11 +20,6 @@ declare -A blocked_tools=(
     ["Edit"]="1"
     ["Write"]="1"
     ["Read"]="1"  # 読み取りは警告のみ（後で制御）
-    # serena MCP tools (if accidentally enabled)
-    ["mcp__serena__replace_symbol_body"]="1"
-    ["mcp__serena__insert_after_symbol"]="1"
-    ["mcp__serena__insert_before_symbol"]="1"
-    ["mcp__serena__replace_regex"]="1"
 )
 
 # 対象ツール以外は許可
@@ -43,9 +38,6 @@ case "$tool_name" in
         ;;
     "Read")
         file_path=$(echo "$json_input" | jq -r '.tool_input.file_path // empty')
-        ;;
-    mcp__serena__*)
-        file_path=$(echo "$json_input" | jq -r '.tool_input.relative_path // .tool_input.path // empty')
         ;;
 esac
 
