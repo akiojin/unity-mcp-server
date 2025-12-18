@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -25,7 +25,7 @@ namespace UnityMCPServer.Settings
         }
 
         public override void OnGUI(string searchContext)
-{
+        {
             if (_serializedSettings == null || _serializedSettings.targetObject == null)
             {
                 EditorGUILayout.HelpBox("Failed to load Unity MCP Server settings.", MessageType.Error);
@@ -68,16 +68,17 @@ namespace UnityMCPServer.Settings
                     TriggerReimport();
                 }
             }
-        }[SettingsProvider]
+        }
+
+        [SettingsProvider]
         public static SettingsProvider CreateProvider()
-{
+        {
             return new UnityMcpServerSettingsProvider(SettingsPath, SettingsScope.Project)
             {
                 label = "Unity MCP Server",
                 keywords = new HashSet<string>(new[] { "Unity", "MCP", "Server", "TCP", "Host", "Port" })
             };
         }
-        
 
         private static void TriggerReimport()
         {
