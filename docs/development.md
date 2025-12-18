@@ -80,13 +80,13 @@ MCP Client → Node MCP Server → C# LSP (Roslyn) → File System
 
 ```javascript
 // Symbol search
-script_symbol_find { "name": "ClassName", "kind": "class" }
+find_symbol { "name": "ClassName", "kind": "class" }
 
 // Reference search
-script_refs_find { "name": "MethodName" }
+find_refs { "name": "MethodName" }
 
 // Method body replacement (preflight → apply)
-script_edit_structured {
+edit_structured {
   "operation": "replace_body",
   "path": "Packages/.../File.cs",
   "symbolName": "Class/Method",
@@ -95,7 +95,7 @@ script_edit_structured {
 }
 
 // Class insertion
-script_edit_structured {
+edit_structured {
   "operation": "insert_after",
   "path": "...",
   "symbolName": "ClassName",
@@ -104,7 +104,7 @@ script_edit_structured {
 }
 
 // Snippet editing (≤80 chars)
-script_edit_snippet {
+edit_snippet {
   "path": "Assets/Scripts/Foo.cs",
   "instructions": [{
     "operation": "delete",
@@ -130,7 +130,7 @@ feature branch → develop → main → tag → publish
 1. **Feature → develop**: PR with Conventional Commits, auto-merge on CI pass
 2. **Create Release Branch** (manual): release-please opens release PR to `main`
 3. **Release** (main merge): release-please tags `vX.Y.Z`, creates GitHub Release
-4. **Publish** (tag trigger): Build csharp-lsp, npm publish, publish signed Unity package to OpenUPM, backmerge to `develop`
+4. **Publish** (tag trigger): Build csharp-lsp, npm publish, backmerge to `develop` (OpenUPM is tag auto-detection; signing currently disabled)
 
 ### Version Scope
 
@@ -163,14 +163,12 @@ feature branch → develop → main → tag → publish
 4. **Publish (tag trigger)**
    - `Publish` workflow builds csharp-lsp for all platforms
    - npm publish `mcp-server`
-   - Pack & sign Unity package (Unity 6.3+) and publish to OpenUPM
+   - OpenUPM distribution is handled by tag auto-detection (unsigned)
    - Backmerge `main` → `develop`
 
-#### OpenUPM (signed) prerequisites
+#### OpenUPM signing note
 
-- GitHub Secrets: `OPENUPM_TOKEN`, `UNITY_CLOUD_ORG_ID`, and a Unity activation method (recommended: `UNITY_LICENSE`; alternatively `UNITY_EMAIL`/`UNITY_PASSWORD`/`UNITY_SERIAL`)
-- If the package is registered for OpenUPM tag auto-detection, disable it to avoid publishing an unsigned version first (the signed publish job fails if the version already exists).
-- Local dry-run: `node scripts/upm/sign-upm-package.mjs --dry-run --org-id <org> --unity-path <Unity> --tag vX.Y.Z`
+- Signed UPM distribution (Unity 6.3+ `.attestation.p7m`) is currently postponed/disabled.
 
 ### Commit Message Format
 
@@ -225,18 +223,18 @@ Guidelines for tool responses to minimize token usage:
 
 ### Safe Structured Edit Playbook
 
-1. **Locate symbols**: `script_symbols_get` or `script_symbol_find` (use `kind`/`exact`)
+1. **Locate symbols**: `get_symbols` or `find_symbol` (use `kind`/`exact`)
    - Use project-relative paths under `Assets/` or `Packages/` only
    - Build `namePath` like `Outer/Nested/Member` from results
 
-2. **Inspect minimal code**: `script_read` with 30-40 lines around symbol
+2. **Inspect minimal code**: `read` with 30-40 lines around symbol
 
 3. **Edit safely**:
-   - `script_edit_snippet`: ≤80-char changes with exact text anchors
-   - `script_edit_structured`: class/namespace insertions, method body replacements
+   - `edit_snippet`: ≤80-char changes with exact text anchors
+   - `edit_structured`: class/namespace insertions, method body replacements
    - Use `preview=true` only for high-risk edits
 
-4. **Optional refactor**: `script_refactor_rename`, `script_remove_symbol` with preflight
+4. **Optional refactor**: `rename_symbol`, `remove_symbol` with preflight
 
 5. **Verify**: Check compile state, re-read if needed
 
@@ -298,7 +296,7 @@ C#の探索/参照/構造化編集は、同梱の自己完結C# LSPで行いま�
 1. `feature` → `develop`: PR作成→自動マージ
 2. リリースPR（手動トリガー）: release-pleaseがmain向けPR作成
 3. タグ＆Release: mainマージで`vX.Y.Z`タグ作成
-4. Publish: csharp-lspビルド、npm publish、Unityパッケージを署名してOpenUPMへpublish
+4. Publish: csharp-lspビルド、npm publish（OpenUPM配布はタグ自動検知。署名は現時点で見送り）
 
 #### コミットメッセージとバージョン
 
@@ -317,7 +315,7 @@ C#の探索/参照/構造化編集は、同梱の自己完結C# LSPで行いま�
 |-----------|---------|
 | 検索 | `pageSize≤20`, `maxBytes≤64KB` |
 | ヒエラルキー | `nameOnly=true`, `maxObjects 100-500` |
-| script_read | 対象の前後30-40行 |
+| read | 対象の前後30-40行 |
 
 ### Claude Code のトラブルシューティング
 

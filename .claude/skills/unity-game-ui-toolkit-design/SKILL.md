@@ -15,10 +15,10 @@ allowed-tools:
   - mcp__unity-mcp-server__modify_gameobject
   - mcp__unity-mcp-server__find_gameobject
   - mcp__unity-mcp-server__manage_asset_database
-  - mcp__unity-mcp-server__script_edit_structured
-  - mcp__unity-mcp-server__script_create_class
-  - mcp__unity-mcp-server__script_read
-  - mcp__unity-mcp-server__script_symbols_get
+  - mcp__unity-mcp-server__edit_structured
+  - mcp__unity-mcp-server__create_class
+  - mcp__unity-mcp-server__read
+  - mcp__unity-mcp-server__get_symbols
 ---
 
 # Unity Game UI Toolkit Design Skill
@@ -1225,7 +1225,7 @@ void ReturnToPool(VisualElement element)
 |------|-----------|
 | UIDocument GameObject作成 | `create_gameobject` + `add_component` |
 | PanelSettings設定 | `set_component_field` |
-| C#コントローラー作成 | `script_create_class` |
+| C#コントローラー作成 | `create_class` |
 | UXML/USSファイル作成 | `manage_asset_database` |
 | UI要素検索 | `find_ui_elements` |
 | UIテスト | `click_ui_element`, `simulate_ui_input` |
@@ -1247,7 +1247,7 @@ mcp__unity-mcp-server__add_component({
 })
 
 // Step 2: レスポンシブコントローラーを追加
-mcp__unity-mcp-server__script_create_class({
+mcp__unity-mcp-server__create_class({
   path: "Assets/Scripts/UI/ResponsiveLayoutController.cs",
   className: "ResponsiveLayoutController",
   baseType: "MonoBehaviour",
@@ -1256,7 +1256,7 @@ mcp__unity-mcp-server__script_create_class({
 })
 
 // Step 3: Safe Areaコントローラーを追加
-mcp__unity-mcp-server__script_create_class({
+mcp__unity-mcp-server__create_class({
   path: "Assets/Scripts/UI/SafeAreaController.cs",
   className: "SafeAreaController",
   baseType: "MonoBehaviour",

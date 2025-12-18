@@ -4,11 +4,11 @@
 **入力**: script編集ワークフロー向け軽量ツールの機能仕様
 
 ## 概要
-script_edit_structuredによるメソッド全体置換へ依存した結果、1〜2行規模の修正で余計な差分や括弧崩れが頻発した。過去に行ベース編集を許容した際には括弧整合が破綻し、最終的にscript_edit_structuredのみを許可する方針へ転換した経緯がある。本計画では、その制約を維持しつつ「小さな断片編集を安全に適用する」ための新ツール（仮称 `script_edit_snippet`）を設計・実装する。
+edit_structuredによるメソッド全体置換へ依存した結果、1〜2行規模の修正で余計な差分や括弧崩れが頻発した。過去に行ベース編集を許容した際には括弧整合が破綻し、最終的にedit_structuredのみを許可する方針へ転換した経緯がある。本計画では、その制約を維持しつつ「小さな断片編集を安全に適用する」ための新ツール（仮称 `edit_snippet`）を設計・実装する。
 
 ## 現状課題の整理
 - **括弧整合問題**: 以前の行編集は`{}`バランス崩壊を多発させ、ビルド不能に。再導入時は検証ステップが必須。
-- **ツール粒度のミスマッチ**: script_edit_structuredはメソッド単位編集が前提で、LLMが求める1〜2行の条件削除には過剰。
+- **ツール粒度のミスマッチ**: edit_structuredはメソッド単位編集が前提で、LLMが求める1〜2行の条件削除には過剰。
 - **多箇所編集の非効率**: 同一ファイル内で複数ガードを同時に削除する際に複数リクエストが必要でトークン・時間コストが高い。
 - **安全性の担保**: 行指向編集を復活させる場合でも、誤適用やアンカー衝突時の安全なフェイルが必須。
 
@@ -26,7 +26,7 @@ script_edit_structuredによるメソッド全体置換へ依存した結果、1
    - アンカーは前後2〜3行のコンテキストまたは構造化シンボルのいずれかを選択可能にする。
 
 2. **アンカー解決エンジン**  
-   - LSPの`mcp/findText`や既存`script_search`結果を活用してアンカー候補を特定。  
+   - LSPの`mcp/findText`や既存`search`結果を活用してアンカー候補を特定。  
    - 候補が複数ある場合はエラーで返し、曖昧さを許容しない。  
    - 実際の編集適用前に該当範囲を再抽出し、`diff`長を80文字以内に収める制御を実装。
 
@@ -40,13 +40,13 @@ script_edit_structuredによるメソッド全体置換へ依存した結果、1
    - applyモードでは全編集をまとめて`WorkspaceEdit`としてLSPへ送信し、ハッシュ値（before/after）をレスポンスに含めて二重適用防止を支援。
 
 5. **フォールバック設計**  
-   - アンカーが解決できない場合や差分が80文字超の場合は早期に失敗し、script_edit_structuredへのフォールバック案内を含む。  
+   - アンカーが解決できない場合や差分が80文字超の場合は早期に失敗し、edit_structuredへのフォールバック案内を含む。  
    - 既存ドキュメントとエージェント指示を更新し、用途の棲み分けを明確化する。
 
 ## リサーチ & 未確定事項 (Phase 0)
 - [ ] Roslyn LSP側で任意テキスト編集後に即時構文診断を得る最適なリクエスト（`textDocument/diagnostics` 等）を特定する。
 - [ ] LspRpcClientに複数テキストEditを適用するAPIが既に存在するか調査し、必要なら拡張方法を検討する。
-- [ ] 既存`script_search`のレスポンス構造を確認し、アンカー解像度に再利用できるか検証する。
+- [ ] 既存`search`のレスポンス構造を確認し、アンカー解像度に再利用できるか検証する。
 - [ ] フォーマッタ（dotnet-format等）を呼ぶ必要があるか、LSPの`formatting`機能で十分か評価する。
 
 ## 設計 (Phase 1) のアウトライン
@@ -55,7 +55,7 @@ script_edit_structuredによるメソッド全体置換へ依存した結果、1
    - `SnippetAnchor`（type=text|symbol, before, target, after, symbolPath）  
    - `SnippetEditResult`（status, reason, beforeSnippet, afterSnippet, hashBefore, hashAfter）
 2. **API 契約**  
-   - MCPツール名: `script_edit_snippet`（仮）  
+   - MCPツール名: `edit_snippet`（仮）  
    - 入力JSON Schemaと出力Schemaを定義し、`specs/.../contracts/snippet-edit.json` に格納。  
    - エラーコード体系（例: `anchor_not_found`, `ambiguous_anchor`, `syntax_error`）。
 3. **Quickstart/プレイブック**  
@@ -76,13 +76,13 @@ script_edit_structuredによるメソッド全体置換へ依存した結果、1
 - **Phase 3 (Integration & Polish)**  
   - README/CLAUDE.md/エージェントガイド更新。  
   - 既存テストシナリオ(`tests/test-mcp-script-tools.md`)へ新ツールの手順を追記。  
-  - script_edit_structuredとの併用ガイダンスをドキュメント化し、括弧崩れ防止策を強調。
+  - edit_structuredとの併用ガイダンスをドキュメント化し、括弧崩れ防止策を強調。
 
 ## リスクと対策
 - **アンカー一致の誤検出**: テキストアンカーにNFAマッチングを使うと誤爆の恐れ → コンテキスト長と一意性チェックを必須にする。  
 - **括弧整合検査のコスト**: 毎回全文診断を取ると遅くなる → 対象ファイルのみを診断し、結果キャッシュを活用。  
 - **LSP API不足**: WorkspaceEditの同時送信が未サポートなら、段階的に`applyEdit`をチェインし、失敗時にロールバック計画。  
-- **既存LLMフローとの不整合**: CLAUDE.mdやREADMEの手順を更新し、script_edit_structured優先指示を調整。
+- **既存LLMフローとの不整合**: CLAUDE.mdやREADMEの手順を更新し、edit_structured優先指示を調整。
 
 ## 次アクション
 1. Phase 0リサーチ項目の調査結果を`specs/SPEC-4tyqsgzk/research.md`へ記録する。

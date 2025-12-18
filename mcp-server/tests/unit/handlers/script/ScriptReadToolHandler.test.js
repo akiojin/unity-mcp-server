@@ -14,7 +14,7 @@ describe('ScriptReadToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'script_read');
+      assert.equal(handler.name, 'read');
     });
 
     it('should have path as required parameter', () => {

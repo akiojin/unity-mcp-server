@@ -30,7 +30,7 @@ const describeSuite = isCI || !workerPoolAvailable ? describe.skip : describe;
  * - FR-057: システムはバックグラウンドビルド中もpingが1秒以内に応答する
  * - FR-058: Worker Thread内でのエラーをメインスレッドに伝播
  * - FR-059: ビルド進捗をWorker Threadからメインスレッドに非同期で通知
- * - FR-060: 既存のcode_index_buildツールインターフェースを維持
+ * - FR-060: 既存のbuild_indexツールインターフェースを維持
  * - FR-061: indexWatcherからの呼び出しもWorker Thread経由で実行
  *
  * - NFR-019: バックグラウンドビルド中もpingが1秒以内に応答
@@ -161,7 +161,7 @@ describeSuite('SPEC-e757a01f US-10: Worker Threads Non-blocking Build', () => {
       pool.terminate();
     });
 
-    it('should respond to code_index_status instantly during build', async () => {
+    it('should respond to get_index_status instantly during build', async () => {
       assert.ok(IndexBuildWorkerPool, 'IndexBuildWorkerPool should be available');
       const { CodeIndexStatusToolHandler } =
         await import('../../src/handlers/script/CodeIndexStatusToolHandler.js');
@@ -338,7 +338,7 @@ describeSuite('SPEC-e757a01f US-10: Worker Threads Non-blocking Build', () => {
   });
 
   describe('FR-060: Backward Compatibility', () => {
-    it('should maintain code_index_build tool interface', async () => {
+    it('should maintain build_index tool interface', async () => {
       const { CodeIndexBuildToolHandler } =
         await import('../../src/handlers/script/CodeIndexBuildToolHandler.js');
 
@@ -356,7 +356,7 @@ describeSuite('SPEC-e757a01f US-10: Worker Threads Non-blocking Build', () => {
       }
     });
 
-    it('should maintain code_index_status tool interface', async () => {
+    it('should maintain get_index_status tool interface', async () => {
       const { CodeIndexStatusToolHandler } =
         await import('../../src/handlers/script/CodeIndexStatusToolHandler.js');
 

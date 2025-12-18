@@ -10,6 +10,74 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [4.1.3](https://github.com/akiojin/unity-mcp-server/compare/v4.1.2...v4.1.3) (2025-12-18)
+
+
+### Bug Fixes
+
+* **ci:** OpenUPM publish条件チェックをprecheck jobへ移動 ([cae5321](https://github.com/akiojin/unity-mcp-server/commit/cae5321be508d7f821d75fe5b41e814589811dbd))
+* **ci:** PublishワークフローのOpenUPM条件分岐を修正 ([5325474](https://github.com/akiojin/unity-mcp-server/commit/532547472a00b8bb508d6366067adf8800132884))
+
+## [4.1.2](https://github.com/akiojin/unity-mcp-server/compare/v4.1.1...v4.1.2) (2025-12-18)
+
+
+### Bug Fixes
+
+* **ci:** OpenUPM既存versionの署名有無を判定 ([9cdf13c](https://github.com/akiojin/unity-mcp-server/commit/9cdf13cbf953f27f6150a8e9566589870faa4fea))
+* **ci:** OpenUPM既存versionの署名有無を判定 ([dbc2bc8](https://github.com/akiojin/unity-mcp-server/commit/dbc2bc8b11a43c6a460543dc1468637d074a839b))
+
+## [4.1.1](https://github.com/akiojin/unity-mcp-server/compare/v4.1.0...v4.1.1) (2025-12-18)
+
+
+### Bug Fixes
+
+* **ci:** fix GitHub Actions workflow syntax error in publish.yml ([ffecd68](https://github.com/akiojin/unity-mcp-server/commit/ffecd689bc066071634aaab482c4eae77ec43d5b))
+
+## [4.1.0](https://github.com/akiojin/unity-mcp-server/compare/v4.0.0...v4.1.0) (2025-12-17)
+
+
+### Features
+
+* Node/Unityパッケージversion不一致を検出 ([c0af5ae](https://github.com/akiojin/unity-mcp-server/commit/c0af5aec91ba19323b2cbfc78c14179626700799))
+* Node/Unityパッケージversion不一致検出 ([175cdaa](https://github.com/akiojin/unity-mcp-server/commit/175cdaa3ed887452c5e9656ba4cf33f8c9c64285))
+* publish signed OpenUPM Unity package ([2b98975](https://github.com/akiojin/unity-mcp-server/commit/2b98975938ff00f04fbad6d50a8183b8f57bc00e))
+* publish signed OpenUPM Unity package ([db60249](https://github.com/akiojin/unity-mcp-server/commit/db602499d4fdd071af672e7493b94510e72044b9))
+
+
+### Bug Fixes
+
+* **mcp-server:** add child directory search for Unity project root ([1b1439c](https://github.com/akiojin/unity-mcp-server/commit/1b1439cba0fd7c36acb220d5ae999b10108a96c8))
+* **mcp-server:** prioritize child directory search for Unity project root ([883c8a8](https://github.com/akiojin/unity-mcp-server/commit/883c8a841d971d82f3bc0b59d74ecf7ae294e3ba))
+* **mcp-server:** prioritize child directory search for Unity project root ([f71edbe](https://github.com/akiojin/unity-mcp-server/commit/f71edbee128203f1cf3e9ed9fb6bbacd80c8bad6))
+* Unity側のpackage version取得を改善 ([c1cfdcf](https://github.com/akiojin/unity-mcp-server/commit/c1cfdcf5c4f693eca7184a8ce7db0fe7701cabd7))
+
+## [4.0.0](https://github.com/akiojin/unity-mcp-server/compare/v3.2.1...v4.0.0) (2025-12-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* tools/call no longer accepts legacy tool names.
+
+### Bug Fixes
+
+* 旧ツール名の漏れを解消 ([c422899](https://github.com/akiojin/unity-mcp-server/commit/c4228990cb3d32cc9accf0db5a121efa56146460))
+* 旧ツール名の漏れを解消 ([09cdedf](https://github.com/akiojin/unity-mcp-server/commit/09cdedf9855f05e1764d34bb1e82de18c6ce4dab))
+
+
+### Code Refactoring
+
+* remove legacy MCP tool aliases ([6325d6f](https://github.com/akiojin/unity-mcp-server/commit/6325d6f8b9611f2ae1a44ffdd17ee99a374405d6))
+
+## [3.2.1](https://github.com/akiojin/unity-mcp-server/compare/v3.2.0...v3.2.1) (2025-12-16)
+
+
+### Bug Fixes
+
+* analysis/input actions のUnityコマンド名マッピング ([222227f](https://github.com/akiojin/unity-mcp-server/commit/222227fc2de7bd650bce84328a260d4743d23490))
+* Animator tool名→Unity command type を正規化 ([30754e2](https://github.com/akiojin/unity-mcp-server/commit/30754e2f790b7a5983f5cc9798509d670996e18b))
+* Animatorコマンドtypeを正規化 ([13f7a27](https://github.com/akiojin/unity-mcp-server/commit/13f7a2767d07839289f9db74ab4311868c416136))
+* Unityコマンド名のマッピング修正 ([0eff680](https://github.com/akiojin/unity-mcp-server/commit/0eff680debc0abf79bd0dc9d76506402e189de9b))
+
 ## [3.2.0](https://github.com/akiojin/unity-mcp-server/compare/v3.1.0...v3.2.0) (2025-12-15)
 
 
@@ -33,7 +101,7 @@
 
 * **code-index:** add Library/PackageCache support and performance optimization ([a8c728e](https://github.com/akiojin/unity-mcp-server/commit/a8c728ef9571c703c9061f0f128ba5a5e72f15f6))
 * **code-index:** remove */.*  pattern that breaks worktree builds ([2bd9d8b](https://github.com/akiojin/unity-mcp-server/commit/2bd9d8b52cf11d17d805f5de7afdc727d61afe16))
-* **mcp-server:** add Library/PackageCache to script_search scope ([e797f5b](https://github.com/akiojin/unity-mcp-server/commit/e797f5b9b1226e3ec726cd66580c0ba7310350a5))
+* **mcp-server:** add Library/PackageCache to search scope ([e797f5b](https://github.com/akiojin/unity-mcp-server/commit/e797f5b9b1226e3ec726cd66580c0ba7310350a5))
 * **uitk:** Query拡張メソッド参照を修正 ([0ddf05f](https://github.com/akiojin/unity-mcp-server/commit/0ddf05f262c0fe83f3323342d1d0d78d11840d03))
 * **uitk:** テストシーンUI Toolkit API互換 ([29ced95](https://github.com/akiojin/unity-mcp-server/commit/29ced951a10262f7feda73241c26aafee749bfe2))
 * **ui:** UITKクリックとInputSystem対応 ([85d23c6](https://github.com/akiojin/unity-mcp-server/commit/85d23c65860efb98604dce11a46b5d826d0ffe14))
@@ -80,8 +148,8 @@
 * **monorepo:** add postinstall script and improve error messages ([d132b16](https://github.com/akiojin/unity-mcp-server/commit/d132b1695153fb2db79cb7f48e9de570fa8fd5b6))
 * **monorepo:** add postinstall script to build local packages ([8ed1478](https://github.com/akiojin/unity-mcp-server/commit/8ed1478901fdd8f7dec2f1330e99976d621d1d6c))
 * **script-tools:** improve file not found error messages ([a975c11](https://github.com/akiojin/unity-mcp-server/commit/a975c1145356ac6477299aae3efdede2bb616090))
-* **script-tools:** replace LSP with file-based search in script_refs_find ([cc99ee0](https://github.com/akiojin/unity-mcp-server/commit/cc99ee0e15e4ff7e0fb25ed3da905d9d1c85c375))
-* **script-tools:** replace LSP with file-based search in script_refs_find ([b74f081](https://github.com/akiojin/unity-mcp-server/commit/b74f081fb8e4b4c85a2461b74150c68e538cf19b))
+* **script-tools:** replace LSP with file-based search in find_refs ([cc99ee0](https://github.com/akiojin/unity-mcp-server/commit/cc99ee0e15e4ff7e0fb25ed3da905d9d1c85c375))
+* **script-tools:** replace LSP with file-based search in find_refs ([b74f081](https://github.com/akiojin/unity-mcp-server/commit/b74f081fb8e4b4c85a2461b74150c68e538cf19b))
 * 起動時のtools/listを高速化 ([0e179bc](https://github.com/akiojin/unity-mcp-server/commit/0e179bc76a5406fffb55e37a4513617f4e0bd9eb))
 
 
@@ -118,8 +186,8 @@
 
 ### Bug Fixes
 
-* **code-index:** use Worker Thread for code_index_build to prevent blocking ([467e2a1](https://github.com/akiojin/unity-mcp-server/commit/467e2a18b8cd5edf5b97aef66ea95449201394b5))
-* **code-index:** use Worker Thread for code_index_build to prevent blocking ([11d54ea](https://github.com/akiojin/unity-mcp-server/commit/11d54ea7dd0674d3dd461880cfa9b3b599313666))
+* **code-index:** use Worker Thread for build_index to prevent blocking ([467e2a1](https://github.com/akiojin/unity-mcp-server/commit/467e2a18b8cd5edf5b97aef66ea95449201394b5))
+* **code-index:** use Worker Thread for build_index to prevent blocking ([11d54ea](https://github.com/akiojin/unity-mcp-server/commit/11d54ea7dd0674d3dd461880cfa9b3b599313666))
 
 ## [2.45.1](https://github.com/akiojin/unity-mcp-server/compare/v2.45.0...v2.45.1) (2025-12-09)
 
@@ -275,7 +343,7 @@
 
 ### Performance Improvements
 
-* **code-index:** remove expensive file scan from code_index_status ([ac912e2](https://github.com/akiojin/unity-mcp-server/commit/ac912e2253f726f63d0dc373379b0209e86c332e))
+* **code-index:** remove expensive file scan from get_index_status ([ac912e2](https://github.com/akiojin/unity-mcp-server/commit/ac912e2253f726f63d0dc373379b0209e86c332e))
 * **code-index:** Worker Thread implementation for non-blocking index builds ([f953608](https://github.com/akiojin/unity-mcp-server/commit/f95360854c7d8063ace06684603d853da041d1f0))
 
 ## [2.41.8](https://github.com/akiojin/unity-mcp-server/compare/v2.41.7...v2.41.8) (2025-11-27)
@@ -405,7 +473,7 @@
 * **mcp-server:** revert ListTools restriction - return all tools for MCP protocol compliance ([54a6f2d](https://github.com/akiojin/unity-mcp-server/commit/54a6f2d5df6a497fd32677ef87e2c37af76cfa5d))
 * **profiler:** fix string interpolation syntax error in ProfilerHandler.cs ([2d07072](https://github.com/akiojin/unity-mcp-server/commit/2d07072269d1df4dfc316b879c395484603f4f94))
 * **profiler:** fix Unity.Profiling API usage for ProfilerRecorder ([dc54711](https://github.com/akiojin/unity-mcp-server/commit/dc54711271039ba5759d0e6a3ed3cae721c430d7))
-* **script:** normalize line endings in script_edit_snippet for Issue [#97](https://github.com/akiojin/unity-mcp-server/issues/97) ([27f4650](https://github.com/akiojin/unity-mcp-server/commit/27f465070ca55e53df7b5845b9990d19d58e63da))
+* **script:** normalize line endings in edit_snippet for Issue [#97](https://github.com/akiojin/unity-mcp-server/issues/97) ([27f4650](https://github.com/akiojin/unity-mcp-server/commit/27f465070ca55e53df7b5845b9990d19d58e63da))
 
 ## [2.39.0](https://github.com/akiojin/unity-mcp-server/compare/v2.38.1...v2.39.0) (2025-11-17)
 
@@ -429,7 +497,7 @@
 * **mcp-server:** revert ListTools restriction - return all tools for MCP protocol compliance ([54a6f2d](https://github.com/akiojin/unity-mcp-server/commit/54a6f2d5df6a497fd32677ef87e2c37af76cfa5d))
 * **profiler:** fix string interpolation syntax error in ProfilerHandler.cs ([2d07072](https://github.com/akiojin/unity-mcp-server/commit/2d07072269d1df4dfc316b879c395484603f4f94))
 * **profiler:** fix Unity.Profiling API usage for ProfilerRecorder ([dc54711](https://github.com/akiojin/unity-mcp-server/commit/dc54711271039ba5759d0e6a3ed3cae721c430d7))
-* **script:** normalize line endings in script_edit_snippet for Issue [#97](https://github.com/akiojin/unity-mcp-server/issues/97) ([27f4650](https://github.com/akiojin/unity-mcp-server/commit/27f465070ca55e53df7b5845b9990d19d58e63da))
+* **script:** normalize line endings in edit_snippet for Issue [#97](https://github.com/akiojin/unity-mcp-server/issues/97) ([27f4650](https://github.com/akiojin/unity-mcp-server/commit/27f465070ca55e53df7b5845b9990d19d58e63da))
 
 ## [2.38.1](https://github.com/akiojin/unity-mcp-server/compare/v2.38.0...v2.38.1) (2025-11-17)
 

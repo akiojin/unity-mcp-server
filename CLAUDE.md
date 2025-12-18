@@ -175,13 +175,13 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 
 - **禁止事項**: serena MCPや他のMCPサーバーを使用したC#編集
 - **必須**: 以下のunity-mcp-serverツールを使用
-  - `script_symbols_get`: ファイル内のシンボル（クラス、メソッド、フィールド等）を取得
-  - `script_symbol_find`: シンボルを名前で検索
-  - `script_refs_find`: シンボルの参照箇所を検索
-  - `script_edit_structured`: 構造化編集（メソッド本体置換、クラスメンバー追加）
-  - `script_edit_snippet`: 軽量スニペット編集（1〜2行、80文字以内）
-  - `script_read`: C#ファイルの読み取り
-  - `script_search`: C#コード内の検索
+  - `get_symbols`: ファイル内のシンボル（クラス、メソッド、フィールド等）を取得
+  - `find_symbol`: シンボルを名前で検索
+  - `find_refs`: シンボルの参照箇所を検索
+  - `edit_structured`: 構造化編集（メソッド本体置換、クラスメンバー追加）
+  - `edit_snippet`: 軽量スニペット編集（1〜2行、80文字以内）
+  - `read`: C#ファイルの読み取り
+  - `search`: C#コード内の検索
 
 **理由**: unity-mcp-serverはUnityプロジェクト専用に最適化されたコードインデックスを持ち、Unityエディタとのリアルタイム連携、コンパイルエラー検出、LSP診断など、Unity開発に不可欠な機能を提供します。serena MCPは汎用的なコードエディタであり、Unity固有の機能をサポートしていません。
 
@@ -193,70 +193,70 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 
 | 操作 | コードインデックスツール | 標準ツール | 結果 |
 |------|------------------------|------------|------|
-| シンボル検索 | `script_symbol_find` | `grep` | **コードインデックス勝利**（瞬時 vs 353ms） |
-| 参照検索 | `script_refs_find` | `grep` | **コードインデックス勝利**（瞬時 vs 346ms） |
-| コード検索 | `script_search` | `grep` | **コードインデックス勝利**（瞬時 vs 346ms） |
-| ファイル読み取り | `script_read` | `Read` | **同等**（両方瞬時） |
+| シンボル検索 | `find_symbol` | `grep` | **コードインデックス勝利**（瞬時 vs 353ms） |
+| 参照検索 | `find_refs` | `grep` | **コードインデックス勝利**（瞬時 vs 346ms） |
+| コード検索 | `search` | `grep` | **コードインデックス勝利**（瞬時 vs 346ms） |
+| ファイル読み取り | `read` | `Read` | **同等**（両方瞬時） |
 
 **コンテキスト圧縮**:
 
 | ツール | 出力サイズ | 標準ツール | 圧縮率 |
 |--------|-----------|------------|--------|
-| `script_read` | 200行 (8KB) | 358行 (13KB) | **1.6倍小さい** |
-| `script_symbol_find` | 34シンボル (3KB) | 209行 (15KB) | **5倍小さい** |
-| `script_refs_find` | 20参照 (4KB) | 全行 | **3倍小さい** |
+| `read` | 200行 (8KB) | 358行 (13KB) | **1.6倍小さい** |
+| `find_symbol` | 34シンボル (3KB) | 209行 (15KB) | **5倍小さい** |
+| `find_refs` | 20参照 (4KB) | 全行 | **3倍小さい** |
 
-**重要**: `code_index_build` を実行してDBインデックスを構築してから使用してください。インデックスなしではLSPタイムアウト（60秒）が発生します。
+**重要**: `build_index` を実行してDBインデックスを構築してから使用してください。インデックスなしではLSPタイムアウト（60秒）が発生します。
 
 #### コードインデックスの活用
 
 **編集前の必須ステップ**:
 
-1. **`script_symbols_get`**: 編集対象ファイルのシンボル構造を把握
+1. **`get_symbols`**: 編集対象ファイルのシンボル構造を把握
    - クラス、メソッド、フィールド、プロパティの一覧を取得
    - 各シンボルの位置（行・列）を確認
    - namePath（例: `Outer/Nested/Member`）を特定
 
-2. **`script_symbol_find`**: シンボルを名前で検索
+2. **`find_symbol`**: シンボルを名前で検索
    - プロジェクト全体から特定のクラス/メソッドを検索
    - 部分一致検索も可能（`substring_matching=true`）
    - スコープ指定（Assets/Packages）で絞り込み
 
-3. **`script_refs_find`**: 影響範囲の確認
+3. **`find_refs`**: 影響範囲の確認
    - 編集対象シンボルが参照されている箇所を全検索
    - 破壊的変更の影響範囲を事前に把握
    - リファクタリング時の必須チェック
 
 **編集実行**:
 
-1. **`script_edit_structured`**: 構造化編集
+1. **`edit_structured`**: 構造化編集
    - メソッド本体の完全置換
    - クラスメンバーの追加
    - namePath指定で対象を一意に特定
 
-2. **`script_edit_snippet`**: 軽量スニペット編集
+2. **`edit_snippet`**: 軽量スニペット編集
    - 1〜2行の小さな変更
    - アンカー文字列で編集位置を厳密に指定
 
 **検証**:
 
-1. **`code_index_status`**: インデックス状態の確認
+1. **`get_index_status`**: インデックス状態の確認
    - カバレッジ率を確認
-   - インデックスが古い場合は`code_index_update`で更新
+   - インデックスが古い場合は`update_index`で更新
 
 **ワークフロー例**:
 
 ```
-1. script_symbols_get → クラス構造を把握
-2. script_refs_find → 影響範囲を確認
-3. script_edit_structured → メソッド本体を置換
-4. code_index_update → インデックスを更新
-5. script_refs_find → 変更後の参照箇所を再確認
+1. get_symbols → クラス構造を把握
+2. find_refs → 影響範囲を確認
+3. edit_structured → メソッド本体を置換
+4. update_index → インデックスを更新
+5. find_refs → 変更後の参照箇所を再確認
 ```
 
 ### C#スクリプト編集ツールの使い分け
 
-#### `script_edit_snippet`: 軽量スニペット編集（1〜2行、80文字以内）
+#### `edit_snippet`: 軽量スニペット編集（1〜2行、80文字以内）
 
 **用途**:
 - nullガード削除
@@ -334,7 +334,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 }
 ```
 
-#### `script_edit_structured`: 構造化編集（メソッド本体、クラスメンバー追加）
+#### `edit_structured`: 構造化編集（メソッド本体、クラスメンバー追加）
 
 **用途**:
 - メソッド本体の差し替え
@@ -389,7 +389,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
    - **解決策**: ファイル内容を確認し、空白・改行を正確にコピー
 
 3. **`diff exceeds 80 characters`**: 差分が80文字超
-   - **解決策**: `script_edit_structured` に切り替え
+   - **解決策**: `edit_structured` に切り替え
 
 4. **構文エラー**: LSP診断で括弧不整合検出
    - **解決策**: 編集はロールバックされる。アンカーまたは newText を修正
@@ -397,13 +397,13 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 #### トラブルシューティング
 
 **Q: アンカーが見つからない**
-- A: `script_read` でファイル内容を確認し、空白・改行を含む正確な文字列をコピー
+- A: `read` でファイル内容を確認し、空白・改行を含む正確な文字列をコピー
 
 **Q: 複数箇所にマッチしてしまう**
 - A: アンカーに前後数行のコンテキストを含めて一意にする
 
 **Q: 80文字制限に引っかかる**
-- A: `script_edit_structured` で replace_body を使用
+- A: `edit_structured` で replace_body を使用
 
 **Q: 編集が反映されない**
 - A: `preview=false` で apply モードになっているか確認
@@ -910,7 +910,7 @@ b) **Unity C#編集保護**:
 - `mcp__serena__*` ツールでのUnity C#ファイル編集
 
 **警告のみ（ブロックしない）**:
-- `Read` ツールでのUnity C#ファイル読み取り（代わりに`mcp__unity-mcp-server__script_read`を推奨）
+- `Read` ツールでのUnity C#ファイル読み取り（代わりに`mcp__unity-mcp-server__read`を推奨）
 
 **Unity C#ファイルの判定基準**:
 - ファイル拡張子が`.cs`
@@ -921,13 +921,13 @@ b) **Unity C#編集保護**:
   - `UnityMCPServer/`
 
 **許可されるツール**:
-- `mcp__unity-mcp-server__script_edit_structured`
-- `mcp__unity-mcp-server__script_edit_snippet`
-- `mcp__unity-mcp-server__script_symbols_get`
-- `mcp__unity-mcp-server__script_symbol_find`
-- `mcp__unity-mcp-server__script_refs_find`
-- `mcp__unity-mcp-server__script_read`
-- `mcp__unity-mcp-server__script_search`
+- `mcp__unity-mcp-server__edit_structured`
+- `mcp__unity-mcp-server__edit_snippet`
+- `mcp__unity-mcp-server__get_symbols`
+- `mcp__unity-mcp-server__find_symbol`
+- `mcp__unity-mcp-server__find_refs`
+- `mcp__unity-mcp-server__read`
+- `mcp__unity-mcp-server__search`
 
 **テスト**:
 ```bash

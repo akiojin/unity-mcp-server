@@ -47,8 +47,8 @@
   - 結果: `LspRpcClient.validateText()` (mcp/validateTextEdits) が利用可能
 - [x] R-002: 複数テキストEditを適用するAPI確認
   - 結果: 専用API不要、テキストレベルの順次適用で十分
-- [x] R-003: script_searchのアンカー解決への再利用可能性
-  - 結果: script_search不要、indexOfで十分
+- [x] R-003: searchのアンカー解決への再利用可能性
+  - 結果: search不要、indexOfで十分
 - [x] R-004: フォーマッタ呼び出しの必要性評価
   - 結果: 構文診断のみで十分、フォーマッタ不要
 
@@ -72,7 +72,7 @@ Phase 0リサーチにてScriptEditSnippetToolHandler.jsが既に実装済みと
 
 ### Phase 4: ドキュメント ✅
 
-- [x] DOC-001: CLAUDE.md更新（script_edit_snippet使用ガイドライン）
+- [x] DOC-001: CLAUDE.md更新（edit_snippet使用ガイドライン）
 - [x] DOC-002: 使用例追加
 - [x] DOC-003: トラブルシューティング追加
 
@@ -141,7 +141,7 @@ Phase 0リサーチにてScriptEditSnippetToolHandler.jsが既に実装済みと
 - ✅ JobManager: 13/13 contract tests合格
 - ✅ Integration tests: US-1, US-2, US-3すべてカバー
 - ✅ IndexWatcher E2E: 4つの統合シナリオテスト
-- ✅ パフォーマンス: code_index_build < 1秒、code_index_status < 100ms
+- ✅ パフォーマンス: build_index < 1秒、get_index_status < 100ms
 
 ### 実装ファイル
 

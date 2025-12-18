@@ -42,7 +42,7 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
         assert.ok(typeof buildResult.jobId === 'string', 'jobId should be a string');
         assert.ok(buildResult.jobId.startsWith('build-'), 'jobId should start with "build-"');
 
-        // シナリオ: 他ツール使用可能（code_index_statusを即座に呼び出せる）
+        // シナリオ: 他ツール使用可能（get_index_statusを即座に呼び出せる）
         const statusResult = await statusHandler.execute({});
         assert.ok(statusResult, 'Should be able to call other tools immediately');
 
@@ -80,7 +80,7 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
   describe('US-2: 進捗状況の可視化 (Progress Visibility)', () => {
     it('should show progress information during build execution', async () => {
       try {
-        // シナリオ: ビルド実行中 → code_index_status → 進捗情報確認
+        // シナリオ: ビルド実行中 → get_index_status → 進捗情報確認
         const buildResult = await buildHandler.execute({ delayStartMs: isCI ? 0 : undefined });
         const jobId = buildResult.jobId;
 
@@ -126,7 +126,7 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
 
     it('should show result information after build completion', async () => {
       try {
-        // シナリオ: ビルド完了後 → code_index_status → 結果情報確認
+        // シナリオ: ビルド完了後 → get_index_status → 結果情報確認
         const buildResult = await buildHandler.execute({});
         const jobId = buildResult.jobId;
 
@@ -394,13 +394,13 @@ describeSuite('SPEC-yt3ikddd: Background Code Index Build - Integration Tests', 
       }
     });
 
-    it('should respond to code_index_status within 100ms', async () => {
+    it('should respond to get_index_status within 100ms', async () => {
       const startTime = Date.now();
       try {
         await statusHandler.execute({});
         const duration = Date.now() - startTime;
 
-        assert.ok(duration < 1500, `code_index_status took ${duration}ms, should be < 1500ms`);
+        assert.ok(duration < 1500, `get_index_status took ${duration}ms, should be < 1500ms`);
       } catch (error) {
         // May fail if index not built, but duration should still be fast
         const duration = Date.now() - startTime;

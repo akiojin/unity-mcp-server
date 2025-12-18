@@ -5,8 +5,8 @@ import { ProjectInfoProvider } from '../../core/projectInfo.js';
 export class ScriptEditStructuredToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'script_edit_structured',
-      '[C# EDITING - PRIMARY TOOL] For Unity C# script editing, PREFER this tool over Read/Edit/Write for structural code changes. Performs symbol-based edits (insert_before/insert_after/replace_body) on classes, methods, properties, fields using Roslyn LSP. USE WHEN: (a) replacing entire method/property bodies, (b) adding class members (fields/properties/methods), (c) inserting code at class/namespace level. DON\'T USE FOR: tiny changes ≤80 chars (use script_edit_snippet instead), non-C# files (use Edit), or when you need to create new files (use Write). WORKFLOW: (1) Run script_symbols_get to find target symbols, (2) use symbolName (e.g., "MyClass/MyMethod"), (3) apply edits. Insert operations target containers (class/namespace), not methods. Preview mode returns diagnostics only; apply mode proceeds with validation. Required: path (Assets/|Packages/), symbolName, operation. Optional: kind, newText, preview.',
+      'edit_structured',
+      '[C# EDITING - PRIMARY TOOL] For Unity C# script editing, PREFER this tool over Read/Edit/Write for structural code changes. Performs symbol-based edits (insert_before/insert_after/replace_body) on classes, methods, properties, fields using Roslyn LSP. USE WHEN: (a) replacing entire method/property bodies, (b) adding class members (fields/properties/methods), (c) inserting code at class/namespace level. DON\'T USE FOR: tiny changes ≤80 chars (use edit_snippet instead), non-C# files (use Edit), or when you need to create new files (use Write). WORKFLOW: (1) Run get_symbols to find target symbols, (2) use symbolName (e.g., "MyClass/MyMethod"), (3) apply edits. Insert operations target containers (class/namespace), not methods. Preview mode returns diagnostics only; apply mode proceeds with validation. Required: path (Assets/|Packages/), symbolName, operation. Optional: kind, newText, preview.',
       {
         type: 'object',
         properties: {

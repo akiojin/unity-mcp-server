@@ -29,9 +29,9 @@
 
 | Tool | Optimization | Size Reduction |
 |------|-------------|----------------|
-| `script_symbol_find` | pathTable + fileId reference | **60%** |
-| `script_refs_find` | pathTable + fileId reference | **62%** |
-| `script_symbols_get` | Remove endLine/endColumn | **50%** |
+| `find_symbol` | pathTable + fileId reference | **60%** |
+| `find_refs` | pathTable + fileId reference | **62%** |
+| `get_symbols` | Remove endLine/endColumn | **50%** |
 | **Overall** | Null field omission | **47%** |
 
 ### Output Format Changes
@@ -69,20 +69,20 @@
 
 | Operation | unity-mcp-server Tool | Time | Standard Tool | Time | Result |
 |-----------|----------------|------|---------------|------|--------|
-| Symbol Lookup | `script_symbol_find` | **instant** | `grep "class "` | 353ms | **unity-mcp-server wins** |
-| Reference Search | `script_refs_find` | **instant** | `grep "Response"` | 346ms | **unity-mcp-server wins** |
-| Code Search | `script_search` | **instant** | `grep` | 346ms | **unity-mcp-server wins** |
-| File Read | `script_read` | **instant** | `Read` | **instant** | **Equal** (both instant) |
-| File Listing | `code_index_status` | **instant** | `Glob` | **instant** | **Equal** (both instant) |
+| Symbol Lookup | `find_symbol` | **instant** | `grep "class "` | 353ms | **unity-mcp-server wins** |
+| Reference Search | `find_refs` | **instant** | `grep "Response"` | 346ms | **unity-mcp-server wins** |
+| Code Search | `search` | **instant** | `grep` | 346ms | **unity-mcp-server wins** |
+| File Read | `read` | **instant** | `Read` | **instant** | **Equal** (both instant) |
+| File Listing | `get_index_status` | **instant** | `Glob` | **instant** | **Equal** (both instant) |
 
 ### Context Compression
 
 | Tool | Output Size | Standard Tool | Output Size | Compression |
 |------|------------|---------------|-------------|-------------|
-| `script_read` | 200 lines (8KB) | `Read` | 358 lines (13KB) | **1.6x smaller** |
-| `script_symbol_find` | 34 symbols (3KB) | `grep` | 209 lines (15KB) | **5x smaller** |
-| `script_refs_find` | 20 refs (4KB) | `grep` | Full lines | **3x smaller** |
-| `script_search` | 7 files, snippets (5KB) | `grep` | Full lines | **3x smaller** |
+| `read` | 200 lines (8KB) | `Read` | 358 lines (13KB) | **1.6x smaller** |
+| `find_symbol` | 34 symbols (3KB) | `grep` | 209 lines (15KB) | **5x smaller** |
+| `find_refs` | 20 refs (4KB) | `grep` | Full lines | **3x smaller** |
+| `search` | 7 files, snippets (5KB) | `grep` | Full lines | **3x smaller** |
 
 ## Scale-Based Benchmark (Measured Results)
 
@@ -175,7 +175,7 @@ real    0m0.346s
 
 **Result**: Index is ready with 100% coverage. Query time: **instant** (<10ms)
 
-### 3. Symbol Find (`script_symbol_find`)
+### 3. Symbol Find (`find_symbol`)
 
 Query: `name="Response"`, scope: `all`
 
@@ -195,9 +195,9 @@ Query: `name="Response"`, scope: `all`
 
 **Comparison with Grep**:
 - Grep: 209 raw line matches (unstructured text)
-- script_symbol_find: 34 structured symbols with kind/location metadata
+- find_symbol: 34 structured symbols with kind/location metadata
 
-### 4. Reference Find (`script_refs_find`)
+### 4. Reference Find (`find_refs`)
 
 Query: `name="Response"`, scope: `packages`
 
@@ -219,7 +219,7 @@ Query: `name="Response"`, scope: `packages`
 
 **Result**: Found 20 references with context snippets. Query time: **instant** (<100ms)
 
-### 5. Code Search (`script_search`)
+### 5. Code Search (`search`)
 
 Query: `pattern="Response"`, scope: `packages`, returnMode: `snippets`
 
@@ -247,7 +247,7 @@ Query: `pattern="Response"`, scope: `packages`, returnMode: `snippets`
 - Line numbers included
 - No filtering
 
-**script_read** (unity-mcp-server):
+**read** (unity-mcp-server):
 - Default limit: 200 lines, ~8KB
 - Configurable line range
 - Project-relative paths
@@ -286,10 +286,10 @@ Index builds run in **Worker Threads**:
 Main Thread (MCP tools)     Worker Thread (index build)
         │                           │
         ├── ping ─────────── │ ──► instant response
-        ├── code_index_status ───── │ ──► instant response
+        ├── get_index_status ───── │ ──► instant response
         │                           ├── Processing file 1/1000
         │                           ├── Processing file 2/1000
-        ├── script_symbol_find ──── │ ──► instant response
+        ├── find_symbol ──── │ ──► instant response
         │                           └── Build complete
 ```
 
@@ -299,11 +299,11 @@ Main Thread (MCP tools)     Worker Thread (index build)
 
 | Use Case | Recommended Tool | Reason |
 |----------|-----------------|--------|
-| Find class/method by name | `script_symbol_find` | Indexed, structured results |
-| Find all usages of symbol | `script_refs_find` | Context snippets, pagination |
-| Search code patterns | `script_search` | Regex support, scope filtering |
-| Read specific file | `script_read` | Line limits, project paths |
-| Check index status | `code_index_status` | Coverage, build progress |
+| Find class/method by name | `find_symbol` | Indexed, structured results |
+| Find all usages of symbol | `find_refs` | Context snippets, pagination |
+| Search code patterns | `search` | Regex support, scope filtering |
+| Read specific file | `read` | Line limits, project paths |
+| Check index status | `get_index_status` | Coverage, build progress |
 | Quick file listing | `Glob` | Faster for simple patterns |
 
 ## Known Limitations
@@ -314,9 +314,9 @@ Some tools may timeout if C# LSP is slow:
 
 | Tool | May Timeout | Workaround |
 |------|-------------|------------|
-| `script_symbols_get` | Yes | Use `script_symbol_find` instead |
-| `script_symbol_find` | No (DB-based) | N/A |
-| `script_refs_find` | No (file-based) | N/A |
+| `get_symbols` | Yes | Use `find_symbol` instead |
+| `find_symbol` | No (DB-based) | N/A |
+| `find_refs` | No (file-based) | N/A |
 
 ### Initial Index Build
 
@@ -333,7 +333,7 @@ Some tools may timeout if C# LSP is slow:
 3. **Compression**: 3-5x smaller responses for LLM efficiency
 4. **Non-blocking**: Worker Thread isolation ensures responsiveness
 
-**Recommendation**: Always run `code_index_build` when starting a new project to enable fast symbol operations.
+**Recommendation**: Always run `build_index` when starting a new project to enable fast symbol operations.
 
 ## Technical Implementation Details
 
@@ -436,15 +436,15 @@ this.db.run('PRAGMA synchronous = NORMAL');  // Balanced safety/speed
 
 ### Breaking Changes in v2.42.4+
 
-1. **`script_symbol_find` output format**:
+1. **`find_symbol` output format**:
    - Old: `results[].path` (string)
    - New: `pathTable[]` + `results[].fileId` (number)
 
-2. **`script_refs_find` output format**:
+2. **`find_refs` output format**:
    - Old: `results[].path` (string)
    - New: `pathTable[]` + `results[].fileId` (number)
 
-3. **`script_symbols_get` output format**:
+3. **`get_symbols` output format**:
    - Old: `symbols[].startLine`, `symbols[].endLine`
    - New: `symbols[].line`, `symbols[].column`
 

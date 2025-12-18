@@ -16,29 +16,29 @@ Unity C#スクリプトの編集・検索・リファクタリングを効率的
 
 ```javascript
 // インデックス状態を確認
-mcp__unity-mcp-server__code_index_status()
+mcp__unity-mcp-server__get_index_status()
 
 // インデックスを構築（初回のみ、数分かかる場合あり）
-mcp__unity-mcp-server__code_index_build()
+mcp__unity-mcp-server__build_index()
 ```
 
 ### 2. 基本的な読み取りフロー
 
 ```javascript
 // ファイル内のシンボル一覧を取得
-mcp__unity-mcp-server__script_symbols_get({
+mcp__unity-mcp-server__get_symbols({
   path: "Assets/Scripts/Player.cs"
 })
 
 // 特定シンボルの詳細を取得
-mcp__unity-mcp-server__script_symbol_find({
+mcp__unity-mcp-server__find_symbol({
   name: "PlayerController",
   kind: "class",
   exact: true
 })
 
 // コードを読み取り
-mcp__unity-mcp-server__script_read({
+mcp__unity-mcp-server__read({
   path: "Assets/Scripts/Player.cs",
   startLine: 10,
   endLine: 50
@@ -49,7 +49,7 @@ mcp__unity-mcp-server__script_read({
 
 ```javascript
 // 小さな変更（80文字以内）→ snippet
-mcp__unity-mcp-server__script_edit_snippet({
+mcp__unity-mcp-server__edit_snippet({
   path: "Assets/Scripts/Player.cs",
   instructions: [{
     operation: "replace",
@@ -59,7 +59,7 @@ mcp__unity-mcp-server__script_edit_snippet({
 })
 
 // 大きな変更（メソッド本体）→ structured
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Scripts/Player.cs",
   symbolName: "PlayerController/TakeDamage",
   operation: "replace_body",
@@ -75,9 +75,9 @@ unity-mcp-serverは内蔵C# LSPによるコードインデックスを提供。�
 
 | ツール | 目的 | 標準比 |
 |--------|------|--------|
-| `script_symbol_find` | シンボル検索 | 5倍小さい出力 |
-| `script_refs_find` | 参照検索 | 3倍小さい出力 |
-| `script_search` | コード検索 | 瞬時レスポンス |
+| `find_symbol` | シンボル検索 | 5倍小さい出力 |
+| `find_refs` | 参照検索 | 3倍小さい出力 |
+| `search` | コード検索 | 瞬時レスポンス |
 
 ### namePath（シンボルパス）
 
@@ -110,7 +110,7 @@ OuterClass/InnerClass/Method
 
 **編集ツールの選択基準は「差分が80文字以内かどうか」**
 
-#### `script_edit_snippet` を使う場合
+#### `edit_snippet` を使う場合
 
 **条件**: 差分が80文字以内、1〜2行の変更
 
@@ -125,7 +125,7 @@ OuterClass/InnerClass/Method
 { operation: "insert", anchor: { type: "text", target: "Process();\n" }, newText: "Debug.Log(\"Processing\");\n" }
 ```
 
-#### `script_edit_structured` を使う場合
+#### `edit_structured` を使う場合
 
 **条件**: メソッド本体置換、クラスメンバー追加
 
@@ -149,11 +149,11 @@ OuterClass/InnerClass/Method
 
 ```
 変更が80文字以内？
-├─ YES → script_edit_snippet
+├─ YES → edit_snippet
 └─ NO → メソッド/プロパティ全体の置換？
-         ├─ YES → script_edit_structured (replace_body)
+         ├─ YES → edit_structured (replace_body)
          └─ NO → クラスへの追加？
-                  ├─ YES → script_edit_structured (insert_after)
+                  ├─ YES → edit_structured (insert_after)
                   └─ NO → 複数のsnippetに分割
 ```
 
@@ -165,7 +165,7 @@ OuterClass/InnerClass/Method
 
 ```javascript
 // テストファイルを作成
-mcp__unity-mcp-server__script_create_class({
+mcp__unity-mcp-server__create_class({
   path: "Assets/Tests/PlayerTests.cs",
   className: "PlayerTests",
   namespace: "Tests",
@@ -173,7 +173,7 @@ mcp__unity-mcp-server__script_create_class({
 })
 
 // テストメソッドを追加
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Tests/PlayerTests.cs",
   symbolName: "PlayerTests",
   operation: "insert_after",
@@ -193,7 +193,7 @@ mcp__unity-mcp-server__script_edit_structured({
 
 ```javascript
 // 実装を追加
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Scripts/Player.cs",
   symbolName: "Player",
   operation: "insert_after",
@@ -213,7 +213,7 @@ mcp__unity-mcp-server__script_edit_structured({
 mcp__unity-mcp-server__get_compilation_state({ includeMessages: true })
 
 // 影響範囲を確認してからリファクタリング
-mcp__unity-mcp-server__script_refs_find({
+mcp__unity-mcp-server__find_refs({
   name: "TakeDamage",
   container: "Player"
 })
@@ -223,7 +223,7 @@ mcp__unity-mcp-server__script_refs_find({
 
 ```javascript
 // 1. クラスファイル作成
-mcp__unity-mcp-server__script_create_class({
+mcp__unity-mcp-server__create_class({
   path: "Assets/Scripts/Enemies/Enemy.cs",
   className: "Enemy",
   namespace: "Game.Enemies",
@@ -232,7 +232,7 @@ mcp__unity-mcp-server__script_create_class({
 })
 
 // 2. フィールドとメソッドを追加
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Scripts/Enemies/Enemy.cs",
   symbolName: "Enemy",
   operation: "insert_after",
@@ -256,7 +256,7 @@ mcp__unity-mcp-server__script_edit_structured({
 })
 
 // 3. インデックス更新
-mcp__unity-mcp-server__code_index_update({
+mcp__unity-mcp-server__update_index({
   paths: ["Assets/Scripts/Enemies/Enemy.cs"]
 })
 ```
@@ -265,14 +265,14 @@ mcp__unity-mcp-server__code_index_update({
 
 ```javascript
 // 1. 影響範囲を確認
-mcp__unity-mcp-server__script_refs_find({
+mcp__unity-mcp-server__find_refs({
   name: "oldMethodName",
   container: "ClassName",
   scope: "all"
 })
 
 // 2. リネーム実行（プロジェクト全体に適用）
-mcp__unity-mcp-server__script_refactor_rename({
+mcp__unity-mcp-server__rename_symbol({
   relative: "Assets/Scripts/Player.cs",
   namePath: "Player/oldMethodName",
   newName: "newMethodName",
@@ -280,7 +280,7 @@ mcp__unity-mcp-server__script_refactor_rename({
 })
 
 // 3. 問題なければ適用
-mcp__unity-mcp-server__script_refactor_rename({
+mcp__unity-mcp-server__rename_symbol({
   relative: "Assets/Scripts/Player.cs",
   namePath: "Player/oldMethodName",
   newName: "newMethodName",
@@ -292,7 +292,7 @@ mcp__unity-mcp-server__script_refactor_rename({
 
 ```javascript
 // パターン検索（正規表現）
-mcp__unity-mcp-server__script_search({
+mcp__unity-mcp-server__search({
   pattern: "GetComponent<.*>",
   patternType: "regex",
   scope: "assets",
@@ -301,7 +301,7 @@ mcp__unity-mcp-server__script_search({
 })
 
 // 特定クラスの使用箇所を検索
-mcp__unity-mcp-server__script_refs_find({
+mcp__unity-mcp-server__find_refs({
   name: "PlayerController",
   kind: "class",
   scope: "all"
@@ -314,7 +314,7 @@ mcp__unity-mcp-server__script_refs_find({
 
 ```javascript
 // 最大10箇所まで一度に編集可能
-mcp__unity-mcp-server__script_edit_snippet({
+mcp__unity-mcp-server__edit_snippet({
   path: "Assets/Scripts/GameManager.cs",
   instructions: [
     { operation: "replace", anchor: { type: "text", target: "Debug.Log" }, newText: "Logger.Info" },
@@ -330,7 +330,7 @@ mcp__unity-mcp-server__script_edit_snippet({
 
 ```javascript
 // プレビューモードで検証
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Scripts/Player.cs",
   symbolName: "Player/Update",
   operation: "replace_body",
@@ -339,7 +339,7 @@ mcp__unity-mcp-server__script_edit_structured({
 })
 
 // LSP診断エラーがなければ適用
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   // 同じパラメータで preview: false
 })
 ```
@@ -348,13 +348,13 @@ mcp__unity-mcp-server__script_edit_structured({
 
 ```javascript
 // 参照がないことを確認
-mcp__unity-mcp-server__script_refs_find({
+mcp__unity-mcp-server__find_refs({
   name: "UnusedMethod",
   container: "Player"
 })
 
 // 参照がなければ削除
-mcp__unity-mcp-server__script_remove_symbol({
+mcp__unity-mcp-server__remove_symbol({
   path: "Assets/Scripts/Player.cs",
   namePath: "Player/UnusedMethod",
   failOnReferences: true,  // 参照があればエラー
@@ -376,7 +376,7 @@ anchor: { type: "text", target: "if(x>10)" }
 anchor: { type: "text", target: "if (x > 10)" }
 ```
 
-**解決策**: `script_read`でファイル内容を確認し、空白・改行を含む正確な文字列をコピー
+**解決策**: `read`でファイル内容を確認し、空白・改行を含む正確な文字列をコピー
 
 ### 2. 80文字制限超過
 
@@ -396,10 +396,10 @@ anchor: { type: "text", target: "if (x > 10)" }
 
 ```javascript
 // ✅ 必ずインデックス状態を確認
-mcp__unity-mcp-server__code_index_status()
+mcp__unity-mcp-server__get_index_status()
 
 // カバレッジが低ければ構築
-mcp__unity-mcp-server__code_index_build()
+mcp__unity-mcp-server__build_index()
 ```
 
 ### 4. 複数マッチ
@@ -420,7 +420,7 @@ anchor: { type: "text", target: "        return health;\n    }" }
 
 ```javascript
 // ✅ 編集後は必ずインデックス更新
-mcp__unity-mcp-server__code_index_update({
+mcp__unity-mcp-server__update_index({
   paths: ["Assets/Scripts/Player.cs"]
 })
 ```
@@ -429,17 +429,17 @@ mcp__unity-mcp-server__code_index_update({
 
 | ツール | 用途 | 主要パラメータ |
 |--------|------|----------------|
-| `script_symbols_get` | ファイル内シンボル一覧 | path |
-| `script_symbol_find` | シンボル検索 | name, kind, scope, exact |
-| `script_refs_find` | 参照検索 | name, container, scope |
-| `script_read` | コード読み取り | path, startLine, endLine |
-| `script_search` | パターン検索 | pattern, patternType, scope |
-| `script_edit_snippet` | 軽量編集（80文字以内） | path, instructions |
-| `script_edit_structured` | 構造化編集 | path, symbolName, operation, newText |
-| `script_create_class` | クラス作成 | path, className, namespace, baseType |
-| `script_refactor_rename` | リネーム | relative, namePath, newName |
-| `script_remove_symbol` | シンボル削除 | path, namePath, failOnReferences |
-| `code_index_status` | インデックス状態確認 | - |
-| `code_index_build` | インデックス構築 | - |
-| `code_index_update` | インデックス更新 | paths |
+| `get_symbols` | ファイル内シンボル一覧 | path |
+| `find_symbol` | シンボル検索 | name, kind, scope, exact |
+| `find_refs` | 参照検索 | name, container, scope |
+| `read` | コード読み取り | path, startLine, endLine |
+| `search` | パターン検索 | pattern, patternType, scope |
+| `edit_snippet` | 軽量編集（80文字以内） | path, instructions |
+| `edit_structured` | 構造化編集 | path, symbolName, operation, newText |
+| `create_class` | クラス作成 | path, className, namespace, baseType |
+| `rename_symbol` | リネーム | relative, namePath, newName |
+| `remove_symbol` | シンボル削除 | path, namePath, failOnReferences |
+| `get_index_status` | インデックス状態確認 | - |
+| `build_index` | インデックス構築 | - |
+| `update_index` | インデックス更新 | paths |
 | `get_compilation_state` | コンパイル状態 | includeMessages |

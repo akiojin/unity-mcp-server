@@ -2,13 +2,13 @@
 name: unity-editor-imgui-design
 description: Unity IMGUI (Immediate Mode GUI) for editor tools and custom inspectors. Use for EditorWindow, Custom Inspector, Property Drawer development. NOT for game UI - use unity-game-ugui-design or unity-game-ui-toolkit-design instead.
 allowed-tools:
-  - mcp__unity-mcp-server__script_create_class
-  - mcp__unity-mcp-server__script_edit_structured
-  - mcp__unity-mcp-server__script_edit_snippet
-  - mcp__unity-mcp-server__script_read
-  - mcp__unity-mcp-server__script_search
-  - mcp__unity-mcp-server__script_symbols_get
-  - mcp__unity-mcp-server__script_symbol_find
+  - mcp__unity-mcp-server__create_class
+  - mcp__unity-mcp-server__edit_structured
+  - mcp__unity-mcp-server__edit_snippet
+  - mcp__unity-mcp-server__read
+  - mcp__unity-mcp-server__search
+  - mcp__unity-mcp-server__get_symbols
+  - mcp__unity-mcp-server__find_symbol
   - mcp__unity-mcp-server__manage_asset_database
   - mcp__unity-mcp-server__execute_menu_item
   - mcp__unity-mcp-server__get_compilation_state
@@ -37,7 +37,7 @@ allowed-tools:
 
 ```javascript
 // Create editor window script
-mcp__unity-mcp-server__script_create_class({
+mcp__unity-mcp-server__create_class({
   path: "Assets/Editor/MyToolWindow.cs",
   className: "MyToolWindow",
   namespace: "MyProject.Editor",
@@ -46,7 +46,7 @@ mcp__unity-mcp-server__script_create_class({
 })
 
 // Add window content
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Editor/MyToolWindow.cs",
   symbolName: "MyToolWindow",
   operation: "insert_after",
@@ -74,7 +74,7 @@ mcp__unity-mcp-server__script_edit_structured({
 
 ```javascript
 // Create custom inspector script
-mcp__unity-mcp-server__script_create_class({
+mcp__unity-mcp-server__create_class({
   path: "Assets/Editor/MyComponentEditor.cs",
   className: "MyComponentEditor",
   namespace: "MyProject.Editor",
@@ -83,14 +83,14 @@ mcp__unity-mcp-server__script_create_class({
 })
 
 // Add CustomEditor attribute and OnInspectorGUI
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Editor/MyComponentEditor.cs",
   symbolName: "MyComponentEditor",
   operation: "insert_before",
   newText: "[CustomEditor(typeof(MyComponent))]\n"
 })
 
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Editor/MyComponentEditor.cs",
   symbolName: "MyComponentEditor",
   operation: "insert_after",
@@ -249,7 +249,7 @@ public class MyToolWindow : EditorWindow
 
 ```javascript
 // Create the window class
-mcp__unity-mcp-server__script_create_class({
+mcp__unity-mcp-server__create_class({
   path: "Assets/Editor/Tools/AssetBrowserWindow.cs",
   className: "AssetBrowserWindow",
   namespace: "MyProject.Editor.Tools",
@@ -258,7 +258,7 @@ mcp__unity-mcp-server__script_create_class({
 })
 
 // Add complete implementation
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Editor/Tools/AssetBrowserWindow.cs",
   symbolName: "AssetBrowserWindow",
   operation: "insert_after",
@@ -391,7 +391,7 @@ public class EnemySpawnerEditor : Editor
 
 ```javascript
 // Create inspector class
-mcp__unity-mcp-server__script_create_class({
+mcp__unity-mcp-server__create_class({
   path: "Assets/Editor/Inspectors/WeaponDataEditor.cs",
   className: "WeaponDataEditor",
   namespace: "MyProject.Editor",
@@ -400,7 +400,7 @@ mcp__unity-mcp-server__script_create_class({
 })
 
 // Add CustomEditor attribute
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Editor/Inspectors/WeaponDataEditor.cs",
   symbolName: "WeaponDataEditor",
   operation: "insert_before",
@@ -408,7 +408,7 @@ mcp__unity-mcp-server__script_edit_structured({
 })
 
 // Add inspector implementation
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Editor/Inspectors/WeaponDataEditor.cs",
   symbolName: "WeaponDataEditor",
   operation: "insert_after",
@@ -556,7 +556,7 @@ public class MinMaxRangeDrawer : PropertyDrawer
 
 ```javascript
 // Create property drawer
-mcp__unity-mcp-server__script_create_class({
+mcp__unity-mcp-server__create_class({
   path: "Assets/Editor/PropertyDrawers/ColorRangeDrawer.cs",
   className: "ColorRangeDrawer",
   namespace: "MyProject.Editor",
@@ -565,14 +565,14 @@ mcp__unity-mcp-server__script_create_class({
 })
 
 // Add attribute and implementation
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Editor/PropertyDrawers/ColorRangeDrawer.cs",
   symbolName: "ColorRangeDrawer",
   operation: "insert_before",
   newText: "[CustomPropertyDrawer(typeof(ColorRange))]\n"
 })
 
-mcp__unity-mcp-server__script_edit_structured({
+mcp__unity-mcp-server__edit_structured({
   path: "Assets/Editor/PropertyDrawers/ColorRangeDrawer.cs",
   symbolName: "ColorRangeDrawer",
   operation: "insert_after",
