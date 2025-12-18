@@ -8,7 +8,7 @@ import { parseFileSymbols } from '../../utils/csharpParse.js';
 export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'script_symbols_get',
+      'get_symbols',
       '[OFFLINE] No Unity connection required. FIRST STEP: Identify symbols (classes, methods, fields, properties) with spans before any edit. Path must start with Assets/ or Packages/. Use this to scope changes to a single symbol and avoid line-based edits. Returns line/column positions and container names (helpful to build container namePath like Outer/Nested/Member).',
       {
         type: 'object',

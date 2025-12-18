@@ -18,7 +18,7 @@ describe('CodeIndexStatusToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'code_index_status');
+      assert.equal(handler.name, 'get_index_status');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('index status'));
     });
@@ -111,12 +111,12 @@ describe('CodeIndexStatusToolHandler', () => {
       const mockResult = {
         success: false,
         error: 'index_not_built',
-        message: 'Code index is not built. Please run UnityMCP.code_index_build first.'
+        message: 'Code index is not built. Please run UnityMCP.build_index first.'
       };
 
       assert.equal(mockResult.success, false);
       assert.equal(mockResult.error, 'index_not_built');
-      assert.ok(mockResult.message.includes('code_index_build'));
+      assert.ok(mockResult.message.includes('build_index'));
     });
 
     it('should include file breakdown by location', async () => {
@@ -168,7 +168,7 @@ describe('CodeIndexStatusToolHandler', () => {
   describe('SPEC-e757a01f compliance', () => {
     it('FR-003: should report index status', async () => {
       // Index status reporting is core functionality
-      assert.equal(handler.name, 'code_index_status');
+      assert.equal(handler.name, 'get_index_status');
       assert.ok(handler.description.includes('status'));
     });
 

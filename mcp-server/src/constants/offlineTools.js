@@ -3,15 +3,15 @@
  * These tools use only the local C# LSP and file system.
  */
 export const OFFLINE_TOOLS = [
-  'code_index_status',
-  'code_index_build',
-  'code_index_update',
-  'script_symbols_get',
-  'script_symbol_find',
-  'script_refs_find',
-  'script_read',
-  'script_search',
-  'script_packages_list'
+  'get_index_status',
+  'build_index',
+  'update_index',
+  'get_symbols',
+  'find_symbol',
+  'find_refs',
+  'read',
+  'search',
+  'list_packages'
 ];
 
 export const OFFLINE_TOOLS_HINT =

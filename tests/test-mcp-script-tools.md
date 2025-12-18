@@ -11,9 +11,9 @@
 チェックリスト（Markdown）
 - [ ] S00-00: ラン初期化（事前 .sln チェックは行わない）
 - [ ] S00-X01: LSP 自動ダウンロード/復旧（バイナリ未配置→自動取得、破損→再取得、英語エラー）
-- [ ] S10-01: script_symbols_get で FinalTestClass/TestMethod11/12 確認
-- [ ] S10-02: script_symbol_find で namePath 補助確定
-- [ ] S10-E01: 存在しないファイルで script_symbols_get は fail
+- [ ] S10-01: get_symbols で FinalTestClass/TestMethod11/12 確認
+- [ ] S10-02: find_symbol で namePath 補助確定
+- [ ] S10-E01: 存在しないファイルで get_symbols は fail
 - [ ] S10-E02: 極端な大ファイルで上限越え時の挙動確認
 - [ ] S20-01: replace_body（TestMethod12 を `{ return 99; }`）→ 整形確認
 - [ ] S20-E01: 不正シンボルで fail
@@ -63,7 +63,7 @@ ToDo 登録（エージェント内）
 - 実行開始前に、本ファイルのすべてのケース（S00, S10, S20, S30, S40, S50, S60, S70, S80, S90）を、エージェントの ToDo/プラン機能（update_plan 等）に登録してください。
 - 例（概念）:
   - S00-00: ラン初期化（.sln 事前チェックは行わない） → pending
-  - S10-01: script_symbols_get で FinalTestClass 確認 → pending
+  - S10-01: get_symbols で FinalTestClass 確認 → pending
   - S20-01: replace_body（TestMethod12 を 99 に） → pending
   …（以降同様）
 
@@ -78,9 +78,9 @@ ToDo 登録（エージェント内）
 - fail / skip 時は「理由」を必ず併記（例: `fail（expectation mismatch: applied=false）`、`skip（Input アセット無し）`）。必要に応じ details に根拠（入力・期待・観測・主要診断上位）を箇条書きで記載。
 - 返却が `id` のみ等で詳細診断が取得できない場合は、観測不能として `skip（診断未返却）` を明記し、details にツール応答の主要フィールド（例: `success/applied/errorCount`）を記録する。
 - ただし、可能な限り以下のエビデンス・エスカレーションで再判定を試みる（RESULTS_FORMAT.md 参照）。
-  - 差分検証: `script_read` で before/after を取り `beforeHash/afterHash/verified` を記録。期待に照らして pass/fail を再判定。
-  - 構造検証: `script_symbols_get` によりシンボル有無/開始行の変化を確認。
-  - 参照検証: `script_refs_find` により参照件数の期待を確認。
+  - 差分検証: `read` で before/after を取り `beforeHash/afterHash/verified` を記録。期待に照らして pass/fail を再判定。
+  - 構造検証: `get_symbols` によりシンボル有無/開始行の変化を確認。
+  - 参照検証: `find_refs` により参照件数の期待を確認。
   - なお判定不能時のみ最終的に `skip（OBSERVATION_GAP）` とする。
 - 失敗時は `reasonCode`（例: FAIL_EXPECTATION/BLOCKED_ENV/TOOL_ERROR/TIMEOUT）と上位診断の要約（`diagnosticsTopN`）を記載してよい。
 - リトライは最大3回。実施回数は `retries` に記録。
@@ -92,7 +92,7 @@ ToDo 登録（エージェント内）
   - LLMTEST_ReturnInt（int）: `private int LLMTEST_ReturnInt() { return 0; }`
   - LLMTEST_RenameMe（void）: `private void LLMTEST_RenameMe() { }`
   - LLMTEST_RemoveMe（void）: `private void LLMTEST_RemoveMe() { }`
-- 挿入手順: `script_edit_structured(operation=insert_after, path=Assets/Scripts/GigaTestFile.cs, symbolName=FinalTestClass, newText=\"        <定義>\\n\")`
+- 挿入手順: `edit_structured(operation=insert_after, path=Assets/Scripts/GigaTestFile.cs, symbolName=FinalTestClass, newText=\"        <定義>\\n\")`
 - 利用方針:
   - S10-01: `TestMethod12` 不在時は `LLMTEST_TestMethod12` を代替として可。
   - S20-01: `LLMTEST_ReturnInt` をターゲットとする（戻り値検証のため）。
@@ -107,35 +107,35 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 チェックリスト（順に実施）:
 1. レポート/ポインタ初期化（必須）: `tests/.reports/.current-run` へランファイルのパスを書き出す。
-2. UnityMCP ツール到達性: `script_symbols_get` など最小呼び出しが応答することを確認（0件でも可）。
+2. UnityMCP ツール到達性: `get_symbols` など最小呼び出しが応答することを確認（0件でも可）。
 3. パス制約: 以降の `path`/`relative` は必ず `Assets/` または `Packages/` 起点で指定する。
-4. インデックス状況: `code_index_status` でカバレッジを確認し、低ければ（任意）`code_index_build` を実行して再確認する。
-5. 到達性確認: 最小ファイルに対して `script_symbols_get` が成功することを確認（0件でも可）。
+4. インデックス状況: `get_index_status` でカバレッジを確認し、低ければ（任意）`build_index` を実行して再確認する。
+5. 到達性確認: 最小ファイルに対して `get_symbols` が成功することを確認（0件でも可）。
 
 ブロック方針:
 - `.sln` の有無は個別に判定しない。Script ツール呼び出し内部のチェックで失敗した場合に限り、`blocked（<短い原因>）` として記録し、details に根拠を記す。
 
 ## 前提・共通ルール
 
-- 禁止: LSPサーバを直接起動・操作しない。必ず UnityMCP の `script_*` ツールで検証する（例: `script_symbols_get`, `script_edit_structured`）。
+- 禁止: LSPサーバを直接起動・操作しない。必ず UnityMCP の `script_*` ツールで検証する（例: `get_symbols`, `edit_structured`）。
 - パスは必ず `Assets/` または `Packages/` 起点の相対パス
 - `namePath`/`symbolName` は `Outer/Nested/Member` 形式（例: `FinalTestClass/TestMethod12`）を優先
-- 大量診断（CS0234 等）は想定内。適用可否は `applied` で判断し、実ファイルは `script_read` で確認
+- 大量診断（CS0234 等）は想定内。適用可否は `applied` で判断し、実ファイルは `read` で確認
 - テスト対象大ファイル: `Assets/Scripts/GigaTestFile.cs`
 - `preview=true` は診断確認時のみ。適用時は `preview=false`
 
 ---
 
-## S10) シンボル特定（script_symbols_get / script_symbol_find）
+## S10) シンボル特定（get_symbols / find_symbol）
 
 正常系:
-- S10-01: `script_symbols_get` で `FinalTestClass` と `TestMethod11`、および `TestMethod12`（不在時は `LLMTEST_TestMethod12` 可）を確認（開始行・コンテナ含む）
-- S10-02: 必要に応じ `script_symbol_find` で namePath を補助確定
+- S10-01: `get_symbols` で `FinalTestClass` と `TestMethod11`、および `TestMethod12`（不在時は `LLMTEST_TestMethod12` 可）を確認（開始行・コンテナ含む）
+- S10-02: 必要に応じ `find_symbol` で namePath を補助確定
 
 異常系:
-- S10-E01: `Assets/Nope.cs` で `script_symbols_get` → `fail`
+- S10-E01: `Assets/Nope.cs` で `get_symbols` → `fail`
 - S10-E02: 極端に大きいファイルでの完了性確認（本APIは上限/ページ指定無し）
-  - 期待: `script_symbols_get` が正常完了し、`symbols` が非空。完了時間が実用範囲（目安 ≤ 10s）。
+  - 期待: `get_symbols` が正常完了し、`symbols` が非空。完了時間が実用範囲（目安 ≤ 10s）。
   - 観測: タイムアウト/エラー → `fail`。空結果 → `fail（FAIL_EXPECTATION）`。
   - 観測不能（診断未返却 等）やツール依存不足 → `skip（OBSERVATION_GAP or TOOL_ERROR）`
 
@@ -145,18 +145,18 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 ---
 
-## S20) 置換（script_edit_structured）整形検証
+## S20) 置換（edit_structured）整形検証
 
 正常系:
-- S20-01: `replace_body`（`symbolName=FinalTestClass/LLMTEST_ReturnInt`, `newText={ return 99; }`）→ `applied=true`。`script_read` の 30–40 行でインデント自然
+- S20-01: `replace_body`（`symbolName=FinalTestClass/LLMTEST_ReturnInt`, `newText={ return 99; }`）→ `applied=true`。`read` の 30–40 行でインデント自然
 
 異常系:
 - S20-E01: 不正シンボル → `fail`
 - S20-E02: 構文不正 `newText` → 診断最大 30 件、`applied=false`
 
 判定条件・復元:
-- 判定: 応答 `applied=true` かつ `script_read` 抜粋に `return 99;` が反映。インデント崩れがない。
-- 復元: 実行前に `script_read` で本体スニペットを保存。終了時に `replace_body` で元本体に戻し、`beforeHash==afterHash` を確認。
+- 判定: 応答 `applied=true` かつ `read` 抜粋に `return 99;` が反映。インデント崩れがない。
+- 復元: 実行前に `read` で本体スニペットを保存。終了時に `replace_body` で元本体に戻し、`beforeHash==afterHash` を確認。
   備考: 既存 `TestMethod12` は戻り値 `void` のため、本ケースは LLMTEST_ReturnInt を用いる。
   備考: 改行差等でハッシュ不一致でも動作が等価なら restored:true とし、details に理由を記載。
   復元失敗時のフォールバック:
@@ -168,12 +168,12 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 ---
 
-## S30) リネーム（script_refactor_rename）＋参照確認
+## S30) リネーム（rename_symbol）＋参照確認
 
 正常系:
 - S30-01: `namePath=FinalTestClass/LLMTEST_RenameMe` → `newName=LLMTEST_RenameMe_Renamed` → `applied=true`
-- S30-02: `script_read` で宣言が更新済み
-- S30-03: `script_refs_find`（`name=TestMethod11`）でコード参照 0（文字列/コメント除外）
+- S30-02: `read` で宣言が更新済み
+- S30-03: `find_refs`（`name=TestMethod11`）でコード参照 0（文字列/コメント除外）
 
 異常系:
 - S30-E01: 既存名への衝突 → `fail` or `errors` 記録
@@ -181,34 +181,34 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 実行手順（エッジケース例）:
 - S30-X01: using エイリアス終端一致
-  - `script_refactor_rename(relative=Assets/Scripts/DiceController.cs, namePath=DiceController, newName=DiceControllerV3, preview=false)`
+  - `rename_symbol(relative=Assets/Scripts/DiceController.cs, namePath=DiceController, newName=DiceControllerV3, preview=false)`
   - 期待: `using DC = <...>.DiceController;` のような別名が `...DiceControllerV3` に更新（終端一致時のみ）。
 - S30-X02: ネスト型
-  - `script_refactor_rename(relative=Assets/Scripts/GigaTestFile.cs, namePath=Outer/Inner, newName=InnerX, preview=false)`
+  - `rename_symbol(relative=Assets/Scripts/GigaTestFile.cs, namePath=Outer/Inner, newName=InnerX, preview=false)`
   - 期待: `Outer` 直下の `Inner` のみ更新（他 `Inner` は未変更）。
 - S30-X03: ジェネリック
-  - 型: `script_refactor_rename(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass, newName=FinalTestClass2, preview=false)`
-  - メンバー: `script_refactor_rename(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/GenericMethod, newName=GenericMethod2, preview=false)`
+  - 型: `rename_symbol(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass, newName=FinalTestClass2, preview=false)`
+  - メンバー: `rename_symbol(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/GenericMethod, newName=GenericMethod2, preview=false)`
   - 期待: 型は横断更新、メンバーは宣言ファイル内のみ。
 - S30-X04: オーバーロード
-  - `script_refactor_rename(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/Roll, newName=RollFast, preview=false)`（パラメータ無し版を対象）
+  - `rename_symbol(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/Roll, newName=RollFast, preview=false)`（パラメータ無し版を対象）
   - 期待: 他の `Roll(int)` は未変更。
 - S30-X05: プロパティ/イベント
-  - `script_refactor_rename(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/Score, newName=Score2, preview=false)`
-  - `script_refactor_rename(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/OnRolled, newName=OnRolled2, preview=false)`
+  - `rename_symbol(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/Score, newName=Score2, preview=false)`
+  - `rename_symbol(relative=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/OnRolled, newName=OnRolled2, preview=false)`
   - 期待: 宣言ファイル内のみ更新。
 
 判定条件・復元:
-- 判定: `applied=true`、宣言が新名に更新、`script_refs_find(name=旧名)` のコード参照 0。
-- 復元: `script_refactor_rename` で元名へ戻す（実行前に旧名を保存）。
+- 判定: `applied=true`、宣言が新名に更新、`find_refs(name=旧名)` のコード参照 0。
+- 復元: `rename_symbol` で元名へ戻す（実行前に旧名を保存）。
   環境制約: 適用不可（dry-run/参照未解決など）で `applied=false` の場合は `skip（環境制約）` とし、details に `success/applied/errorCount` 等を記録。
 
 ---
 
-## S40) シンボル削除（script_remove_symbol）
+## S40) シンボル削除（remove_symbol）
 
 正常系:
-- S40-01: `failOnReferences=false` で削除適用（対象: `FinalTestClass/LLMTEST_RemoveMe`。存在すれば `TestMethod12` を用いても可）→ `applied=true`、`script_read` で欠落確認
+- S40-01: `failOnReferences=false` で削除適用（対象: `FinalTestClass/LLMTEST_RemoveMe`。存在すれば `TestMethod12` を用いても可）→ `applied=true`、`read` で欠落確認
 
 異常系:
 - S40-E01: `failOnReferences=true` かつ参照あり → `applied=false` でブロック
@@ -216,42 +216,42 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 実行手順（エッジケース例）:
 - S40-X01: 部分クラスの私有メソッド
-  - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=PartialClass/LLMTEST_Helper, apply=true, failOnReferences=true)`
+  - `remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=PartialClass/LLMTEST_Helper, apply=true, failOnReferences=true)`
   - 期待: 参照が無ければ削除成功／あればブロック。
 - S40-X02: 属性
-  - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/LLMTEST_Attr, apply=true, failOnReferences=true)`
+  - `remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/LLMTEST_Attr, apply=true, failOnReferences=true)`
   - 期待: 削除適用（構文維持）。
 - S40-X03: 明示実装
-  - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=IFoo/Bar, apply=true, failOnReferences=true)`
+  - `remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=IFoo/Bar, apply=true, failOnReferences=true)`
   - 期待: 参照ありでブロック。
 - S40-X04: イベント
-  - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/OnRolled, apply=true, failOnReferences=true)`
+  - `remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/OnRolled, apply=true, failOnReferences=true)`
   - 期待: 参照があればブロック、無ければ成功。
 - S40-X05: enum メンバー
-  - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=SomeEnum/MemberX, apply=true, failOnReferences=true)`
+  - `remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=SomeEnum/MemberX, apply=true, failOnReferences=true)`
   - 期待: 未使用なら成功。
 
 判定条件・復元:
-- 判定: `applied=true` かつ `script_read` で該当メソッドが欠落。
-- 復元: 実行前に「完全スニペット（宣言＋本体）」を保存し、`script_edit_structured` の `insert_after`（または `insert_before`）で `FinalTestClass` 内に再挿入。`beforeHash==afterHash` を確認。
+- 判定: `applied=true` かつ `read` で該当メソッドが欠落。
+- 復元: 実行前に「完全スニペット（宣言＋本体）」を保存し、`edit_structured` の `insert_after`（または `insert_before`）で `FinalTestClass` 内に再挿入。`beforeHash==afterHash` を確認。
 
 実行手順（例示・パラメータ完全指定）:
-- 事前取得: `script_read(path=Assets/Scripts/GigaTestFile.cs, startLine=対象周辺, endLine=対象周辺)` で対象スニペットを保存（宣言行含む）。
-- S40-01 実行: `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/LLMTEST_RemoveMe, apply=true, failOnReferences=false, removeEmptyFile=false)`
-  - 期待: `success:true, applied:true`。続けて `script_read` で対象行の欠落を確認。
-  - 復元: `script_edit_structured(operation=insert_after, path=Assets/Scripts/GigaTestFile.cs, symbolName=FinalTestClass, newText="        private void LLMTEST_RemoveMe() { }\n")`
+- 事前取得: `read(path=Assets/Scripts/GigaTestFile.cs, startLine=対象周辺, endLine=対象周辺)` で対象スニペットを保存（宣言行含む）。
+- S40-01 実行: `remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/LLMTEST_RemoveMe, apply=true, failOnReferences=false, removeEmptyFile=false)`
+  - 期待: `success:true, applied:true`。続けて `read` で対象行の欠落を確認。
+  - 復元: `edit_structured(operation=insert_after, path=Assets/Scripts/GigaTestFile.cs, symbolName=FinalTestClass, newText="        private void LLMTEST_RemoveMe() { }\n")`
 - S40-E01 実行: 参照が存在するシンボル例 `BaseProcessor/GetProcessorName` を対象
-  - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=BaseProcessor/GetProcessorName, apply=true, failOnReferences=true)`
+  - `remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=BaseProcessor/GetProcessorName, apply=true, failOnReferences=true)`
   - 期待: `applied:false`（ブロック）。`errors` に参照あり旨の診断が要約される。
   - 観測不能時の再判定: 差分検証でファイル変更が「無い」ことが取れれば pass／「有る」なら fail（FAIL_EXPECTATION）。
     - なお差分も取れない場合に限り `skip（OBSERVATION_GAP）`。
-- S40-E02 実行: `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/ThisDoesNotExist, apply=true, failOnReferences=false)`
+- S40-E02 実行: `remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass/ThisDoesNotExist, apply=true, failOnReferences=false)`
   - 期待: `success:false` または `applied:false` とエラーメッセージ。
   - 観測不能時の扱いは E01 と同様に `skip（診断未返却）`。
 
 ---
 
-## S50) 参照検索（script_refs_find）ページング/要約
+## S50) 参照検索（find_refs）ページング/要約
 
 正常系:
 - S50-01: `name=FinalTestClass`, `pageSize=20`, `maxBytes=65536`, `maxMatchesPerFile=3` → `truncated`/`snippetTruncated` の挙動確認
@@ -261,7 +261,7 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 実行手順（品質確認）:
 - S50-X01: コメント/文字列の誤検出抑制
-  - `script_refs_find(name=FinalTestClass, scope=assets, pageSize=50, maxBytes=65536, maxMatchesPerFile=5, snippetContext=2)`
+  - `find_refs(name=FinalTestClass, scope=assets, pageSize=50, maxBytes=65536, maxMatchesPerFile=5, snippetContext=2)`
   - 期待: コード位置のみヒット（コメント/文字列は除外が望ましい）。
 
 判定条件・復元:
@@ -270,9 +270,9 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 - 復元: 非破壊のため不要（`restored=true`）。
 
 実行手順（パラメータ完全指定）:
-- S50-01: `script_refs_find(name=FinalTestClass, namespace=, container=, kind=, scope=assets, pageSize=20, maxBytes=65536, maxMatchesPerFile=3, snippetContext=1)`
+- S50-01: `find_refs(name=FinalTestClass, namespace=, container=, kind=, scope=assets, pageSize=20, maxBytes=65536, maxMatchesPerFile=3, snippetContext=1)`
   - 期待: `success:true`。対象が少ない場合は `truncated:false` でも可。ヒットが多い場合は `truncated:true` 且つ各 `snippetTruncated` が最大400文字トリムに従う。
-- S50-E01: `script_refs_find(name=FinalTestClass, scope=assets, pageSize=1, maxBytes=1, maxMatchesPerFile=1, snippetContext=0)`
+- S50-E01: `find_refs(name=FinalTestClass, scope=assets, pageSize=1, maxBytes=1, maxMatchesPerFile=1, snippetContext=0)`
   - 期待: `success:true` かつ `truncated:true`（最小限応答）。`results` が空でも可（観測値を記録）。
 
 ---
@@ -293,7 +293,7 @@ S00) ラン初期化（.sln 事前チェックは行わない）
   - それでも診断やペイロードが得られない場合のみ `skip（OBSERVATION_GAP）`。
 
 実行手順（テストドライバの例）:
-- S60-01: `script_edit_structured(operation=replace_body, path=Assets/Scripts/GigaTestFile.cs, symbolName=FinalTestClass/TestMethod11, newText="{\n    this is not valid C#;\n}\n", preview=true)`
+- S60-01: `edit_structured(operation=replace_body, path=Assets/Scripts/GigaTestFile.cs, symbolName=FinalTestClass/TestMethod11, newText="{\n    this is not valid C#;\n}\n", preview=true)`
   - 期待: `applied:false`。`errors` が多数でも要約されて `<=30`、各 `message` は `<=200` 文字。
   - 乖離時: `fail（errors>30 など）` とし details に上位診断の ID/件数を記録。
 - S60-02: 同 API 応答の `preview/diff/text/content` を 1000 文字以内へサマライズしていることを確認（`Truncated:true`）。
@@ -319,19 +319,19 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 実行手順（具体例）:
 - S70-01: パス正規化/拒否（安全側）
-  - `script_symbols_get(path=UnityMCPServer/Assets/Scripts/GigaTestFile.cs)`（冗長/不正確パス）
+  - `get_symbols(path=UnityMCPServer/Assets/Scripts/GigaTestFile.cs)`（冗長/不正確パス）
   - 期待: 非破壊で安全側（正規化して成功 または 拒否）。どちらでも pass とし、応答の挙動を details に記録。
 - S70-02: 曖昧 `namePath` の安全側動作（非破壊）
-  - `script_edit_structured(operation=replace_body, path=Assets/Scripts/GigaTestFile.cs, symbolName=FinalTestClass/*, newText="{ return 0; }", preview=true)`
+  - `edit_structured(operation=replace_body, path=Assets/Scripts/GigaTestFile.cs, symbolName=FinalTestClass/*, newText="{ return 0; }", preview=true)`
   - 期待: 適用されない（`applied:false`）か、複数一致のため拒否。コード変更が発生しないこと。
 - S70-E01: 破壊的誤用の拒否
-  - `script_remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass, apply=false, failOnReferences=true)`
+  - `remove_symbol(path=Assets/Scripts/GigaTestFile.cs, namePath=FinalTestClass, apply=false, failOnReferences=true)`
   - 期待: `success:false` または `applied:false` と妥当なエラーが返る。
   - 診断が返らない場合は `skip（プレビュー診断未返却）`。
 
 ---
 
-## S80) 部分読み取り/サイズ制限（script_read）
+## S80) 部分読み取り/サイズ制限（read）
 
 正常系:
 - S80-01: シンボル周辺のみ（開始行±15）を抜粋
@@ -346,7 +346,7 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 
 ---
 
-## S82) 軽量スニペット編集（script_edit_snippet）
+## S82) 軽量スニペット編集（edit_snippet）
 
 正常系:
 - S82-01: `preview=true` で `if (foo == null) return;` と `if (bar == null) return;` の2箇所削除 → `results[].status=applied`、`preview` に diff を含む
@@ -360,8 +360,8 @@ S00) ラン初期化（.sln 事前チェックは行わない）
 - S82-E04: LSP診断に `Expected }` 等の構文エラー → 全編集ロールバック `fail（syntax_error）`
 
 実行手順（例: nullガード削除）:
-1. `script_read` で対象メソッドを取得し、削除対象のスニペットを正確にコピー
-2. `script_edit_snippet` を以下のように呼び出す
+1. `read` で対象メソッドを取得し、削除対象のスニペットを正確にコピー
+2. `edit_snippet` を以下のように呼び出す
    ```json
    {
      "path": "Assets/Scripts/GigaTestFile.cs",

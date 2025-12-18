@@ -5,8 +5,8 @@ import { ProjectInfoProvider } from '../../core/projectInfo.js';
 export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'script_refactor_rename',
-      'Refactor: rename a symbol across the project using the bundled C# LSP. Required params: relative (file path starting with Assets/ or Packages/), namePath (container path like Outer/Nested/Member), newName. Guidance: resolve targets first (script_symbols_get/script_symbol_find), prefer fully-qualified namePath to avoid ambiguity, and use preview for diagnostics only (apply proceeds even if diagnostics exist; errors are returned in response). Responses are summarized (errors≤30, message≤200 chars, large text≤1000 chars).',
+      'rename_symbol',
+      'Refactor: rename a symbol across the project using the bundled C# LSP. Required params: relative (file path starting with Assets/ or Packages/), namePath (container path like Outer/Nested/Member), newName. Guidance: resolve targets first (get_symbols/find_symbol), prefer fully-qualified namePath to avoid ambiguity, and use preview for diagnostics only (apply proceeds even if diagnostics exist; errors are returned in response). Responses are summarized (errors≤30, message≤200 chars, large text≤1000 chars).',
       {
         type: 'object',
         properties: {

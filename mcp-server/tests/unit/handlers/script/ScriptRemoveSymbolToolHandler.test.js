@@ -14,13 +14,13 @@ describe('ScriptRemoveSymbolToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'script_remove_symbol');
+      assert.equal(handler.name, 'remove_symbol');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should remove C# symbol with reference preflight', () => {
-      assert.equal(handler.name, 'script_remove_symbol');
+      assert.equal(handler.name, 'remove_symbol');
     });
   });
 });

@@ -6,8 +6,8 @@ import { logger } from '../../core/config.js';
 export class ScriptReadToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'script_read',
-      '[OFFLINE] No Unity connection required. Read a C# file with optional line range and payload limits. Files must be under Assets/ or Packages/ and have .cs extension. PRIORITY: Read minimally — locate the target with script_symbols_get and read only the signature area (~30–40 lines). For large files, always pass startLine/endLine and (optionally) maxBytes.',
+      'read',
+      '[OFFLINE] No Unity connection required. Read a C# file with optional line range and payload limits. Files must be under Assets/ or Packages/ and have .cs extension. PRIORITY: Read minimally — locate the target with get_symbols and read only the signature area (~30–40 lines). For large files, always pass startLine/endLine and (optionally) maxBytes.',
       {
         type: 'object',
         properties: {
@@ -101,7 +101,7 @@ export class ScriptReadToolHandler extends BaseToolHandler {
 
       return { success: true, path: norm, startLine: s, endLine: e, content };
     } catch (e) {
-      logger.error(`[script_read] failed: ${e.message}`);
+      logger.error(`[read] failed: ${e.message}`);
       return { error: e.message };
     }
   }

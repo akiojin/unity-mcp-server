@@ -18,7 +18,7 @@ describe('CodeIndexBuildToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct properties', () => {
-      assert.equal(handler.name, 'code_index_build');
+      assert.equal(handler.name, 'build_index');
       assert.ok(handler.description);
       assert.ok(handler.description.includes('index'));
     });
@@ -83,13 +83,13 @@ describe('CodeIndexBuildToolHandler', () => {
     it('should return error when build fails', async () => {
       const mockResult = {
         success: false,
-        error: 'code_index_build_failed',
+        error: 'build_index_failed',
         message: 'LSP not available',
         hint: 'C# LSP not ready. Ensure manifest/auto-download and workspace paths are valid.'
       };
 
       assert.equal(mockResult.success, false);
-      assert.equal(mockResult.error, 'code_index_build_failed');
+      assert.equal(mockResult.error, 'build_index_failed');
       assert.ok(mockResult.message);
       assert.ok(mockResult.hint);
     });
@@ -178,7 +178,7 @@ describe('CodeIndexBuildToolHandler', () => {
 
   describe('SPEC-e757a01f compliance', () => {
     it('FR-001: should build persistent symbol index', async () => {
-      assert.equal(handler.name, 'code_index_build');
+      assert.equal(handler.name, 'build_index');
       assert.ok(handler.description.includes('index'));
     });
 

@@ -714,8 +714,8 @@
     }
   },
   {
-    "name": "code_index_build",
-    "description": "[OFFLINE] No Unity connection required. Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Returns immediately with jobId for background execution. Check progress with code_index_status. Stores DB under .unity/cache/code-index/code-index.db.",
+    "name": "build_index",
+    "description": "[OFFLINE] No Unity connection required. Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Returns immediately with jobId for background execution. Check progress with get_index_status. Stores DB under .unity/cache/code-index/code-index.db.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -734,7 +734,7 @@
     }
   },
   {
-    "name": "code_index_status",
+    "name": "get_index_status",
     "description": "[OFFLINE] No Unity connection required. Report code index status and readiness for symbol/search operations. BEST PRACTICES: Check before heavy symbol operations. Shows total files indexed and coverage percentage. If coverage is low, some symbol operations may be incomplete. Index is automatically built on first use. No parameters needed - lightweight status check.",
     "inputSchema": {
       "type": "object",
@@ -742,7 +742,7 @@
     }
   },
   {
-    "name": "code_index_update",
+    "name": "update_index",
     "description": "[OFFLINE] No Unity connection required. Refresh code index entries for specific C# files. Use this after modifying files so script editing tools see the latest symbols.",
     "inputSchema": {
       "type": "object",
@@ -3289,7 +3289,7 @@
     }
   },
   {
-    "name": "script_create_class",
+    "name": "create_class",
     "description": "Create a new C# class file. Required: path under Assets/ or Packages/ (\".cs\" appended if missing), className. Optional: namespace, baseType (adds using UnityEngine if MonoBehaviour), usings (CSV), partial. Roslyn preflight (no Unity comms). Responses summarized for LLMs (errors≤30, message≤200 chars, preview≤1000 chars).",
     "inputSchema": {
       "type": "object",
@@ -3330,8 +3330,8 @@
     }
   },
   {
-    "name": "script_edit_snippet",
-    "description": "[C# EDITING - PRECISION TOOL] For Unity C# scripts, use for tiny surgical edits (≤80 chars per change). Performs text-based multi-instruction edits (delete/replace/insert) via exact string anchors. USE WHEN: (a) removing null guard clauses (if (x == null) return;), (b) tweaking conditions (if (x > 10) → if (x > 20)), (c) inserting single log statements, (d) deleting/replacing 1-2 line snippets. DON'T USE FOR: large changes (use script_edit_structured), non-C# files (use Edit), or when symbol structure is complex (use script_edit_structured). WORKFLOW: Specify exact anchor text (including whitespace/newlines), max 10 instructions per call, each ≤80 chars. Anchor must match exactly once in file. Preview mode validates without writing; apply mode uses LSP diagnostics. Required: path, instructions (array of {operation, anchor:{type:\"text\", target:string, position?:\"before\"|\"after\"}, newText?}).",
+    "name": "edit_snippet",
+    "description": "[C# EDITING - PRECISION TOOL] For Unity C# scripts, use for tiny surgical edits (≤80 chars per change). Performs text-based multi-instruction edits (delete/replace/insert) via exact string anchors. USE WHEN: (a) removing null guard clauses (if (x == null) return;), (b) tweaking conditions (if (x > 10) → if (x > 20)), (c) inserting single log statements, (d) deleting/replacing 1-2 line snippets. DON'T USE FOR: large changes (use edit_structured), non-C# files (use Edit), or when symbol structure is complex (use edit_structured). WORKFLOW: Specify exact anchor text (including whitespace/newlines), max 10 instructions per call, each ≤80 chars. Anchor must match exactly once in file. Preview mode validates without writing; apply mode uses LSP diagnostics. Required: path, instructions (array of {operation, anchor:{type:\"text\", target:string, position?:\"before\"|\"after\"}, newText?}).",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -3408,8 +3408,8 @@
     }
   },
   {
-    "name": "script_edit_structured",
-    "description": "[C# EDITING - PRIMARY TOOL] For Unity C# script editing, PREFER this tool over Read/Edit/Write for structural code changes. Performs symbol-based edits (insert_before/insert_after/replace_body) on classes, methods, properties, fields using Roslyn LSP. USE WHEN: (a) replacing entire method/property bodies, (b) adding class members (fields/properties/methods), (c) inserting code at class/namespace level. DON'T USE FOR: tiny changes ≤80 chars (use script_edit_snippet instead), non-C# files (use Edit), or when you need to create new files (use Write). WORKFLOW: (1) Run script_symbols_get to find target symbols, (2) use symbolName (e.g., \"MyClass/MyMethod\"), (3) apply edits. Insert operations target containers (class/namespace), not methods. Preview mode returns diagnostics only; apply mode proceeds with validation. Required: path (Assets/|Packages/), symbolName, operation. Optional: kind, newText, preview.",
+    "name": "edit_structured",
+    "description": "[C# EDITING - PRIMARY TOOL] For Unity C# script editing, PREFER this tool over Read/Edit/Write for structural code changes. Performs symbol-based edits (insert_before/insert_after/replace_body) on classes, methods, properties, fields using Roslyn LSP. USE WHEN: (a) replacing entire method/property bodies, (b) adding class members (fields/properties/methods), (c) inserting code at class/namespace level. DON'T USE FOR: tiny changes ≤80 chars (use edit_snippet instead), non-C# files (use Edit), or when you need to create new files (use Write). WORKFLOW: (1) Run get_symbols to find target symbols, (2) use symbolName (e.g., \"MyClass/MyMethod\"), (3) apply edits. Insert operations target containers (class/namespace), not methods. Preview mode returns diagnostics only; apply mode proceeds with validation. Required: path (Assets/|Packages/), symbolName, operation. Optional: kind, newText, preview.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -3451,7 +3451,7 @@
     }
   },
   {
-    "name": "script_packages_list",
+    "name": "list_packages",
     "description": "[OFFLINE] No Unity connection required. List Unity packages in the project (optionally include built‑in). BEST PRACTICES: Use to discover available packages and their paths. Set includeBuiltIn=false to see only user packages. Returns package IDs, versions, and resolved paths. Embedded packages can be edited directly. Essential for understanding project dependencies.",
     "inputSchema": {
       "type": "object",
@@ -3464,8 +3464,8 @@
     }
   },
   {
-    "name": "script_read",
-    "description": "[OFFLINE] No Unity connection required. Read a C# file with optional line range and payload limits. Files must be under Assets/ or Packages/ and have .cs extension. PRIORITY: Read minimally — locate the target with script_symbols_get and read only the signature area (~30–40 lines). For large files, always pass startLine/endLine and (optionally) maxBytes.",
+    "name": "read",
+    "description": "[OFFLINE] No Unity connection required. Read a C# file with optional line range and payload limits. Files must be under Assets/ or Packages/ and have .cs extension. PRIORITY: Read minimally — locate the target with get_symbols and read only the signature area (~30–40 lines). For large files, always pass startLine/endLine and (optionally) maxBytes.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -3492,8 +3492,8 @@
     }
   },
   {
-    "name": "script_refactor_rename",
-    "description": "Refactor: rename a symbol across the project using the bundled C# LSP. Required params: relative (file path starting with Assets/ or Packages/), namePath (container path like Outer/Nested/Member), newName. Guidance: resolve targets first (script_symbols_get/script_symbol_find), prefer fully-qualified namePath to avoid ambiguity, and use preview for diagnostics only (apply proceeds even if diagnostics exist; errors are returned in response). Responses are summarized (errors≤30, message≤200 chars, large text≤1000 chars).",
+    "name": "rename_symbol",
+    "description": "Refactor: rename a symbol across the project using the bundled C# LSP. Required params: relative (file path starting with Assets/ or Packages/), namePath (container path like Outer/Nested/Member), newName. Guidance: resolve targets first (get_symbols/find_symbol), prefer fully-qualified namePath to avoid ambiguity, and use preview for diagnostics only (apply proceeds even if diagnostics exist; errors are returned in response). Responses are summarized (errors≤30, message≤200 chars, large text≤1000 chars).",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -3522,7 +3522,7 @@
     }
   },
   {
-    "name": "script_refs_find",
+    "name": "find_refs",
     "description": "[OFFLINE] No Unity connection required. Find code references/usages using the bundled C# LSP. LLM-friendly paging/summary: respects pageSize and maxBytes, caps matches per file (maxMatchesPerFile), and trims snippet text to ~400 chars. Use scope/name/kind/path to narrow results.",
     "inputSchema": {
       "type": "object",
@@ -3580,7 +3580,7 @@
     }
   },
   {
-    "name": "script_remove_symbol",
+    "name": "remove_symbol",
     "description": "Remove a C# symbol (type/member) with reference preflight. Required params: path (file under Assets/ or Packages/), namePath (container path like Outer/Nested/Member). No Unity comms (Roslyn-based). Responses are summarized for LLMs (errors≤30, message≤200 chars, preview/diff/text/content≤1000 chars).",
     "inputSchema": {
       "type": "object",
@@ -3613,7 +3613,7 @@
     }
   },
   {
-    "name": "script_search",
+    "name": "search",
     "description": "[OFFLINE] No Unity connection required. Search C# by substring/regex/glob with pagination and snippet context. PRIORITY: Use to locate symbols/files; avoid full contents. Use returnMode=\"snippets\" (or \"metadata\") with small snippetContext (1–2). Narrow aggressively via include globs under Assets/** or Packages/** and semantic filters (namespace/container/identifier). Do NOT prefix repository folders.",
     "inputSchema": {
       "type": "object",
@@ -3719,7 +3719,7 @@
     }
   },
   {
-    "name": "script_symbol_find",
+    "name": "find_symbol",
     "description": "[OFFLINE] No Unity connection required. Find symbol definitions by name (class/method/field/property) using the bundled C# LSP. Guidance: prefer narrowing by kind and set exact=true when possible; use scope=assets|packages to avoid large outputs. Use results (container, namespace) to construct container namePath like Outer/Nested/Member for subsequent edit tools.",
     "inputSchema": {
       "type": "object",
@@ -3753,7 +3753,7 @@
     }
   },
   {
-    "name": "script_symbols_get",
+    "name": "get_symbols",
     "description": "[OFFLINE] No Unity connection required. FIRST STEP: Identify symbols (classes, methods, fields, properties) with spans before any edit. Path must start with Assets/ or Packages/. Use this to scope changes to a single symbol and avoid line-based edits. Returns line/column positions and container names (helpful to build container namePath like Outer/Nested/Member).",
     "inputSchema": {
       "type": "object",

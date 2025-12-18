@@ -355,8 +355,8 @@ async function generate(config) {
   // .meta ファイル生成のヒント
   console.log('💡 Next steps:')
   console.log('   1. Open Unity Editor to generate .meta files')
-  console.log('   2. Run: mcp__unity-mcp-server__code_index_build')
-  console.log('   3. Verify with: mcp__unity-mcp-server__code_index_status\n')
+  console.log('   2. Run: mcp__unity-mcp-server__build_index')
+  console.log('   3. Verify with: mcp__unity-mcp-server__get_index_status\n')
 }
 
 // 実行

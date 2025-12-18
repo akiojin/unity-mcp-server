@@ -7,7 +7,7 @@ import { logger, config } from '../../core/config.js';
 export class ScriptSearchToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'script_search',
+      'search',
       '[OFFLINE] No Unity connection required. Search C# by substring/regex/glob with pagination and snippet context. PRIORITY: Use to locate symbols/files; avoid full contents. Use returnMode="snippets" (or "metadata") with small snippetContext (1–2). Narrow aggressively via include globs under Assets/**, Packages/**, or Library/PackageCache/** and semantic filters (namespace/container/identifier). Do NOT prefix repository folders.',
       {
         type: 'object',
@@ -157,7 +157,7 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
       const excludeRx = exclude ? globToRegExp(exclude) : null;
       // Engine selection (future: treesitter). Currently fallback to naive.
       if (this.configSearchEngine === 'treesitter') {
-        logger.debug('[script_search] tree-sitter engine requested; falling back to naive matcher');
+        logger.debug('[search] tree-sitter engine requested; falling back to naive matcher');
       }
       const matcher = buildMatcher(patternType, pattern, flags);
 
@@ -228,7 +228,7 @@ export class ScriptSearchToolHandler extends BaseToolHandler {
           results.length && results.length >= pageSize ? results[results.length - 1].path : null
       };
     } catch (e) {
-      logger.error(`[script_search] failed: ${e.message}`);
+      logger.error(`[search] failed: ${e.message}`);
       return { error: e.message };
     }
   }

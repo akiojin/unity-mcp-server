@@ -14,13 +14,13 @@ describe('ScriptSymbolsGetToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'script_symbols_get');
+      assert.equal(handler.name, 'get_symbols');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should identify symbols with spans', () => {
-      assert.equal(handler.name, 'script_symbols_get');
+      assert.equal(handler.name, 'get_symbols');
     });
   });
 });

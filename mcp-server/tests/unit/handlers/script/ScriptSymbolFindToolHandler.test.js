@@ -15,13 +15,13 @@ describe('ScriptSymbolFindToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'script_symbol_find');
+      assert.equal(handler.name, 'find_symbol');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should find symbol definitions by name', () => {
-      assert.equal(handler.name, 'script_symbol_find');
+      assert.equal(handler.name, 'find_symbol');
     });
   });
 
@@ -40,7 +40,7 @@ describe('ScriptSymbolFindToolHandler', () => {
       assert.equal(result.success, false);
       assert.equal(result.error, 'index_not_ready');
       assert.ok(result.message.includes('Code index is not built'));
-      assert.ok(result.hint.includes('code_index_build'));
+      assert.ok(result.hint.includes('build_index'));
     });
   });
 
@@ -128,7 +128,7 @@ describe('ScriptSymbolFindToolHandler', () => {
   });
 
   describe('FR-054: index_not_ready with hint', () => {
-    it('should include hint about code_index_status and code_index_build', async () => {
+    it('should include hint about get_index_status and build_index', async () => {
       // Mock index as not ready
       handler.index.isReady = mock.fn(async () => false);
       // Mock JobManager to return no running jobs
@@ -140,8 +140,8 @@ describe('ScriptSymbolFindToolHandler', () => {
       const result = await handler.execute({ name: 'TestClass' });
 
       assert.equal(result.error, 'index_not_ready');
-      assert.ok(result.hint.includes('code_index_status'));
-      assert.ok(result.hint.includes('code_index_build'));
+      assert.ok(result.hint.includes('get_index_status'));
+      assert.ok(result.hint.includes('build_index'));
     });
 
     it('should not return index_not_ready when a completed job exists but index still not ready', async () => {
