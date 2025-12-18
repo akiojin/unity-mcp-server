@@ -14,7 +14,7 @@ describe('ScriptRefactorRenameToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'rename_script_symbol');
+      assert.equal(handler.name, 'rename_symbol');
     });
 
     it('should have relative, namePath, newName as required parameters', () => {
@@ -128,7 +128,7 @@ describe('ScriptRefactorRenameToolHandler', () => {
   describe('SPEC compliance', () => {
     it('should support renaming symbols', async () => {
       // Mock LSP client would be needed for full integration test
-      assert.equal(handler.name, 'rename_script_symbol');
+      assert.equal(handler.name, 'rename_symbol');
     });
 
     it('should support preview mode by default', async () => {

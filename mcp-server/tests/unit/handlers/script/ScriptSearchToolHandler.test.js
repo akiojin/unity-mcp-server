@@ -14,13 +14,13 @@ describe('ScriptSearchToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'search_script');
+      assert.equal(handler.name, 'search');
     });
   });
 
   describe('SPEC compliance', () => {
     it('should search C# code by substring/regex/glob', () => {
-      assert.equal(handler.name, 'search_script');
+      assert.equal(handler.name, 'search');
     });
   });
 });

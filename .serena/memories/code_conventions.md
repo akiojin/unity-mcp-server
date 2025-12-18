@@ -10,10 +10,10 @@
 - Unity C# conventions
 - Namespace: `UnityMCPServer.*`
 - **Important**: Use unity-mcp-server tools for editing:
-  - `get_script_symbols`
-  - `find_script_symbol`
-  - `edit_script_structured`
-  - `edit_script_snippet`
+  - `get_symbols`
+  - `find_symbol`
+  - `edit_structured`
+  - `edit_snippet`
 
 ## Commit Messages
 - Conventional Commits required
