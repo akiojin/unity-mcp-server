@@ -25,14 +25,17 @@ namespace UnityMCPServer.Settings
         }
 
         public override void OnGUI(string searchContext)
-        {
+{
             if (_serializedSettings == null || _serializedSettings.targetObject == null)
             {
                 EditorGUILayout.HelpBox("Failed to load Unity MCP Server settings.", MessageType.Error);
                 return;
             }
 
-            _serializedSettings.Update();
+            if (!_serializedSettings.hasModifiedProperties)
+            {
+                _serializedSettings.Update();
+            }
 
             EditorGUILayout.LabelField("TCP Listener", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_serializedSettings.FindProperty("unityHost"), new GUIContent("Host"));
@@ -54,7 +57,6 @@ namespace UnityMCPServer.Settings
                 }
             }
         }
-
         [SettingsProvider]
         public static SettingsProvider CreateProvider()
 {
