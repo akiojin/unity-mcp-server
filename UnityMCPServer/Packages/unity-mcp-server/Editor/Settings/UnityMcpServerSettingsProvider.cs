@@ -38,8 +38,20 @@ namespace UnityMCPServer.Settings
             }
 
             EditorGUILayout.LabelField("TCP Listener", EditorStyles.boldLabel);
+            
             EditorGUILayout.PropertyField(_serializedSettings.FindProperty("unityHost"), new GUIContent("Host"));
+            EditorGUILayout.LabelField("", "Node env: UNITY_MCP_UNITY_HOST", EditorStyles.miniLabel);
+            
             EditorGUILayout.PropertyField(_serializedSettings.FindProperty("port"), new GUIContent("Port"));
+            EditorGUILayout.LabelField("", "Node env: UNITY_MCP_PORT", EditorStyles.miniLabel);
+
+            EditorGUILayout.Space();
+
+            EditorGUILayout.HelpBox(
+                "These settings control where Unity listens for MCP connections.\n" +
+                "Node MCP server connects using UNITY_MCP_UNITY_HOST and UNITY_MCP_PORT.\n" +
+                "Please ensure these environment variables match the settings above.",
+                MessageType.Info);
 
             EditorGUILayout.Space();
 
@@ -56,8 +68,7 @@ namespace UnityMCPServer.Settings
                     TriggerReimport();
                 }
             }
-        }
-        [SettingsProvider]
+        }[SettingsProvider]
         public static SettingsProvider CreateProvider()
 {
             return new UnityMcpServerSettingsProvider(SettingsPath, SettingsScope.Project)
