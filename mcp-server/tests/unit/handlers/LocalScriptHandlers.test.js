@@ -52,7 +52,7 @@ test.afterEach(async () => {
   await mgr.stop(0);
 });
 
-test('script_read (local) reads known file range', async () => {
+test('read_script (local) reads known file range', async () => {
   const env = setupTempUnityProject();
   const u = new UnityConnection();
   const handler = new ScriptReadToolHandler(u);
@@ -66,7 +66,7 @@ test('script_read (local) reads known file range', async () => {
   assert.match(res.content, /namespace Demo/);
 });
 
-test('script_search (local) finds class Symbol in packages', async () => {
+test('search_script (local) finds class Symbol in packages', async () => {
   const env = setupTempUnityProject();
   const u = new UnityConnection();
   const handler = new ScriptSearchToolHandler(u);
@@ -84,7 +84,7 @@ test('script_search (local) finds class Symbol in packages', async () => {
   assert.ok(res.results[0]?.path, 'each result should have a path property');
 });
 
-test('script_symbols_get (local) returns symbols for Symbols.cs', async () => {
+test('get_script_symbols (local) returns symbols for Symbols.cs', async () => {
   const env = setupTempUnityProject();
   const u = new UnityConnection();
   const handler = new ScriptSymbolsGetToolHandler(u);
@@ -94,11 +94,11 @@ test('script_symbols_get (local) returns symbols for Symbols.cs', async () => {
   assert.ok(classes.length >= 1, 'at least one class detected');
 });
 
-test('script_symbol_find (local) finds classes in packages', async () => {
+test('find_script_symbol (local) finds classes in packages', async () => {
   const env = setupTempUnityProject();
   const u = new UnityConnection();
 
-  // script_symbol_find requires an initialized code index (SQLite DB).
+  // find_script_symbol requires an initialized code index (SQLite DB).
   const index = new CodeIndex(u);
   await index.clearAndLoad([
     {

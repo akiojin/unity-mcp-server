@@ -6,7 +6,7 @@
 
 ## 概要
 
-軽量スニペット編集ツール（`script_edit_snippet`）の実装に先立ち、技術的な実現可能性と既存インフラの利用可能性を調査しました。
+軽量スニペット編集ツール（`edit_script_snippet`）の実装に先立ち、技術的な実現可能性と既存インフラの利用可能性を調査しました。
 
 ## 調査結果
 
@@ -57,12 +57,12 @@
 
 ---
 
-### R-003: script_search のレスポンス構造とアンカー解決への再利用
+### R-003: search_script のレスポンス構造とアンカー解決への再利用
 
-**結論**: ✅ script_search は不要（単純な indexOf で十分）
+**結論**: ✅ search_script は不要（単純な indexOf で十分）
 
 **詳細**:
-- **script_search の用途**: 大規模ファイル横断検索
+- **search_script の用途**: 大規模ファイル横断検索
   - glob/regex パターンマッチング
   - ページング対応
   - セマンティックフィルタ（namespace, container, identifier）
@@ -77,7 +77,7 @@
 - アンカーは正確な文字列一致が必須
 - ファイル横断検索は不要
 - indexOf で O(n) の高速検索
-- script_search はオーバーエンジニアリング
+- search_script はオーバーエンジニアリング
 
 **結論**: 既存実装の indexOf 方式が最適。
 
@@ -210,7 +210,7 @@
 
 **理由**:
 - BaseToolHandler変更不要（execute()内で完結）
-- code_index_statusは`index.buildJob`フィールドを追加（オプショナル）
+- get_code_index_statusは`index.buildJob`フィールドを追加（オプショナル）
 - 既存クライアントは`buildJob`を無視可能（下位互換）
 
 ---

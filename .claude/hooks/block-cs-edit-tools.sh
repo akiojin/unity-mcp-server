@@ -72,7 +72,7 @@ if [[ "$file_path" =~ (^|/)Assets/ ]] ||
         cat >&2 <<EOF
 ⚠️  Warning: Reading Unity C# file with Read tool
     File: $file_path
-    Recommendation: Use mcp__unity-mcp-server__script_read instead for better Unity integration
+    Recommendation: Use mcp__unity-mcp-server__read_script instead for better Unity integration
 EOF
         exit 0  # 許可（警告のみ）
     fi
@@ -82,7 +82,7 @@ EOF
 {
   "decision": "block",
   "reason": "🚫 Unity C# files must be edited with unity-mcp-server tools only",
-  "stopReason": "Unity C# file editing with $tool_name is not allowed.\n\nFile: $file_path\n\nRequired tools:\n  - mcp__unity-mcp-server__script_edit_structured (for method body replacement, class member addition)\n  - mcp__unity-mcp-server__script_edit_snippet (for 1-2 line edits, max 80 chars)\n  - mcp__unity-mcp-server__script_symbols_get (to understand file structure)\n  - mcp__unity-mcp-server__script_symbol_find (to find symbols)\n  - mcp__unity-mcp-server__script_refs_find (to find references)\n\nReason: unity-mcp-server provides Unity-specific features:\n  - Real-time Unity Editor integration\n  - Compile error detection\n  - LSP diagnostics\n  - Unity-optimized code index\n\nSee CLAUDE.md for detailed guidelines."
+  "stopReason": "Unity C# file editing with $tool_name is not allowed.\n\nFile: $file_path\n\nRequired tools:\n  - mcp__unity-mcp-server__edit_script_structured (for method body replacement, class member addition)\n  - mcp__unity-mcp-server__edit_script_snippet (for 1-2 line edits, max 80 chars)\n  - mcp__unity-mcp-server__get_script_symbols (to understand file structure)\n  - mcp__unity-mcp-server__find_script_symbol (to find symbols)\n  - mcp__unity-mcp-server__find_script_refs (to find references)\n\nReason: unity-mcp-server provides Unity-specific features:\n  - Real-time Unity Editor integration\n  - Compile error detection\n  - LSP diagnostics\n  - Unity-optimized code index\n\nSee CLAUDE.md for detailed guidelines."
 }
 EOF
 
@@ -93,11 +93,11 @@ File: $file_path
 Reason: Unity C# files must be edited with unity-mcp-server tools only.
 
 Required tools:
-  - mcp__unity-mcp-server__script_edit_structured
-  - mcp__unity-mcp-server__script_edit_snippet
-  - mcp__unity-mcp-server__script_symbols_get
-  - mcp__unity-mcp-server__script_symbol_find
-  - mcp__unity-mcp-server__script_refs_find
+  - mcp__unity-mcp-server__edit_script_structured
+  - mcp__unity-mcp-server__edit_script_snippet
+  - mcp__unity-mcp-server__get_script_symbols
+  - mcp__unity-mcp-server__find_script_symbol
+  - mcp__unity-mcp-server__find_script_refs
 
 See CLAUDE.md for detailed guidelines.
 EOF

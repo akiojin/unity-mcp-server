@@ -22,9 +22,9 @@ Unity MCP Server は、LLMクライアントからUnity Editorを自動化しま
 
 | 操作         | コードインデックスツール | 標準ツール | 優位性                     |
 | ------------ | ------------------------ | ---------- | -------------------------- |
-| シンボル検索 | `script_symbol_find`     | `grep`     | **瞬時** vs 350ms          |
-| 参照検索     | `script_refs_find`       | `grep`     | **構造化**された結果       |
-| コード検索   | `script_search`          | `grep`     | **3〜5倍小さい**レスポンス |
+| シンボル検索 | `find_script_symbol`     | `grep`     | **瞬時** vs 350ms          |
+| 参照検索     | `find_script_refs`       | `grep`     | **構造化**された結果       |
+| コード検索   | `search_script`          | `grep`     | **3〜5倍小さい**レスポンス |
 
 主な利点:
 

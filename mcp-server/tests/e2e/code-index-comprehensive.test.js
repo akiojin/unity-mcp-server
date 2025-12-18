@@ -523,7 +523,7 @@ describeE2E('Code Index Comprehensive E2E Tests', () => {
 
       // Skip coverage check if DB is empty (no build has been run)
       if (totalFiles.count === 0) {
-        console.log(`  - Coverage: N/A (empty index - run code_index_build first)`);
+        console.log(`  - Coverage: N/A (empty index - run build_code_index first)`);
         return;
       }
 

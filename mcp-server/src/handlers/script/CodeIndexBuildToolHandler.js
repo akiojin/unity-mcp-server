@@ -7,8 +7,8 @@ import { getWorkerPool } from '../../core/indexBuildWorkerPool.js';
 export class CodeIndexBuildToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'code_index_build',
-      '[OFFLINE] No Unity connection required. Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Returns immediately with jobId for background execution. Check progress with code_index_status. Stores DB under .unity/cache/code-index/code-index.db.',
+      'build_code_index',
+      '[OFFLINE] No Unity connection required. Build (or rebuild) the persistent SQLite symbol index by scanning document symbols via the C# LSP. Returns immediately with jobId for background execution. Check progress with get_code_index_status. Stores DB under .unity/cache/code-index/code-index.db.',
       {
         type: 'object',
         properties: {
@@ -48,7 +48,7 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
         return {
           success: false,
           error: 'build_already_running',
-          message: `Code index build is already running (jobId: ${this.currentJobId}). Use code_index_status to check progress.`,
+          message: `Code index build is already running (jobId: ${this.currentJobId}). Use get_code_index_status to check progress.`,
           jobId: this.currentJobId
         };
       }
@@ -60,7 +60,7 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
         success: false,
         error: 'build_already_running',
         message:
-          'Code index build is already running (Worker Thread). Use code_index_status to check progress.',
+          'Code index build is already running (Worker Thread). Use get_code_index_status to check progress.',
         jobId: this.currentJobId
       };
     }
@@ -111,7 +111,7 @@ export class CodeIndexBuildToolHandler extends BaseToolHandler {
       success: true,
       jobId,
       message: 'Code index build started in background (Worker Thread)',
-      checkStatus: 'Use code_index_status to check progress and completion'
+      checkStatus: 'Use get_code_index_status to check progress and completion'
     };
   }
 }
