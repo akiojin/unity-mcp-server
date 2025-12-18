@@ -10,6 +10,14 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [4.1.3](https://github.com/akiojin/unity-mcp-server/compare/v4.1.2...v4.1.3) (2025-12-18)
+
+
+### Bug Fixes
+
+* **ci:** OpenUPM publish条件チェックをprecheck jobへ移動 ([cae5321](https://github.com/akiojin/unity-mcp-server/commit/cae5321be508d7f821d75fe5b41e814589811dbd))
+* **ci:** PublishワークフローのOpenUPM条件分岐を修正 ([5325474](https://github.com/akiojin/unity-mcp-server/commit/532547472a00b8bb508d6366067adf8800132884))
+
 ## [4.1.2](https://github.com/akiojin/unity-mcp-server/compare/v4.1.1...v4.1.2) (2025-12-18)
 
 
