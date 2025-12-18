@@ -385,17 +385,35 @@ jobs:
             exit 1
           fi
 
-      - name: Abort if version already exists on OpenUPM
+      - name: Check OpenUPM existing version (signed/unsigned)
+        id: openupm_check
+        shell: bash
         run: |
+          set -euo pipefail
           PKG_NAME=$(node -p "require('./UnityMCPServer/Packages/unity-mcp-server/package.json').name")
           PKG_VER=$(node -p "require('./UnityMCPServer/Packages/unity-mcp-server/package.json').version")
+
           if npm view "${PKG_NAME}@${PKG_VER}" version --registry "https://package.openupm.com" >/dev/null 2>&1; then
-            echo "OpenUPM already has ${PKG_NAME}@${PKG_VER}."
+            TGZ_URL=$(npm view "${PKG_NAME}@${PKG_VER}" dist.tarball --registry "https://package.openupm.com")
+            tmp=$(mktemp)
+            trap 'rm -f "$tmp"' EXIT
+            curl -fsSL "$TGZ_URL" -o "$tmp"
+
+            if tar -tzf "$tmp" | grep -qE '(^|/)\.attestation\.p7m$'; then
+              echo "OpenUPM already has signed ${PKG_NAME}@${PKG_VER}; skipping publish."
+              echo "skip=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            echo "OpenUPM already has ${PKG_NAME}@${PKG_VER}, but tarball is unsigned: $TGZ_URL" >&2
             echo "Disable OpenUPM auto-publish (tag detection) or bump version before re-running signed publish." >&2
             exit 1
           fi
 
+          echo "skip=false" >> $GITHUB_OUTPUT
+
       - name: Pack & sign Unity UPM package (Unity 6.3+)
+        if: steps.openupm_check.outputs.skip != 'true'
         uses: game-ci/unity-builder@v4
         with:
           projectPath: UnityMCPServer
@@ -410,6 +428,7 @@ jobs:
           UNITY_CLOUD_ORG_ID: ${{ secrets.UNITY_CLOUD_ORG_ID }}
 
       - name: Resolve signed tarball path
+        if: steps.openupm_check.outputs.skip != 'true'
         id: tgz
         run: |
           PKG_NAME=$(node -p "require('./UnityMCPServer/Packages/unity-mcp-server/package.json').name")
@@ -420,6 +439,7 @@ jobs:
           echo "tgz=$TGZ" >> $GITHUB_OUTPUT
 
       - name: Verify .attestation.p7m exists in tarball
+        if: steps.openupm_check.outputs.skip != 'true'
         env:
           TGZ: ${{ steps.tgz.outputs.tgz }}
         run: |
@@ -429,6 +449,7 @@ jobs:
           }
 
       - name: Publish signed tarball to OpenUPM
+        if: steps.openupm_check.outputs.skip != 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.OPENUPM_TOKEN }}
           TGZ: ${{ steps.tgz.outputs.tgz }}
