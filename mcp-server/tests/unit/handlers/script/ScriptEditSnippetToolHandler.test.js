@@ -483,4 +483,170 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     assert.equal(result.results[0].status, 'applied');
     assert.ok(!result.preview.includes('if (x == null)'));
   });
+
+  // ==================== skipValidation option tests (Issue #310) ====================
+
+  it('should skip LSP validation when skipValidation is true', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class Example
+{
+    public void Run()
+    {
+        if (value == null) return;
+        Process();
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (value == null) return;\n'
+        }
+      }
+    ];
+
+    const validateText = mock.fn(async () => []);
+    handler.lsp = { validateText };
+
+    const result = await handler.execute({
+      path: relPath,
+      instructions,
+      skipValidation: true,
+      preview: true
+    });
+
+    assert.equal(result.applied, false);
+    assert.equal(result.results[0].status, 'applied');
+    // LSP validateText should NOT be called when skipValidation is true
+    assert.equal(validateText.mock.calls.length, 0);
+    // Response should include validationSkipped flag
+    assert.equal(result.validationSkipped, true);
+  });
+
+  it('should still run preSyntaxCheck when skipValidation is true (brace balance)', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class Broken
+{
+    public void Execute()
+    {
+        if (flag)
+        {
+            DoThing();
+        }
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    // Delete a closing brace to break the syntax
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        }\n    }\n}'
+        }
+      }
+    ];
+
+    const validateText = mock.fn(async () => []);
+    handler.lsp = { validateText };
+
+    // preSyntaxCheck should catch the brace imbalance even with skipValidation=true
+    await assert.rejects(
+      () => handler.execute({ path: relPath, instructions, skipValidation: true, preview: true }),
+      /syntax|brace|bracket/i
+    );
+
+    // LSP validation should not be called
+    assert.equal(validateText.mock.calls.length, 0);
+  });
+
+  it('should run LSP validation when skipValidation is false (default)', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class Example
+{
+    public void Run()
+    {
+        if (value == null) return;
+        Process();
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (value == null) return;\n'
+        }
+      }
+    ];
+
+    const validateText = mock.fn(async () => []);
+    handler.lsp = { validateText };
+
+    const result = await handler.execute({
+      path: relPath,
+      instructions,
+      // skipValidation not specified, should default to false
+      preview: true
+    });
+
+    assert.equal(result.applied, false);
+    // LSP validateText should be called when skipValidation is false (default)
+    assert.equal(validateText.mock.calls.length, 1);
+    // Response should include validationSkipped flag as false
+    assert.equal(result.validationSkipped, false);
+  });
+
+  it('should include validationSkipped flag in response when applying changes', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class Example
+{
+    public void Run()
+    {
+        if (value == null) return;
+        Process();
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (value == null) return;\n'
+        }
+      }
+    ];
+
+    handler.lsp = { validateText: mock.fn(async () => []) };
+
+    // Apply with skipValidation=true
+    const result = await handler.execute({
+      path: relPath,
+      instructions,
+      skipValidation: true,
+      preview: false
+    });
+
+    assert.equal(result.applied, true);
+    assert.equal(result.validationSkipped, true);
+
+    const afterContent = await fs.readFile(absPath, 'utf8');
+    assert.ok(!afterContent.includes('if (value == null)'));
+  });
 });
