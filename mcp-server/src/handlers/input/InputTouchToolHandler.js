@@ -127,7 +127,7 @@ function validateTouchAction(params, context = 'action') {
  */
 export class InputTouchToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('input_touch', 'Touch input (tap/swipe/pinch/multi) with batching.', {
+    super('simulate_touch', 'Touch input (tap/swipe/pinch/multi) with batching.', {
       type: 'object',
       properties: {
         ...actionProperties,
@@ -181,7 +181,7 @@ export class InputTouchToolHandler extends BaseToolHandler {
     const hasBatch = Array.isArray(params.actions) && params.actions.length > 0;
     const payload = hasBatch ? { actions: params.actions } : params;
 
-    const result = await this.unityConnection.sendCommand('input_touch', payload);
+    const result = await this.unityConnection.sendCommand('simulate_touch', payload);
     return result;
   }
 }

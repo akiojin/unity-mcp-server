@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export default class AddressablesBuildToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('addressables_build', 'Build Unity Addressables content or clean build cache', {
+    super('build_addressables', 'Build Unity Addressables content or clean build cache', {
       type: 'object',
       properties: {
         action: {
@@ -75,7 +75,7 @@ export default class AddressablesBuildToolHandler extends BaseToolHandler {
     const timeout = 300000; // 5 minutes
 
     const result = await this.unityConnection.sendCommand(
-      'addressables_build',
+      'build_addressables',
       {
         action,
         ...parameters

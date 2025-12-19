@@ -35,7 +35,7 @@ function loadUnityCommandTypes(repoRootDir) {
 
 function isAllowedNonUnityToolName(name) {
   if (name === 'search_tools') return true;
-  if (name === 'input_system_control') return true;
+  if (name === 'control_input_system') return true;
   if (name === 'playmode_wait_for_state') return true;
   if (name === 'video_capture_for') return true;
   // Script tools (simplified names: read, search, create_class, edit_*, list_packages, find_*, *_symbol)
