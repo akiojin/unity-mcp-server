@@ -54,7 +54,7 @@ export class UnityConnection extends EventEmitter {
         return;
       }
 
-      const targetHost = config.unity.mcpHost || 'localhost';
+      const targetHost = config.unity.mcpHost || config.unity.unityHost;
       console.error(
         `[unity-mcp-server] Unity TCP connecting to ${targetHost}:${config.unity.port}...`
       );
@@ -605,7 +605,7 @@ export class UnityConnection extends EventEmitter {
     }
 
     if (!this.connected) {
-      const targetHost = config.unity.mcpHost || 'localhost';
+      const targetHost = config.unity.mcpHost || config.unity.unityHost || 'localhost';
       const error = new Error(
         `Failed to connect to Unity at ${targetHost}:${config.unity.port} within ${timeoutMs}ms${lastError ? `: ${lastError.message}` : ''}`
       );
@@ -651,7 +651,7 @@ function wrapUnityConnectError(error, host, port) {
 function buildUnityConnectionHint(_host, _port) {
   return (
     `Start Unity Editor and ensure the Unity MCP package is running (TCP listener). ` +
-    `Check UNITY_MCP_MCP_HOST / UNITY_MCP_PORT (Node) and UNITY_MCP_UNITY_HOST / UNITY_MCP_PORT (Unity). ` +
+    `Check UNITY_MCP_MCP_HOST / UNITY_MCP_PORT and Unity Project Settings (Host/Port). ` +
     `If using WSL2/Docker → Windows Unity, set UNITY_MCP_MCP_HOST=host.docker.internal.`
   );
 }

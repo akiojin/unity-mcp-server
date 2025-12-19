@@ -116,7 +116,6 @@
 
 ### ⚠ BREAKING CHANGES
 
-* **config:** 環境変数による設定（UNITY_* / LOG_LEVEL / UNITY_MCP_CONFIG 等）は無効化 ~/.unity/config.json もサポートしません。 設定はワークスペースの .unity/config.json のみです。
 
 ### Features
 
@@ -126,7 +125,6 @@
 
 ### Code Refactoring
 
-* **config:** 設定を .unity/config.json のみに統一 ([6c76564](https://github.com/akiojin/unity-mcp-server/commit/6c765646b6e9ab9df70a7a1fa0a63a6649a2bdde))
 
 ## [2.46.0](https://github.com/akiojin/unity-mcp-server/compare/v2.45.5...v2.46.0) (2025-12-13)
 

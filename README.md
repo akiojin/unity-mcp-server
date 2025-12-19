@@ -110,9 +110,9 @@ curl http://localhost:6401/healthz
 
 ## Configuration
 
-Configuration is optional; defaults work without any config file. `.unity/config.json` is not used.
+Configuration is optional; defaults work without any config file.
 
-Both Unity and Node are configured via **environment variables** (set them before launching each process).
+Node-side configuration uses **environment variables only**, and Unity-side host/port lives in **Project Settings**.
 
 See [docs/configuration.md](docs/configuration.md).
 
