@@ -10,6 +10,23 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [4.2.0](https://github.com/akiojin/unity-mcp-server/compare/v4.1.5...v4.2.0) (2025-12-19)
+
+
+### Features
+
+* **mcp-server:** add pre-syntax check for C# editing tools ([58ab376](https://github.com/akiojin/unity-mcp-server/commit/58ab3766594c5d4aa785aac333a53fbf1ded6f94))
+* **unity:** add Node environment variables reference section to Project Settings ([2c03baa](https://github.com/akiojin/unity-mcp-server/commit/2c03baac3b297c93c2a5037255bdd29974c9c554))
+* **unity:** display Node environment variable names in Project Settings ([84d44f7](https://github.com/akiojin/unity-mcp-server/commit/84d44f74b8e72af9b691323fd341d493c38d7326))
+* **unity:** enhance Project Settings with Node environment variable display ([2f24b01](https://github.com/akiojin/unity-mcp-server/commit/2f24b016210fa32d70fe72a1c4d91bdab5db6e3f))
+
+
+### Bug Fixes
+
+* **unity:** correct syntax errors in UnityMcpServerSettingsProvider ([fb014ae](https://github.com/akiojin/unity-mcp-server/commit/fb014aeb007da6884c256a7ef44ad66a00c3f585))
+* **unity:** prevent Update() from overwriting user input in settings ([b449aef](https://github.com/akiojin/unity-mcp-server/commit/b449aefb4c4b97f2c6893ae48ceaecd8b0e009bd))
+* **unity:** resolve Project Settings Host/Port save issue ([374ecff](https://github.com/akiojin/unity-mcp-server/commit/374ecffbf6d2eacceac47c75b64f11000bfbda53))
+
 ## [4.1.5](https://github.com/akiojin/unity-mcp-server/compare/v4.1.4...v4.1.5) (2025-12-18)
 
 
