@@ -112,7 +112,7 @@ curl http://localhost:6401/healthz
 
 Configuration is optional; defaults work without any config file.
 
-Node-side configuration uses **environment variables**, and Unity-side host/port lives in **Project Settings**.
+Node-side configuration uses **environment variables only**, and Unity-side host/port lives in **Project Settings**.
 
 See [docs/configuration.md](docs/configuration.md).
 
