@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### ⚠ BREAKING CHANGES
+
+* `.unity/config.json` 対応を削除（Node は環境変数、Unity は Project Settings に統一）
+
 ## [2.41.0](https://github.com/akiojin/unity-mcp-server/compare/v2.40.6...v2.41.0) (2025-11-21)
 
 
