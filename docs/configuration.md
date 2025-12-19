@@ -9,6 +9,8 @@ This project uses:
 - **Node side**: environment variables
 - **Unity side**: Project Settings (host/port)
 
+Note: `.unity/config.json` is not used.
+
 ## Node (Environment Variables)
 
 Set environment variables when launching the Node MCP server process.
@@ -54,6 +56,8 @@ Click **Apply & Restart** to restart the Unity listener (and trigger a reimport)
 
 - **Node側**: 環境変数
 - **Unity側**: Project Settings（host/port）
+
+※ `.unity/config.json` は使用しません。
 
 ## Node（環境変数）
 

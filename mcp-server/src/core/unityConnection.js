@@ -649,10 +649,9 @@ function wrapUnityConnectError(error, host, port) {
 }
 
 function buildUnityConnectionHint(_host, _port) {
-  const configPath = config.__configPath || '.unity/config.json';
   return (
     `Start Unity Editor and ensure the Unity MCP package is running (TCP listener). ` +
-    `Check ${configPath} (unity.mcpHost/unity.port). ` +
-    `If using WSL2/Docker → Windows Unity, set unity.mcpHost=host.docker.internal.`
+    `Check UNITY_MCP_MCP_HOST / UNITY_MCP_PORT and Unity Project Settings (Host/Port). ` +
+    `If using WSL2/Docker → Windows Unity, set UNITY_MCP_MCP_HOST=host.docker.internal.`
   );
 }

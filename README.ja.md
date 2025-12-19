@@ -110,9 +110,9 @@ curl http://localhost:6401/healthz
 
 ## 設定
 
-設定は任意です。設定ファイルがなくてもデフォルト値で動作します。
+設定は任意です。設定ファイルがなくてもデフォルト値で動作します（`.unity/config.json`は使用しません）。
 
-Node 側は **環境変数**、Unity 側の host/port は **Project Settings** で設定します。
+Node 側は **環境変数のみ**、Unity 側の host/port は **Project Settings** で設定します。
 
 詳細は [docs/configuration.md](docs/configuration.md) を参照してください。
 
