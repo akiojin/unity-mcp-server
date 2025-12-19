@@ -391,12 +391,12 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
 
       // Addressables (best-effort; may be unavailable in some projects)
       await safeCall(
-        'addressables_analyze',
+        'analyze_addressables',
         { action: 'analyze_unused', pageSize: 1, offset: 0 },
         { timeoutMs: 120_000 }
       );
-      await safeCall('addressables_build', { action: 'clean_build' }, { timeoutMs: 120_000 });
-      await safeCall('addressables_manage', { action: 'list_groups' }, { timeoutMs: 120_000 });
+      await safeCall('build_addressables', { action: 'clean_build' }, { timeoutMs: 120_000 });
+      await safeCall('manage_addressables', { action: 'list_groups' }, { timeoutMs: 120_000 });
 
       // Ensure clean-ish starting state
       await safeCall('stop_game', {}, { timeoutMs: 120_000 });
@@ -606,7 +606,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
 
       // Packages/settings
       await safeCall(
-        'package_manager',
+        'manage_packages',
         { action: 'list', includeBuiltIn: false },
         { timeoutMs: 120_000 }
       );
@@ -827,7 +827,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       );
 
       // Input simulation (best-effort, may fail on headless environments)
-      await safeCall('input_system_control', { operation: 'get_state' }, { timeoutMs: 60_000 });
+      await safeCall('control_input_system', { operation: 'get_state' }, { timeoutMs: 60_000 });
       await safeCall(
         'input_keyboard',
         { action: 'type', text: 'smoke', typingSpeed: 5 },
@@ -838,7 +838,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { action: 'move', x: 10, y: 10, absolute: true },
         { timeoutMs: 60_000 }
       );
-      await safeCall('input_touch', { action: 'tap', x: 0.5, y: 0.5 }, { timeoutMs: 60_000 });
+      await safeCall('simulate_touch', { action: 'tap', x: 0.5, y: 0.5 }, { timeoutMs: 60_000 });
       await safeCall(
         'input_gamepad',
         { action: 'button', button: 'a', buttonAction: 'press', holdSeconds: 0.1 },

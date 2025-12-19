@@ -7,7 +7,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export default class AddressablesManageToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'addressables_manage',
+      'manage_addressables',
       'Manage Unity Addressables assets and groups - add, remove, organize entries and groups',
       {
         type: 'object',
@@ -141,7 +141,7 @@ export default class AddressablesManageToolHandler extends BaseToolHandler {
       await this.unityConnection.connect();
     }
 
-    const result = await this.unityConnection.sendCommand('addressables_manage', {
+    const result = await this.unityConnection.sendCommand('manage_addressables', {
       action,
       ...parameters
     });
