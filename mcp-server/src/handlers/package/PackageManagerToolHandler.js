@@ -84,7 +84,7 @@ export default class PackageManagerToolHandler extends BaseToolHandler {
       await this.unityConnection.connect();
     }
 
-    const result = await this.unityConnection.sendCommand('package_managerr', {
+    const result = await this.unityConnection.sendCommand('package_manager', {
       action,
       ...parameters
     });
