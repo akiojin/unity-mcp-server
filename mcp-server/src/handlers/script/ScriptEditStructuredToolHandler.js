@@ -1,6 +1,9 @@
+import fs from 'fs/promises';
+import path from 'path';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
+import { preSyntaxCheck } from './csharpSyntaxCheck.js';
 
 export class ScriptEditStructuredToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
@@ -91,6 +94,22 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
 
     // Map operations to LSP extensions
     const info = await this.projectInfo.get();
+
+    // Pre-syntax check: fail fast if file has obvious syntax errors
+    const absolutePath = path.join(info.projectRoot, relative.replace(/\//g, path.sep));
+    try {
+      const content = await fs.readFile(absolutePath, 'utf8');
+      const syntaxCheck = preSyntaxCheck(content, relative);
+      if (!syntaxCheck.valid) {
+        throw new Error(`${syntaxCheck.error}. ${syntaxCheck.recoveryHint || ''}`);
+      }
+    } catch (e) {
+      // Re-throw syntax errors, let LSP handle file-not-found
+      if (e && e.code !== 'ENOENT') {
+        throw e;
+      }
+    }
+
     if (!this.lsp) this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
 
     if (operation === 'replace_body') {

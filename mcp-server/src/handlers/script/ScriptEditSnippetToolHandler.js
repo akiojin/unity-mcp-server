@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
+import { preSyntaxCheck } from './csharpSyntaxCheck.js';
 
 const MAX_INSTRUCTIONS = 10;
 const MAX_DIFF_CHARS = 80;
@@ -125,6 +126,12 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       throw e;
     }
 
+    // Pre-syntax check: fail fast if file has obvious syntax errors
+    const syntaxCheck = preSyntaxCheck(original, relative);
+    if (!syntaxCheck.valid) {
+      throw new Error(`${syntaxCheck.error}. ${syntaxCheck.recoveryHint || ''}`);
+    }
+
     let working = original;
     const results = [];
     for (let i = 0; i < instructions.length; i++) {
@@ -136,6 +143,15 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
 
     if (working === original) {
       return this.#buildResponse({ preview, results, original, updated: working });
+    }
+
+    // Pre-syntax check on edited content before LSP validation
+    const editedSyntaxCheck = preSyntaxCheck(working, relative);
+    if (!editedSyntaxCheck.valid) {
+      throw new Error(
+        `Edit would introduce syntax error: ${editedSyntaxCheck.error}. ` +
+          'Check your edit instructions for balanced braces/brackets.'
+      );
     }
 
     const diagnostics = await this.#validateWithLsp(info, relative, working);
