@@ -12,7 +12,6 @@ services:
       - claude-config:/root/.claude
       - codex-config:/root/.codex
       - ${HOME:-~}/.codex:/root/.codex-host:ro
-      - ~/.serena:/root/.serena
     environment:
       - NPM_USER
       - NPM_EMAIL
