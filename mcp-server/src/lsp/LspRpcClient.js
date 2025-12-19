@@ -166,10 +166,17 @@ export class LspRpcClient {
         );
         return await this.#requestWithRetry(method, params, attempt + 1);
       }
-      // Standardize error message
-      const hint = recoverable
-        ? 'The server was restarted. Try again if the issue persists.'
-        : 'Check request parameters or increase lsp.requestTimeoutMs.';
+      // Standardize error message with actionable recovery instructions
+      let hint;
+      if (recoverable) {
+        hint =
+          'LSP failed to parse the file (likely syntax errors). ' +
+          'Recovery options: (1) Use Bash tool with "cat > file << EOF" to rewrite the file, ' +
+          '(2) Fix syntax errors manually in Unity Editor, ' +
+          '(3) Check for unbalanced braces/brackets in the target file.';
+      } else {
+        hint = 'Check request parameters or increase lsp.requestTimeoutMs.';
+      }
       throw new Error(`[${method}] failed: ${msg}. ${hint}`);
     }
   }
