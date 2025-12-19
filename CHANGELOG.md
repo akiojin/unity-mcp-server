@@ -10,6 +10,74 @@
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
 
+## [4.1.3](https://github.com/akiojin/unity-mcp-server/compare/v4.1.2...v4.1.3) (2025-12-18)
+
+
+### Bug Fixes
+
+* **ci:** OpenUPM publish条件チェックをprecheck jobへ移動 ([cae5321](https://github.com/akiojin/unity-mcp-server/commit/cae5321be508d7f821d75fe5b41e814589811dbd))
+* **ci:** PublishワークフローのOpenUPM条件分岐を修正 ([5325474](https://github.com/akiojin/unity-mcp-server/commit/532547472a00b8bb508d6366067adf8800132884))
+
+## [4.1.2](https://github.com/akiojin/unity-mcp-server/compare/v4.1.1...v4.1.2) (2025-12-18)
+
+
+### Bug Fixes
+
+* **ci:** OpenUPM既存versionの署名有無を判定 ([9cdf13c](https://github.com/akiojin/unity-mcp-server/commit/9cdf13cbf953f27f6150a8e9566589870faa4fea))
+* **ci:** OpenUPM既存versionの署名有無を判定 ([dbc2bc8](https://github.com/akiojin/unity-mcp-server/commit/dbc2bc8b11a43c6a460543dc1468637d074a839b))
+
+## [4.1.1](https://github.com/akiojin/unity-mcp-server/compare/v4.1.0...v4.1.1) (2025-12-18)
+
+
+### Bug Fixes
+
+* **ci:** fix GitHub Actions workflow syntax error in publish.yml ([ffecd68](https://github.com/akiojin/unity-mcp-server/commit/ffecd689bc066071634aaab482c4eae77ec43d5b))
+
+## [4.1.0](https://github.com/akiojin/unity-mcp-server/compare/v4.0.0...v4.1.0) (2025-12-17)
+
+
+### Features
+
+* Node/Unityパッケージversion不一致を検出 ([c0af5ae](https://github.com/akiojin/unity-mcp-server/commit/c0af5aec91ba19323b2cbfc78c14179626700799))
+* Node/Unityパッケージversion不一致検出 ([175cdaa](https://github.com/akiojin/unity-mcp-server/commit/175cdaa3ed887452c5e9656ba4cf33f8c9c64285))
+* publish signed OpenUPM Unity package ([2b98975](https://github.com/akiojin/unity-mcp-server/commit/2b98975938ff00f04fbad6d50a8183b8f57bc00e))
+* publish signed OpenUPM Unity package ([db60249](https://github.com/akiojin/unity-mcp-server/commit/db602499d4fdd071af672e7493b94510e72044b9))
+
+
+### Bug Fixes
+
+* **mcp-server:** add child directory search for Unity project root ([1b1439c](https://github.com/akiojin/unity-mcp-server/commit/1b1439cba0fd7c36acb220d5ae999b10108a96c8))
+* **mcp-server:** prioritize child directory search for Unity project root ([883c8a8](https://github.com/akiojin/unity-mcp-server/commit/883c8a841d971d82f3bc0b59d74ecf7ae294e3ba))
+* **mcp-server:** prioritize child directory search for Unity project root ([f71edbe](https://github.com/akiojin/unity-mcp-server/commit/f71edbee128203f1cf3e9ed9fb6bbacd80c8bad6))
+* Unity側のpackage version取得を改善 ([c1cfdcf](https://github.com/akiojin/unity-mcp-server/commit/c1cfdcf5c4f693eca7184a8ce7db0fe7701cabd7))
+
+## [4.0.0](https://github.com/akiojin/unity-mcp-server/compare/v3.2.1...v4.0.0) (2025-12-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* tools/call no longer accepts legacy tool names.
+
+### Bug Fixes
+
+* 旧ツール名の漏れを解消 ([c422899](https://github.com/akiojin/unity-mcp-server/commit/c4228990cb3d32cc9accf0db5a121efa56146460))
+* 旧ツール名の漏れを解消 ([09cdedf](https://github.com/akiojin/unity-mcp-server/commit/09cdedf9855f05e1764d34bb1e82de18c6ce4dab))
+
+
+### Code Refactoring
+
+* remove legacy MCP tool aliases ([6325d6f](https://github.com/akiojin/unity-mcp-server/commit/6325d6f8b9611f2ae1a44ffdd17ee99a374405d6))
+
+## [3.2.1](https://github.com/akiojin/unity-mcp-server/compare/v3.2.0...v3.2.1) (2025-12-16)
+
+
+### Bug Fixes
+
+* analysis/input actions のUnityコマンド名マッピング ([222227f](https://github.com/akiojin/unity-mcp-server/commit/222227fc2de7bd650bce84328a260d4743d23490))
+* Animator tool名→Unity command type を正規化 ([30754e2](https://github.com/akiojin/unity-mcp-server/commit/30754e2f790b7a5983f5cc9798509d670996e18b))
+* Animatorコマンドtypeを正規化 ([13f7a27](https://github.com/akiojin/unity-mcp-server/commit/13f7a2767d07839289f9db74ab4311868c416136))
+* Unityコマンド名のマッピング修正 ([0eff680](https://github.com/akiojin/unity-mcp-server/commit/0eff680debc0abf79bd0dc9d76506402e189de9b))
+
 ## [3.2.0](https://github.com/akiojin/unity-mcp-server/compare/v3.1.0...v3.2.0) (2025-12-15)
 
 

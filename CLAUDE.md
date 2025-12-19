@@ -173,7 +173,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 
 **⚠️ Unity関連のC#コード（*.cs）編集には、必ずunity-mcp-serverのコードインデックス機能を使用してください**
 
-- **禁止事項**: serena MCPや他のMCPサーバーを使用したC#編集
+- **禁止事項**: 他のMCPサーバーや標準のEdit/Writeツールを使用したC#編集
 - **必須**: 以下のunity-mcp-serverツールを使用
   - `get_symbols`: ファイル内のシンボル（クラス、メソッド、フィールド等）を取得
   - `find_symbol`: シンボルを名前で検索
@@ -183,7 +183,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
   - `read`: C#ファイルの読み取り
   - `search`: C#コード内の検索
 
-**理由**: unity-mcp-serverはUnityプロジェクト専用に最適化されたコードインデックスを持ち、Unityエディタとのリアルタイム連携、コンパイルエラー検出、LSP診断など、Unity開発に不可欠な機能を提供します。serena MCPは汎用的なコードエディタであり、Unity固有の機能をサポートしていません。
+**理由**: unity-mcp-serverはUnityプロジェクト専用に最適化されたコードインデックスを持ち、Unityエディタとのリアルタイム連携、コンパイルエラー検出、LSP診断など、Unity開発に不可欠な機能を提供します。
 
 #### ベンチマーク結果（コードインデックス vs 標準ツール）
 
@@ -885,7 +885,7 @@ Claude CodeはHook機能により、特定のイベント（セッション終�
 
 #### 1. PreToolUse Hook（ツール実行前の検証）
 
-**対象ツール**: `Bash`, `Edit`, `Write`, `Read`, `mcp__serena__*`
+**対象ツール**: `Bash`, `Edit`, `Write`, `Read`
 
 **実装スクリプト**:
 
@@ -907,7 +907,6 @@ b) **Unity C#編集保護**:
 **ブロック対象**:
 - `Edit` ツールでのUnity C#ファイル編集
 - `Write` ツールでのUnity C#ファイル作成
-- `mcp__serena__*` ツールでのUnity C#ファイル編集
 
 **警告のみ（ブロックしない）**:
 - `Read` ツールでのUnity C#ファイル読み取り（代わりに`mcp__unity-mcp-server__read`を推奨）
