@@ -208,18 +208,18 @@ public static class ProfilerHandler
 ```csharp
 private static string ResolveWorkspaceRoot(string projectRoot)
 {
-    var configPath = Path.Combine(projectRoot, ".unity", "config.json");
-    if (File.Exists(configPath))
+    string dir = projectRoot;
+    for (int i = 0; i < 3 && !string.IsNullOrEmpty(dir); i++)
     {
-        var json = File.ReadAllText(configPath);
-        var config = JObject.Parse(json);
-        var workspaceRoot = config["project"]?["root"]?.ToString();
-        if (!string.IsNullOrEmpty(workspaceRoot))
+        if (Directory.Exists(Path.Combine(dir, ".unity")))
         {
-            return Path.IsPathRooted(workspaceRoot) ? workspaceRoot : Path.GetFullPath(Path.Combine(projectRoot, "..", workspaceRoot));
+            return dir;
         }
+        var parent = Directory.GetParent(dir);
+        if (parent == null) break;
+        dir = parent.FullName;
     }
-    return Path.GetFullPath(Path.Combine(projectRoot, ".."));
+    return projectRoot;
 }
 ```
 

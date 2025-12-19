@@ -30,6 +30,11 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
             description:
               'If true, run validation and return preview text without writing to disk. Default=false.'
           },
+          skipValidation: {
+            type: 'boolean',
+            description:
+              'If true, skip LSP validation for faster execution. Lightweight syntax checks (brace balance) are still performed. Use for simple edits on large files. Default=false.'
+          },
           instructions: {
             type: 'array',
             minItems: 1,
@@ -114,6 +119,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     const info = await this.projectInfo.get();
     const { relative, absolute } = this.#resolvePaths(info, params.path);
     const preview = params.preview === true;
+    const skipValidation = params.skipValidation === true;
     const instructions = params.instructions;
 
     let original;
@@ -142,7 +148,13 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     }
 
     if (working === original) {
-      return this.#buildResponse({ preview, results, original, updated: working });
+      return this.#buildResponse({
+        preview,
+        results,
+        original,
+        updated: working,
+        validationSkipped: skipValidation
+      });
     }
 
     // Pre-syntax check on edited content before LSP validation
@@ -154,19 +166,30 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       );
     }
 
-    const diagnostics = await this.#validateWithLsp(info, relative, working);
-    const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
-    if (hasErrors) {
-      const first = diagnostics.find(d => this.#severityIsError(d.severity));
-      const msg = first?.message || 'syntax error';
-      throw new Error(`syntax_error: ${msg}`);
+    // LSP validation (skip if skipValidation=true for large files)
+    let diagnostics = [];
+    if (!skipValidation) {
+      diagnostics = await this.#validateWithLsp(info, relative, working);
+      const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
+      if (hasErrors) {
+        const first = diagnostics.find(d => this.#severityIsError(d.severity));
+        const msg = first?.message || 'syntax error';
+        throw new Error(`syntax_error: ${msg}`);
+      }
     }
 
     if (!preview) {
       await fs.writeFile(absolute, working, 'utf8');
     }
 
-    return this.#buildResponse({ preview, results, original, updated: working, diagnostics });
+    return this.#buildResponse({
+      preview,
+      results,
+      original,
+      updated: working,
+      diagnostics,
+      validationSkipped: skipValidation
+    });
   }
 
   #resolvePaths(info, rawPath) {
@@ -279,12 +302,20 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     return await this.lsp.validateText(relative, updatedText);
   }
 
-  #buildResponse({ preview, results, original, updated, diagnostics = [] }) {
+  #buildResponse({
+    preview,
+    results,
+    original,
+    updated,
+    diagnostics = [],
+    validationSkipped = false
+  }) {
     const out = {
       success: true,
       applied: !preview,
       results,
       diagnostics,
+      validationSkipped,
       beforeHash: this.#hash(original),
       afterHash: this.#hash(updated)
     };
