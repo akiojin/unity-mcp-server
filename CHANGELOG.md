@@ -4,6 +4,31 @@
 
 * `.unity/config.json` 対応を削除（Node は環境変数、Unity は Project Settings に統一）
 
+## [5.0.0](https://github.com/akiojin/unity-mcp-server/compare/v4.2.1...v5.0.0) (2025-12-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* **config:** Unity MCP ServerのProject Settings UI/assetは削除されました。
+* **config:** Unity側Host/PortはUNITY_MCP_UNITY_HOST/UNITY_MCP_PORTに統一。
+
+### Features
+
+* **config:** move unity config to env vars ([d7122e3](https://github.com/akiojin/unity-mcp-server/commit/d7122e39329724aa888014dc2853fe71895cf899))
+* **edit_snippet:** add skipValidation option for large files ([a63e5d6](https://github.com/akiojin/unity-mcp-server/commit/a63e5d687aa156e93ac11276250a363f56a4c498))
+* **edit_snippet:** add skipValidation option for large files ([ccd30e4](https://github.com/akiojin/unity-mcp-server/commit/ccd30e439016cf3b85957d45c562a2e120e7634f))
+
+
+### Bug Fixes
+
+* **config:** remove config.json references ([e898197](https://github.com/akiojin/unity-mcp-server/commit/e898197d13cf4605e3661bdc118ccadd2cb30d22))
+* **config:** switch hint to env vars ([50aad4a](https://github.com/akiojin/unity-mcp-server/commit/50aad4a2f320cf2edf89f99a0fd806e812635d8a))
+
+
+### Code Refactoring
+
+* **config:** remove unity settings files ([6f85dc4](https://github.com/akiojin/unity-mcp-server/commit/6f85dc4e2e2a85cc46d3c5dd989ea43c524f6d4b))
+
 ## [2.41.0](https://github.com/akiojin/unity-mcp-server/compare/v2.40.6...v2.41.0) (2025-11-21)
 
 
