@@ -153,7 +153,7 @@ const baseConfig = {
 
   // LSP client defaults
   lsp: {
-    requestTimeoutMs: 60000
+    requestTimeoutMs: 120000
   },
 
   // Indexing (code index) settings
