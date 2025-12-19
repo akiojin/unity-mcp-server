@@ -7,7 +7,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 
 export default class PackageManagerToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('package_manager', 'Manage Unity packages - search, install, remove, and list packages', {
+    super('manage_packages', 'Manage Unity packages - search, install, remove, and list packages', {
       type: 'object',
       properties: {
         action: {
@@ -84,7 +84,7 @@ export default class PackageManagerToolHandler extends BaseToolHandler {
       await this.unityConnection.connect();
     }
 
-    const result = await this.unityConnection.sendCommand('package_managerr', {
+    const result = await this.unityConnection.sendCommand('manage_packages', {
       action,
       ...parameters
     });
