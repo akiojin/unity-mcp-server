@@ -270,6 +270,12 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 - アンカーが一意（複数マッチはエラー）
 - 1回のリクエストで最大10箇所まで
 
+**オプション**:
+- `preview`: `true`でファイル書き込みなし、プレビュー返却
+- `skipValidation`: `true`でLSP検証をスキップ（大きなファイルでタイムアウト回避）
+  - 軽量構文チェック（括弧バランス）は引き続き実行される
+  - レスポンスに`validationSkipped: true`が含まれる
+
 **使用例**:
 
 ```javascript
@@ -329,6 +335,22 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
         "position": "before"
       },
       "newText": "        Validate();\n"
+    }
+  ]
+}
+
+// 大きなファイルでの編集（LSP検証スキップ）
+{
+  "path": "Assets/Scripts/LargeFile.cs",
+  "skipValidation": true,
+  "instructions": [
+    {
+      "operation": "replace",
+      "anchor": {
+        "type": "text",
+        "target": "maxCount = 100"
+      },
+      "newText": "maxCount = 200"
     }
   ]
 }
@@ -410,6 +432,9 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 
 **Q: 構文エラーが出る**
 - A: `preview=true` で事前確認。LSP診断結果を確認してから修正
+
+**Q: 大きなファイル（1000行以上）でLSPタイムアウトが発生する**
+- A: `skipValidation=true` でLSP検証をスキップ。軽量構文チェック（括弧バランス）は引き続き実行される
 
 #### ベストプラクティス
 
