@@ -5,7 +5,6 @@ import fsSync from 'node:fs';
 const ENV_KEYS = [
   'UNITY_PROJECT_ROOT',
   'UNITY_MCP_MCP_HOST',
-  'UNITY_MCP_UNITY_HOST',
   'UNITY_MCP_PORT',
   'UNITY_MCP_LOG_LEVEL',
   'UNITY_MCP_VERSION_MISMATCH',
@@ -51,9 +50,7 @@ describe('Config', () => {
   it('should have correct default Unity settings', async () => {
     const { config } = await importConfigFresh();
 
-    assert.equal(config.unity.unityHost, 'localhost');
     assert.equal(config.unity.mcpHost, 'localhost');
-    assert.equal(config.unity.bindHost, 'localhost');
     assert.equal(config.unity.port, 6400);
     assert.equal(config.unity.reconnectDelay, 1000);
     assert.equal(config.unity.maxReconnectDelay, 30000);
@@ -108,15 +105,12 @@ describe('Config', () => {
   });
 
   it('should load unity host/port from environment variables', async () => {
-    process.env.UNITY_MCP_UNITY_HOST = '127.0.0.1';
     process.env.UNITY_MCP_MCP_HOST = 'host.docker.internal';
     process.env.UNITY_MCP_PORT = '6410';
 
     const { config } = await importConfigFresh();
 
-    assert.equal(config.unity.unityHost, '127.0.0.1');
     assert.equal(config.unity.mcpHost, 'host.docker.internal');
-    assert.equal(config.unity.bindHost, '127.0.0.1');
     assert.equal(config.unity.port, 6410);
   });
 

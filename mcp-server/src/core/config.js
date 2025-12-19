@@ -91,9 +91,7 @@ function resolvePackageVersion() {
 const baseConfig = {
   // Unity connection settings
   unity: {
-    unityHost: 'localhost',
     mcpHost: 'localhost',
-    bindHost: 'localhost',
     port: 6400,
     reconnectDelay: 1000,
     maxReconnectDelay: 30000,
@@ -170,7 +168,6 @@ const baseConfig = {
 };
 
 function loadEnvConfig() {
-  const unityHost = envString('UNITY_MCP_UNITY_HOST');
   const mcpHost = envString('UNITY_MCP_MCP_HOST');
   const unityPort = parseIntEnv(process.env.UNITY_MCP_PORT);
 
@@ -187,12 +184,10 @@ function loadEnvConfig() {
 
   const out = {};
 
-  if (unityHost || mcpHost || unityPort !== undefined) {
+  if (mcpHost || unityPort !== undefined) {
     out.unity = {};
-    if (unityHost) out.unity.unityHost = unityHost;
     if (mcpHost) out.unity.mcpHost = mcpHost;
     if (unityPort !== undefined) out.unity.port = unityPort;
-    if (out.unity.unityHost) out.unity.bindHost = out.unity.unityHost;
   }
 
   if (projectRoot) {
@@ -275,13 +270,9 @@ function validateAndNormalizeConfig(cfg) {
   }
 
   // unity hosts
-  if (typeof cfg.unity.unityHost !== 'string' || cfg.unity.unityHost.trim() === '') {
-    cfg.unity.unityHost = 'localhost';
-  }
   if (typeof cfg.unity.mcpHost !== 'string' || cfg.unity.mcpHost.trim() === '') {
-    cfg.unity.mcpHost = cfg.unity.unityHost;
+    cfg.unity.mcpHost = 'localhost';
   }
-  cfg.unity.bindHost = cfg.unity.unityHost;
 
   // project roots (keep as-is; resolved later)
   if (cfg.project?.root && typeof cfg.project.root !== 'string') {
@@ -322,8 +313,6 @@ export const logger = new MCPLogger(config);
 // Startup debug log: output config info to stderr for troubleshooting
 // This helps diagnose connection issues (especially in WSL2/Docker environments)
 console.error(`[unity-mcp-server] Startup config:`);
-console.error(
-  `[unity-mcp-server]   Unity host: ${config.unity.mcpHost || config.unity.unityHost || 'localhost'}`
-);
+console.error(`[unity-mcp-server]   Unity host: ${config.unity.mcpHost || 'localhost'}`);
 console.error(`[unity-mcp-server]   Unity port: ${config.unity.port}`);
 console.error(`[unity-mcp-server]   Workspace root: ${WORKSPACE_ROOT}`);

@@ -6,10 +6,28 @@ Configuration is optional; defaults work out of the box.
 
 This project uses:
 
-- **Node side**: environment variables
-- **Unity side**: Project Settings (host/port)
+- **Unity side**: environment variables (Unity process)
+- **Node side**: environment variables (Node process)
 
 Note: `.unity/config.json` is not used.
+
+## Unity (Environment Variables)
+
+Set environment variables before launching the Unity Editor.
+
+### Minimal Example
+
+```bash
+export UNITY_MCP_UNITY_HOST=localhost
+export UNITY_MCP_PORT=6400
+```
+
+### Unity Variables
+
+| Env | Default | Notes |
+|---|---:|---|
+| `UNITY_MCP_UNITY_HOST` | `localhost` | Bind/listen host for the Unity TCP listener |
+| `UNITY_MCP_PORT` | `6400` | Unity TCP port (must match Node) |
 
 ## Node (Environment Variables)
 
@@ -37,15 +55,6 @@ export UNITY_PROJECT_ROOT=.
 | `UNITY_MCP_TELEMETRY_ENABLED` | `false` | Can also be controlled by command flags |
 | `UNITY_MCP_LSP_REQUEST_TIMEOUT_MS` | `60000` | LSP request timeout (ms) |
 
-## Unity (Project Settings)
-
-Unity: **Edit → Project Settings → Unity MCP Server**
-
-- `Host`: bind/listen host for the Unity-side TCP listener (`localhost`, `0.0.0.0`, etc.)
-- `Port`: TCP port (must match `UNITY_MCP_PORT`)
-
-Click **Apply & Restart** to restart the Unity listener (and trigger a reimport).
-
 ---
 
 ## 日本語
@@ -54,10 +63,28 @@ Click **Apply & Restart** to restart the Unity listener (and trigger a reimport)
 
 このプロジェクトは次の方式で設定します。
 
-- **Node側**: 環境変数
-- **Unity側**: Project Settings（host/port）
+- **Unity側**: 環境変数（Unityプロセス）
+- **Node側**: 環境変数（Nodeプロセス）
 
 ※ `.unity/config.json` は使用しません。
+
+## Unity（環境変数）
+
+Unity Editor 起動前に環境変数を設定してください。
+
+### 最小例
+
+```bash
+export UNITY_MCP_UNITY_HOST=localhost
+export UNITY_MCP_PORT=6400
+```
+
+### Unity 側の環境変数
+
+| 環境変数 | デフォルト | 補足 |
+|---|---:|---|
+| `UNITY_MCP_UNITY_HOST` | `localhost` | Unity TCP リスナーの待ち受けホスト |
+| `UNITY_MCP_PORT` | `6400` | Unity TCPポート（Nodeと一致） |
 
 ## Node（環境変数）
 
@@ -84,12 +111,3 @@ export UNITY_PROJECT_ROOT=.
 | `UNITY_MCP_HTTP_PORT` | `6401` | HTTPポート |
 | `UNITY_MCP_TELEMETRY_ENABLED` | `false` | コマンドフラグでも切替可能 |
 | `UNITY_MCP_LSP_REQUEST_TIMEOUT_MS` | `60000` | LSP リクエストタイムアウト（ms） |
-
-## Unity（Project Settings）
-
-Unity: **Edit → Project Settings → Unity MCP Server**
-
-- `Host`: Unity 側 TCP リスナーの待ち受けホスト（`localhost`, `0.0.0.0` など）
-- `Port`: TCP ポート（`UNITY_MCP_PORT` と一致させる）
-
-**Apply & Restart** を押すと Unity 側のリスナーを再起動します（Reimport も実行）。

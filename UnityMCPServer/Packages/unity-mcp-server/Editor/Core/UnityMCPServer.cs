@@ -12,7 +12,6 @@ using UnityMCPServer.Models;
 using UnityMCPServer.Helpers;
 using UnityMCPServer.Logging;
 using UnityMCPServer.Handlers;
-using UnityMCPServer.Settings;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
@@ -70,33 +69,46 @@ namespace UnityMCPServer.Core
             EditorApplication.quitting += Shutdown;
             AssemblyReloadEvents.beforeAssemblyReload += Shutdown;
             
-            // Load Project Settings and start the TCP listener
-            TryLoadProjectSettingsAndApply();
+            // Load environment variables and start the TCP listener
+            TryLoadEnvironmentSettingsAndApply();
             StartTcpListener();
         }
 
         
 
         /// <summary>
-        /// Load Project Settings (Project Settings > Unity MCP Server) and apply host/port.
+        /// Load environment variables and apply host/port.
         /// </summary>
-        private static void TryLoadProjectSettingsAndApply()
+        private static void TryLoadEnvironmentSettingsAndApply()
         {
             try
             {
-                var settings = UnityMcpServerProjectSettings.instance;
-                var host = settings != null ? settings.ResolvedUnityHost : "localhost";
-                var port = settings != null ? settings.ResolvedPort : DEFAULT_PORT;
+                var hostRaw = Environment.GetEnvironmentVariable("UNITY_MCP_UNITY_HOST");
+                var portRaw = Environment.GetEnvironmentVariable("UNITY_MCP_PORT");
+
+                var host = string.IsNullOrWhiteSpace(hostRaw) ? "localhost" : hostRaw.Trim();
+                var port = DEFAULT_PORT;
+                if (!string.IsNullOrWhiteSpace(portRaw))
+                {
+                    if (int.TryParse(portRaw, out var parsed) && parsed > 0 && parsed < 65536)
+                    {
+                        port = parsed;
+                    }
+                    else
+                    {
+                        McpLogger.LogWarning($"Invalid UNITY_MCP_PORT value: {portRaw}. Using default {DEFAULT_PORT}.");
+                    }
+                }
 
                 currentHost = host;
                 currentPort = port;
                 bindAddress = ResolveBindAddress(host);
 
-                McpLogger.Log($"Project Settings loaded: host={host}, bind={bindAddress}, port={currentPort}");
+                McpLogger.Log($"Environment settings loaded: host={host}, bind={bindAddress}, port={currentPort}");
             }
             catch (Exception ex)
             {
-                McpLogger.LogWarning($"Project Settings load error: {ex.Message}. Using defaults.");
+                McpLogger.LogWarning($"Environment settings load error: {ex.Message}. Using defaults.");
             }
         }
 
@@ -1000,7 +1012,7 @@ namespace UnityMCPServer.Core
         public static void Restart()
         {
             McpLogger.Log("Restarting...");
-            TryLoadProjectSettingsAndApply();
+            TryLoadEnvironmentSettingsAndApply();
             StopTcpListener();
             StartTcpListener();
         }
