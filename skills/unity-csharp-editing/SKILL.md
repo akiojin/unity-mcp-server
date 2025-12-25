@@ -1,43 +1,43 @@
 ---
 name: unity-csharp-editing
-description: Unity C#スクリプトの編集・検索・リファクタリングを支援。TDDサイクルでのコード編集、シンボルナビゲーション、参照検索、構造化編集を実現。使用タイミング: C#編集、スクリプト検索、シンボル検索、リファクタリング、コードインデックス、クラス作成、メソッド追加
+description: Supports Unity C# script editing, searching, and refactoring. Enables TDD cycle code editing, symbol navigation, reference searching, and structured editing. Use when: C# editing, script search, symbol search, refactoring, code indexing, class creation, method addition
 allowed-tools: Read, Grep, Glob
 ---
 
 # Unity C# Script Editing
 
-Unity C#スクリプトの編集・検索・リファクタリングを効率的に行うためのガイド。
+A guide for efficient editing, searching, and refactoring of Unity C# scripts.
 
 ## Quick Start
 
-### 1. コードインデックスの初期化
+### 1. Initialize Code Index
 
-初回使用時またはインデックスが古い場合、まずインデックスを構築：
+On first use or when the index is outdated, build the index first:
 
 ```javascript
-// インデックス状態を確認
+// Check index status
 mcp__unity-mcp-server__get_index_status()
 
-// インデックスを構築（初回のみ、数分かかる場合あり）
+// Build index (first time only, may take a few minutes)
 mcp__unity-mcp-server__build_index()
 ```
 
-### 2. 基本的な読み取りフロー
+### 2. Basic Reading Flow
 
 ```javascript
-// ファイル内のシンボル一覧を取得
+// Get symbol list in file
 mcp__unity-mcp-server__get_symbols({
   path: "Assets/Scripts/Player.cs"
 })
 
-// 特定シンボルの詳細を取得
+// Get specific symbol details
 mcp__unity-mcp-server__find_symbol({
   name: "PlayerController",
   kind: "class",
   exact: true
 })
 
-// コードを読み取り
+// Read code
 mcp__unity-mcp-server__read({
   path: "Assets/Scripts/Player.cs",
   startLine: 10,
@@ -45,10 +45,10 @@ mcp__unity-mcp-server__read({
 })
 ```
 
-### 3. 基本的な編集フロー
+### 3. Basic Editing Flow
 
 ```javascript
-// 小さな変更（80文字以内）→ snippet
+// Small changes (within 80 characters) → snippet
 mcp__unity-mcp-server__edit_snippet({
   path: "Assets/Scripts/Player.cs",
   instructions: [{
@@ -58,7 +58,7 @@ mcp__unity-mcp-server__edit_snippet({
   }]
 })
 
-// 大きな変更（メソッド本体）→ structured
+// Large changes (method body) → structured
 mcp__unity-mcp-server__edit_structured({
   path: "Assets/Scripts/Player.cs",
   symbolName: "PlayerController/TakeDamage",
@@ -69,75 +69,75 @@ mcp__unity-mcp-server__edit_structured({
 
 ## Core Concepts
 
-### コードインデックス
+### Code Index
 
-unity-mcp-serverは内蔵C# LSPによるコードインデックスを提供。標準ツール（grep等）より**5倍コンパクト**な出力で、LLMコンテキストを効率化。
+unity-mcp-server provides a code index via built-in C# LSP. Output is **5x more compact** than standard tools, optimizing LLM context.
 
-| ツール | 目的 | 標準比 |
-|--------|------|--------|
-| `find_symbol` | シンボル検索 | 5倍小さい出力 |
-| `find_refs` | 参照検索 | 3倍小さい出力 |
-| `search` | コード検索 | 瞬時レスポンス |
+| Tool | Purpose | Comparison |
+|------|---------|------------|
+| `find_symbol` | Symbol search | 5x smaller output |
+| `find_refs` | Reference search | 3x smaller output |
+| `search` | Code search | Instant response |
 
-### namePath（シンボルパス）
+### namePath (Symbol Path)
 
-シンボルはファイル内の階層パスで識別：
+Symbols are identified by hierarchical path within file:
 
 ```
-// 単純なクラス
+// Simple class
 PlayerController
 
-// ネストしたメンバー
+// Nested member
 PlayerController/TakeDamage
 PlayerController/health
 
-// 深いネスト
+// Deep nesting
 OuterClass/InnerClass/Method
 ```
 
-### スコープ指定
+### Scope Specification
 
-検索範囲を絞り込んでパフォーマンス向上：
+Narrow search scope for better performance:
 
-- `assets` - Assets/配下のみ
-- `packages` - Packages/配下のみ
-- `embedded` - 埋め込みパッケージのみ
-- `all` - 全範囲（デフォルト）
+- `assets` - Assets/ only
+- `packages` - Packages/ only
+- `embedded` - Embedded packages only
+- `all` - All scope (default)
 
 ## Tool Selection Guide
 
-### 80文字ルール
+### 80-Character Rule
 
-**編集ツールの選択基準は「差分が80文字以内かどうか」**
+**The criterion for choosing an editing tool is "whether the diff is within 80 characters"**
 
-#### `edit_snippet` を使う場合
+#### When to use `edit_snippet`
 
-**条件**: 差分が80文字以内、1〜2行の変更
+**Condition**: Diff within 80 characters, 1-2 line changes
 
 ```javascript
-// ✅ nullガード削除
+// ✅ Remove null guard
 { operation: "delete", anchor: { type: "text", target: "if (x == null) return;\n" }}
 
-// ✅ 条件式の微修正
+// ✅ Minor condition fix
 { operation: "replace", anchor: { type: "text", target: "if (x > 10)" }, newText: "if (x > 20)" }
 
-// ✅ ログ挿入
+// ✅ Insert log statement
 { operation: "insert", anchor: { type: "text", target: "Process();\n" }, newText: "Debug.Log(\"Processing\");\n" }
 ```
 
-#### `edit_structured` を使う場合
+#### When to use `edit_structured`
 
-**条件**: メソッド本体置換、クラスメンバー追加
+**Condition**: Method body replacement, class member addition
 
 ```javascript
-// ✅ メソッド本体置換
+// ✅ Replace method body
 {
   symbolName: "Player/Move",
   operation: "replace_body",
   newText: "{\n    transform.position += direction * speed * Time.deltaTime;\n}"
 }
 
-// ✅ クラスにメンバー追加
+// ✅ Add member to class
 {
   symbolName: "Player",
   operation: "insert_after",
@@ -145,26 +145,26 @@ OuterClass/InnerClass/Method
 }
 ```
 
-### 判断フローチャート
+### Decision Flowchart
 
 ```
-変更が80文字以内？
+Is the change within 80 characters?
 ├─ YES → edit_snippet
-└─ NO → メソッド/プロパティ全体の置換？
+└─ NO → Is it entire method/property replacement?
          ├─ YES → edit_structured (replace_body)
-         └─ NO → クラスへの追加？
+         └─ NO → Is it adding to class?
                   ├─ YES → edit_structured (insert_after)
-                  └─ NO → 複数のsnippetに分割
+                  └─ NO → Split into multiple snippets
 ```
 
 ## Common Workflows
 
-### TDDサイクル（RED-GREEN-REFACTOR）
+### TDD Cycle (RED-GREEN-REFACTOR)
 
-#### 1. RED: テストを書く
+#### 1. RED: Write the test
 
 ```javascript
-// テストファイルを作成
+// Create test file
 mcp__unity-mcp-server__create_class({
   path: "Assets/Tests/PlayerTests.cs",
   className: "PlayerTests",
@@ -172,7 +172,7 @@ mcp__unity-mcp-server__create_class({
   usings: "NUnit.Framework,UnityEngine"
 })
 
-// テストメソッドを追加
+// Add test method
 mcp__unity-mcp-server__edit_structured({
   path: "Assets/Tests/PlayerTests.cs",
   symbolName: "PlayerTests",
@@ -189,10 +189,10 @@ mcp__unity-mcp-server__edit_structured({
 })
 ```
 
-#### 2. GREEN: 最小限の実装
+#### 2. GREEN: Minimal implementation
 
 ```javascript
-// 実装を追加
+// Add implementation
 mcp__unity-mcp-server__edit_structured({
   path: "Assets/Scripts/Player.cs",
   symbolName: "Player",
@@ -206,23 +206,23 @@ mcp__unity-mcp-server__edit_structured({
 })
 ```
 
-#### 3. REFACTOR: コード改善
+#### 3. REFACTOR: Improve code
 
 ```javascript
-// コンパイル状態を確認
+// Check compilation state
 mcp__unity-mcp-server__get_compilation_state({ includeMessages: true })
 
-// 影響範囲を確認してからリファクタリング
+// Check impact before refactoring
 mcp__unity-mcp-server__find_refs({
   name: "TakeDamage",
   container: "Player"
 })
 ```
 
-### 新規クラス作成
+### Create New Class
 
 ```javascript
-// 1. クラスファイル作成
+// 1. Create class file
 mcp__unity-mcp-server__create_class({
   path: "Assets/Scripts/Enemies/Enemy.cs",
   className: "Enemy",
@@ -231,7 +231,7 @@ mcp__unity-mcp-server__create_class({
   usings: "UnityEngine,System"
 })
 
-// 2. フィールドとメソッドを追加
+// 2. Add fields and methods
 mcp__unity-mcp-server__edit_structured({
   path: "Assets/Scripts/Enemies/Enemy.cs",
   symbolName: "Enemy",
@@ -255,31 +255,31 @@ mcp__unity-mcp-server__edit_structured({
 `
 })
 
-// 3. インデックス更新
+// 3. Update index
 mcp__unity-mcp-server__update_index({
   paths: ["Assets/Scripts/Enemies/Enemy.cs"]
 })
 ```
 
-### リファクタリング（シンボル名変更）
+### Refactoring (Symbol Rename)
 
 ```javascript
-// 1. 影響範囲を確認
+// 1. Check impact
 mcp__unity-mcp-server__find_refs({
   name: "oldMethodName",
   container: "ClassName",
   scope: "all"
 })
 
-// 2. リネーム実行（プロジェクト全体に適用）
+// 2. Execute rename (applies to entire project)
 mcp__unity-mcp-server__rename_symbol({
   relative: "Assets/Scripts/Player.cs",
   namePath: "Player/oldMethodName",
   newName: "newMethodName",
-  preview: true  // まずプレビューで確認
+  preview: true  // Preview first
 })
 
-// 3. 問題なければ適用
+// 3. Apply if no issues
 mcp__unity-mcp-server__rename_symbol({
   relative: "Assets/Scripts/Player.cs",
   namePath: "Player/oldMethodName",
@@ -288,10 +288,10 @@ mcp__unity-mcp-server__rename_symbol({
 })
 ```
 
-### コード検索
+### Code Search
 
 ```javascript
-// パターン検索（正規表現）
+// Pattern search (regex)
 mcp__unity-mcp-server__search({
   pattern: "GetComponent<.*>",
   patternType: "regex",
@@ -300,7 +300,7 @@ mcp__unity-mcp-server__search({
   snippetContext: 2
 })
 
-// 特定クラスの使用箇所を検索
+// Search usages of specific class
 mcp__unity-mcp-server__find_refs({
   name: "PlayerController",
   kind: "class",
@@ -310,10 +310,10 @@ mcp__unity-mcp-server__find_refs({
 
 ## Advanced Patterns
 
-### バッチ編集（複数箇所を一度に）
+### Batch Editing (Multiple locations at once)
 
 ```javascript
-// 最大10箇所まで一度に編集可能
+// Edit up to 10 locations at once
 mcp__unity-mcp-server__edit_snippet({
   path: "Assets/Scripts/GameManager.cs",
   instructions: [
@@ -324,102 +324,102 @@ mcp__unity-mcp-server__edit_snippet({
 })
 ```
 
-### プレビューモード
+### Preview Mode
 
-大きな変更や不確実な編集は、まずプレビューで確認：
+For large or uncertain edits, verify with preview first:
 
 ```javascript
-// プレビューモードで検証
+// Validate in preview mode
 mcp__unity-mcp-server__edit_structured({
   path: "Assets/Scripts/Player.cs",
   symbolName: "Player/Update",
   operation: "replace_body",
   newText: "{ /* new implementation */ }",
-  preview: true  // ファイルに書き込まない
+  preview: true  // Don't write to file
 })
 
-// LSP診断エラーがなければ適用
+// Apply if no LSP diagnostic errors
 mcp__unity-mcp-server__edit_structured({
-  // 同じパラメータで preview: false
+  // Same parameters with preview: false
 })
 ```
 
-### シンボル削除
+### Symbol Removal
 
 ```javascript
-// 参照がないことを確認
+// Confirm no references
 mcp__unity-mcp-server__find_refs({
   name: "UnusedMethod",
   container: "Player"
 })
 
-// 参照がなければ削除
+// Remove if no references
 mcp__unity-mcp-server__remove_symbol({
   path: "Assets/Scripts/Player.cs",
   namePath: "Player/UnusedMethod",
-  failOnReferences: true,  // 参照があればエラー
+  failOnReferences: true,  // Error if referenced
   apply: true
 })
 ```
 
 ## Common Mistakes
 
-### 1. アンカー不一致
+### 1. Anchor Mismatch
 
-**問題**: `anchor_not_found` エラー
+**Problem**: `anchor_not_found` error
 
 ```javascript
-// ❌ 空白・改行が不正確
+// ❌ Incorrect whitespace/newlines
 anchor: { type: "text", target: "if(x>10)" }
 
-// ✅ 実際のコードと完全一致
+// ✅ Exact match with actual code
 anchor: { type: "text", target: "if (x > 10)" }
 ```
 
-**解決策**: `read`でファイル内容を確認し、空白・改行を含む正確な文字列をコピー
+**Solution**: Use `read` to check file contents, copy exact string including whitespace/newlines
 
-### 2. 80文字制限超過
+### 2. 80-Character Limit Exceeded
 
-**問題**: `diff exceeds 80 characters` エラー
+**Problem**: `diff exceeds 80 characters` error
 
 ```javascript
-// ❌ snippetで長いコードを編集
+// ❌ Editing long code with snippet
 { operation: "replace", anchor: {...}, newText: "very long code..." }
 
-// ✅ structuredでメソッド本体を置換
+// ✅ Use structured for method body replacement
 { symbolName: "Class/Method", operation: "replace_body", newText: "..." }
 ```
 
-### 3. コードインデックス未構築
+### 3. Code Index Not Built
 
-**問題**: LSPタイムアウト（60秒）
+**Problem**: LSP timeout (60 seconds)
 
 ```javascript
-// ✅ 必ずインデックス状態を確認
+// ✅ Always check index status
 mcp__unity-mcp-server__get_index_status()
 
-// カバレッジが低ければ構築
+// Build if coverage is low
 mcp__unity-mcp-server__build_index()
 ```
 
-### 4. 複数マッチ
+### 4. Multiple Matches
 
-**問題**: `anchor_not_unique` エラー
+**Problem**: `anchor_not_unique` error
 
 ```javascript
-// ❌ 一般的すぎるアンカー
+// ❌ Anchor too generic
 anchor: { type: "text", target: "return;" }
 
-// ✅ コンテキストを含めて一意に
+// ✅ Include context for uniqueness
 anchor: { type: "text", target: "        return health;\n    }" }
 ```
 
-### 5. 編集後のインデックス未更新
+### 5. Index Not Updated After Edit
 
-**問題**: 編集後に古いシンボル情報が返される
+**Problem**: Outdated symbol information returned after editing
 
 ```javascript
-// ✅ 編集後は必ずインデックス更新
+// ✅ Always update index after editing
 mcp__unity-mcp-server__update_index({
   paths: ["Assets/Scripts/Player.cs"]
 })
@@ -427,21 +427,21 @@ mcp__unity-mcp-server__update_index({
 
 ## Tool Reference
 
-| ツール | 用途 | 主要パラメータ |
-|--------|------|----------------|
-| `get_symbols` | ファイル内シンボル一覧 | path |
-| `find_symbol` | シンボル検索 | name, kind, scope, exact |
-| `find_refs` | 参照検索 | name, container, scope |
-| `read` | コード読み取り | path, startLine, endLine |
-| `search` | パターン検索 | pattern, patternType, scope |
-| `edit_snippet` | 軽量編集（80文字以内） | path, instructions |
-| `edit_structured` | 構造化編集 | path, symbolName, operation, newText |
-| `create_class` | クラス作成 | path, className, namespace, baseType |
-| `rename_symbol` | リネーム | relative, namePath, newName |
-| `remove_symbol` | シンボル削除 | path, namePath, failOnReferences |
-| `get_index_status` | インデックス状態確認 | - |
-| `build_index` | インデックス構築 | - |
-| `update_index` | インデックス更新 | paths |
-| `get_compilation_state` | コンパイル状態 | includeMessages |
+| Tool | Purpose | Key Parameters |
+|------|---------|----------------|
+| `get_symbols` | File symbol list | path |
+| `find_symbol` | Symbol search | name, kind, scope, exact |
+| `find_refs` | Reference search | name, container, scope |
+| `read` | Read code | path, startLine, endLine |
+| `search` | Pattern search | pattern, patternType, scope |
+| `edit_snippet` | Lightweight edit (within 80 chars) | path, instructions |
+| `edit_structured` | Structured edit | path, symbolName, operation, newText |
+| `create_class` | Create class | path, className, namespace, baseType |
+| `rename_symbol` | Rename | relative, namePath, newName |
+| `remove_symbol` | Remove symbol | path, namePath, failOnReferences |
+| `get_index_status` | Check index status | - |
+| `build_index` | Build index | - |
+| `update_index` | Update index | paths |
+| `get_compilation_state` | Compilation state | includeMessages |
 
-> **Note**: アーキテクチャパターン（Fail-Fast、UniTask、VContainer等）は親スキル `unity-development` を参照してください。
+> **Note**: For architecture patterns (Fail-Fast, UniTask, VContainer, etc.), see parent skill `unity-development`.

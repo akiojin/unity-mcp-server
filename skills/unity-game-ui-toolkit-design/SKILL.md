@@ -1,6 +1,6 @@
 ---
 name: unity-game-ui-toolkit-design
-description: UnityのUI Toolkit（USS/UXML/Flexbox）を使用したゲームUIデザイン。HUD、ヘルスバー、インベントリ、スキルバー等のゲームUI要素、PanelSettingsによるスケーリング、Safe Area対応を含む。使用タイミング: ゲームUI設計、HUD作成、USS/UXMLスタイリング、Flexboxレイアウト、PanelSettings設定
+description: Game UI design using Unity's UI Toolkit (USS/UXML/Flexbox). Includes game UI elements like HUD, health bars, inventory, skill bars, PanelSettings scaling, and Safe Area support. Use when: game UI design, HUD creation, USS/UXML styling, Flexbox layout, PanelSettings configuration
 allowed-tools:
   - mcp__unity-mcp-server__find_ui_elements
   - mcp__unity-mcp-server__click_ui_element
@@ -23,37 +23,37 @@ allowed-tools:
 
 # Unity Game UI Toolkit Design Skill
 
-Unity UI Toolkit（USS/UXML/Flexbox）を使用したゲームUIデザインのスキルです。HUD、ヘルスバー、インベントリ、ダイアログ等のゲームUI要素の実装パターン、PanelSettingsによる画面スケーリング、Safe Area対応を含む包括的なゲームUIデザインガイドを提供します。
+A skill for game UI design using Unity's UI Toolkit (USS/UXML/Flexbox). This comprehensive game UI design guide covers implementation patterns for game UI elements like HUD, health bars, inventory, dialogs, screen scaling with PanelSettings, and Safe Area support.
 
 ## Overview
 
-UI Toolkitは、Webの技術（HTML/CSS）に近いアプローチでUIを構築するUnityの次世代UIシステムです。
+UI Toolkit is Unity's next-generation UI system that builds UIs with an approach similar to web technologies (HTML/CSS).
 
-| 特徴 | 詳細 |
-|------|------|
-| レイアウトエンジン | Yoga（CSS Flexboxのサブセット実装） |
-| スタイリング | USS（Unity Style Sheets、CSSライク） |
-| マークアップ | UXML（HTMLライク） |
-| 対応バージョン | Unity 2021.2+（Unity 6.0+推奨） |
-| 用途 | ゲームUI、エディタ拡張 |
+| Feature | Details |
+|---------|---------|
+| Layout Engine | Yoga (CSS Flexbox subset implementation) |
+| Styling | USS (Unity Style Sheets, CSS-like) |
+| Markup | UXML (HTML-like) |
+| Supported Version | Unity 2021.2+ (Unity 6.0+ recommended) |
+| Use Cases | Game UI, Editor extensions |
 
-## Game UI Types（ゲームUI分類）
+## Game UI Types
 
-ゲームUIは目的と表現方法によって4種類に分類されます。UIデザイン時には、どのタイプに該当するかを明確にしてから実装を開始してください。
+Game UIs are classified into 4 types based on purpose and presentation method. Before starting implementation, clarify which type your UI belongs to.
 
-### 1. Diegetic（ダイエジェティック）
+### 1. Diegetic
 
-ゲーム世界内に物理的に存在するUI。キャラクターも認識できる。
+UI that physically exists within the game world. Characters can also perceive it.
 
-| 例 | ゲーム |
-|----|--------|
-| スーツ背面のHPバー | Dead Space |
-| 車のダッシュボード | Racing Games |
-| 武器の弾数表示 | Metro Exodus |
-| 手持ちの地図 | Far Cry 2 |
+| Example | Game |
+|---------|------|
+| HP bar on suit's back | Dead Space |
+| Car dashboard | Racing Games |
+| Ammo count on weapon | Metro Exodus |
+| Handheld map | Far Cry 2 |
 
 ```xml
-<!-- UXML - ダイエジェティックUI（3D空間に配置） -->
+<!-- UXML - Diegetic UI (placed in 3D space) -->
 <ui:VisualElement class="diegetic-display">
     <ui:VisualElement class="diegetic-display__screen">
         <ui:Label class="diegetic-display__value" text="87" />
@@ -62,62 +62,62 @@ UI Toolkitは、Webの技術（HTML/CSS）に近いアプローチでUIを構築
 </ui:VisualElement>
 ```
 
-### 2. Non-Diegetic（ノンダイエジェティック）
+### 2. Non-Diegetic
 
-画面上のオーバーレイ。キャラクターは認識できない純粋なプレイヤー向け情報。
+Screen overlay. Pure player-facing information that characters cannot perceive.
 
-| 例 | 配置 |
-|----|------|
-| HPバー | 左上 |
-| ミニマップ | 右上 |
-| スキルバー | 下部中央 |
-| クエスト目標 | 右側 |
+| Example | Placement |
+|---------|-----------|
+| HP bar | Top-left |
+| Minimap | Top-right |
+| Skill bar | Bottom-center |
+| Quest objectives | Right side |
 
 ```xml
-<!-- UXML - Non-Diegetic HUD構成 -->
+<!-- UXML - Non-Diegetic HUD structure -->
 <ui:VisualElement class="hud">
-    <!-- 左上: プレイヤーステータス -->
+    <!-- Top-left: Player status -->
     <ui:VisualElement class="hud__top-left">
         <ui:VisualElement class="health-bar" />
         <ui:VisualElement class="mana-bar" />
     </ui:VisualElement>
 
-    <!-- 右上: ミニマップ -->
+    <!-- Top-right: Minimap -->
     <ui:VisualElement class="hud__top-right">
         <ui:VisualElement class="minimap" />
     </ui:VisualElement>
 
-    <!-- 下部中央: アクションバー -->
+    <!-- Bottom-center: Action bar -->
     <ui:VisualElement class="hud__bottom-center">
         <ui:VisualElement class="action-bar" />
     </ui:VisualElement>
 </ui:VisualElement>
 ```
 
-### 3. Spatial（スペーシャル）
+### 3. Spatial
 
-ゲーム世界内に存在するが、キャラクターは認識できないUI。
+UI that exists within the game world but characters cannot perceive.
 
-| 例 |
-|----|
-| 敵の頭上HPバー |
-| NPCの名前表示 |
-| インタラクト可能オブジェクトのアイコン |
-| 経路ガイドライン |
+| Example |
+|---------|
+| HP bar above enemy's head |
+| NPC name display |
+| Interactable object icons |
+| Path guide lines |
 
-### 4. Meta（メタ）
+### 4. Meta
 
-ゲーム状態を画面エフェクトで表現。直接的なUI要素ではない。
+Expresses game state through screen effects. Not direct UI elements.
 
-| 例 | 表現 |
-|----|------|
-| ダメージ | 画面端の赤いビネット |
-| 低HP | 画面全体の赤点滅 |
-| 状態異常 | 画面の歪み/色変化 |
-| 水中 | 青いオーバーレイ |
+| Example | Representation |
+|---------|----------------|
+| Damage | Red vignette at screen edges |
+| Low HP | Red pulse across entire screen |
+| Status effects | Screen distortion/color changes |
+| Underwater | Blue overlay |
 
 ```css
-/* USS - Metaエフェクト */
+/* USS - Meta effect */
 .meta-overlay {
     position: absolute;
     left: 0;
@@ -133,41 +133,41 @@ UI Toolkitは、Webの技術（HTML/CSS）に近いアプローチでUIを構築
 }
 
 .meta-overlay--low-health {
-    /* アニメーションでパルス */
+    /* Pulse animation */
 }
 ```
 
-## HUD Screen Layout（画面配置規則）
+## HUD Screen Layout
 
-ゲームHUDには確立された配置規則があります。プレイヤーは無意識にこの配置を期待しています。
+Game HUDs have established placement conventions. Players unconsciously expect this layout.
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│ [HP/MP/ステータス]              [ミニマップ/コンパス] │
-│ [バフ/デバフアイコン]               [クエスト目標]   │
+│ [HP/MP/Status]                    [Minimap/Compass] │
+│ [Buff/Debuff icons]               [Quest Objectives]│
 │                                                     │
-│                     ゲーム画面                       │
-│                    （視線集中域）                     │
+│                     Game Screen                     │
+│                    (Focus Area)                     │
 │                                                     │
-│ [チャット]                                          │
-│ [ログ/通知]        [スキルバー/アイテム]  [クイックスロット] │
+│ [Chat]                                              │
+│ [Log/Notifications]  [Skill Bar/Items] [Quick Slots]│
 └─────────────────────────────────────────────────────┘
 ```
 
-### 配置の原則
+### Placement Principles
 
-| 領域 | 要素 | 理由 |
-|------|------|------|
-| **左上** | HP、MP、スタミナ | 最も重要なステータス、視線が自然に向く |
-| **右上** | ミニマップ、コンパス | ナビゲーション情報、頻繁に確認 |
-| **下部中央** | スキルバー、アクションバー | 手元に近い感覚、キーボード配置と対応 |
-| **右下** | インベントリ、クイックスロット | サブ情報、マウス操作との親和性 |
-| **左下** | チャット、ログ | テキスト情報、ソーシャル要素 |
-| **右側縦** | クエスト目標、通知 | 追加情報、一時的な表示 |
-| **画面中央** | 避ける | ゲームプレイの視界を遮らない |
+| Area | Elements | Reason |
+|------|----------|--------|
+| **Top-left** | HP, MP, Stamina | Most important status, gaze naturally goes there |
+| **Top-right** | Minimap, Compass | Navigation info, frequently checked |
+| **Bottom-center** | Skill bar, Action bar | Feels close to hands, corresponds to keyboard layout |
+| **Bottom-right** | Inventory, Quick slots | Secondary info, affinity with mouse operation |
+| **Bottom-left** | Chat, Log | Text info, social elements |
+| **Right side vertical** | Quest objectives, Notifications | Additional info, temporary display |
+| **Screen center** | Avoid | Don't obstruct gameplay visibility |
 
 ```css
-/* USS - HUDグリッドレイアウト */
+/* USS - HUD grid layout */
 .hud {
     position: absolute;
     left: 0;
@@ -204,7 +204,7 @@ UI Toolkitは、Webの技術（HTML/CSS）に近いアプローチでUIを構築
 .hud__bottom-right {
     position: absolute;
     right: 16px;
-    bottom: 80px; /* アクションバーの上 */
+    bottom: 80px; /* Above action bar */
 }
 
 .hud__right-side {
@@ -217,21 +217,21 @@ UI Toolkitは、Webの技術（HTML/CSS）に近いアプローチでUIを構築
 
 ## Quick Start
 
-### 基本的なUIDocument構成
+### Basic UIDocument Setup
 
 ```javascript
-// 1. UIDocumentを持つGameObject作成
+// 1. Create GameObject with UIDocument
 mcp__unity-mcp-server__create_gameobject({
   name: "UIManager"
 })
 
-// 2. UIDocumentコンポーネントを追加
+// 2. Add UIDocument component
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/UIManager",
   componentType: "UIDocument"
 })
 
-// 3. PanelSettingsを設定
+// 3. Configure PanelSettings
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/UIManager",
   componentType: "UIDocument",
@@ -245,26 +245,26 @@ mcp__unity-mcp-server__set_component_field({
 
 ## Core Concepts
 
-### 1. PanelSettings（画面スケーリング）
+### 1. PanelSettings (Screen Scaling)
 
-PanelSettingsはuGUIのCanvas Scalerに相当し、画面サイズに応じたUIスケーリングを制御します。
+PanelSettings is equivalent to uGUI's Canvas Scaler and controls UI scaling based on screen size.
 
-#### Scale Mode一覧
+#### Scale Mode List
 
-| Mode | 用途 | 特徴 |
-|------|------|------|
-| Constant Pixel Size | デスクトップ | 1:1ピクセル対応（デフォルト） |
-| Constant Physical Size | マルチDPI | DPI非依存、物理サイズ一定 |
-| Scale With Screen Size | モバイル | 基準解像度に対してスケール |
+| Mode | Use Case | Features |
+|------|----------|----------|
+| Constant Pixel Size | Desktop | 1:1 pixel correspondence (default) |
+| Constant Physical Size | Multi-DPI | DPI independent, constant physical size |
+| Scale With Screen Size | Mobile | Scales relative to reference resolution |
 
-#### Scale With Screen Size設定
+#### Scale With Screen Size Settings
 
 ```csharp
-// PanelSettings設定例
+// PanelSettings configuration example
 [CreateAssetMenu(menuName = "UI/Panel Settings")]
 public class ResponsivePanelSettings : ScriptableObject
 {
-    // PanelSettingsアセットを作成し、以下を設定:
+    // Create PanelSettings asset and configure:
     // Scale Mode: Scale With Screen Size
     // Reference Resolution: 1080 x 1920 (Portrait) or 1920 x 1080 (Landscape)
     // Screen Match Mode: Match Width Or Height
@@ -272,7 +272,7 @@ public class ResponsivePanelSettings : ScriptableObject
 }
 ```
 
-#### ランタイムでのMatch切り替え
+#### Runtime Match Switching
 
 ```csharp
 // OrientationScaleHandler.cs
@@ -296,19 +296,19 @@ public class OrientationScaleHandler : MonoBehaviour
 }
 ```
 
-### 2. Flexboxレイアウト
+### 2. Flexbox Layout
 
-UI ToolkitはYoga（Flexbox）レイアウトエンジンを使用します。Web開発者には馴染みのあるCSSレイアウトモデルです。
+UI Toolkit uses the Yoga (Flexbox) layout engine. Web developers will find this CSS layout model familiar.
 
 #### flex-direction
 
 ```css
-/* USS - 縦方向レイアウト（デフォルト） */
+/* USS - Vertical layout (default) */
 .vertical-container {
     flex-direction: column;
 }
 
-/* USS - 横方向レイアウト */
+/* USS - Horizontal layout */
 .horizontal-container {
     flex-direction: row;
 }
@@ -317,13 +317,13 @@ UI ToolkitはYoga（Flexbox）レイアウトエンジンを使用します。We
 #### flex-grow / flex-shrink / flex-basis
 
 ```css
-/* USS - 均等分割 */
+/* USS - Equal distribution */
 .equal-child {
     flex-grow: 1;
-    flex-basis: 0;  /* コンテンツサイズを無視して均等分割 */
+    flex-basis: 0;  /* Ignore content size for equal distribution */
 }
 
-/* USS - 固定サイズ + 可変 */
+/* USS - Fixed size + flexible */
 .fixed-header {
     flex-grow: 0;
     flex-shrink: 0;
@@ -336,10 +336,10 @@ UI ToolkitはYoga（Flexbox）レイアウトエンジンを使用します。We
 }
 ```
 
-#### パーセンテージベースのサイズ
+#### Percentage-based Sizing
 
 ```css
-/* USS - レスポンシブサイズ */
+/* USS - Responsive sizing */
 .responsive-panel {
     width: 80%;
     height: 100%;
@@ -354,41 +354,41 @@ UI ToolkitはYoga（Flexbox）レイアウトエンジンを使用します。We
 #### align-items / justify-content
 
 ```css
-/* USS - 中央配置 */
+/* USS - Center alignment */
 .center-container {
-    align-items: center;      /* Cross-axis中央 */
-    justify-content: center;  /* Main-axis中央 */
+    align-items: center;      /* Cross-axis center */
+    justify-content: center;  /* Main-axis center */
 }
 
-/* USS - 両端揃え + 間隔均等 */
+/* USS - Space between + equal spacing */
 .space-between-container {
     justify-content: space-between;
 }
 
-/* USS - 末尾揃え */
+/* USS - End alignment */
 .end-aligned {
     align-items: flex-end;
     justify-content: flex-end;
 }
 ```
 
-### 3. USS（Unity Style Sheets）
+### 3. USS (Unity Style Sheets)
 
-CSSに似た構文でスタイルを定義します。
+Define styles with CSS-like syntax.
 
-#### 基本構文
+#### Basic Syntax
 
 ```css
-/* USS - セレクタ種別 */
-.class-selector { }      /* クラスセレクタ */
-#name-selector { }       /* 名前セレクタ */
-Button { }               /* 型セレクタ */
-.parent > .child { }     /* 直接子セレクタ */
-.parent .descendant { }  /* 子孫セレクタ */
-.element:hover { }       /* 擬似クラス */
+/* USS - Selector types */
+.class-selector { }      /* Class selector */
+#name-selector { }       /* Name selector */
+Button { }               /* Type selector */
+.parent > .child { }     /* Direct child selector */
+.parent .descendant { }  /* Descendant selector */
+.element:hover { }       /* Pseudo-class */
 ```
 
-#### BEM命名規則
+#### BEM Naming Convention
 
 ```css
 /* Block */
@@ -404,9 +404,9 @@ Button { }               /* 型セレクタ */
 .menu__item--disabled { }
 ```
 
-### 4. UXML（UI Markup Language）
+### 4. UXML (UI Markup Language)
 
-HTMLに似た構文でUI構造を定義します。
+Define UI structure with HTML-like syntax.
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -433,10 +433,10 @@ HTMLに似た構文でUI構造を定義します。
 
 ## Mobile Responsive Design
 
-### レスポンシブレイアウト構成
+### Responsive Layout Structure
 
 ```css
-/* USS - モバイルレスポンシブ基本構成 */
+/* USS - Mobile responsive basic structure */
 .root {
     flex-grow: 1;
     flex-direction: column;
@@ -465,9 +465,9 @@ HTMLに似た構文でUI構造を定義します。
 }
 ```
 
-### Safe Area対応
+### Safe Area Support
 
-UI Toolkitでは座標系の変換が必要です（Screen.safeAreaは左下原点、UI Toolkitは左上原点）。
+UI Toolkit requires coordinate system conversion (Screen.safeArea uses bottom-left origin, UI Toolkit uses top-left origin).
 
 ```csharp
 // SafeAreaController.cs
@@ -500,13 +500,13 @@ public class SafeAreaController : MonoBehaviour
         Rect safeArea = Screen.safeArea;
         lastSafeArea = safeArea;
 
-        // UI Toolkit座標系に変換（左上原点）
+        // Convert to UI Toolkit coordinate system (top-left origin)
         float left = safeArea.x;
         float right = Screen.width - (safeArea.x + safeArea.width);
         float top = Screen.height - (safeArea.y + safeArea.height);
         float bottom = safeArea.y;
 
-        // PanelSettingsのスケールを考慮
+        // Consider PanelSettings scale
         var panelSettings = uiDocument.panelSettings;
         float scale = GetCurrentScale(panelSettings);
 
@@ -518,7 +518,7 @@ public class SafeAreaController : MonoBehaviour
 
     float GetCurrentScale(PanelSettings settings)
     {
-        // Scale With Screen Sizeの場合のスケール計算
+        // Calculate scale for Scale With Screen Size
         if (settings.scaleMode == PanelScaleMode.ScaleWithScreenSize)
         {
             var refRes = settings.referenceResolution;
@@ -532,16 +532,16 @@ public class SafeAreaController : MonoBehaviour
 ```
 
 ```css
-/* USS - Safe Areaコンテナ */
+/* USS - Safe Area container */
 #safe-area {
     flex-grow: 1;
-    /* paddingはC#から動的に設定 */
+    /* padding is set dynamically from C# */
 }
 ```
 
-### 動的レイアウト切り替え（Media Query代替）
+### Dynamic Layout Switching (Media Query Alternative)
 
-UI ToolkitはCSS @media queriesをサポートしていないため、C#で動的にスタイルを切り替えます。
+UI Toolkit doesn't support CSS @media queries, so switch styles dynamically with C#.
 
 ```csharp
 // ResponsiveLayoutController.cs
@@ -579,7 +579,7 @@ public class ResponsiveLayoutController : MonoBehaviour
         root.RemoveFromClassList("portrait");
         root.AddToClassList(isPortrait ? "portrait" : "landscape");
 
-        // 画面幅に応じたレイアウト
+        // Layout based on screen width
         float screenWidth = Screen.width;
         root.RemoveFromClassList("narrow");
         root.RemoveFromClassList("wide");
@@ -597,7 +597,7 @@ public class ResponsiveLayoutController : MonoBehaviour
 ```
 
 ```css
-/* USS - 向き別スタイル */
+/* USS - Orientation-based styles */
 .portrait .sidebar {
     display: none;
 }
@@ -607,7 +607,7 @@ public class ResponsiveLayoutController : MonoBehaviour
     width: 250px;
 }
 
-/* USS - 画面幅別スタイル */
+/* USS - Screen width-based styles */
 .narrow .content__grid {
     flex-direction: column;
 }
@@ -627,12 +627,12 @@ public class ResponsiveLayoutController : MonoBehaviour
 }
 ```
 
-## Game UI Elements（ゲームUI要素の実装）
+## Game UI Elements Implementation
 
-### 1. ヘルスバー / リソースバー
+### 1. Health Bar / Resource Bar
 
 ```xml
-<!-- UXML - ヘルスバー -->
+<!-- UXML - Health bar -->
 <ui:VisualElement class="resource-bar health-bar">
     <ui:VisualElement class="resource-bar__background">
         <ui:VisualElement class="resource-bar__fill" name="health-fill" />
@@ -643,7 +643,7 @@ public class ResponsiveLayoutController : MonoBehaviour
 ```
 
 ```css
-/* USS - リソースバー */
+/* USS - Resource bar */
 .resource-bar {
     width: 200px;
     height: 24px;
@@ -690,7 +690,7 @@ public class ResponsiveLayoutController : MonoBehaviour
     text-shadow: 1px 1px 2px black;
 }
 
-/* バリエーション */
+/* Variations */
 .mana-bar .resource-bar__fill {
     background-color: #3498db;
 }
@@ -722,10 +722,10 @@ public class ResourceBarController
 }
 ```
 
-### 2. スキルクールダウン
+### 2. Skill Cooldown
 
 ```xml
-<!-- UXML - スキルスロット -->
+<!-- UXML - Skill slot -->
 <ui:VisualElement class="skill-slot">
     <ui:VisualElement class="skill-slot__icon" />
     <ui:VisualElement class="skill-slot__cooldown-overlay" name="cooldown-overlay" />
@@ -735,7 +735,7 @@ public class ResourceBarController
 ```
 
 ```css
-/* USS - スキルスロット */
+/* USS - Skill slot */
 .skill-slot {
     width: 64px;
     height: 64px;
@@ -762,7 +762,7 @@ public class ResourceBarController
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.7);
-    /* 円形マスクはシェーダーで実装 */
+    /* Circular mask implemented with shader */
 }
 
 .skill-slot__cooldown-text {
@@ -798,17 +798,17 @@ public class ResourceBarController
 }
 ```
 
-### 3. インベントリグリッド
+### 3. Inventory Grid
 
 ```xml
-<!-- UXML - インベントリ -->
+<!-- UXML - Inventory -->
 <ui:VisualElement class="inventory-panel">
     <ui:VisualElement class="inventory-panel__header">
-        <ui:Label text="インベントリ" class="inventory-panel__title" />
+        <ui:Label text="Inventory" class="inventory-panel__title" />
         <ui:Button class="inventory-panel__close" text="×" />
     </ui:VisualElement>
     <ui:VisualElement class="inventory-panel__grid" name="inventory-grid">
-        <!-- 動的に生成 -->
+        <!-- Dynamically generated -->
     </ui:VisualElement>
     <ui:VisualElement class="inventory-panel__footer">
         <ui:Label name="gold-label" text="Gold: 0" />
@@ -818,7 +818,7 @@ public class ResourceBarController
 ```
 
 ```css
-/* USS - インベントリ */
+/* USS - Inventory */
 .inventory-panel {
     width: 400px;
     background-color: rgba(20, 20, 30, 0.95);
@@ -883,7 +883,7 @@ public class ResourceBarController
     border-radius: 2px;
 }
 
-/* アイテムレアリティ */
+/* Item rarity */
 .inventory-slot--common { border-color: #aaa; }
 .inventory-slot--uncommon { border-color: #2ecc71; }
 .inventory-slot--rare { border-color: #3498db; }
@@ -891,7 +891,7 @@ public class ResourceBarController
 .inventory-slot--legendary { border-color: #f39c12; }
 ```
 
-### 4. ダメージ数字（フローティングテキスト）
+### 4. Damage Numbers (Floating Text)
 
 ```csharp
 // DamageNumberController.cs
@@ -911,7 +911,7 @@ public class DamageNumberController : MonoBehaviour
         var label = damageLabel.Q<Label>("damage-text");
         label.text = damage.ToString();
 
-        // ダメージタイプに応じたスタイル
+        // Style based on damage type
         switch (type)
         {
             case DamageType.Critical:
@@ -924,9 +924,9 @@ public class DamageNumberController : MonoBehaviour
                 break;
         }
 
-        // ワールド座標をスクリーン座標に変換
+        // Convert world coordinates to screen coordinates
         Vector2 screenPos = Camera.main.WorldToScreenPoint(worldPos);
-        // UI Toolkit座標系に変換（Y軸反転）
+        // Convert to UI Toolkit coordinate system (Y-axis inverted)
         float uiY = Screen.height - screenPos.y;
 
         damageLabel.style.position = Position.Absolute;
@@ -935,7 +935,7 @@ public class DamageNumberController : MonoBehaviour
 
         root.Add(damageLabel);
 
-        // アニメーション後に削除
+        // Remove after animation
         damageLabel.schedule.Execute(() => {
             damageLabel.RemoveFromHierarchy();
         }).ExecuteLater(1000);
@@ -944,7 +944,7 @@ public class DamageNumberController : MonoBehaviour
 ```
 
 ```css
-/* USS - ダメージ数字 */
+/* USS - Damage numbers */
 .damage-number {
     position: absolute;
     font-size: 24px;
@@ -977,18 +977,18 @@ public class DamageNumberController : MonoBehaviour
 }
 ```
 
-### 5. ミニマップ
+### 5. Minimap
 
 ```xml
-<!-- UXML - ミニマップ -->
+<!-- UXML - Minimap -->
 <ui:VisualElement class="minimap">
     <ui:VisualElement class="minimap__frame">
         <ui:VisualElement class="minimap__content" name="minimap-content">
-            <!-- RenderTextureを背景に設定 -->
+            <!-- RenderTexture set as background -->
         </ui:VisualElement>
         <ui:VisualElement class="minimap__player-icon" />
         <ui:VisualElement class="minimap__markers" name="minimap-markers">
-            <!-- 動的マーカー -->
+            <!-- Dynamic markers -->
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement class="minimap__compass">
@@ -998,7 +998,7 @@ public class DamageNumberController : MonoBehaviour
 ```
 
 ```css
-/* USS - ミニマップ */
+/* USS - Minimap */
 .minimap {
     width: 180px;
     height: 180px;
@@ -1007,7 +1007,7 @@ public class DamageNumberController : MonoBehaviour
 .minimap__frame {
     width: 100%;
     height: 100%;
-    border-radius: 90px; /* 円形 */
+    border-radius: 90px; /* Circular */
     border-width: 3px;
     border-color: rgba(0, 0, 0, 0.8);
     overflow: hidden;
@@ -1016,7 +1016,7 @@ public class DamageNumberController : MonoBehaviour
 .minimap__content {
     width: 100%;
     height: 100%;
-    /* RenderTextureはC#から設定 */
+    /* RenderTexture set from C# */
 }
 
 .minimap__player-icon {
@@ -1052,10 +1052,10 @@ public class DamageNumberController : MonoBehaviour
 }
 ```
 
-### 6. ダイアログシステム
+### 6. Dialog System
 
 ```xml
-<!-- UXML - ダイアログボックス -->
+<!-- UXML - Dialog box -->
 <ui:VisualElement class="dialog-box">
     <ui:VisualElement class="dialog-box__portrait" name="portrait" />
     <ui:VisualElement class="dialog-box__content">
@@ -1063,14 +1063,14 @@ public class DamageNumberController : MonoBehaviour
         <ui:Label class="dialog-box__text" name="dialog-text" />
     </ui:VisualElement>
     <ui:VisualElement class="dialog-box__choices" name="choices-container">
-        <!-- 動的選択肢 -->
+        <!-- Dynamic choices -->
     </ui:VisualElement>
     <ui:VisualElement class="dialog-box__continue-indicator" />
 </ui:VisualElement>
 ```
 
 ```css
-/* USS - ダイアログボックス */
+/* USS - Dialog box */
 .dialog-box {
     position: absolute;
     left: 10%;
@@ -1143,43 +1143,43 @@ public class DamageNumberController : MonoBehaviour
     bottom: 16px;
     width: 16px;
     height: 16px;
-    /* 点滅アニメーション用 */
+    /* For blink animation */
 }
 ```
 
 ## Performance Best Practices
 
-### 1. インラインスタイルを避ける
+### 1. Avoid Inline Styles
 
 ```csharp
-// NG - パフォーマンス低下
+// NG - Performance degradation
 element.style.backgroundColor = Color.red;
 element.style.width = 100;
 element.style.height = 50;
 
-// OK - USSクラスを使用
+// OK - Use USS classes
 element.AddToClassList("highlighted-button");
 ```
 
-### 2. :hover擬似クラスの最適化
+### 2. :hover Pseudo-class Optimization
 
 ```css
-/* NG - 全要素に:hoverはパフォーマンス低下 */
+/* NG - :hover on all elements degrades performance */
 .button:hover {
     background-color: #444;
 }
 
-/* OK - 必要な場合のみ使用、または:focusを併用 */
+/* OK - Use only when necessary, or combine with :focus */
 .interactive-button:hover,
 .interactive-button:focus {
     background-color: #444;
 }
 ```
 
-### 3. 深いネストを避ける
+### 3. Avoid Deep Nesting
 
 ```xml
-<!-- NG - 深すぎるネスト -->
+<!-- NG - Too deep nesting -->
 <ui:VisualElement>
     <ui:VisualElement>
         <ui:VisualElement>
@@ -1190,16 +1190,16 @@ element.AddToClassList("highlighted-button");
     </ui:VisualElement>
 </ui:VisualElement>
 
-<!-- OK - フラットな構造 -->
+<!-- OK - Flat structure -->
 <ui:VisualElement class="container">
     <ui:Label text="Flat" />
 </ui:VisualElement>
 ```
 
-### 4. VisualElementのプール
+### 4. VisualElement Pooling
 
 ```csharp
-// 大量の動的要素はプールを使用
+// Use pooling for large numbers of dynamic elements
 private Queue<VisualElement> elementPool = new Queue<VisualElement>();
 
 VisualElement GetPooledElement()
@@ -1221,22 +1221,22 @@ void ReturnToPool(VisualElement element)
 
 ## Tool Selection Guide
 
-| 目的 | 推奨ツール |
-|------|-----------|
-| UIDocument GameObject作成 | `create_gameobject` + `add_component` |
-| PanelSettings設定 | `set_component_field` |
-| C#コントローラー作成 | `create_class` |
-| UXML/USSファイル作成 | `manage_asset_database` |
-| UI要素検索 | `find_ui_elements` |
-| UIテスト | `click_ui_element`, `simulate_ui_input` |
-| UI状態確認 | `get_ui_element_state` |
+| Purpose | Recommended Tool |
+|---------|------------------|
+| UIDocument GameObject creation | `create_gameobject` + `add_component` |
+| PanelSettings configuration | `set_component_field` |
+| C# controller creation | `create_class` |
+| UXML/USS file creation | `manage_asset_database` |
+| UI element search | `find_ui_elements` |
+| UI testing | `click_ui_element`, `simulate_ui_input` |
+| UI state check | `get_ui_element_state` |
 
 ## Common Workflows
 
-### 1. モバイルレスポンシブUIの作成
+### 1. Creating Mobile Responsive UI
 
 ```javascript
-// Step 1: UIDocument用GameObjectを作成
+// Step 1: Create GameObject for UIDocument
 mcp__unity-mcp-server__create_gameobject({
   name: "ResponsiveUI"
 })
@@ -1246,7 +1246,7 @@ mcp__unity-mcp-server__add_component({
   componentType: "UIDocument"
 })
 
-// Step 2: レスポンシブコントローラーを追加
+// Step 2: Add responsive controller
 mcp__unity-mcp-server__create_class({
   path: "Assets/Scripts/UI/ResponsiveLayoutController.cs",
   className: "ResponsiveLayoutController",
@@ -1255,7 +1255,7 @@ mcp__unity-mcp-server__create_class({
   apply: true
 })
 
-// Step 3: Safe Areaコントローラーを追加
+// Step 3: Add Safe Area controller
 mcp__unity-mcp-server__create_class({
   path: "Assets/Scripts/UI/SafeAreaController.cs",
   className: "SafeAreaController",
@@ -1265,7 +1265,7 @@ mcp__unity-mcp-server__create_class({
 })
 ```
 
-### 2. スクロールビューの作成
+### 2. Creating a Scroll View
 
 ```xml
 <!-- UXML -->
@@ -1288,7 +1288,7 @@ mcp__unity-mcp-server__create_class({
 }
 ```
 
-### 3. データバインディング
+### 3. Data Binding
 
 ```csharp
 // DataBindingController.cs
@@ -1303,15 +1303,15 @@ public class DataBindingController : MonoBehaviour
     {
         var root = uiDocument.rootVisualElement;
 
-        // ラベルへのバインディング
+        // Label binding
         var scoreLabel = root.Q<Label>("score-label");
         scoreLabel.text = "Score: 0";
 
-        // ボタンイベント
+        // Button event
         var button = root.Q<Button>("action-button");
         button.clicked += OnButtonClicked;
 
-        // リストビュー
+        // ListView
         var listView = root.Q<ListView>("item-list");
         listView.makeItem = () => new Label();
         listView.bindItem = (element, index) =>
@@ -1325,60 +1325,60 @@ public class DataBindingController : MonoBehaviour
 
 ## Common Mistakes
 
-### 1. PanelSettings未設定
+### 1. PanelSettings Not Configured
 
-**NG**: UIDocumentのPanelSettingsが未設定
-- UIが表示されない
-- スケーリングが効かない
+**NG**: UIDocument's PanelSettings is not set
+- UI doesn't display
+- Scaling doesn't work
 
-**OK**: PanelSettingsアセットを作成して設定
-- Scale With Screen Sizeを選択
-- Reference Resolutionを設定
+**OK**: Create and set PanelSettings asset
+- Select Scale With Screen Size
+- Set Reference Resolution
 
-### 2. flex-grow: 0のまま
+### 2. flex-grow: 0 Unchanged
 
-**NG**: 子要素が親を埋めない
+**NG**: Child elements don't fill parent
 ```css
-.container { }  /* flex-grow: 0 がデフォルト */
+.container { }  /* flex-grow: 0 is default */
 ```
 
-**OK**: 明示的にflex-growを設定
+**OK**: Explicitly set flex-grow
 ```css
 .container {
     flex-grow: 1;
 }
 ```
 
-### 3. Safe Area座標系の混同
+### 3. Safe Area Coordinate System Confusion
 
-**NG**: Screen.safeAreaをそのまま使用
+**NG**: Using Screen.safeArea directly
 ```csharp
-// 座標系が異なるため位置がずれる
+// Position is off due to different coordinate systems
 element.style.top = Screen.safeArea.y;
 ```
 
-**OK**: UI Toolkit座標系に変換
+**OK**: Convert to UI Toolkit coordinate system
 ```csharp
 float top = Screen.height - (Screen.safeArea.y + Screen.safeArea.height);
 element.style.paddingTop = top / scale;
 ```
 
-### 4. @media queriesの使用
+### 4. Using @media Queries
 
-**NG**: CSSのmedia queriesを記述
+**NG**: Writing CSS media queries
 ```css
-/* UI Toolkitでは動作しない */
+/* Does not work in UI Toolkit */
 @media screen and (max-width: 600px) { }
 ```
 
-**OK**: C#で動的にクラスを切り替え
+**OK**: Switch classes dynamically with C#
 ```csharp
 root.AddToClassList(isNarrow ? "narrow" : "wide");
 ```
 
-### 5. パフォーマンスを考慮しないスタイル
+### 5. Performance-Unaware Styles
 
-**NG**: 頻繁なインラインスタイル変更
+**NG**: Frequent inline style changes
 ```csharp
 void Update()
 {
@@ -1386,7 +1386,7 @@ void Update()
 }
 ```
 
-**OK**: transformを使用
+**OK**: Use transform
 ```csharp
 void Update()
 {
@@ -1401,10 +1401,10 @@ void Update()
 | Property | Type | Description |
 |----------|------|-------------|
 | scaleMode | PanelScaleMode | Constant Pixel Size / Constant Physical Size / Scale With Screen Size |
-| referenceResolution | Vector2Int | 基準解像度（Scale With Screen Size時） |
+| referenceResolution | Vector2Int | Reference resolution (for Scale With Screen Size) |
 | screenMatchMode | PanelScreenMatchMode | Match Width Or Height / Expand / Shrink |
-| match | float | 0 = Width優先, 1 = Height優先 |
-| referenceDpi | float | 基準DPI（Constant Physical Size時） |
+| match | float | 0 = Width priority, 1 = Height priority |
+| referenceDpi | float | Reference DPI (for Constant Physical Size) |
 
 ### USS Flexbox Properties
 
@@ -1433,18 +1433,18 @@ void Update()
 ### C# VisualElement API
 
 ```csharp
-// クラス操作
+// Class operations
 element.AddToClassList("class-name");
 element.RemoveFromClassList("class-name");
 element.ToggleInClassList("class-name");
 element.EnableInClassList("class-name", enabled);
 
-// スタイル操作
+// Style operations
 element.style.display = DisplayStyle.Flex;
 element.style.flexGrow = 1;
 element.style.width = Length.Percent(100);
 
-// クエリ
+// Queries
 root.Q<Button>("button-name");
 root.Q<VisualElement>(className: "class-name");
 root.Query<Label>().ToList();

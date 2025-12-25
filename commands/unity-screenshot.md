@@ -1,24 +1,17 @@
 ---
-name: unity-screenshot
-description: Unity EditorのGame/Scene/Explorerビューのスクリーンショットを取得するコマンド
-arguments:
-  - name: mode
-    description: "キャプチャモード: game, scene, explorer (デフォルト: game)"
-    required: false
-  - name: target
-    description: "explorerモード時のターゲット指定 (例: Player, MainCamera)"
-    required: false
+description: Capture screenshots from Unity Editor Game/Scene/Explorer views
+argument-hint: "[mode] [target] - mode: game|scene|explorer, target: GameObject name for explorer mode"
 ---
 
 # Unity Screenshot Capture
 
-Unity Editorの各種ビューのスクリーンショットを取得します。
+Capture screenshots from various Unity Editor views.
 
-## キャプチャモード
+## Capture Modes
 
 ### 1. Game View (`game`)
 
-プレイヤーが見る画面（Game View）をキャプチャします。
+Captures the Game View (player's perspective).
 
 ```javascript
 mcp__unity-mcp-server__capture_screenshot({
@@ -29,7 +22,7 @@ mcp__unity-mcp-server__capture_screenshot({
 
 ### 2. Scene View (`scene`)
 
-エディタのシーンビューをキャプチャします。
+Captures the editor's Scene View.
 
 ```javascript
 mcp__unity-mcp-server__capture_screenshot({
@@ -40,7 +33,7 @@ mcp__unity-mcp-server__capture_screenshot({
 
 ### 3. Explorer Mode (`explorer`)
 
-AI/LLM向けに最適化されたビューで、特定のGameObjectにフォーカスしてキャプチャします。
+AI/LLM-optimized view that focuses on a specific GameObject.
 
 ```javascript
 mcp__unity-mcp-server__capture_screenshot({
@@ -59,45 +52,45 @@ mcp__unity-mcp-server__capture_screenshot({
 })
 ```
 
-## 使用例
+## Usage Examples
 
-### 基本的な使用
+### Basic Usage
 
 ```
 /unity-screenshot
 ```
 
-Game Viewのスクリーンショットを取得します。
+Captures the Game View screenshot.
 
-### Scene Viewをキャプチャ
+### Capture Scene View
 
 ```
 /unity-screenshot scene
 ```
 
-### 特定のGameObjectにフォーカス
+### Focus on Specific GameObject
 
 ```
 /unity-screenshot explorer Player
 ```
 
-PlayerというGameObjectを中心にフレーミングしてキャプチャします。
+Frames and captures the Player GameObject.
 
-## オプション
+## Options
 
-### Explorer Mode設定
+### Explorer Mode Settings
 
-| 設定 | 説明 |
-|------|------|
+| Setting | Description |
+|---------|-------------|
 | `target.type` | gameObject, tag, area, position |
-| `target.name` | ターゲットGameObjectの名前 |
-| `camera.autoFrame` | 自動フレーミング（デフォルト: true） |
-| `camera.padding` | フレーミングの余白（0-1、デフォルト: 0.2） |
-| `display.showGizmos` | ギズモ表示（デフォルト: false） |
-| `display.showColliders` | コライダー表示（デフォルト: false） |
+| `target.name` | Target GameObject name |
+| `camera.autoFrame` | Auto-framing (default: true) |
+| `camera.padding` | Framing padding (0-1, default: 0.2) |
+| `display.showGizmos` | Show gizmos (default: false) |
+| `display.showColliders` | Show colliders (default: false) |
 
-## 出力
+## Output
 
-スクリーンショットは `.unity/capture/` ディレクトリに保存され、Base64エンコードされた画像データも返されます。
+Screenshots are saved to `.unity/capture/` directory. Base64-encoded image data is also returned.
 
-ファイル名形式: `image_<mode>_<timestamp>.png`
+Filename format: `image_<mode>_<timestamp>.png`

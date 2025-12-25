@@ -1,84 +1,83 @@
 ---
-name: unity-status
-description: Unity Editorの接続状態、シーン情報、コンパイル状態を一括確認するコマンド
+description: Check Unity Editor connection, scene info, and compilation state
 ---
 
 # Unity Status Check
 
-Unity Editorの現在の状態を包括的に確認します。
+Comprehensively check the current state of Unity Editor.
 
-## 実行内容
+## Actions
 
-以下の情報を順番に取得して報告します：
+The following information is retrieved and reported:
 
-### 1. 接続状態の確認
+### 1. Connection Check
 
 ```javascript
 mcp__unity-mcp-server__ping()
 ```
 
-Unity Editorとの接続が正常かどうかを確認します。
+Verifies the connection to Unity Editor is working.
 
-### 2. エディタ状態の確認
+### 2. Editor State Check
 
 ```javascript
 mcp__unity-mcp-server__get_editor_state()
 ```
 
-現在のエディタ状態（Play/Edit モード、一時停止状態など）を取得します。
+Gets the current editor state (Play/Edit mode, pause state, etc.).
 
-### 3. シーン情報の確認
+### 3. Scene Info Check
 
 ```javascript
 mcp__unity-mcp-server__get_scene_info()
 ```
 
-現在ロードされているシーンの情報を取得します。
+Gets information about the currently loaded scene.
 
-### 4. コンパイル状態の確認
+### 4. Compilation State Check
 
 ```javascript
 mcp__unity-mcp-server__get_compilation_state({ includeMessages: true })
 ```
 
-コンパイルエラーや警告があれば表示します。
+Shows any compilation errors or warnings.
 
-### 5. コンソールログの確認（エラーのみ）
+### 5. Console Log Check (Errors Only)
 
 ```javascript
 mcp__unity-mcp-server__read_console({ logTypes: ["Error"], count: 10 })
 ```
 
-直近のエラーログを確認します。
+Checks recent error logs.
 
-## 出力形式
+## Output Format
 
 ```
 ## Unity Status Report
 
-### 接続状態
-✅ Unity Editor と接続中
+### Connection
+Connected to Unity Editor
 
-### エディタ状態
-- モード: Edit Mode
-- 一時停止: false
+### Editor State
+- Mode: Edit Mode
+- Paused: false
 
-### 現在のシーン
-- 名前: SampleScene
-- パス: Assets/Scenes/SampleScene.unity
-- 保存済み: true
+### Current Scene
+- Name: SampleScene
+- Path: Assets/Scenes/SampleScene.unity
+- Saved: true
 
-### コンパイル状態
-✅ コンパイル成功（エラーなし）
+### Compilation
+Compilation successful (no errors)
 
-### 直近のエラー
-（エラーなし）
+### Recent Errors
+(none)
 ```
 
-## 使用例
+## Usage
 
 ```
 /unity-status
 ```
 
-このコマンドを実行すると、Unity開発を開始する前の状態確認や、問題発生時のデバッグに役立ちます。
+Use this command to verify Unity state before development or for debugging issues.

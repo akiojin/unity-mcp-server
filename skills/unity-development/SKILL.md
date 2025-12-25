@@ -1,48 +1,48 @@
 ---
 name: unity-development
-description: Unity開発の包括的ガイド。アーキテクチャパターン、MCPツール選択、複合タスクワークフローを提供。Unity関連タスクで常時参照される親スキル。詳細な実装は子スキルを参照。使用タイミング: Unity開発全般、C#編集、シーン操作、UI実装、アセット管理、PlayModeテスト
+description: Comprehensive guide for Unity development. Provides architecture patterns, MCP tool selection, and composite task workflows. Parent skill always referenced for Unity-related tasks. See child skills for detailed implementation. Use when: Unity development in general, C# editing, scene operations, UI implementation, asset management, PlayMode testing
 allowed-tools: Read, Grep, Glob
 ---
 
 # Unity Development Guide
 
-Unity開発における包括的なガイド。このスキルは**常時参照される親スキル**として、共通パターンとツール選択の指針を提供する。
+A comprehensive guide for Unity development. This skill serves as **always-referenced parent skill**, providing common patterns and tool selection guidance.
 
 ## Architecture Patterns
 
-### Fail-Fast原則
+### Fail-Fast Principle
 
-**nullチェックは書かない。存在が前提のオブジェクトは直接使用する。**
+**Do not write null checks. Use objects directly when their existence is assumed.**
 
 ```csharp
-// NG: 禁止パターン
+// NG: Forbidden pattern
 if (component != null) { component.DoSomething(); }
 if (gameObject != null) { gameObject.SetActive(false); }
 if (service != null) { service.Execute(); }
 
-// OK: 正しいパターン - 直接使用
+// OK: Correct pattern - direct usage
 GetComponent<Rigidbody>().velocity = Vector3.zero;
 GameService.Initialize();
 target.position = Vector3.zero;
 ```
 
-**適用対象**:
-- `GetComponent<T>()` 後のnullチェック
-- `Find*()` 後のnullチェック
-- `[Inject]` 後のnullチェック
+**Applies to**:
+- Null check after `GetComponent<T>()`
+- Null check after `Find*()`
+- Null check after `[Inject]`
 
-### Update内GetComponent禁止
+### No GetComponent in Update
 
-**毎フレームのGetComponentはGC発生・パフォーマンス悪化の原因。Awakeでキャッシュする。**
+**GetComponent every frame causes GC allocation and performance degradation. Cache in Awake.**
 
 ```csharp
-// NG: 毎フレームGC発生
+// NG: GC allocation every frame
 void Update()
 {
     GetComponent<Rigidbody>().velocity = input;
 }
 
-// OK: Awakeでキャッシュ
+// OK: Cache in Awake
 private Rigidbody _rb;
 
 void Awake()
@@ -56,9 +56,9 @@ void Update()
 }
 ```
 
-### UniTaskパターン
+### UniTask Patterns
 
-**コルーチンの代わりにUniTaskを使用。async voidは禁止。**
+**Use UniTask instead of coroutines. async void is forbidden.**
 
 ```csharp
 using Cysharp.Threading.Tasks;
@@ -75,7 +75,7 @@ async UniTaskVoid Start()
     await DoWorkAsync(destroyCancellationToken);
 }
 
-// OK: 戻り値がある場合
+// OK: When return value is needed
 async UniTask<int> CalculateAsync(CancellationToken ct)
 {
     await UniTask.Delay(1000, cancellationToken: ct);
@@ -83,29 +83,29 @@ async UniTask<int> CalculateAsync(CancellationToken ct)
 }
 ```
 
-**ベストプラクティス**:
-- `destroyCancellationToken`でGameObject破棄時に自動キャンセル
-- `UniTask.Delay` > `Task.Delay`（ゼロアロケーション）
-- `UniTask.WhenAll` で並列実行
+**Best Practices**:
+- Use `destroyCancellationToken` for auto-cancel on GameObject destruction
+- `UniTask.Delay` > `Task.Delay` (zero allocation)
+- `UniTask.WhenAll` for parallel execution
 
 ### VContainer DI
 
-**依存性注入にはVContainerを使用。コンストラクタインジェクション推奨。**
+**Use VContainer for dependency injection. Constructor injection recommended.**
 
 ```csharp
-// インターフェース定義
+// Interface definition
 public interface IPlayerService
 {
     void Initialize();
 }
 
-// 実装クラス
+// Implementation class
 public class PlayerService : IPlayerService
 {
     public void Initialize() { /* ... */ }
 }
 
-// コンシューマー（MonoBehaviour）
+// Consumer (MonoBehaviour)
 public class GameManager : MonoBehaviour
 {
     [Inject] private readonly IPlayerService _playerService;
@@ -116,7 +116,7 @@ public class GameManager : MonoBehaviour
     }
 }
 
-// LifetimeScope設定
+// LifetimeScope configuration
 public class GameLifetimeScope : LifetimeScope
 {
     protected override void Configure(IContainerBuilder builder)
@@ -127,10 +127,10 @@ public class GameLifetimeScope : LifetimeScope
 }
 ```
 
-**Lifetime選択**:
-- `Lifetime.Singleton` - アプリ全体で1インスタンス
-- `Lifetime.Scoped` - シーン単位で1インスタンス
-- `Lifetime.Transient` - 毎回新規インスタンス
+**Lifetime Selection**:
+- `Lifetime.Singleton` - One instance for entire app
+- `Lifetime.Scoped` - One instance per scene
+- `Lifetime.Transient` - New instance each time
 
 ---
 
@@ -138,88 +138,88 @@ public class GameLifetimeScope : LifetimeScope
 
 ### C# Code Editing
 
-| ツール | 用途 | 使用条件 |
-|--------|------|----------|
-| `edit_snippet` | 軽量編集 | 差分80文字以内 |
-| `edit_structured` | 構造化編集 | メソッド本体置換、メンバー追加 |
-| `get_symbols` | シンボル一覧 | 編集前に必須 |
-| `find_symbol` | シンボル検索 | 名前でシンボル特定 |
-| `find_refs` | 参照検索 | リファクタリング前 |
-| `read` | コード読み取り | ファイル内容確認 |
-| `search` | パターン検索 | 正規表現検索 |
-| `create_class` | クラス作成 | 新規ファイル |
-| `rename_symbol` | リネーム | プロジェクト全体 |
-| `remove_symbol` | シンボル削除 | 未使用コード削除 |
+| Tool | Purpose | Usage Condition |
+|------|---------|-----------------|
+| `edit_snippet` | Lightweight edit | Diff within 80 characters |
+| `edit_structured` | Structured edit | Method body replacement, member addition |
+| `get_symbols` | Symbol list | Required before editing |
+| `find_symbol` | Symbol search | Find symbol by name |
+| `find_refs` | Reference search | Before refactoring |
+| `read` | Read code | Check file contents |
+| `search` | Pattern search | Regex search |
+| `create_class` | Create class | New file |
+| `rename_symbol` | Rename | Project-wide |
+| `remove_symbol` | Remove symbol | Delete unused code |
 
 ### Scene & GameObject
 
-| ツール | 用途 |
-|--------|------|
-| `get_hierarchy` | ヒエラルキー取得 |
-| `create_gameobject` | GameObject作成 |
-| `modify_gameobject` | GameObject変更 |
-| `delete_gameobject` | GameObject削除 |
-| `find_gameobject` | GameObject検索 |
-| `add_component` | コンポーネント追加 |
-| `modify_component` | コンポーネント変更 |
-| `remove_component` | コンポーネント削除 |
-| `list_components` | コンポーネント一覧 |
+| Tool | Purpose |
+|------|---------|
+| `get_hierarchy` | Get hierarchy |
+| `create_gameobject` | Create GameObject |
+| `modify_gameobject` | Modify GameObject |
+| `delete_gameobject` | Delete GameObject |
+| `find_gameobject` | Find GameObject |
+| `add_component` | Add component |
+| `modify_component` | Modify component |
+| `remove_component` | Remove component |
+| `list_components` | List components |
 
 ### Asset Management
 
-| ツール | 用途 |
-|--------|------|
-| `create_prefab` | プレハブ作成 |
-| `modify_prefab` | プレハブ変更 |
-| `instantiate_prefab` | プレハブ配置 |
-| `create_material` | マテリアル作成 |
-| `modify_material` | マテリアル変更 |
-| `manage_asset_database` | アセット操作 |
-| `addressables_manage` | Addressables管理 |
+| Tool | Purpose |
+|------|---------|
+| `create_prefab` | Create prefab |
+| `modify_prefab` | Modify prefab |
+| `instantiate_prefab` | Instantiate prefab |
+| `create_material` | Create material |
+| `modify_material` | Modify material |
+| `manage_asset_database` | Asset operations |
+| `addressables_manage` | Addressables management |
 
 ### PlayMode & Testing
 
-| ツール | 用途 |
-|--------|------|
-| `play_game` | PlayMode開始 |
-| `stop_game` | PlayMode終了 |
-| `pause_game` | 一時停止 |
-| `input_keyboard` | キーボード入力 |
-| `input_mouse` | マウス入力 |
-| `input_gamepad` | ゲームパッド入力 |
-| `capture_screenshot` | スクリーンショット |
-| `run_tests` | テスト実行 |
+| Tool | Purpose |
+|------|---------|
+| `play_game` | Start PlayMode |
+| `stop_game` | Stop PlayMode |
+| `pause_game` | Pause |
+| `input_keyboard` | Keyboard input |
+| `input_mouse` | Mouse input |
+| `input_gamepad` | Gamepad input |
+| `capture_screenshot` | Screenshot |
+| `run_tests` | Run tests |
 
 ### UI Systems
 
-| システム | 用途 | 詳細スキル |
-|----------|------|------------|
-| uGUI | ゲームUI（Canvas/EventSystem） | `unity-game-ugui-design` |
-| UI Toolkit | モダンUI（Runtime/Editor） | `unity-game-ui-toolkit-design` |
-| IMGUI | エディタ拡張のみ | `unity-editor-imgui-design` |
+| System | Purpose | Detail Skill |
+|--------|---------|--------------|
+| uGUI | Game UI (Canvas/EventSystem) | `unity-game-ugui-design` |
+| UI Toolkit | Modern UI (Runtime/Editor) | `unity-game-ui-toolkit-design` |
+| IMGUI | Editor extensions only | `unity-editor-imgui-design` |
 
 ---
 
 ## Composite Workflow Examples
 
-### Example 1: UIボタンでシーン切り替え
+### Example 1: Scene Transition with UI Button
 
-**必要な操作**: UI作成 + シーン管理 + C#スクリプト
+**Required operations**: UI creation + Scene management + C# script
 
 ```javascript
-// 1. ボタンGameObject作成
+// 1. Create button GameObject
 mcp__unity-mcp-server__create_gameobject({
   name: "StartButton",
   parentPath: "/Canvas"
 })
 
-// 2. Buttonコンポーネント追加
+// 2. Add Button component
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/StartButton",
   componentType: "Button"
 })
 
-// 3. クリックハンドラースクリプト作成
+// 3. Create click handler script
 mcp__unity-mcp-server__create_class({
   path: "Assets/Scripts/UI/StartButtonHandler.cs",
   className: "StartButtonHandler",
@@ -227,7 +227,7 @@ mcp__unity-mcp-server__create_class({
   namespace: "Game.UI"
 })
 
-// 4. OnClick実装追加
+// 4. Add OnClick implementation
 mcp__unity-mcp-server__edit_structured({
   path: "Assets/Scripts/UI/StartButtonHandler.cs",
   symbolName: "StartButtonHandler",
@@ -241,32 +241,32 @@ mcp__unity-mcp-server__edit_structured({
 })
 ```
 
-### Example 2: 敵キャラクター作成
+### Example 2: Create Enemy Character
 
-**必要な操作**: GameObject + コンポーネント + C#スクリプト + プレハブ化
+**Required operations**: GameObject + Components + C# script + Prefab
 
 ```javascript
-// 1. 敵GameObject作成
+// 1. Create enemy GameObject
 mcp__unity-mcp-server__create_gameobject({
   name: "Enemy",
   primitiveType: "capsule",
   position: { x: 0, y: 1, z: 0 }
 })
 
-// 2. コンポーネント追加
+// 2. Add components
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Enemy",
   componentType: "Rigidbody"
 })
 
-// 3. 敵スクリプト作成
+// 3. Create enemy script
 mcp__unity-mcp-server__create_class({
   path: "Assets/Scripts/Enemies/EnemyController.cs",
   className: "EnemyController",
   baseType: "MonoBehaviour"
 })
 
-// 4. AI実装
+// 4. Add AI implementation
 mcp__unity-mcp-server__edit_structured({
   path: "Assets/Scripts/Enemies/EnemyController.cs",
   symbolName: "EnemyController",
@@ -287,19 +287,19 @@ mcp__unity-mcp-server__edit_structured({
 `
 })
 
-// 5. プレハブ化
+// 5. Convert to prefab
 mcp__unity-mcp-server__create_prefab({
   gameObjectPath: "/Enemy",
   prefabPath: "Assets/Prefabs/Enemies/Enemy.prefab"
 })
 ```
 
-### Example 3: PlayModeテスト
+### Example 3: PlayMode Testing
 
-**必要な操作**: テスト作成 + PlayMode制御 + 入力シミュレーション
+**Required operations**: Test creation + PlayMode control + Input simulation
 
 ```javascript
-// 1. テストクラス作成
+// 1. Create test class
 mcp__unity-mcp-server__create_class({
   path: "Assets/Tests/PlayMode/PlayerMovementTests.cs",
   className: "PlayerMovementTests",
@@ -307,7 +307,7 @@ mcp__unity-mcp-server__create_class({
   usings: "NUnit.Framework,UnityEngine.TestTools,System.Collections"
 })
 
-// 2. PlayModeテスト実装
+// 2. Add PlayMode test implementation
 mcp__unity-mcp-server__edit_structured({
   path: "Assets/Tests/PlayMode/PlayerMovementTests.cs",
   symbolName: "PlayerMovementTests",
@@ -321,8 +321,8 @@ mcp__unity-mcp-server__edit_structured({
 
         yield return null;
 
-        // W キー入力をシミュレート
-        // テスト実行時はinput_keyboardツールで実際に入力
+        // Simulate W key input
+        // Use input_keyboard tool during test execution
 
         yield return new WaitForSeconds(0.5f);
 
@@ -331,7 +331,7 @@ mcp__unity-mcp-server__edit_structured({
 `
 })
 
-// 3. テスト実行
+// 3. Run tests
 mcp__unity-mcp-server__run_tests({
   testMode: "PlayMode",
   filter: "PlayerMovementTests"
@@ -342,40 +342,40 @@ mcp__unity-mcp-server__run_tests({
 
 ## Child Skill Reference
 
-詳細な実装パターンが必要な場合は、以下の子スキルを参照：
+Refer to the following child skills when detailed implementation patterns are needed:
 
-| スキル | 用途 | 参照タイミング |
-|--------|------|----------------|
-| `unity-csharp-editing` | C#編集・TDD・リファクタリング | コード編集時 |
-| `unity-scene-management` | シーン・GameObject操作 | シーン構築時 |
-| `unity-asset-management` | プレハブ・マテリアル・Addressables | アセット管理時 |
-| `unity-playmode-testing` | PlayMode・入力シミュレーション | テスト実行時 |
-| `unity-game-ugui-design` | uGUI（Canvas/EventSystem） | ゲームUI実装時 |
-| `unity-game-ui-toolkit-design` | UI Toolkit（Runtime） | モダンUI実装時 |
-| `unity-editor-imgui-design` | IMGUI（EditorWindow/Inspector） | エディタ拡張時 |
+| Skill | Purpose | When to Reference |
+|-------|---------|-------------------|
+| `unity-csharp-editing` | C# editing, TDD, refactoring | During code editing |
+| `unity-scene-management` | Scene & GameObject operations | During scene construction |
+| `unity-asset-management` | Prefabs, materials, Addressables | During asset management |
+| `unity-playmode-testing` | PlayMode, input simulation | During test execution |
+| `unity-game-ugui-design` | uGUI (Canvas/EventSystem) | During game UI implementation |
+| `unity-game-ui-toolkit-design` | UI Toolkit (Runtime) | During modern UI implementation |
+| `unity-editor-imgui-design` | IMGUI (EditorWindow/Inspector) | During editor extension |
 
 ---
 
 ## Quick Decision Tree
 
 ```
-Unity開発タスク
-├─ コード編集が必要？
+Unity Development Task
+├─ Need code editing?
 │   ├─ YES → edit_snippet / edit_structured
-│   │         詳細: unity-csharp-editing
-│   └─ NO → 次へ
-├─ シーン/GameObject操作が必要？
+│   │         Details: unity-csharp-editing
+│   └─ NO → Next
+├─ Need scene/GameObject operations?
 │   ├─ YES → create_gameobject / add_component
-│   │         詳細: unity-scene-management
-│   └─ NO → 次へ
-├─ アセット操作が必要？
+│   │         Details: unity-scene-management
+│   └─ NO → Next
+├─ Need asset operations?
 │   ├─ YES → create_prefab / addressables_manage
-│   │         詳細: unity-asset-management
-│   └─ NO → 次へ
-├─ UI実装が必要？
-│   ├─ ゲームUI → unity-game-ugui-design or unity-game-ui-toolkit-design
-│   └─ エディタUI → unity-editor-imgui-design
-└─ テスト/動作確認が必要？
+│   │         Details: unity-asset-management
+│   └─ NO → Next
+├─ Need UI implementation?
+│   ├─ Game UI → unity-game-ugui-design or unity-game-ui-toolkit-design
+│   └─ Editor UI → unity-editor-imgui-design
+└─ Need testing/verification?
     └─ YES → play_game / run_tests
-              詳細: unity-playmode-testing
+              Details: unity-playmode-testing
 ```
