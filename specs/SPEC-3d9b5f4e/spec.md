@@ -128,13 +128,18 @@
 ## 参考実装
 
 ### 実装ファイル
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/editor/WindowManagementToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/editor/SelectionToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/editor/TagManagementToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/editor/LayerManagementToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/editor/ToolManagementToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/menu/ExecuteMenuItemToolHandler.js`
-- `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/EditorControlHandler.cs`
+- `mcp-server/src/handlers/editor/EditorWindowsManageToolHandler.js`
+- `mcp-server/src/handlers/editor/EditorSelectionManageToolHandler.js`
+- `mcp-server/src/handlers/editor/EditorTagsManageToolHandler.js`
+- `mcp-server/src/handlers/editor/EditorLayersManageToolHandler.js`
+- `mcp-server/src/handlers/editor/EditorToolsManageToolHandler.js`
+- `mcp-server/src/handlers/menu/MenuItemExecuteToolHandler.js`
+- `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/WindowManagementHandler.cs`
+- `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/SelectionHandler.cs`
+- `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/TagManagementHandler.cs`
+- `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/LayerManagementHandler.cs`
+- `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/ToolManagementHandler.cs`
+- `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/MenuHandler.cs`
 
 ### 技術詳細
 - UnityEditor.EditorWindowによるウィンドウ管理

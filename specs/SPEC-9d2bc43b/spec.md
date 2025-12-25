@@ -198,12 +198,12 @@ LLMクライアント（Claude、Codex等）がUnity Editorを自動化するた
 
 本仕様は既存実装を文書化したものです。参考実装:
 
-- `mcp-server/src/core/UnityConnection.js`: 接続管理
-- `mcp-server/src/handlers/system/PingToolHandler.js`: 接続疎通確認
-- `mcp-server/src/handlers/playmode/GetEditorStateToolHandler.js`: エディタ状態取得
-- `mcp-server/src/handlers/system/RefreshAssetsToolHandler.js`: アセット更新
-- `mcp-server/src/handlers/system/GetCommandStatsToolHandler.js`: コマンド統計取得
-- `mcp-server/src/handlers/compilation/GetCompilationStateToolHandler.js`: コンパイル状態取得
+- `mcp-server/src/core/unityConnection.js`: 接続管理
+- `mcp-server/src/handlers/system/SystemPingToolHandler.js`: 接続疎通確認
+- `mcp-server/src/handlers/playmode/PlaymodeGetStateToolHandler.js`: エディタ状態取得
+- `mcp-server/src/handlers/system/SystemRefreshAssetsToolHandler.js`: アセット更新
+- `mcp-server/src/handlers/system/SystemGetCommandStatsToolHandler.js`: コマンド統計取得
+- `mcp-server/src/handlers/compilation/CompilationGetStateToolHandler.js`: コンパイル状態取得
 - `UnityMCPServer/Packages/unity-mcp-server/Runtime/MCPServer.cs`: Unity側サーバー
 
 ---

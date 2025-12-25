@@ -125,9 +125,9 @@
 ## 参考実装
 
 ### 実装ファイル
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/package/PackageManagerToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/package/RegistryConfigToolHandler.js`
-- `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/PackageManagementHandler.cs`
+- `mcp-server/src/handlers/package/PackageManagerToolHandler.js`
+- `mcp-server/src/handlers/package/RegistryConfigToolHandler.js`
+- `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/PackageManagerHandler.cs`
 
 ### 技術詳細
 - UnityEditor.PackageManager.Clientによるパッケージ操作

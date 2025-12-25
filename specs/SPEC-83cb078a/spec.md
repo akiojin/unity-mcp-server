@@ -228,20 +228,20 @@ Prefab（再利用可能なGameObjectテンプレート）、Material（表面�
 本仕様は既存実装を文書化したものです。参考実装:
 
 **Prefab操作**:
-- `mcp-server/src/handlers/prefab/CreatePrefabToolHandler.js`
-- `mcp-server/src/handlers/prefab/ModifyPrefabToolHandler.js`
-- `mcp-server/src/handlers/prefab/InstantiatePrefabToolHandler.js`
-- `mcp-server/src/handlers/prefab/OpenPrefabToolHandler.js`
-- `mcp-server/src/handlers/prefab/ExitPrefabModeToolHandler.js`
+- `mcp-server/src/handlers/asset/AssetPrefabCreateToolHandler.js`
+- `mcp-server/src/handlers/asset/AssetPrefabModifyToolHandler.js`
+- `mcp-server/src/handlers/asset/AssetPrefabInstantiateToolHandler.js`
+- `mcp-server/src/handlers/asset/AssetPrefabOpenToolHandler.js`
+- `mcp-server/src/handlers/asset/AssetPrefabExitModeToolHandler.js`
 
 **Material操作**:
-- `mcp-server/src/handlers/material/CreateMaterialToolHandler.js`
-- `mcp-server/src/handlers/material/ModifyMaterialToolHandler.js`
+- `mcp-server/src/handlers/asset/AssetMaterialCreateToolHandler.js`
+- `mcp-server/src/handlers/asset/AssetMaterialModifyToolHandler.js`
 
 **Asset操作**:
-- `mcp-server/src/handlers/asset/ManageAssetDatabaseToolHandler.js`
-- `mcp-server/src/handlers/asset/ManageAssetImportSettingsToolHandler.js`
-- `mcp-server/src/handlers/asset/AnalyzeAssetDependenciesToolHandler.js`
+- `mcp-server/src/handlers/asset/AssetDatabaseManageToolHandler.js`
+- `mcp-server/src/handlers/asset/AssetImportSettingsManageToolHandler.js`
+- `mcp-server/src/handlers/asset/AssetDependencyAnalyzeToolHandler.js`
 
 ---
 

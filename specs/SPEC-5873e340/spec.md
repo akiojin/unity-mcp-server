@@ -249,13 +249,13 @@ GameObject上のComponent（Rigidbody、Collider、Light、Camera等）の追加
 
 本仕様は既存実装を文書化したものです。参考実装:
 
-- `mcp-server/src/handlers/component/AddComponentToolHandler.js`: Component追加
-- `mcp-server/src/handlers/component/RemoveComponentToolHandler.js`: Component削除
-- `mcp-server/src/handlers/component/ModifyComponentToolHandler.js`: プロパティ変更
-- `mcp-server/src/handlers/component/GetComponentValuesToolHandler.js`: プロパティ取得
-- `mcp-server/src/handlers/component/ListComponentsToolHandler.js`: Component一覧
-- `mcp-server/src/handlers/component/FindByComponentToolHandler.js`: Component検索
-- `mcp-server/src/handlers/component/GetComponentTypesToolHandler.js`: Component型取得
+- `mcp-server/src/handlers/component/ComponentAddToolHandler.js`: Component追加
+- `mcp-server/src/handlers/component/ComponentRemoveToolHandler.js`: Component削除
+- `mcp-server/src/handlers/component/ComponentModifyToolHandler.js`: プロパティ変更
+- `mcp-server/src/handlers/analysis/GetComponentValuesToolHandler.js`: プロパティ取得
+- `mcp-server/src/handlers/component/ComponentListToolHandler.js`: Component一覧
+- `mcp-server/src/handlers/analysis/FindByComponentToolHandler.js`: Component検索
+- `mcp-server/src/handlers/component/ComponentGetTypesToolHandler.js`: Component型取得
 
 ---
 

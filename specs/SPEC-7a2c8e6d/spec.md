@@ -121,8 +121,8 @@
 ## 参考実装
 
 ### 実装ファイル
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/settings/GetProjectSettingsToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/settings/UpdateProjectSettingsToolHandler.js`
+- `mcp-server/src/handlers/settings/SettingsGetToolHandler.js`
+- `mcp-server/src/handlers/settings/SettingsUpdateToolHandler.js`
 - `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/ProjectSettingsHandler.cs`
 
 ### 技術詳細
