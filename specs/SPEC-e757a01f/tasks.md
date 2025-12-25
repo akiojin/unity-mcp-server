@@ -163,11 +163,11 @@ Phase 0リサーチにてScriptEditSnippetToolHandler.jsが既に実装済みと
 
 ### Phase 3.1: セットアップ ✅
 
-- [x] **T101** [P] prebuilds/ディレクトリ構造作成
+- [x] **T101** [P] prebuilt/better-sqlite3/ディレクトリ構造作成
 - [x] **T102** [P] prebuildifyツール評価・選定
 - [x] **T103** [P] GitHub Actions用ビルドマトリクス設計
 
-### Phase 3.2: テストファースト (TDD) ✅
+### Phase 3.2: テストファースト (TDD)
 
 **Contract Tests**:
 
@@ -176,52 +176,54 @@ Phase 0リサーチにてScriptEditSnippetToolHandler.jsが既に実装済みと
   - 契約: Node ABIバージョン検出 (18.x=115, 20.x=120, 22.x=131)
   - 契約: 同梱バイナリ優先展開
   - 契約: WASMフォールバック
-  - **結果**: 11/11テスト成功
+  - **結果**: 6/6テスト成功
 
 - [x] **T105** [P] `tests/integration/prebuilt-sqlite.test.js` - 初回起動時間テスト
   - シナリオ: クリーンインストール → 30秒以内に起動完了
   - シナリオ: 未対応プラットフォーム → WASMフォールバック成功
-  - **結果**: 5/5テスト成功
+  - **結果**: 1/1テスト成功
 
 ### Phase 3.3: コア実装 ✅
 
-- [x] **T106** `scripts/ensure-better-sqlite3.mjs` - postinstallスクリプト実装（既存）
+- [x] **T106** `mcp-server/scripts/ensure-better-sqlite3.mjs` - postinstallスクリプト実装
   - 実装: プラットフォーム・アーキテクチャ検出
-  - 実装: prebuilds/からバイナリコピー
+  - 実装: prebuilt/better-sqlite3/からバイナリコピー
   - 実装: 環境変数制御 (UNITY_MCP_SKIP_NATIVE_BUILD, UNITY_MCP_FORCE_NATIVE)
   - 実装: WASMフォールバック
 
 - [x] **T107** [P] `.github/workflows/prebuild.yml` - CI用ビルドワークフロー
   - 実装: ビルドマトリクス (linux/darwin/win32 × x64/arm64 × Node18/20/22)
   - 実装: クロスコンパイル対応（Linux arm64）
-  - 実装: prebuilds/へのアーティファクト保存・マニフェスト生成
+  - 実装: prebuilt/better-sqlite3/へのアーティファクト保存・マニフェスト生成
 
-- [x] **T108** `package.json` - postinstall設定（既存）
+- [x] **T108** `mcp-server/package.json` - postinstall設定
   - 変更: `"postinstall": "node scripts/ensure-better-sqlite3.mjs"`
-  - 変更: prebuilds/をnpm publishに含める
+  - 変更: prebuilt/をnpm publishに含める
+  - 現状: `postinstall` は `node scripts/ensure-better-sqlite3.mjs`
 
-### Phase 3.4: 統合 ✅
+### Phase 3.4: 統合
 
-- [x] **T109** CI統合テスト
+- [ ] **T109** CI統合テスト
   - テスト: 各プラットフォームでのインストール検証
   - テスト: postinstall < 5秒
-  - **結果**: PR #132のCIチェック全て成功（2025-11-26）
+  - **結果**: 未実施
 
-- [x] **T110** npm publish検証
+- [ ] **T110** npm publish検証
   - テスト: パッケージサイズ < 50MB
-  - テスト: prebuilds/が正しく含まれている
-  - **結果**: developマージ完了、次回リリースで最終確認
+  - テスト: prebuilt/better-sqlite3/が正しく含まれている
+  - **結果**: ローカル `npm pack --workspace mcp-server` で一覧/サイズ確認（package size 167.4 kB）。prebuilt/better-sqlite3 の実バイナリはCIで要検証。
 
-### Phase 3.5: 仕上げ ✅
+### Phase 3.5: 仕上げ
 
 - [x] **T111** [P] ドキュメント更新
   - 更新: README.mdにインストール手順追加
   - 更新: トラブルシューティング（WASMフォールバック）
 
-- [x] **T112** 最終検証
+- [ ] **T112** 最終検証
   - 実行: クリーンインストールテスト
   - 確認: 30秒タイムアウト内に完了
   - 確認: 全対応プラットフォームで動作
+  - **結果**: ローカルで `npx --yes ./akiojin-unity-mcp-server-*.tgz --help` を実行（npm cache未クリア）。実行時間は1秒未満。依存取得/キャッシュ削除を伴うCI検証が必要。
 
 ---
 

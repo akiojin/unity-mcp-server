@@ -151,7 +151,7 @@
 
 ### 実装予定ファイル
 
-- `mcp-server/prebuilds/`: プラットフォーム別バイナリ
+- `mcp-server/prebuilt/better-sqlite3/`: プラットフォーム別バイナリ
 - `mcp-server/scripts/ensure-better-sqlite3.mjs`: postinstallスクリプト
 - `.github/workflows/prebuild.yml`: CI用ビルドワークフロー
 

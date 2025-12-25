@@ -121,12 +121,12 @@
 ## 参考実装
 
 ### 実装ファイル
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/analysis/AnalyzeSceneContentsToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/analysis/GetGameObjectDetailsToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/analysis/FindByComponentToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/analysis/GetObjectReferencesToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/analysis/GetAnimatorStateToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/analysis/GetComponentValuesToolHandler.js`
+- `mcp-server/src/handlers/analysis/AnalyzeSceneContentsToolHandler.js`
+- `mcp-server/src/handlers/analysis/GetGameObjectDetailsToolHandler.js`
+- `mcp-server/src/handlers/analysis/FindByComponentToolHandler.js`
+- `mcp-server/src/handlers/analysis/GetObjectReferencesToolHandler.js`
+- `mcp-server/src/handlers/analysis/GetAnimatorStateToolHandler.js`
+- `mcp-server/src/handlers/analysis/GetComponentValuesToolHandler.js`
 - `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/SceneAnalysisHandler.cs`
 
 ### 技術詳細

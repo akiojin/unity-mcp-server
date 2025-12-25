@@ -133,8 +133,8 @@
 ## 参考実装（予定）
 
 ### 実装ファイル（作成予定）
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/test/RunUnityTestsToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/test/CancelUnityTestsToolHandler.js`
+- `mcp-server/src/handlers/test/TestRunToolHandler.js`
+- `mcp-server/src/handlers/test/TestGetStatusToolHandler.js`
 - `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/TestExecutionHandler.cs`
 
 ### 技術詳細（実装時に記載）
