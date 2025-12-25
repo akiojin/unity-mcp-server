@@ -138,7 +138,7 @@ mkdir -p "$REPO_ROOT/.specify"
 echo "$FEATURE_ID" >"$REPO_ROOT/.specify/current-feature"
 
 # Update specs index
-SPECS_README="$SPECS_DIR/README.md"
+SPECS_README="$SPECS_DIR/specs.md"
 if [[ -x "$REPO_ROOT/.specify/scripts/bash/update-specs-readme.sh" ]]; then
     "$REPO_ROOT/.specify/scripts/bash/update-specs-readme.sh" --quiet || true
 fi

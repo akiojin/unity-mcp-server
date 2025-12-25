@@ -78,7 +78,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 
 **要件一覧**:
 
-- `specs/README.md` は `/speckit.specify` 実行時に自動更新されます。
+- `specs/specs.md` は `/speckit.specify` 実行時に自動更新されます。
 - 手動で再生成する場合は `.specify/scripts/bash/update-specs-readme.sh` を実行します。
 
 **ブランチが必要な場合**（任意）:
@@ -88,7 +88,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 **スクリプト**:
 
 - `.specify/scripts/bash/create-new-feature.sh`: 新規SPEC作成（ブランチなし）
-- `.specify/scripts/bash/update-specs-readme.sh`: `specs/README.md` の再生成
+- `.specify/scripts/bash/update-specs-readme.sh`: `specs/specs.md` の再生成
 - `.specify/scripts/checks/*.sh`: 任意チェック用スクリプト（tasks/tests/compile/commits 等）
 
 **Speckitアップデート**:
