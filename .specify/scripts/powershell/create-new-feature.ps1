@@ -57,7 +57,7 @@ function Update-SpecsReadme {
     param([string]$RepoRoot)
 
     $specsDir = Join-Path $RepoRoot 'specs'
-    $outputFile = Join-Path $specsDir 'README.md'
+    $outputFile = Join-Path $specsDir 'specs.md'
     New-Item -ItemType Directory -Path $specsDir -Force | Out-Null
 
     $specDirs = @()
@@ -73,11 +73,21 @@ function Update-SpecsReadme {
     $lines.Add('このファイルは `.specify/scripts/powershell/create-new-feature.ps1` または `.specify/scripts/bash/update-specs-readme.sh` により自動生成されます。')
     $lines.Add('手動編集は避けてください（再生成で上書きされます）。')
     $lines.Add('')
-    $lines.Add('| 要件ID | タイトル | ステータス | 作成日 |')
-    $lines.Add('|---|---|---|---|')
+    $lines.Add('## ステータス別一覧')
+    $lines.Add('')
+
+    $entries = @()
+    $groupOrder = New-Object System.Collections.Generic.List[string]
 
     if (-not $specDirs -or $specDirs.Count -eq 0) {
-        $lines.Add('| (なし) | - | - | - |')
+        $entries = @([PSCustomObject]@{
+            Id = '(なし)'
+            Title = '-'
+            Status = '未設定'
+            Created = '-'
+            HasSpec = $false
+        })
+        $groupOrder.Add('未設定') | Out-Null
     } else {
         foreach ($dir in $specDirs) {
             $id = $dir.Name
@@ -106,16 +116,55 @@ function Update-SpecsReadme {
                 }
             }
 
+            if ([string]::IsNullOrWhiteSpace($status) -or $status -eq '-') {
+                $status = '未設定'
+            }
+
             $title = $title -replace '\|', '\|'
             $status = $status -replace '\|', '\|'
             $created = $created -replace '\|', '\|'
 
-            if (Test-Path $specFile) {
-                $lines.Add("| `$id` | [$title]($id/spec.md) | $status | $created |")
-            } else {
-                $lines.Add("| `$id` | $title | $status | $created |")
+            if (-not $groupOrder.Contains($status)) {
+                $groupOrder.Add($status) | Out-Null
+            }
+
+            $entries += [PSCustomObject]@{
+                Id = $id
+                Title = $title
+                Status = $status
+                Created = $created
+                HasSpec = (Test-Path $specFile)
             }
         }
+    }
+
+    $preferredOrder = @('進行中', '下書き', '実装完了', '完了', '未設定')
+    $finalOrder = New-Object System.Collections.Generic.List[string]
+    foreach ($status in $preferredOrder) {
+        if ($groupOrder.Contains($status)) {
+            $finalOrder.Add($status) | Out-Null
+        }
+    }
+    foreach ($status in $groupOrder) {
+        if (-not $finalOrder.Contains($status)) {
+            $finalOrder.Add($status) | Out-Null
+        }
+    }
+
+    foreach ($status in $finalOrder) {
+        $groupEntries = $entries | Where-Object { $_.Status -eq $status }
+        $lines.Add("### $status ($($groupEntries.Count)件)")
+        $lines.Add('')
+        $lines.Add('| 要件ID | タイトル | ステータス | 作成日 |')
+        $lines.Add('|---|---|---|---|')
+        foreach ($entry in $groupEntries) {
+            if ($entry.HasSpec) {
+                $lines.Add("| `$($entry.Id)` | [$($entry.Title)]($($entry.Id)/spec.md) | $($entry.Status) | $($entry.Created) |")
+            } else {
+                $lines.Add("| `$($entry.Id)` | $($entry.Title) | $($entry.Status) | $($entry.Created) |")
+            }
+        }
+        $lines.Add('')
     }
 
     Set-Content -Path $outputFile -Value $lines -Encoding UTF8
@@ -167,7 +216,7 @@ Set-Content -Path (Join-Path $specifyDir 'current-feature') -Value $featureId -E
 
 Update-SpecsReadme -RepoRoot $repoRoot
 
-$specsReadme = Join-Path $specsDir 'README.md'
+$specsReadme = Join-Path $specsDir 'specs.md'
 
 if ($hasGit) {
     Write-Host "[specify] Gitリポジトリを検出しましたが、ブランチは作成しません（設定による）。"
