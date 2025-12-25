@@ -50,7 +50,31 @@ If your MCP client launches the server with a working directory outside your wor
 
 ## Known Issues
 
-- **MCP client shows “Capabilities: none”**: see `docs/troubleshooting/capabilities-none.md`
+- **MCP client shows "Capabilities: none"**: see `docs/troubleshooting/capabilities-none.md`
+
+## Claude Code Plugin Installation (EXDEV Error)
+
+When installing plugins in Docker/WSL2 environments, you may encounter:
+
+```
+Error: Failed to install: EXDEV: cross-device link not permitted
+```
+
+**Cause**: `/root/.claude` and `/tmp` are on different filesystems, and Claude Code uses `rename()` which fails across filesystems.
+
+**Workaround**: Set `TMPDIR` to a path on the same filesystem as `~/.claude`:
+
+```bash
+# In Dockerfile
+ENV TMPDIR=/root/.claude/tmp
+RUN mkdir -p /root/.claude/tmp
+
+# Or at runtime
+export TMPDIR="${HOME}/.claude/tmp"
+mkdir -p "$TMPDIR"
+```
+
+**Status**: This is a known Claude Code bug ([Issue #14799](https://github.com/anthropics/claude-code/issues/14799)). Once fixed upstream, this workaround will no longer be necessary.
 
 ---
 
@@ -105,3 +129,27 @@ MCPクライアントがワークスペース外のCWDでサーバーを起動�
 ## 既知の問題
 
 - **Capabilities: none が出てツールが見えない**: `docs/troubleshooting/capabilities-none.md`
+
+## Claude Code プラグインのインストール（EXDEVエラー）
+
+Docker/WSL2環境でプラグインをインストールする際、以下のエラーが発生することがあります：
+
+```
+Error: Failed to install: EXDEV: cross-device link not permitted
+```
+
+**原因**: `/root/.claude` と `/tmp` が異なるファイルシステム上にあり、Claude Codeが使用する `rename()` がファイルシステムをまたいで失敗します。
+
+**回避策**: `TMPDIR` を `~/.claude` と同じファイルシステム上のパスに設定します：
+
+```bash
+# Dockerfileの場合
+ENV TMPDIR=/root/.claude/tmp
+RUN mkdir -p /root/.claude/tmp
+
+# 実行時の場合
+export TMPDIR="${HOME}/.claude/tmp"
+mkdir -p "$TMPDIR"
+```
+
+**ステータス**: これはClaude Codeの既知のバグです（[Issue #14799](https://github.com/anthropics/claude-code/issues/14799)）。上流で修正されれば、この回避策は不要になります。
