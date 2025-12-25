@@ -4,6 +4,13 @@
 
 * `.unity/config.json` 対応を削除（Node は環境変数、Unity は Project Settings に統一）
 
+## [5.2.0](https://github.com/akiojin/unity-mcp-server/compare/v5.1.0...v5.2.0) (2025-12-25)
+
+
+### Features
+
+* **plugin:** Claude Code plugin support ([1df3a3c](https://github.com/akiojin/unity-mcp-server/commit/1df3a3c7fbe7e0d149aba48d5c4805ad76595d33))
+
 ## [5.1.0](https://github.com/akiojin/unity-mcp-server/compare/v5.0.0...v5.1.0) (2025-12-25)
 
 
