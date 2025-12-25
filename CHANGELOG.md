@@ -4,6 +4,29 @@
 
 * `.unity/config.json` 対応を削除（Node は環境変数、Unity は Project Settings に統一）
 
+## [5.1.0](https://github.com/akiojin/unity-mcp-server/compare/v5.0.0...v5.1.0) (2025-12-25)
+
+
+### Features
+
+* **mcp-server:** add native SQLite preload support ([28eb5c3](https://github.com/akiojin/unity-mcp-server/commit/28eb5c3ce61e56ee19fd294ffed073d6fdbe2c18))
+* **plugin:** add agents and commands for Claude Code plugin ([fe24db4](https://github.com/akiojin/unity-mcp-server/commit/fe24db4b3adbb9eae10fcf19983fb9755a3a4162))
+* **plugin:** add Claude Code plugin for Unity MCP Server ([e8d15b9](https://github.com/akiojin/unity-mcp-server/commit/e8d15b9881920f8304f332c244fad39dba87d6ee))
+* **plugin:** add Claude Code plugin support ([6bf0e96](https://github.com/akiojin/unity-mcp-server/commit/6bf0e96c6f93f629062cc33d32a17ccb0cb63118))
+* **plugin:** add Claude Code plugin support ([1e9dd4c](https://github.com/akiojin/unity-mcp-server/commit/1e9dd4c2ead669302e44debae0d96a19013b4e67))
+* **plugin:** add Claude Code plugin support with hierarchical skills ([b195e85](https://github.com/akiojin/unity-mcp-server/commit/b195e85d148421067346a74d905443d1ea263e7c))
+* **plugin:** add hierarchical skill structure with unity-development parent skill ([c471442](https://github.com/akiojin/unity-mcp-server/commit/c47144248fd82878da1a6105b6d6144346b55f2d))
+* **plugin:** add hierarchical skill structure with unity-development parent skill ([316fd5f](https://github.com/akiojin/unity-mcp-server/commit/316fd5fc005ebe56179a51ee17f5d2e751af5ea0))
+* **plugin:** enable akiojin-skills plugins ([f3f0a5f](https://github.com/akiojin/unity-mcp-server/commit/f3f0a5fb6cf104e394b00bb45af499efe6f6ff3c))
+* **plugin:** enable akiojin-skills plugins ([3321698](https://github.com/akiojin/unity-mcp-server/commit/3321698333da27e102b5897a826dd61d1102833e))
+* **plugin:** merge unity-development patterns into unity-csharp-editing ([5023a75](https://github.com/akiojin/unity-mcp-server/commit/5023a75ca4733779683a20b49e568be5fe1d7c8b))
+* **plugin:** merge unity-development patterns into unity-csharp-editing ([2d07ba6](https://github.com/akiojin/unity-mcp-server/commit/2d07ba642478ed70ce40a3ac85c8ee700fe14c5a))
+
+
+### Bug Fixes
+
+* **docker:** add TMPDIR workaround for Claude Code EXDEV error ([14fe9b8](https://github.com/akiojin/unity-mcp-server/commit/14fe9b80877c69b0363bab33f9e89f8bbbd6a38e))
+
 ## [5.0.0](https://github.com/akiojin/unity-mcp-server/compare/v4.2.1...v5.0.0) (2025-12-19)
 
 
