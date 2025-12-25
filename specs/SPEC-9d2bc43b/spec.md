@@ -204,7 +204,7 @@ LLMクライアント（Claude、Codex等）がUnity Editorを自動化するた
 - `mcp-server/src/handlers/system/SystemRefreshAssetsToolHandler.js`: アセット更新
 - `mcp-server/src/handlers/system/SystemGetCommandStatsToolHandler.js`: コマンド統計取得
 - `mcp-server/src/handlers/compilation/CompilationGetStateToolHandler.js`: コンパイル状態取得
-- `UnityMCPServer/Packages/unity-mcp-server/Runtime/MCPServer.cs`: Unity側サーバー
+- `UnityMCPServer/Packages/unity-mcp-server/Editor/Core/UnityMCPServer.cs`: Unity側サーバー
 
 ---
 

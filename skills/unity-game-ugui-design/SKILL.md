@@ -1,6 +1,6 @@
 ---
 name: unity-game-ugui-design
-description: UnityのuGUI（Canvas/RectTransform/Anchors）を使用したゲームUIデザイン。HUD、ヘルスバー、インベントリ、スキルバー等のゲームUI要素、モバイルレスポンシブ対応、Safe Area対応を含む。使用タイミング: ゲームUI設計、HUD作成、Canvas設定、モバイルUI、Anchors設定
+description: Game UI design using Unity's uGUI (Canvas/RectTransform/Anchors). Includes game UI elements like HUD, health bars, inventory, skill bars, mobile responsive design, and Safe Area support. Use when: game UI design, HUD creation, Canvas setup, mobile UI, Anchors configuration
 allowed-tools:
   - mcp__unity-mcp-server__find_ui_elements
   - mcp__unity-mcp-server__click_ui_element
@@ -24,19 +24,19 @@ allowed-tools:
 
 # Unity Game uGUI Design Skill
 
-UnityのuGUI（Unity GUI）システムを使用したゲームUIデザインのスキルです。HUD、ヘルスバー、インベントリ、ダイアログ等のゲームUI要素の実装パターン、モバイルレスポンシブ対応、Safe Area対応を含む包括的なゲームUIデザインガイドを提供します。
+A skill for game UI design using Unity's uGUI (Unity GUI) system. Provides a comprehensive game UI design guide including implementation patterns for game UI elements like HUD, health bars, inventory, dialogs, mobile responsive design, and Safe Area support.
 
 ## Quick Start
 
-### 基本的なCanvas構成
+### Basic Canvas Setup
 
 ```javascript
-// 1. Canvasを作成
+// 1. Create Canvas
 mcp__unity-mcp-server__create_gameobject({
   name: "Canvas"
 })
 
-// 2. Canvasコンポーネントを追加
+// 2. Add Canvas component
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas",
   componentType: "Canvas",
@@ -45,39 +45,39 @@ mcp__unity-mcp-server__add_component({
   }
 })
 
-// 3. CanvasScalerを追加（レスポンシブ対応）
+// 3. Add CanvasScaler (responsive design)
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas",
   componentType: "CanvasScaler",
   properties: {
     uiScaleMode: 1,  // ScaleWithScreenSize
-    referenceResolution: { x: 1080, y: 1920 },  // 基準解像度
+    referenceResolution: { x: 1080, y: 1920 },  // Reference resolution
     screenMatchMode: 0,  // MatchWidthOrHeight
-    matchWidthOrHeight: 0  // 0=縦向き優先, 1=横向き優先
+    matchWidthOrHeight: 0  // 0=Portrait priority, 1=Landscape priority
   }
 })
 
-// 4. GraphicRaycasterを追加（インタラクション用）
+// 4. Add GraphicRaycaster (for interaction)
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas",
   componentType: "GraphicRaycaster"
 })
 ```
 
-## Game UI Types（ゲームUI分類）
+## Game UI Types
 
-ゲームUIは配置・表現方法によって4種類に分類されます。
+Game UI is classified into 4 types based on placement and representation.
 
-### 1. Diegetic UI（ダイエジェティック）
+### 1. Diegetic UI
 
-ゲーム世界内に存在するUI。キャラクターも認識できる。
+UI that exists within the game world. Characters can also perceive it.
 
-- **例**: 敵頭上のHPバー、車のダッシュボード、ゲーム内の看板
-- **Canvas設定**: World Space
-- **特徴**: 没入感が高い、3D空間での表示
+- **Examples**: Enemy HP bar above head, car dashboard, in-game signboards
+- **Canvas Setting**: World Space
+- **Features**: High immersion, 3D space display
 
 ```javascript
-// ワールドスペースCanvas（敵頭上HPバー）
+// World Space Canvas (enemy HP bar above head)
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Enemy/HealthCanvas",
   componentType: "Canvas",
@@ -92,16 +92,16 @@ mcp__unity-mcp-server__set_component_field({
 })
 ```
 
-### 2. Non-Diegetic UI（ノンダイエジェティック）
+### 2. Non-Diegetic UI
 
-プレイヤーだけが見えるオーバーレイUI。
+Overlay UI visible only to the player.
 
-- **例**: HUD、スコア表示、ミニマップ、スキルバー
-- **Canvas設定**: Screen Space - Overlay
-- **特徴**: 常に最前面、画面固定
+- **Examples**: HUD, score display, minimap, skill bar
+- **Canvas Setting**: Screen Space - Overlay
+- **Features**: Always in front, screen-fixed
 
 ```javascript
-// HUD用オーバーレイCanvas
+// HUD overlay Canvas
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas",
   componentType: "Canvas",
@@ -109,49 +109,49 @@ mcp__unity-mcp-server__add_component({
 })
 ```
 
-### 3. Spatial UI（スペーシャル）
+### 3. Spatial UI
 
-3D空間に存在するが、ゲーム世界の一部ではないUI。
+UI that exists in 3D space but is not part of the game world.
 
-- **例**: 目的地マーカー、インタラクトアイコン、クエストマーカー
-- **Canvas設定**: Screen Space - Camera または World Space
-- **特徴**: ビルボード（常にカメラを向く）
+- **Examples**: Destination marker, interact icon, quest marker
+- **Canvas Setting**: Screen Space - Camera or World Space
+- **Features**: Billboard (always faces camera)
 
 ```javascript
-// ビルボードマーカー
+// Billboard marker
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/QuestMarker/Canvas",
   componentType: "Canvas",
   properties: { renderMode: 2 }  // WorldSpace
 })
 
-// ビルボードスクリプト追加
+// Add billboard script
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/QuestMarker/Canvas",
   componentType: "BillboardUI"
 })
 ```
 
-### 4. Meta UI（メタ）
+### 4. Meta UI
 
-画面全体を使った演出系UI。
+Full-screen effect UI.
 
-- **例**: 被ダメージ時の画面赤フラッシュ、スタミナ切れビネット、ステータス異常エフェクト
-- **Canvas設定**: Screen Space - Overlay（最前面ソート順）
-- **特徴**: 全画面、透明度アニメーション
+- **Examples**: Damage red flash, stamina depletion vignette, status effect overlay
+- **Canvas Setting**: Screen Space - Overlay (frontmost sorting order)
+- **Features**: Full screen, transparency animation
 
 ```javascript
-// 被ダメージフラッシュ用Canvas
+// Damage flash Canvas
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/EffectCanvas",
   componentType: "Canvas",
   properties: {
     renderMode: 0,
-    sortingOrder: 100  // 最前面
+    sortingOrder: 100  // Frontmost
   }
 })
 
-// フラッシュImage（全画面）
+// Flash Image (full screen)
 mcp__unity-mcp-server__create_gameobject({
   name: "DamageFlash",
   parentPath: "/EffectCanvas"
@@ -161,54 +161,54 @@ mcp__unity-mcp-server__add_component({
   gameObjectPath: "/EffectCanvas/DamageFlash",
   componentType: "Image",
   properties: {
-    color: { r: 1, g: 0, b: 0, a: 0 }  // 透明な赤
+    color: { r: 1, g: 0, b: 0, a: 0 }  // Transparent red
   }
 })
 ```
 
 ---
 
-## HUD Screen Layout（HUD画面配置）
+## HUD Screen Layout
 
-ゲームHUDには業界標準の配置規則があります。
+Game HUDs have industry-standard placement conventions.
 
-### 標準配置図
+### Standard Layout Diagram
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  [HP/MP Bar]              [Mini Map] [Settings]     │  ← 上部
-│  ★ 左上: HP/MP/スタミナ    右上: ミニマップ、設定    │
+│  [HP/MP Bar]              [Mini Map] [Settings]     │  ← Top
+│  ★ Top-Left: HP/MP/Stamina    Top-Right: Minimap, Settings
 │                                                     │
 │                                                     │
-│  [Quest]                               [Buff Icons] │  ← 中上部
-│  ★ クエスト目標            バフ/デバフアイコン       │
+│  [Quest]                               [Buff Icons] │  ← Upper-Middle
+│  ★ Quest objectives        Buff/Debuff icons        │
 │                                                     │
-│                      [中央]                         │
-│                   照準/インタラクト                  │
+│                      [Center]                       │
+│                   Crosshair/Interact                │
 │                                                     │
-│  [Chat]                              [Inventory]    │  ← 中下部
+│  [Chat]                              [Inventory]    │  ← Lower-Middle
 │                                                     │
 │                                                     │
-│          [Skill Bar]    [Action Buttons]            │  ← 下部
-│          ★ スキル/アイテム  アクションボタン         │
+│          [Skill Bar]    [Action Buttons]            │  ← Bottom
+│          ★ Skills/Items   Action buttons            │
 └─────────────────────────────────────────────────────┘
 ```
 
-### 配置原則
+### Placement Principles
 
-| 位置 | アンカー | 配置するUI | 理由 |
-|------|---------|-----------|------|
-| 左上 | (0,1) | HP/MP/スタミナ | 最重要情報、視線移動最小 |
-| 右上 | (1,1) | ミニマップ、設定 | 補助情報、邪魔にならない |
-| 左下 | (0,0) | チャット、ログ | 頻繁に見ない情報 |
-| 右下 | (1,0) | インベントリ、ボタン | 右手操作しやすい |
-| 下部中央 | (0.5,0) | スキルバー | 両手アクセス、重要度高 |
-| 中央 | (0.5,0.5) | 照準、インタラクト | 視線の中心 |
+| Position | Anchor | UI Elements | Reason |
+|----------|--------|-------------|--------|
+| Top-Left | (0,1) | HP/MP/Stamina | Critical info, minimal eye movement |
+| Top-Right | (1,1) | Minimap, Settings | Auxiliary info, non-intrusive |
+| Bottom-Left | (0,0) | Chat, Logs | Infrequently viewed info |
+| Bottom-Right | (1,0) | Inventory, Buttons | Easy right-hand access |
+| Bottom-Center | (0.5,0) | Skill bar | Two-hand access, high importance |
+| Center | (0.5,0.5) | Crosshair, Interact | Center of vision |
 
-### uGUI実装例
+### uGUI Implementation Example
 
 ```javascript
-// HP バー（左上配置）
+// HP Bar (top-left placement)
 mcp__unity-mcp-server__create_gameobject({
   name: "HPBar",
   parentPath: "/HUDCanvas/SafeArea"
@@ -239,10 +239,10 @@ mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/HPBar",
   componentType: "RectTransform",
   fieldPath: "anchoredPosition",
-  value: { x: 20, y: -20 }  // 左上から20pxマージン
+  value: { x: 20, y: -20 }  // 20px margin from top-left
 })
 
-// ミニマップ（右上配置）
+// Minimap (top-right placement)
 mcp__unity-mcp-server__create_gameobject({
   name: "Minimap",
   parentPath: "/HUDCanvas/SafeArea"
@@ -273,10 +273,10 @@ mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/Minimap",
   componentType: "RectTransform",
   fieldPath: "anchoredPosition",
-  value: { x: -20, y: -20 }  // 右上から20pxマージン
+  value: { x: -20, y: -20 }  // 20px margin from top-right
 })
 
-// スキルバー（下部中央配置）
+// Skill Bar (bottom-center placement)
 mcp__unity-mcp-server__create_gameobject({
   name: "SkillBar",
   parentPath: "/HUDCanvas/SafeArea"
@@ -307,32 +307,32 @@ mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/HUDCanvas/SafeArea/SkillBar",
   componentType: "RectTransform",
   fieldPath: "anchoredPosition",
-  value: { x: 0, y: 20 }  // 下端から20pxマージン
+  value: { x: 0, y: 20 }  // 20px margin from bottom
 })
 ```
 
 ---
 
-## Game UI Elements（ゲームUI要素）
+## Game UI Elements
 
-### 1. ヘルスバー / リソースバー
+### 1. Health Bar / Resource Bar
 
-遅延ダメージ表示（ダメージを受けると赤ゲージが徐々に減少）を実装。
+Implements delayed damage display (red gauge gradually decreases after taking damage).
 
-#### Prefab構造
+#### Prefab Structure
 
 ```
 HealthBar (RectTransform)
-├── Background (Image) - 背景
-├── DelayedFill (Image) - 遅延ゲージ（赤）
-├── Fill (Image) - 現在値ゲージ（緑）
+├── Background (Image) - Background
+├── DelayedFill (Image) - Delayed gauge (red)
+├── Fill (Image) - Current value gauge (green)
 └── Text (TextMeshProUGUI) - "100/100"
 ```
 
-#### MCP実装
+#### MCP Implementation
 
 ```javascript
-// ヘルスバー作成
+// Create health bar
 mcp__unity-mcp-server__create_gameobject({
   name: "HealthBar",
   parentPath: "/HUDCanvas/SafeArea"
@@ -345,7 +345,7 @@ mcp__unity-mcp-server__set_component_field({
   value: { x: 200, y: 24 }
 })
 
-// 背景
+// Background
 mcp__unity-mcp-server__create_gameobject({
   name: "Background",
   parentPath: "/HUDCanvas/SafeArea/HealthBar"
@@ -359,7 +359,7 @@ mcp__unity-mcp-server__add_component({
   }
 })
 
-// 遅延ゲージ（Filled Image）
+// Delayed gauge (Filled Image)
 mcp__unity-mcp-server__create_gameobject({
   name: "DelayedFill",
   parentPath: "/HUDCanvas/SafeArea/HealthBar"
@@ -376,7 +376,7 @@ mcp__unity-mcp-server__add_component({
   }
 })
 
-// 現在値ゲージ
+// Current value gauge
 mcp__unity-mcp-server__create_gameobject({
   name: "Fill",
   parentPath: "/HUDCanvas/SafeArea/HealthBar"
@@ -393,7 +393,7 @@ mcp__unity-mcp-server__add_component({
   }
 })
 
-// テキスト
+// Text
 mcp__unity-mcp-server__create_gameobject({
   name: "Text",
   parentPath: "/HUDCanvas/SafeArea/HealthBar"
@@ -410,7 +410,7 @@ mcp__unity-mcp-server__add_component({
 })
 ```
 
-#### C#コントローラー
+#### C# Controller
 
 ```csharp
 // HealthBarController.cs
@@ -439,8 +439,8 @@ public class HealthBarController : MonoBehaviour
         fillImage.fillAmount = ratio;
         text.text = $"{(int)currentHealth}/{(int)maxHealth}";
 
-        // ダメージを受けた場合、遅延ゲージはそのまま
-        // 回復の場合は即座に更新
+        // When taking damage, delayed gauge stays
+        // On healing, update immediately
         if (delayedHealth < currentHealth)
         {
             delayedHealth = currentHealth;
@@ -450,7 +450,7 @@ public class HealthBarController : MonoBehaviour
 
     void Update()
     {
-        // 遅延ゲージを徐々に減少
+        // Gradually decrease delayed gauge
         if (delayedHealth > currentHealth)
         {
             delayedHealth = Mathf.MoveTowards(
@@ -466,24 +466,24 @@ public class HealthBarController : MonoBehaviour
 
 ---
 
-### 2. スキルクールダウン
+### 2. Skill Cooldown
 
-クールダウン中は暗転＋回転マスクで残り時間を表示。
+Displays remaining time with darkened overlay + rotating mask during cooldown.
 
-#### Prefab構造
+#### Prefab Structure
 
 ```
 SkillSlot (RectTransform)
-├── Icon (Image) - スキルアイコン
-├── CooldownOverlay (Image) - 暗転オーバーレイ（Radial Fill）
-├── CooldownText (TextMeshProUGUI) - 残り秒数
+├── Icon (Image) - Skill icon
+├── CooldownOverlay (Image) - Darkened overlay (Radial Fill)
+├── CooldownText (TextMeshProUGUI) - Remaining seconds
 └── KeyHint (TextMeshProUGUI) - "Q"
 ```
 
-#### MCP実装
+#### MCP Implementation
 
 ```javascript
-// スキルスロット作成
+// Create skill slot
 mcp__unity-mcp-server__create_gameobject({
   name: "SkillSlot",
   parentPath: "/HUDCanvas/SafeArea/SkillBar"
@@ -496,7 +496,7 @@ mcp__unity-mcp-server__set_component_field({
   value: { x: 64, y: 64 }
 })
 
-// アイコン
+// Icon
 mcp__unity-mcp-server__create_gameobject({
   name: "Icon",
   parentPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot"
@@ -507,7 +507,7 @@ mcp__unity-mcp-server__add_component({
   componentType: "Image"
 })
 
-// クールダウンオーバーレイ（Radial Fill）
+// Cooldown overlay (Radial Fill)
 mcp__unity-mcp-server__create_gameobject({
   name: "CooldownOverlay",
   parentPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot"
@@ -526,7 +526,7 @@ mcp__unity-mcp-server__add_component({
   }
 })
 
-// クールダウンテキスト
+// Cooldown text
 mcp__unity-mcp-server__create_gameobject({
   name: "CooldownText",
   parentPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot"
@@ -543,7 +543,7 @@ mcp__unity-mcp-server__add_component({
   }
 })
 
-// キーヒント
+// Key hint
 mcp__unity-mcp-server__create_gameobject({
   name: "KeyHint",
   parentPath: "/HUDCanvas/SafeArea/SkillBar/SkillSlot"
@@ -560,7 +560,7 @@ mcp__unity-mcp-server__add_component({
 })
 ```
 
-#### C#コントローラー
+#### C# Controller
 
 ```csharp
 // SkillSlotController.cs
@@ -615,25 +615,25 @@ public class SkillSlotController : MonoBehaviour
 
 ---
 
-### 3. インベントリグリッド
+### 3. Inventory Grid
 
-レアリティによる枠色、スタック数表示、ドラッグ&ドロップ対応。
+Rarity-based border colors, stack count display, drag & drop support.
 
-#### Prefab構造
+#### Prefab Structure
 
 ```
 InventoryGrid (RectTransform + GridLayoutGroup)
-└── ItemSlot (複数)
-    ├── Background (Image) - レアリティ枠
-    ├── Icon (Image) - アイテムアイコン
+└── ItemSlot (multiple)
+    ├── Background (Image) - Rarity border
+    ├── Icon (Image) - Item icon
     ├── StackCount (TextMeshProUGUI) - "x99"
-    └── SelectionHighlight (Image) - 選択時ハイライト
+    └── SelectionHighlight (Image) - Selection highlight
 ```
 
-#### MCP実装
+#### MCP Implementation
 
 ```javascript
-// インベントリグリッド作成
+// Create inventory grid
 mcp__unity-mcp-server__create_gameobject({
   name: "InventoryGrid",
   parentPath: "/InventoryCanvas/Panel"
@@ -649,11 +649,11 @@ mcp__unity-mcp-server__add_component({
     startAxis: 0,    // Horizontal
     childAlignment: 0,  // UpperLeft
     constraint: 1,  // FixedColumnCount
-    constraintCount: 6  // 6列
+    constraintCount: 6  // 6 columns
   }
 })
 
-// アイテムスロット作成
+// Create item slot
 mcp__unity-mcp-server__create_gameobject({
   name: "ItemSlot",
   parentPath: "/InventoryCanvas/Panel/InventoryGrid"
@@ -666,7 +666,7 @@ mcp__unity-mcp-server__set_component_field({
   value: { x: 64, y: 64 }
 })
 
-// 背景（レアリティ枠）
+// Background (rarity border)
 mcp__unity-mcp-server__create_gameobject({
   name: "Background",
   parentPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot"
@@ -676,11 +676,11 @@ mcp__unity-mcp-server__add_component({
   gameObjectPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot/Background",
   componentType: "Image",
   properties: {
-    color: { r: 0.3, g: 0.3, b: 0.3, a: 1 }  // デフォルト（コモン）
+    color: { r: 0.3, g: 0.3, b: 0.3, a: 1 }  // Default (Common)
   }
 })
 
-// アイコン
+// Icon
 mcp__unity-mcp-server__create_gameobject({
   name: "Icon",
   parentPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot"
@@ -691,7 +691,7 @@ mcp__unity-mcp-server__add_component({
   componentType: "Image"
 })
 
-// スタック数
+// Stack count
 mcp__unity-mcp-server__create_gameobject({
   name: "StackCount",
   parentPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot"
@@ -707,7 +707,7 @@ mcp__unity-mcp-server__add_component({
   }
 })
 
-// 選択ハイライト
+// Selection highlight
 mcp__unity-mcp-server__create_gameobject({
   name: "SelectionHighlight",
   parentPath: "/InventoryCanvas/Panel/InventoryGrid/ItemSlot"
@@ -723,7 +723,7 @@ mcp__unity-mcp-server__add_component({
 })
 ```
 
-#### レアリティカラー定義
+#### Rarity Color Definition
 
 ```csharp
 // ItemRarity.cs
@@ -731,11 +731,11 @@ using UnityEngine;
 
 public enum ItemRarity
 {
-    Common,    // 灰色
-    Uncommon,  // 緑
-    Rare,      // 青
-    Epic,      // 紫
-    Legendary  // オレンジ
+    Common,    // Gray
+    Uncommon,  // Green
+    Rare,      // Blue
+    Epic,      // Purple
+    Legendary  // Orange
 }
 
 public static class RarityColors
@@ -754,21 +754,21 @@ public static class RarityColors
 
 ---
 
-### 4. ダメージ数値（Floating Text）
+### 4. Damage Numbers (Floating Text)
 
-ダメージを受けた位置から数値が浮き上がって消えるエフェクト。
+Effect where numbers float up and fade from the damage location.
 
-#### Prefab構造
+#### Prefab Structure
 
 ```
 DamageNumber (RectTransform)
-└── Text (TextMeshProUGUI) - ダメージ数値
+└── Text (TextMeshProUGUI) - Damage value
 ```
 
-#### MCP実装
+#### MCP Implementation
 
 ```javascript
-// ダメージ数値Prefab作成
+// Create damage number prefab
 mcp__unity-mcp-server__create_gameobject({
   name: "DamageNumber",
   parentPath: "/WorldCanvas"
@@ -781,7 +781,7 @@ mcp__unity-mcp-server__set_component_field({
   value: { x: 100, y: 40 }
 })
 
-// テキスト
+// Text
 mcp__unity-mcp-server__create_gameobject({
   name: "Text",
   parentPath: "/WorldCanvas/DamageNumber"
@@ -800,7 +800,7 @@ mcp__unity-mcp-server__add_component({
 })
 ```
 
-#### C#コントローラー（アニメーション付き）
+#### C# Controller (with animation)
 
 ```csharp
 // DamageNumberController.cs
@@ -825,7 +825,7 @@ public class DamageNumberController : MonoBehaviour
         if (isCritical)
         {
             text.fontSize *= 1.5f;
-            text.color = new Color(1f, 0.8f, 0f);  // 黄色
+            text.color = new Color(1f, 0.8f, 0f);  // Yellow
         }
 
         originalColor = text.color;
@@ -836,11 +836,11 @@ public class DamageNumberController : MonoBehaviour
     {
         elapsed += Time.deltaTime;
 
-        // 上に浮く
+        // Float upward
         transform.localPosition += (Vector3.up * floatSpeed + randomOffset) * Time.deltaTime;
-        randomOffset *= 0.95f;  // 横移動を減衰
+        randomOffset *= 0.95f;  // Dampen horizontal movement
 
-        // フェードアウト
+        // Fade out
         if (elapsed > lifetime * 0.5f)
         {
             float alpha = Mathf.Lerp(originalColor.a, 0,
@@ -858,24 +858,24 @@ public class DamageNumberController : MonoBehaviour
 
 ---
 
-### 5. ミニマップ
+### 5. Minimap
 
-RawImageとRenderTextureを使用した俯瞰ミニマップ。
+Top-down minimap using RawImage and RenderTexture.
 
-#### 構造
+#### Structure
 
 ```
 MinimapContainer (RectTransform)
-├── MapImage (RawImage + Mask) - マップ表示
-├── PlayerIcon (Image) - プレイヤーアイコン
-├── Border (Image) - 枠
+├── MapImage (RawImage + Mask) - Map display
+├── PlayerIcon (Image) - Player icon
+├── Border (Image) - Border
 └── CompassText (TextMeshProUGUI) - "N"
 ```
 
-#### MCP実装
+#### MCP Implementation
 
 ```javascript
-// ミニマップコンテナ
+// Minimap container
 mcp__unity-mcp-server__create_gameobject({
   name: "MinimapContainer",
   parentPath: "/HUDCanvas/SafeArea"
@@ -888,7 +888,7 @@ mcp__unity-mcp-server__set_component_field({
   value: { x: 150, y: 150 }
 })
 
-// マップ表示（RawImage）
+// Map display (RawImage)
 mcp__unity-mcp-server__create_gameobject({
   name: "MapImage",
   parentPath: "/HUDCanvas/SafeArea/MinimapContainer"
@@ -899,7 +899,7 @@ mcp__unity-mcp-server__add_component({
   componentType: "RawImage"
 })
 
-// 円形マスク用
+// Circular mask
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/HUDCanvas/SafeArea/MinimapContainer/MapImage",
   componentType: "Mask",
@@ -908,7 +908,7 @@ mcp__unity-mcp-server__add_component({
   }
 })
 
-// プレイヤーアイコン（中央固定）
+// Player icon (centered)
 mcp__unity-mcp-server__create_gameobject({
   name: "PlayerIcon",
   parentPath: "/HUDCanvas/SafeArea/MinimapContainer"
@@ -926,7 +926,7 @@ mcp__unity-mcp-server__set_component_field({
   value: { x: 16, y: 16 }
 })
 
-// 枠
+// Border
 mcp__unity-mcp-server__create_gameobject({
   name: "Border",
   parentPath: "/HUDCanvas/SafeArea/MinimapContainer"
@@ -943,26 +943,26 @@ mcp__unity-mcp-server__add_component({
 
 ---
 
-### 6. ダイアログシステム
+### 6. Dialog System
 
-RPG風の会話ウィンドウ。話者名、テキスト、選択肢を表示。
+RPG-style conversation window. Displays speaker name, text, and choices.
 
-#### Prefab構造
+#### Prefab Structure
 
 ```
 DialogPanel (RectTransform + CanvasGroup)
 ├── SpeakerName (TextMeshProUGUI)
-├── Portrait (Image) - 話者の顔アイコン
-├── DialogText (TextMeshProUGUI) - 会話テキスト
+├── Portrait (Image) - Speaker portrait
+├── DialogText (TextMeshProUGUI) - Dialog text
 ├── ChoicesContainer (VerticalLayoutGroup)
 │   └── ChoiceButton (Button + TextMeshProUGUI)
-└── ContinueIndicator (Image) - 次へ矢印
+└── ContinueIndicator (Image) - Continue arrow
 ```
 
-#### MCP実装
+#### MCP Implementation
 
 ```javascript
-// ダイアログパネル
+// Dialog panel
 mcp__unity-mcp-server__create_gameobject({
   name: "DialogPanel",
   parentPath: "/DialogCanvas"
@@ -981,7 +981,7 @@ mcp__unity-mcp-server__add_component({
   componentType: "CanvasGroup"
 })
 
-// 下部ストレッチ配置
+// Bottom stretch placement
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/DialogCanvas/DialogPanel",
   componentType: "RectTransform",
@@ -996,7 +996,7 @@ mcp__unity-mcp-server__set_component_field({
   value: { x: 1, y: 0.3 }
 })
 
-// 話者名
+// Speaker name
 mcp__unity-mcp-server__create_gameobject({
   name: "SpeakerName",
   parentPath: "/DialogCanvas/DialogPanel"
@@ -1006,14 +1006,14 @@ mcp__unity-mcp-server__add_component({
   gameObjectPath: "/DialogCanvas/DialogPanel/SpeakerName",
   componentType: "TextMeshProUGUI",
   properties: {
-    text: "村人A",
+    text: "Villager A",
     fontSize: 20,
     fontStyle: 1,  // Bold
     color: { r: 1, g: 0.9, b: 0.4, a: 1 }
   }
 })
 
-// 顔アイコン
+// Portrait
 mcp__unity-mcp-server__create_gameobject({
   name: "Portrait",
   parentPath: "/DialogCanvas/DialogPanel"
@@ -1031,7 +1031,7 @@ mcp__unity-mcp-server__set_component_field({
   value: { x: 100, y: 100 }
 })
 
-// ダイアログテキスト
+// Dialog text
 mcp__unity-mcp-server__create_gameobject({
   name: "DialogText",
   parentPath: "/DialogCanvas/DialogPanel"
@@ -1041,13 +1041,13 @@ mcp__unity-mcp-server__add_component({
   gameObjectPath: "/DialogCanvas/DialogPanel/DialogText",
   componentType: "TextMeshProUGUI",
   properties: {
-    text: "こんにちは、旅人さん。",
+    text: "Hello, traveler.",
     fontSize: 18,
     alignment: 257  // TopLeft
   }
 })
 
-// 選択肢コンテナ
+// Choices container
 mcp__unity-mcp-server__create_gameobject({
   name: "ChoicesContainer",
   parentPath: "/DialogCanvas/DialogPanel"
@@ -1062,7 +1062,7 @@ mcp__unity-mcp-server__add_component({
   }
 })
 
-// 次へインジケーター
+// Continue indicator
 mcp__unity-mcp-server__create_gameobject({
   name: "ContinueIndicator",
   parentPath: "/DialogCanvas/DialogPanel"
@@ -1074,7 +1074,7 @@ mcp__unity-mcp-server__add_component({
 })
 ```
 
-#### テキスト送り（タイプライター効果）
+#### Typewriter Effect
 
 ```csharp
 // DialogController.cs
@@ -1126,13 +1126,13 @@ public class DialogController : MonoBehaviour
         if (isTyping)
             skipRequested = true;
         else
-            // 次のダイアログへ
+            // Proceed to next dialog
             OnDialogComplete();
     }
 
     void OnDialogComplete()
     {
-        // 実装: 次のセリフ表示または終了
+        // Implementation: Show next line or finish
     }
 }
 ```
@@ -1143,53 +1143,53 @@ public class DialogController : MonoBehaviour
 
 ### 1. Canvas Render Mode
 
-| Mode | 用途 | 特徴 |
-|------|------|------|
-| Screen Space - Overlay | 一般的なUI | 最前面に描画、カメラ不要 |
-| Screen Space - Camera | 3D効果付きUI | カメラ参照、深度ソート可能 |
-| World Space | 3D空間内UI | VR/AR、ゲーム内看板 |
+| Mode | Use Case | Features |
+|------|----------|----------|
+| Screen Space - Overlay | General UI | Rendered in front, no camera needed |
+| Screen Space - Camera | UI with 3D effects | Camera reference, depth sorting |
+| World Space | In-world UI | VR/AR, in-game signboards |
 
 ### 2. RectTransform
 
-RectTransformはUI要素の位置・サイズを制御するコンポーネントです。
+RectTransform is the component that controls UI element position and size.
 
 ```javascript
-// RectTransformの主要プロパティ
+// Key RectTransform properties
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/Button",
   componentType: "RectTransform",
   fieldPath: "anchoredPosition",
-  value: { x: 0, y: 100 }  // アンカー基準の位置
+  value: { x: 0, y: 100 }  // Position relative to anchor
 })
 
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/Button",
   componentType: "RectTransform",
   fieldPath: "sizeDelta",
-  value: { x: 200, y: 60 }  // サイズ
+  value: { x: 200, y: 60 }  // Size
 })
 ```
 
-### 3. Anchors（アンカー）
+### 3. Anchors
 
-アンカーはレスポンシブデザインの核心です。0〜1の正規化された値で親要素に対する相対位置を指定します。
+Anchors are the core of responsive design. They specify relative position to parent element using normalized values from 0 to 1.
 
-#### アンカープリセット一覧
+#### Anchor Preset Reference
 
-| プリセット | anchorMin | anchorMax | 用途 |
-|-----------|-----------|-----------|------|
-| 中央 | (0.5, 0.5) | (0.5, 0.5) | ポップアップ、ダイアログ |
-| 左上 | (0, 1) | (0, 1) | ステータス表示 |
-| 右上 | (1, 1) | (1, 1) | 設定ボタン |
-| 左下 | (0, 0) | (0, 0) | チャット入力 |
-| 右下 | (1, 0) | (1, 0) | アクションボタン |
-| 上部ストレッチ | (0, 1) | (1, 1) | ヘッダー |
-| 下部ストレッチ | (0, 0) | (1, 0) | フッター |
-| 左側ストレッチ | (0, 0) | (0, 1) | サイドメニュー |
-| 全画面ストレッチ | (0, 0) | (1, 1) | 背景 |
+| Preset | anchorMin | anchorMax | Use Case |
+|--------|-----------|-----------|----------|
+| Center | (0.5, 0.5) | (0.5, 0.5) | Popup, Dialog |
+| Top-Left | (0, 1) | (0, 1) | Status display |
+| Top-Right | (1, 1) | (1, 1) | Settings button |
+| Bottom-Left | (0, 0) | (0, 0) | Chat input |
+| Bottom-Right | (1, 0) | (1, 0) | Action buttons |
+| Top Stretch | (0, 1) | (1, 1) | Header |
+| Bottom Stretch | (0, 0) | (1, 0) | Footer |
+| Left Stretch | (0, 0) | (0, 1) | Side menu |
+| Full Stretch | (0, 0) | (1, 1) | Background |
 
 ```javascript
-// 全画面ストレッチの例
+// Full stretch example
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/Background",
   componentType: "RectTransform",
@@ -1221,11 +1221,11 @@ mcp__unity-mcp-server__set_component_field({
 
 ## Mobile Responsive Design
 
-### Canvas Scaler設定
+### Canvas Scaler Settings
 
-モバイルレスポンシブの鍵は`CanvasScaler`の適切な設定です。
+The key to mobile responsive design is proper `CanvasScaler` configuration.
 
-#### 縦向き（Portrait）優先
+#### Portrait Priority
 
 ```javascript
 mcp__unity-mcp-server__set_component_field({
@@ -1239,38 +1239,38 @@ mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas",
   componentType: "CanvasScaler",
   fieldPath: "referenceResolution",
-  value: { x: 1080, y: 1920 }  // 9:16 縦向き基準
+  value: { x: 1080, y: 1920 }  // 9:16 portrait reference
 })
 
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas",
   componentType: "CanvasScaler",
   fieldPath: "matchWidthOrHeight",
-  value: 0  // 0 = 幅に合わせる（縦向き最適）
+  value: 0  // 0 = Match width (optimal for portrait)
 })
 ```
 
-#### 横向き（Landscape）優先
+#### Landscape Priority
 
 ```javascript
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas",
   componentType: "CanvasScaler",
   fieldPath: "referenceResolution",
-  value: { x: 1920, y: 1080 }  // 16:9 横向き基準
+  value: { x: 1920, y: 1080 }  // 16:9 landscape reference
 })
 
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas",
   componentType: "CanvasScaler",
   fieldPath: "matchWidthOrHeight",
-  value: 1  // 1 = 高さに合わせる（横向き最適）
+  value: 1  // 1 = Match height (optimal for landscape)
 })
 ```
 
-#### 縦横両対応（動的Match）
+#### Both Orientations (Dynamic Match)
 
-縦横両方に対応する場合、ランタイムでMatchを切り替えます。
+For supporting both orientations, switch Match at runtime.
 
 ```csharp
 // OrientationHandler.cs
@@ -1305,9 +1305,9 @@ public class OrientationHandler : MonoBehaviour
 }
 ```
 
-### Safe Area対応（ノッチ対応）
+### Safe Area Support (Notch Support)
 
-ノッチやパンチホールカメラを持つデバイス向けのSafe Area対応です。
+Safe Area support for devices with notches or punch-hole cameras.
 
 ```csharp
 // SafeAreaHandler.cs
@@ -1337,7 +1337,7 @@ public class SafeAreaHandler : MonoBehaviour
         Rect safeArea = Screen.safeArea;
         lastSafeArea = safeArea;
 
-        // 正規化された座標に変換
+        // Convert to normalized coordinates
         Vector2 anchorMin = safeArea.position;
         Vector2 anchorMax = safeArea.position + safeArea.size;
 
@@ -1353,7 +1353,7 @@ public class SafeAreaHandler : MonoBehaviour
 ```
 
 ```javascript
-// Safe Area用パネルを作成
+// Create Safe Area panel
 mcp__unity-mcp-server__create_gameobject({
   name: "SafeAreaPanel",
   parentPath: "/Canvas"
@@ -1364,7 +1364,7 @@ mcp__unity-mcp-server__add_component({
   componentType: "RectTransform"
 })
 
-// 全画面ストレッチに設定
+// Set to full stretch
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Canvas/SafeAreaPanel",
   componentType: "RectTransform",
@@ -1379,7 +1379,7 @@ mcp__unity-mcp-server__set_component_field({
   value: { x: 1, y: 1 }
 })
 
-// SafeAreaHandlerスクリプトを追加
+// Add SafeAreaHandler script
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas/SafeAreaPanel",
   componentType: "SafeAreaHandler"
@@ -1388,7 +1388,7 @@ mcp__unity-mcp-server__add_component({
 
 ## Layout Groups
 
-自動レイアウトを実現するLayout Groupコンポーネントです。
+Layout Group components for automatic layouts.
 
 ### Horizontal Layout Group
 
@@ -1441,7 +1441,7 @@ mcp__unity-mcp-server__add_component({
 
 ### Content Size Fitter
 
-子要素のサイズに合わせて親を自動調整します。
+Automatically adjusts parent to fit child elements.
 
 ```javascript
 mcp__unity-mcp-server__add_component({
@@ -1456,24 +1456,24 @@ mcp__unity-mcp-server__add_component({
 
 ## Tool Selection Guide
 
-| 目的 | 推奨ツール |
-|------|-----------|
-| Canvas作成 | `create_gameobject` + `add_component` |
-| UI要素追加 | `create_gameobject` + `add_component` |
-| アンカー設定 | `set_component_field` (RectTransform) |
-| Canvas Scaler設定 | `set_component_field` (CanvasScaler) |
-| Layout Group追加 | `add_component` |
-| UI要素検索 | `find_ui_elements` |
-| UIクリックテスト | `click_ui_element` |
-| UI状態確認 | `get_ui_element_state` |
-| スクリプト作成 | `create_class` |
+| Purpose | Recommended Tool |
+|---------|------------------|
+| Create Canvas | `create_gameobject` + `add_component` |
+| Add UI element | `create_gameobject` + `add_component` |
+| Set anchors | `set_component_field` (RectTransform) |
+| Configure Canvas Scaler | `set_component_field` (CanvasScaler) |
+| Add Layout Group | `add_component` |
+| Search UI elements | `find_ui_elements` |
+| Test UI click | `click_ui_element` |
+| Check UI state | `get_ui_element_state` |
+| Create script | `create_class` |
 
 ## Common Workflows
 
-### 1. モバイル縦向きUIの作成
+### 1. Creating Mobile Portrait UI
 
 ```javascript
-// Step 1: Canvas作成
+// Step 1: Create Canvas
 mcp__unity-mcp-server__create_gameobject({ name: "MobileCanvas" })
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/MobileCanvas",
@@ -1494,36 +1494,36 @@ mcp__unity-mcp-server__add_component({
   componentType: "GraphicRaycaster"
 })
 
-// Step 2: Safe Areaパネル
+// Step 2: Safe Area panel
 mcp__unity-mcp-server__create_gameobject({
   name: "SafeArea",
   parentPath: "/MobileCanvas"
 })
 
-// Step 3: ヘッダー（上部ストレッチ）
+// Step 3: Header (top stretch)
 mcp__unity-mcp-server__create_gameobject({
   name: "Header",
   parentPath: "/MobileCanvas/SafeArea"
 })
-// アンカーを上部ストレッチに設定...
+// Set anchors to top stretch...
 
-// Step 4: コンテンツ（中央ストレッチ）
+// Step 4: Content (center stretch)
 mcp__unity-mcp-server__create_gameobject({
   name: "Content",
   parentPath: "/MobileCanvas/SafeArea"
 })
 
-// Step 5: フッター（下部ストレッチ）
+// Step 5: Footer (bottom stretch)
 mcp__unity-mcp-server__create_gameobject({
   name: "Footer",
   parentPath: "/MobileCanvas/SafeArea"
 })
 ```
 
-### 2. スクロールビューの作成
+### 2. Creating a Scroll View
 
 ```javascript
-// ScrollView作成
+// Create ScrollView
 mcp__unity-mcp-server__create_gameobject({
   name: "ScrollView",
   parentPath: "/Canvas"
@@ -1544,7 +1544,7 @@ mcp__unity-mcp-server__add_component({
   componentType: "Mask"
 })
 
-// Content作成
+// Create Content
 mcp__unity-mcp-server__create_gameobject({
   name: "Content",
   parentPath: "/Canvas/ScrollView"
@@ -1570,68 +1570,68 @@ mcp__unity-mcp-server__add_component({
 
 ## Common Mistakes
 
-### 1. アンカーの誤設定
+### 1. Incorrect Anchor Configuration
 
-**NG**: 固定位置でのUI配置
+**NG**: Fixed position UI placement
 ```javascript
-// 画面サイズが変わるとUIがはみ出す
+// UI goes off-screen when screen size changes
 anchoredPosition: { x: 500, y: 800 }
 ```
 
-**OK**: アンカーを使用した相対配置
+**OK**: Relative placement using anchors
 ```javascript
-// 親要素の右下に固定
+// Fixed to parent's bottom-right
 anchorMin: { x: 1, y: 0 }
 anchorMax: { x: 1, y: 0 }
-anchoredPosition: { x: -50, y: 50 }  // 余白
+anchoredPosition: { x: -50, y: 50 }  // Margin
 ```
 
-### 2. Canvas Scalerの設定漏れ
+### 2. Missing Canvas Scaler Configuration
 
-**NG**: Constant Pixel Sizeのまま
+**NG**: Left as Constant Pixel Size
 ```javascript
-uiScaleMode: 0  // 解像度が変わるとUIサイズが不適切に
+uiScaleMode: 0  // UI size becomes inappropriate when resolution changes
 ```
 
 **OK**: Scale With Screen Size
 ```javascript
 uiScaleMode: 1
 referenceResolution: { x: 1080, y: 1920 }
-matchWidthOrHeight: 0  // または1
+matchWidthOrHeight: 0  // or 1
 ```
 
-### 3. Safe Area未対応
+### 3. No Safe Area Support
 
-**NG**: Canvas直下に重要UIを配置
-- ノッチ部分にUIが隠れる
-- ホームインジケーター領域と重なる
+**NG**: Placing important UI directly under Canvas
+- UI gets hidden by notch
+- Overlaps with home indicator area
 
-**OK**: Safe Areaパネル内に配置
-- SafeAreaHandlerスクリプトで動的調整
-- 重要UIはSafe Area内に配置
+**OK**: Place within Safe Area panel
+- Dynamic adjustment with SafeAreaHandler script
+- Place important UI within Safe Area
 
-### 4. Layout Groupの過度な使用
+### 4. Excessive Use of Layout Groups
 
-**NG**: すべてのUIにLayout Groupを適用
-- パフォーマンス低下
-- 意図しないレイアウト変更
+**NG**: Applying Layout Groups to all UI
+- Performance degradation
+- Unintended layout changes
 
-**OK**: 動的に変化するリストにのみ使用
-- 静的UIは手動配置
-- スクロールビューのコンテンツに使用
+**OK**: Use only for dynamically changing lists
+- Manual placement for static UI
+- Use for scroll view content
 
-### 5. アスペクト比の考慮不足
+### 5. Insufficient Aspect Ratio Consideration
 
-**NG**: 16:9のみを想定
+**NG**: Assuming only 16:9
 ```javascript
 referenceResolution: { x: 1920, y: 1080 }
-// 9:16, 18:9, 21:9などで崩れる
+// Breaks on 9:16, 18:9, 21:9, etc.
 ```
 
-**OK**: 複数アスペクト比を考慮
-- 主要なアスペクト比でテスト
-- 極端な比率でも崩れないアンカー設定
-- 必要に応じてAspect Ratio Fitterを使用
+**OK**: Consider multiple aspect ratios
+- Test with major aspect ratios
+- Anchor settings that don't break on extreme ratios
+- Use Aspect Ratio Fitter when needed
 
 ## Tool Reference
 

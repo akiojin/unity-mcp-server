@@ -223,7 +223,7 @@ Phase 0リサーチにてScriptEditSnippetToolHandler.jsが既に実装済みと
   - 実行: クリーンインストールテスト
   - 確認: 30秒タイムアウト内に完了
   - 確認: 全対応プラットフォームで動作
-  - **結果**: ローカルで `npx --yes ./akiojin-unity-mcp-server-*.tgz --help` を実行（npm cache未クリア）。実行時間は1秒未満。依存取得/キャッシュ削除を伴うCI検証が必要。
+  - **結果**: ローカルで `npm cache clean --force` 後に `npx --yes @akiojin/unity-mcp-server@latest --help` を実行。計測 1.69 秒で完了。全プラットフォームの検証はCIで要実施。
 
 ---
 

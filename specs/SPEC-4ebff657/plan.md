@@ -12,7 +12,7 @@ Unity エディタメニューに MCP Server の Start/Stop と HTTP/stdio/Telem
 **ストレージ**: なし（設定は EditorPrefs または ScriptableObject）
 **テスト**: Unity playmode/edittime tests (サンプルの副作用確認), node --test で CLI フック
 **対象プラットフォーム**: Unity エディタ (Win/Mac)
-**プロジェクトタイプ**: Unity package (UnityMCPServer/Packages/...)
+**プロジェクトタイプ**: Unity package (UnityMCPServer/Packages/unity-mcp-server/)
 **パフォーマンス目標**: Start/Stop ボタン応答 <1s、サンプル実行 <3s
 **制約**: Play 中は Start/Stop を無効化または警告
 **スケール/スコープ**: GUI 1 画面 + サンプル 2 本
