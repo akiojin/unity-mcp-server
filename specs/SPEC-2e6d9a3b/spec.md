@@ -123,9 +123,9 @@
 ## 参考実装
 
 ### 実装ファイル
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/console/ReadConsoleToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/console/ClearConsoleToolHandler.js`
-- `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/ConsoleManagementHandler.cs`
+- `mcp-server/src/handlers/console/ConsoleReadToolHandler.js`
+- `mcp-server/src/handlers/console/ConsoleClearToolHandler.js`
+- `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/ConsoleHandler.cs`
 
 ### 技術詳細
 - UnityEditor.LogEntriesによるログ取得

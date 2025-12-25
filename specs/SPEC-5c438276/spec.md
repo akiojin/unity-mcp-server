@@ -118,11 +118,11 @@
 ## 参考実装
 
 ### 実装ファイル
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/playmode/PlayToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/playmode/PauseToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/playmode/StopToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/playmode/GetEditorStateToolHandler.js`
-- `/mnt/e/unity-mcp-server/mcp-server/src/handlers/playmode/WaitForEditorStateToolHandler.js`
+- `mcp-server/src/handlers/playmode/PlaymodePlayToolHandler.js`
+- `mcp-server/src/handlers/playmode/PlaymodePauseToolHandler.js`
+- `mcp-server/src/handlers/playmode/PlaymodeStopToolHandler.js`
+- `mcp-server/src/handlers/playmode/PlaymodeGetStateToolHandler.js`
+- `mcp-server/src/handlers/playmode/PlaymodeWaitForStateToolHandler.js`
 - `UnityMCPServer/Packages/unity-mcp-server/Editor/Handlers/PlayModeHandler.cs`
 
 ### 技術詳細
