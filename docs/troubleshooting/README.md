@@ -31,6 +31,13 @@ rm -rf ~/.npm/_npx
 npx @akiojin/unity-mcp-server@latest --version
 ```
 
+## Native SQLite preload
+
+If startup is slow or the native binding fails, control the preload:
+
+- `UNITY_MCP_SKIP_NATIVE_BUILD=1` to skip native preload (sql.js fallback)
+- `UNITY_MCP_FORCE_NATIVE=1` to require the prebuilt binary (install fails if missing)
+
 ## Debug Logging
 
 Set `UNITY_MCP_LOG_LEVEL=debug` and retry.
@@ -77,6 +84,13 @@ rm -rf ~/.npm/_npx
 ```bash
 npx @akiojin/unity-mcp-server@latest --version
 ```
+
+## ネイティブSQLite事前ロード
+
+起動が遅い/ネイティブバインディングが失敗する場合は以下で制御します:
+
+- `UNITY_MCP_SKIP_NATIVE_BUILD=1` でネイティブ事前ロードをスキップ（sql.jsへフォールバック）
+- `UNITY_MCP_FORCE_NATIVE=1` でプリビルト必須（不足時はインストール失敗）
 
 ## デバッグログ
 

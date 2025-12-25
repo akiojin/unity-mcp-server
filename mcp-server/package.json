@@ -27,7 +27,7 @@
     "test:verbose": "VERBOSE_TEST=true node --test tests/**/*.test.js",
     "prepare": "cd .. && husky || true",
     "prepublishOnly": "npm run test:ci",
-    "postinstall": "chmod +x bin/unity-mcp-server.js || true",
+    "postinstall": "node scripts/ensure-better-sqlite3.mjs",
     "test:ci:unity": "timeout 60 node --test tests/unit/core/codeIndex.test.js tests/unit/core/config.test.js tests/unit/core/indexWatcher.test.js tests/unit/core/projectInfo.test.js tests/unit/core/server.test.js tests/unit/core/startupPerformance.test.js || exit 0",
     "test:unity": "node tests/run-unity-integration.mjs",
     "test:nounity": "npm run test:integration",
@@ -68,6 +68,8 @@
   "files": [
     "src/",
     "bin/",
+    "scripts/",
+    "prebuilt/",
     "README.md",
     "LICENSE"
   ],

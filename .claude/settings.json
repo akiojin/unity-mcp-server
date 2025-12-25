@@ -184,7 +184,6 @@
     "csharp-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
     "drawio@akiojin-skills": true,
-    "gh-fix-ci@akiojin-skills": true,
-    "unity-development@akiojin-skills": true
+    "gh-fix-ci@akiojin-skills": true
   }
 }

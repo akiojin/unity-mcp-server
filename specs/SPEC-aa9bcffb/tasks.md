@@ -169,19 +169,22 @@
 
 ### ユニットテスト
 
-- [ ] T024 [P] `packages/fast-sql/tests/unit/StatementCache.test.js` にキャッシュユニットテスト
+- [x] T024 [P] `packages/fast-sql/tests/unit/StatementCache.test.js` にキャッシュユニットテスト（新規）
   - LRU動作検証
   - TTL検証
   - eviction検証
+  - 結果: 3/3テスト成功
 
-- [ ] T025 [P] `packages/fast-sql/tests/unit/PragmaOptimizer.test.js` にPRAGMAユニットテスト
+- [x] T025 [P] `packages/fast-sql/tests/unit/PragmaOptimizer.test.js` にPRAGMAユニットテスト（新規）
   - デフォルト値検証
   - カスタム値検証
+  - 結果: 2/2テスト成功
 
-- [ ] T026 [P] `packages/fast-sql/tests/unit/TransactionManager.test.js` にトランザクションユニットテスト
+- [x] T026 [P] `packages/fast-sql/tests/unit/TransactionManager.test.js` にトランザクションユニットテスト（新規）
   - コミット検証
   - ロールバック検証
   - ネスト検証
+  - 結果: 4/4テスト成功
 
 ### ドキュメント
 
