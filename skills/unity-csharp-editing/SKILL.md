@@ -443,3 +443,127 @@ mcp__unity-mcp-server__update_index({
 | `build_index` | インデックス構築 | - |
 | `update_index` | インデックス更新 | paths |
 | `get_compilation_state` | コンパイル状態 | includeMessages |
+
+## Architecture Patterns
+
+### Fail-Fast原則
+
+**nullチェックは書かない。存在が前提のオブジェクトは直接使用する。**
+
+```csharp
+// ❌ 禁止パターン
+if (component != null) { component.DoSomething(); }
+if (gameObject != null) { gameObject.SetActive(false); }
+if (service != null) { service.Execute(); }
+
+// ✅ 正しいパターン - 直接使用
+GetComponent<Rigidbody>().velocity = Vector3.zero;
+GameService.Initialize();
+target.position = Vector3.zero;
+```
+
+**適用対象**:
+- `GetComponent<T>()` 後のnullチェック
+- `Find*()` 後のnullチェック
+- `[Inject]` 後のnullチェック
+
+### Update内GetComponent禁止
+
+**毎フレームのGetComponentはGC発生・パフォーマンス悪化の原因。Awakeでキャッシュする。**
+
+```csharp
+// ❌ 禁止 - 毎フレームGC発生
+void Update()
+{
+    GetComponent<Rigidbody>().velocity = input;
+}
+
+// ✅ 正しい - Awakeでキャッシュ
+private Rigidbody _rb;
+
+void Awake()
+{
+    _rb = GetComponent<Rigidbody>();
+}
+
+void Update()
+{
+    _rb.velocity = input;
+}
+```
+
+### UniTaskパターン
+
+**コルーチンの代わりにUniTaskを使用。async voidは禁止。**
+
+```csharp
+using Cysharp.Threading.Tasks;
+
+// ❌ 禁止 - async void
+async void Start()
+{
+    await DoWorkAsync();
+}
+
+// ✅ 正しい - UniTaskVoid + destroyCancellationToken
+async UniTaskVoid Start()
+{
+    await DoWorkAsync(destroyCancellationToken);
+}
+
+// ✅ 戻り値がある場合
+async UniTask<int> CalculateAsync(CancellationToken ct)
+{
+    await UniTask.Delay(1000, cancellationToken: ct);
+    return 42;
+}
+```
+
+**ベストプラクティス**:
+- `destroyCancellationToken`でGameObject破棄時に自動キャンセル
+- `UniTask.Delay` > `Task.Delay`（ゼロアロケーション）
+- `UniTask.WhenAll` で並列実行
+
+### VContainer DI
+
+**依存性注入にはVContainerを使用。コンストラクタインジェクション推奨。**
+
+```csharp
+// インターフェース定義
+public interface IPlayerService
+{
+    void Initialize();
+}
+
+// 実装クラス
+public class PlayerService : IPlayerService
+{
+    public void Initialize() { /* ... */ }
+}
+
+// コンシューマー（MonoBehaviour）
+public class GameManager : MonoBehaviour
+{
+    [Inject] private readonly IPlayerService _playerService;
+
+    void Start()
+    {
+        _playerService.Initialize();
+    }
+}
+
+// LifetimeScope設定
+public class GameLifetimeScope : LifetimeScope
+{
+    protected override void Configure(IContainerBuilder builder)
+    {
+        builder.Register<IPlayerService, PlayerService>(Lifetime.Singleton);
+        builder.RegisterComponentInHierarchy<GameManager>();
+    }
+}
+```
+
+**ベストプラクティス**:
+- `Lifetime.Singleton` - アプリ全体で1インスタンス
+- `Lifetime.Scoped` - シーン単位で1インスタンス
+- `Lifetime.Transient` - 毎回新規インスタンス
