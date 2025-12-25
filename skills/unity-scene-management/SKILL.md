@@ -1,40 +1,40 @@
 ---
 name: unity-scene-management
-description: Unityシーンとゲームオブジェクトの作成・管理・分析を支援。ヒエラルキー操作、コンポーネント設定、シーン分析を効率的に実行。使用タイミング: シーン作成、シーン読み込み、GameObject作成、コンポーネント追加、ヒエラルキー取得、シーン分析
+description: Supports Unity scene and GameObject creation, management, and analysis. Efficiently performs hierarchy operations, component configuration, and scene analysis. Use when: scene creation, scene loading, GameObject creation, component addition, hierarchy retrieval, scene analysis
 allowed-tools: Read, Grep, Glob
 ---
 
 # Unity Scene & GameObject Management
 
-Unityシーン、ゲームオブジェクト、コンポーネントの作成・管理・分析ガイド。
+A guide for creating, managing, and analyzing Unity scenes, GameObjects, and components.
 
 ## Quick Start
 
-### 1. 現在のシーン状態を確認
+### 1. Check Current Scene State
 
 ```javascript
-// 読み込み済みシーン一覧
+// List loaded scenes
 mcp__unity-mcp-server__list_scenes({ includeLoadedOnly: true })
 
-// 現在のシーン情報
+// Current scene info
 mcp__unity-mcp-server__get_scene_info({ includeGameObjects: true })
 
-// ヒエラルキー取得（軽量版）
+// Get hierarchy (lightweight)
 mcp__unity-mcp-server__get_hierarchy({
   nameOnly: true,
   maxObjects: 100
 })
 ```
 
-### 2. GameObjectを作成
+### 2. Create GameObject
 
 ```javascript
-// 空のGameObject
+// Empty GameObject
 mcp__unity-mcp-server__create_gameobject({
   name: "GameManager"
 })
 
-// プリミティブ
+// Primitive
 mcp__unity-mcp-server__create_gameobject({
   name: "Floor",
   primitiveType: "plane",
@@ -43,10 +43,10 @@ mcp__unity-mcp-server__create_gameobject({
 })
 ```
 
-### 3. コンポーネントを追加
+### 3. Add Component
 
 ```javascript
-// Rigidbodyを追加
+// Add Rigidbody
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Player",
   componentType: "Rigidbody",
@@ -56,10 +56,10 @@ mcp__unity-mcp-server__add_component({
 
 ## Scene Operations
 
-### シーン作成
+### Create Scene
 
 ```javascript
-// 新規シーンを作成して読み込み
+// Create and load new scene
 mcp__unity-mcp-server__create_scene({
   sceneName: "Level01",
   path: "Assets/Scenes/",
@@ -68,45 +68,45 @@ mcp__unity-mcp-server__create_scene({
 })
 ```
 
-### シーン読み込み
+### Load Scene
 
 ```javascript
-// 単一シーン読み込み（現在のシーンを置き換え）
+// Single scene load (replaces current scene)
 mcp__unity-mcp-server__load_scene({
   scenePath: "Assets/Scenes/MainMenu.unity",
   loadMode: "Single"
 })
 
-// 追加読み込み（現在のシーンに追加）
+// Additive load (adds to current scene)
 mcp__unity-mcp-server__load_scene({
   scenePath: "Assets/Scenes/UI.unity",
   loadMode: "Additive"
 })
 ```
 
-### シーン保存
+### Save Scene
 
 ```javascript
-// 現在のシーンを保存
+// Save current scene
 mcp__unity-mcp-server__save_scene()
 
-// 別名で保存
+// Save as new file
 mcp__unity-mcp-server__save_scene({
   scenePath: "Assets/Scenes/Level01_backup.unity",
   saveAs: true
 })
 ```
 
-### シーン一覧・情報
+### List & Info
 
 ```javascript
-// プロジェクト内の全シーン
+// All scenes in project
 mcp__unity-mcp-server__list_scenes()
 
-// ビルド設定に含まれるシーンのみ
+// Only scenes in build settings
 mcp__unity-mcp-server__list_scenes({ includeBuildScenesOnly: true })
 
-// 特定シーンの詳細情報
+// Specific scene details
 mcp__unity-mcp-server__get_scene_info({
   scenePath: "Assets/Scenes/Main.unity",
   includeGameObjects: true
@@ -115,10 +115,10 @@ mcp__unity-mcp-server__get_scene_info({
 
 ## GameObject Management
 
-### 作成オプション
+### Creation Options
 
 ```javascript
-// フル指定での作成
+// Full specification
 mcp__unity-mcp-server__create_gameobject({
   name: "Enemy",
   primitiveType: "cube",
@@ -131,54 +131,54 @@ mcp__unity-mcp-server__create_gameobject({
 })
 ```
 
-### プリミティブタイプ
+### Primitive Types
 
-| タイプ | 説明 |
-|--------|------|
-| `cube` | 立方体 |
-| `sphere` | 球体 |
-| `cylinder` | 円柱 |
-| `capsule` | カプセル |
-| `plane` | 平面 |
-| `quad` | クアッド（2D平面） |
+| Type | Description |
+|------|-------------|
+| `cube` | Cube |
+| `sphere` | Sphere |
+| `cylinder` | Cylinder |
+| `capsule` | Capsule |
+| `plane` | Plane |
+| `quad` | Quad (2D plane) |
 
-### 検索
+### Search
 
 ```javascript
-// 名前で検索
+// Search by name
 mcp__unity-mcp-server__find_gameobject({
   name: "Player",
   exactMatch: true
 })
 
-// タグで検索
+// Search by tag
 mcp__unity-mcp-server__find_gameobject({
   tag: "Enemy"
 })
 
-// レイヤーで検索
+// Search by layer
 mcp__unity-mcp-server__find_gameobject({
   layer: 8  // 0-31
 })
 
-// 部分一致検索
+// Partial match search
 mcp__unity-mcp-server__find_gameobject({
   name: "Spawn",
   exactMatch: false
 })
 ```
 
-### 修正
+### Modify
 
 ```javascript
-// Transform変更
+// Transform change
 mcp__unity-mcp-server__modify_gameobject({
   path: "/Player",
   position: { x: 0, y: 1, z: 0 },
   rotation: { x: 0, y: 90, z: 0 }
 })
 
-// 名前・タグ・レイヤー変更
+// Name, tag, layer change
 mcp__unity-mcp-server__modify_gameobject({
   path: "/OldName",
   name: "NewName",
@@ -186,68 +186,68 @@ mcp__unity-mcp-server__modify_gameobject({
   layer: 3
 })
 
-// 親オブジェクト変更
+// Change parent object
 mcp__unity-mcp-server__modify_gameobject({
   path: "/Player",
   parentPath: "/Characters"
 })
 
-// 親から外す
+// Unparent
 mcp__unity-mcp-server__modify_gameobject({
   path: "/Characters/Player",
   parentPath: null
 })
 
-// アクティブ状態変更
+// Change active state
 mcp__unity-mcp-server__modify_gameobject({
   path: "/Player",
   active: false
 })
 ```
 
-### 削除
+### Delete
 
 ```javascript
-// 単一削除
+// Single delete
 mcp__unity-mcp-server__delete_gameobject({
   path: "/OldObject"
 })
 
-// 複数削除
+// Multiple delete
 mcp__unity-mcp-server__delete_gameobject({
   paths: ["/Object1", "/Object2", "/Object3"]
 })
 
-// 子オブジェクトを残す
+// Keep children
 mcp__unity-mcp-server__delete_gameobject({
   path: "/Parent",
   includeChildren: false
 })
 ```
 
-### ヒエラルキー取得
+### Get Hierarchy
 
 ```javascript
-// 軽量版（名前とパスのみ）- 大規模シーン向け
+// Lightweight (names and paths only) - for large scenes
 mcp__unity-mcp-server__get_hierarchy({
   nameOnly: true,
   maxObjects: 500
 })
 
-// 詳細版（コンポーネント・Transform含む）- 小規模向け
+// Detailed (with components and transform) - for small scenes
 mcp__unity-mcp-server__get_hierarchy({
   includeComponents: true,
   includeTransform: true,
   maxObjects: 50
 })
 
-// 特定オブジェクト配下のみ
+// Specific subtree only
 mcp__unity-mcp-server__get_hierarchy({
   rootPath: "/Enemies",
   maxDepth: 2
 })
 
-// 非アクティブオブジェクトを除外
+// Exclude inactive objects
 mcp__unity-mcp-server__get_hierarchy({
   includeInactive: false
 })
@@ -255,16 +255,16 @@ mcp__unity-mcp-server__get_hierarchy({
 
 ## Component System
 
-### コンポーネント追加
+### Add Component
 
 ```javascript
-// 基本追加
+// Basic addition
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Player",
   componentType: "Rigidbody"
 })
 
-// プロパティ付き
+// With properties
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Player",
   componentType: "BoxCollider",
@@ -275,16 +275,16 @@ mcp__unity-mcp-server__add_component({
   }
 })
 
-// カスタムスクリプト
+// Custom script
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Player",
   componentType: "PlayerController"
 })
 ```
 
-### コンポーネント修正
+### Modify Component
 
-#### `modify_component` - 複数プロパティを一括変更
+#### `modify_component` - Batch change multiple properties
 
 ```javascript
 mcp__unity-mcp-server__modify_component({
@@ -298,10 +298,10 @@ mcp__unity-mcp-server__modify_component({
 })
 ```
 
-#### `set_component_field` - 単一フィールドを精密に変更
+#### `set_component_field` - Precise single field change
 
 ```javascript
-// シリアライズドフィールド（プライベートも可）
+// Serialized field (including private)
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Player",
   componentType: "PlayerController",
@@ -309,7 +309,7 @@ mcp__unity-mcp-server__set_component_field({
   value: 5.0
 })
 
-// ネストしたフィールド
+// Nested field
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Player",
   componentType: "PlayerController",
@@ -317,7 +317,7 @@ mcp__unity-mcp-server__set_component_field({
   value: 3.0
 })
 
-// 配列要素
+// Array element
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Player",
   componentType: "Inventory",
@@ -325,7 +325,7 @@ mcp__unity-mcp-server__set_component_field({
   value: 10
 })
 
-// オブジェクト参照
+// Object reference
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Player",
   componentType: "PlayerController",
@@ -333,7 +333,7 @@ mcp__unity-mcp-server__set_component_field({
   objectReference: { assetPath: "Assets/Prefabs/Target.prefab" }
 })
 
-// Enum値
+// Enum value
 mcp__unity-mcp-server__set_component_field({
   gameObjectPath: "/Player",
   componentType: "PlayerController",
@@ -344,50 +344,50 @@ mcp__unity-mcp-server__set_component_field({
 
 ### `modify_component` vs `set_component_field`
 
-| 項目 | modify_component | set_component_field |
-|------|------------------|---------------------|
-| 用途 | 複数プロパティ一括 | 単一フィールド精密 |
-| ネスト対応 | ❌ トップレベルのみ | ✅ ドット記法対応 |
-| 配列要素 | ❌ | ✅ `[index]`対応 |
-| プライベート | △ シリアライズ時のみ | ✅ シリアライズ全対応 |
-| オブジェクト参照 | △ | ✅ assetPath/guid対応 |
+| Feature | modify_component | set_component_field |
+|---------|------------------|---------------------|
+| Use case | Batch multiple properties | Precise single field |
+| Nested support | ❌ Top-level only | ✅ Dot notation |
+| Array elements | ❌ | ✅ `[index]` supported |
+| Private fields | △ Serialized only | ✅ All serialized |
+| Object references | △ | ✅ assetPath/guid |
 
-### コンポーネント一覧・削除
+### List & Remove Component
 
 ```javascript
-// コンポーネント一覧
+// List components
 mcp__unity-mcp-server__list_components({
   gameObjectPath: "/Player"
 })
 
-// コンポーネント削除
+// Remove component
 mcp__unity-mcp-server__remove_component({
   gameObjectPath: "/Player",
   componentType: "OldScript"
 })
 
-// 同じ型が複数ある場合
+// When multiple of same type exist
 mcp__unity-mcp-server__remove_component({
   gameObjectPath: "/Player",
   componentType: "AudioSource",
-  componentIndex: 1  // 2番目のAudioSource
+  componentIndex: 1  // Second AudioSource
 })
 ```
 
-### 利用可能なコンポーネント型
+### Available Component Types
 
 ```javascript
-// カテゴリで検索
+// Search by category
 mcp__unity-mcp-server__get_component_types({
   category: "Physics"  // Physics, Rendering, UI, etc.
 })
 
-// 名前で検索
+// Search by name
 mcp__unity-mcp-server__get_component_types({
   search: "Collider"
 })
 
-// AddComponentで追加可能なもののみ
+// Only those addable via AddComponent
 mcp__unity-mcp-server__get_component_types({
   onlyAddable: true
 })
@@ -395,31 +395,31 @@ mcp__unity-mcp-server__get_component_types({
 
 ## Scene Analysis
 
-### シーン全体分析
+### Analyze Entire Scene
 
 ```javascript
-// オブジェクト統計
+// Object statistics
 mcp__unity-mcp-server__analyze_scene_contents({
   groupByType: true,
   includePrefabInfo: true
 })
 
-// メモリ情報付き
+// With memory info
 mcp__unity-mcp-server__analyze_scene_contents({
   includeMemoryInfo: true
 })
 ```
 
-### コンポーネント検索
+### Component Search
 
 ```javascript
-// 特定コンポーネントを持つオブジェクトを検索
+// Find objects with specific component
 mcp__unity-mcp-server__find_by_component({
   componentType: "Light",
   searchScope: "scene"
 })
 
-// プレハブも含めて検索
+// Include prefabs in search
 mcp__unity-mcp-server__find_by_component({
   componentType: "AudioSource",
   searchScope: "all",
@@ -427,10 +427,10 @@ mcp__unity-mcp-server__find_by_component({
 })
 ```
 
-### 詳細インスペクション
+### Detailed Inspection
 
 ```javascript
-// GameObject詳細
+// GameObject details
 mcp__unity-mcp-server__get_gameobject_details({
   gameObjectName: "Player",
   includeComponents: true,
@@ -439,14 +439,14 @@ mcp__unity-mcp-server__get_gameobject_details({
   maxDepth: 3
 })
 
-// コンポーネントの全プロパティ値
+// All component property values
 mcp__unity-mcp-server__get_component_values({
   gameObjectName: "Player",
   componentType: "Rigidbody",
   includePrivateFields: true
 })
 
-// オブジェクト参照関係
+// Object reference relationships
 mcp__unity-mcp-server__get_object_references({
   gameObjectName: "Player",
   includeAssetReferences: true,
@@ -456,16 +456,16 @@ mcp__unity-mcp-server__get_object_references({
 
 ## Common Workflows
 
-### シーンセットアップ
+### Scene Setup
 
 ```javascript
-// 1. 新規シーン作成
+// 1. Create new scene
 mcp__unity-mcp-server__create_scene({
   sceneName: "GameLevel",
   loadScene: true
 })
 
-// 2. 環境オブジェクト作成
+// 2. Create environment objects
 mcp__unity-mcp-server__create_gameobject({
   name: "Environment"
 })
@@ -477,7 +477,7 @@ mcp__unity-mcp-server__create_gameobject({
   scale: { x: 50, y: 1, z: 50 }
 })
 
-// 3. ライティング設定
+// 3. Set up lighting
 mcp__unity-mcp-server__create_gameobject({
   name: "Sun"
 })
@@ -492,14 +492,14 @@ mcp__unity-mcp-server__add_component({
   }
 })
 
-// 4. 保存
+// 4. Save
 mcp__unity-mcp-server__save_scene()
 ```
 
-### UIキャンバス構築
+### UI Canvas Setup
 
 ```javascript
-// Canvas作成
+// Create Canvas
 mcp__unity-mcp-server__create_gameobject({ name: "Canvas" })
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/Canvas",
@@ -515,7 +515,7 @@ mcp__unity-mcp-server__add_component({
   componentType: "GraphicRaycaster"
 })
 
-// ボタン追加
+// Add button
 mcp__unity-mcp-server__create_gameobject({
   name: "StartButton",
   parentPath: "/Canvas"
@@ -526,119 +526,119 @@ mcp__unity-mcp-server__add_component({
 })
 ```
 
-### 物理オブジェクト配置
+### Physics Object Placement
 
 ```javascript
-// 物理オブジェクト作成
+// Create physics object
 mcp__unity-mcp-server__create_gameobject({
   name: "PhysicsCube",
   primitiveType: "cube",
   position: { x: 0, y: 5, z: 0 }
 })
 
-// Rigidbody追加
+// Add Rigidbody
 mcp__unity-mcp-server__add_component({
   gameObjectPath: "/PhysicsCube",
   componentType: "Rigidbody",
   properties: { mass: 1.0 }
 })
 
-// Colliderは自動追加済み（プリミティブの場合）
+// Collider is auto-added (for primitives)
 ```
 
 ## Common Mistakes
 
-### 1. パス形式の誤り
+### 1. Wrong Path Format
 
 ```javascript
-// ❌ スラッシュなし
+// ❌ Without slash
 gameObjectPath: "Player"
 
-// ✅ 先頭スラッシュ必須
+// ✅ Leading slash required
 gameObjectPath: "/Player"
 
-// ✅ 階層パス
+// ✅ Hierarchy path
 gameObjectPath: "/Parent/Child/GrandChild"
 ```
 
-### 2. タグ・レイヤーの未定義
+### 2. Undefined Tag/Layer
 
 ```javascript
-// ❌ 存在しないタグを使用
-tag: "CustomEnemy"  // エラー
+// ❌ Using non-existent tag
+tag: "CustomEnemy"  // Error
 
-// ✅ 事前にタグを追加
+// ✅ Add tag first
 mcp__unity-mcp-server__manage_tags({
   action: "add",
   tagName: "CustomEnemy"
 })
 ```
 
-### 3. 非アクティブオブジェクトの見落とし
+### 3. Missing Inactive Objects
 
 ```javascript
-// ❌ 非アクティブが見つからない
+// ❌ Cannot find inactive object
 mcp__unity-mcp-server__find_gameobject({ name: "HiddenObject" })
 
-// ✅ includeInactiveを明示
+// ✅ Explicitly include inactive
 mcp__unity-mcp-server__get_hierarchy({
   includeInactive: true
 })
 ```
 
-### 4. 大規模ヒエラルキーでのパフォーマンス問題
+### 4. Performance Issues with Large Hierarchy
 
 ```javascript
-// ❌ 全情報を取得（トークン消費大）
+// ❌ Getting all info (high token usage)
 mcp__unity-mcp-server__get_hierarchy({
   includeComponents: true,
   includeTransform: true,
-  maxObjects: -1  // 無制限
+  maxObjects: -1  // Unlimited
 })
 
-// ✅ 軽量版で概要把握
+// ✅ Lightweight for overview
 mcp__unity-mcp-server__get_hierarchy({
   nameOnly: true,
   maxObjects: 100
 })
 
-// ✅ 必要な部分のみ詳細取得
+// ✅ Get details only for specific object
 mcp__unity-mcp-server__get_gameobject_details({
   gameObjectName: "SpecificObject",
   includeComponents: true
 })
 ```
 
-### 5. シーン未保存での変更消失
+### 5. Losing Changes Without Save
 
 ```javascript
-// ✅ 重要な変更後は保存
+// ✅ Save after important changes
 mcp__unity-mcp-server__save_scene()
 ```
 
 ## Tool Reference
 
-| ツール | 用途 |
-|--------|------|
-| `create_scene` | シーン作成 |
-| `load_scene` | シーン読み込み |
-| `save_scene` | シーン保存 |
-| `list_scenes` | シーン一覧 |
-| `get_scene_info` | シーン情報取得 |
-| `create_gameobject` | GameObject作成 |
-| `find_gameobject` | GameObject検索 |
-| `modify_gameobject` | GameObject修正 |
-| `delete_gameobject` | GameObject削除 |
-| `get_hierarchy` | ヒエラルキー取得 |
-| `add_component` | コンポーネント追加 |
-| `modify_component` | コンポーネント修正（一括） |
-| `set_component_field` | フィールド修正（精密） |
-| `remove_component` | コンポーネント削除 |
-| `list_components` | コンポーネント一覧 |
-| `get_component_types` | 利用可能な型一覧 |
-| `analyze_scene_contents` | シーン分析 |
-| `find_by_component` | コンポーネント検索 |
-| `get_gameobject_details` | 詳細情報取得 |
-| `get_component_values` | プロパティ値取得 |
-| `manage_tags` | タグ管理 |
-| `manage_layers` | レイヤー管理 |
+| Tool | Purpose |
+|------|---------|
+| `create_scene` | Create scene |
+| `load_scene` | Load scene |
+| `save_scene` | Save scene |
+| `list_scenes` | List scenes |
+| `get_scene_info` | Get scene info |
+| `create_gameobject` | Create GameObject |
+| `find_gameobject` | Find GameObject |
+| `modify_gameobject` | Modify GameObject |
+| `delete_gameobject` | Delete GameObject |
+| `get_hierarchy` | Get hierarchy |
+| `add_component` | Add component |
+| `modify_component` | Modify component (batch) |
+| `set_component_field` | Modify field (precise) |
+| `remove_component` | Remove component |
+| `list_components` | List components |
+| `get_component_types` | List available types |
+| `analyze_scene_contents` | Analyze scene |
+| `find_by_component` | Find by component |
+| `get_gameobject_details` | Get detailed info |
+| `get_component_values` | Get property values |
+| `manage_tags` | Manage tags |
+| `manage_layers` | Manage layers |

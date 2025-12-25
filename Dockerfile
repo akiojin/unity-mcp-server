@@ -48,6 +48,11 @@ RUN set -eux; \
 RUN curl -fsSL https://astral.sh/uv/install.sh | bash
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+# Claude Code EXDEV workaround (Issue #14799)
+# Prevents cross-device link error when /root/.claude and /tmp are on different filesystems
+ENV TMPDIR=/root/.claude/tmp
+RUN mkdir -p /root/.claude/tmp
+
 RUN npm i -g \
     npm@latest \
     bun@latest \

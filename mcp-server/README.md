@@ -72,6 +72,13 @@ More details:
 - Node.js 18.x / 20.x / 22.x LTS (23+ not supported)
 - MCP client (Claude Desktop, Cursor, etc.)
 
+## Native SQLite preload (optional)
+
+The server uses `fast-sql`, which can preload a native `better-sqlite3` binding when a prebuilt binary is packaged.
+
+- `UNITY_MCP_SKIP_NATIVE_BUILD=1` to skip native preload (forces sql.js fallback)
+- `UNITY_MCP_FORCE_NATIVE=1` to require the prebuilt binary (install fails if missing)
+
 ## Troubleshooting
 
 - Troubleshooting index: [`docs/troubleshooting/README.md`](https://github.com/akiojin/unity-mcp-server/blob/main/docs/troubleshooting/README.md)

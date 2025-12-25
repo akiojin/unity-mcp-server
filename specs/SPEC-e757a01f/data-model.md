@@ -187,22 +187,23 @@ PrebuiltBinary ----loads----> better-sqlite3
 
 ### PrebuiltBinary (npm package)
 
-**ストレージ**: npm package内の`prebuilds/`ディレクトリ
+**ストレージ**: npm package内の`prebuilt/`ディレクトリ
 
 **構造**:
 ```
 mcp-server/
-├── prebuilds/
-│   ├── linux-x64/
-│   │   └── better_sqlite3.node
-│   ├── linux-arm64/
-│   │   └── better_sqlite3.node
-│   ├── darwin-x64/
-│   │   └── better_sqlite3.node
-│   ├── darwin-arm64/
-│   │   └── better_sqlite3.node
-│   └── win32-x64/
-│       └── better_sqlite3.node
+├── prebuilt/
+│   └── better-sqlite3/
+│       ├── linux-x64/
+│       │   └── better_sqlite3.node
+│       ├── linux-arm64/
+│       │   └── better_sqlite3.node
+│       ├── darwin-x64/
+│       │   └── better_sqlite3.node
+│       ├── darwin-arm64/
+│       │   └── better_sqlite3.node
+│       └── win32-x64/
+│           └── better_sqlite3.node
 └── scripts/
     └── ensure-better-sqlite3.mjs
 ```

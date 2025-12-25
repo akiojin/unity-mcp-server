@@ -263,11 +263,11 @@ Unity Editor内のGameObjectとSceneを作成・変更・削除・検索・階�
 本仕様は既存実装を文書化したものです。参考実装:
 
 **GameObject操作**:
-- `mcp-server/src/handlers/gameobject/CreateGameObjectToolHandler.js`
-- `mcp-server/src/handlers/gameobject/ModifyGameObjectToolHandler.js`
-- `mcp-server/src/handlers/gameobject/DeleteGameObjectToolHandler.js`
-- `mcp-server/src/handlers/gameobject/FindGameObjectToolHandler.js`
-- `mcp-server/src/handlers/gameobject/GetHierarchyToolHandler.js`
+- `mcp-server/src/handlers/gameobject/GameObjectCreateToolHandler.js`
+- `mcp-server/src/handlers/gameobject/GameObjectModifyToolHandler.js`
+- `mcp-server/src/handlers/gameobject/GameObjectDeleteToolHandler.js`
+- `mcp-server/src/handlers/gameobject/GameObjectFindToolHandler.js`
+- `mcp-server/src/handlers/gameobject/GameObjectGetHierarchyToolHandler.js`
 
 **Scene操作**:
 - `mcp-server/src/handlers/scene/SceneCreateToolHandler.js`

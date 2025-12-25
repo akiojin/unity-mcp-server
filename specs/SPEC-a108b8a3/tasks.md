@@ -90,8 +90,8 @@
   - 依存関係解析（AssetDatabase.GetDependencies使用）
   - 未使用アセット検出ロジック実装
 
-- [ ] **T014** Unity側でCommandHandlerにAddressablesHandlerをルーティング
-  - ファイル: `UnityMCPServer/Packages/unity-mcp-server/Editor/Core/CommandHandler.cs` (更新)
+- [ ] **T014** Unity側でUnityMCPServerにAddressablesHandlerをルーティング
+  - ファイル: `UnityMCPServer/Packages/unity-mcp-server/Editor/Core/UnityMCPServer.cs` (更新)
   - `addressables_manage`, `addressables_build`, `addressables_analyze` コマンドを AddressablesHandler にルーティング
   - switchステートメントまたはディスパッチャーに追加
 
@@ -127,7 +127,7 @@
   - exportリストに追加
 
 - [ ] **T019** MCPサーバーで新規ツールを登録
-  - ファイル: `mcp-server/src/server.js` または該当する登録箇所 (更新)
+  - ファイル: `mcp-server/src/core/server.js` または該当する登録箇所 (更新)
   - 新規ハンドラーをツールリストに登録
   - MCPサーバー再起動で3つの新規ツールが利用可能になることを確認
 

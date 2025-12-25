@@ -17,7 +17,7 @@ Speckitをアップデートするときは、以下が必ず成立する状態�
    - 要件IDは `specs/SPEC-[UUID8桁]`（例: `specs/SPEC-a1b2c3d4/`）
 
 4. **要件一覧の自動生成**
-   - `specs/README.md` に要件一覧を出力する（自動生成/上書きOK）
+   - `specs/specs.md` に要件一覧を出力する（自動生成/上書きOK）
 
 5. **現在の対象要件の解決方法**
    - `speckit.plan` / `speckit.tasks` などが対象を特定できるよう、`.specify/current-feature`（gitignore対象）または `SPECIFY_FEATURE=SPEC-xxxxxxxx` を使用する
@@ -33,7 +33,7 @@ Speckitをアップデートするときは、以下が必ず成立する状態�
 このリポジトリ固有のマッピング/運用:
 
 - `.claude/commands/speckit.*.md`（上流には無いので、このリポジトリで管理）
-- `specs/README.md`（本リポジトリで自動生成）
+- `specs/specs.md`（本リポジトリで自動生成）
 
 ## アップデート手順（推奨フロー）
 
@@ -77,7 +77,7 @@ git diff --no-index .specify/scripts/bash .specify/upstream/spec-kit-v0.0.90/scr
 - `create-new-feature` がブランチを作成してしまう
 - `SPEC-[UUID8桁]` 以外のディレクトリ名になる
 - `.specify/current-feature` を参照しない/更新しない
-- `specs/README.md` が生成されない
+- `specs/specs.md` が生成されない
 - `.claude/commands` / `.specify/templates` が英語に戻る
 
 ### 5) 動作確認（最低限）
@@ -96,7 +96,7 @@ bash .specify/scripts/bash/check-prerequisites.sh --json --paths-only || true
 
 補足:
 
-- GitHub Actionsで `specs/README.md` の最新性を検証しています。CIが落ちた場合は `bash .specify/scripts/bash/update-specs-readme.sh --quiet` を実行して再コミットしてください。
+- GitHub Actionsで `specs/specs.md` の最新性を検証しています。CIが落ちた場合は `bash .specify/scripts/bash/update-specs-readme.sh --quiet` を実行して再コミットしてください。
 
 ### 6) 変更を記録（コミット）
 
@@ -111,4 +111,4 @@ bash .specify/scripts/bash/check-prerequisites.sh --json --paths-only || true
 
 例:
 
-> 「Speckitを上流v0.0.xxへ更新して。Runbook（docs/runbooks/speckit-upgrade.md）の不変条件（日本語/ブランチ無し/SPEC-ID/specs/README.md生成）を必ず満たして。差分は .specify/upstream に取り込んで確認してから反映して。」
+> 「Speckitを上流v0.0.xxへ更新して。Runbook（docs/runbooks/speckit-upgrade.md）の不変条件（日本語/ブランチ無し/SPEC-ID/specs/specs.md生成）を必ず満たして。差分は .specify/upstream に取り込んで確認してから反映して。」

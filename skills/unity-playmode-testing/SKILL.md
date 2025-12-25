@@ -1,39 +1,39 @@
 ---
 name: unity-playmode-testing
-description: Unityのプレイモード制御、入力シミュレーション、UI自動化、視覚的検証を支援。テスト実行、スクリーンショット/動画キャプチャ、コンソールログ確認を統合。使用タイミング: プレイモード開始、入力シミュレーション、UIクリック、スクリーンショット、動画録画、テスト実行
+description: Supports Unity Play Mode control, input simulation, UI automation, and visual verification. Integrates test execution, screenshot/video capture, and console log checking. Use when: starting Play Mode, input simulation, UI clicks, screenshots, video recording, test execution
 allowed-tools: Read, Grep, Glob
 ---
 
 # Unity PlayMode & Testing
 
-プレイモード制御、入力シミュレーション、UI自動化、視覚的検証のガイド。
+A guide for Play Mode control, input simulation, UI automation, and visual verification.
 
 ## Quick Start
 
-### 1. プレイモード制御
+### 1. Play Mode Control
 
 ```javascript
-// プレイモード開始
+// Start Play Mode
 mcp__unity-mcp-server__play_game()
 
-// 状態確認
+// Check state
 mcp__unity-mcp-server__get_editor_state()
 
-// 停止
+// Stop
 mcp__unity-mcp-server__stop_game()
 ```
 
-### 2. 入力シミュレーション
+### 2. Input Simulation
 
 ```javascript
-// キーボード入力
+// Keyboard input
 mcp__unity-mcp-server__input_keyboard({
   action: "press",
   key: "w",
   holdSeconds: 1.0
 })
 
-// マウスクリック
+// Mouse click
 mcp__unity-mcp-server__input_mouse({
   action: "click",
   x: 500,
@@ -42,10 +42,10 @@ mcp__unity-mcp-server__input_mouse({
 })
 ```
 
-### 3. スクリーンショット
+### 3. Screenshot
 
 ```javascript
-// ゲームビューをキャプチャ
+// Capture Game View
 mcp__unity-mcp-server__capture_screenshot({
   captureMode: "game"
 })
@@ -53,38 +53,38 @@ mcp__unity-mcp-server__capture_screenshot({
 
 ## Play Mode Control
 
-### 開始・一時停止・停止
+### Start, Pause, Stop
 
 ```javascript
-// プレイモード開始
+// Start Play Mode
 mcp__unity-mcp-server__play_game()
 
-// 一時停止/再開（トグル）
+// Pause/Resume (toggle)
 mcp__unity-mcp-server__pause_game()
 
-// 停止（エディットモードに戻る）
+// Stop (return to Edit Mode)
 mcp__unity-mcp-server__stop_game()
 ```
 
-### 状態確認
+### Check State
 
 ```javascript
-// 現在の状態を取得
+// Get current state
 mcp__unity-mcp-server__get_editor_state()
-// 戻り値: { isPlaying: true/false, isPaused: true/false }
+// Returns: { isPlaying: true/false, isPaused: true/false }
 ```
 
-### 状態待機
+### Wait for State
 
 ```javascript
-// プレイモードになるまで待機
+// Wait until Play Mode starts
 mcp__unity-mcp-server__playmode_wait_for_state({
   isPlaying: true,
-  timeoutMs: 10000,  // 10秒タイムアウト
-  pollMs: 500        // 500msごとに確認
+  timeoutMs: 10000,  // 10 second timeout
+  pollMs: 500        // Check every 500ms
 })
 
-// エディットモードになるまで待機
+// Wait until Edit Mode
 mcp__unity-mcp-server__playmode_wait_for_state({
   isPlaying: false,
   timeoutMs: 5000
@@ -93,36 +93,36 @@ mcp__unity-mcp-server__playmode_wait_for_state({
 
 ## Input Simulation
 
-### キーボード入力
+### Keyboard Input
 
 ```javascript
-// キーを押す
+// Press key
 mcp__unity-mcp-server__input_keyboard({
   action: "press",
   key: "space"
 })
 
-// キーを離す
+// Release key
 mcp__unity-mcp-server__input_keyboard({
   action: "release",
   key: "space"
 })
 
-// 自動リリース付き（holdSeconds）
+// Auto-release with holdSeconds
 mcp__unity-mcp-server__input_keyboard({
   action: "press",
   key: "w",
-  holdSeconds: 2.0  // 2秒後に自動リリース
+  holdSeconds: 2.0  // Auto-release after 2 seconds
 })
 
-// テキスト入力
+// Text input
 mcp__unity-mcp-server__input_keyboard({
   action: "type",
   text: "Hello World",
-  typingSpeed: 50  // 50ms間隔
+  typingSpeed: 50  // 50ms interval
 })
 
-// キーコンボ
+// Key combo
 mcp__unity-mcp-server__input_keyboard({
   action: "combo",
   keys: ["ctrl", "shift", "s"],
@@ -130,27 +130,27 @@ mcp__unity-mcp-server__input_keyboard({
 })
 ```
 
-### マウス入力
+### Mouse Input
 
 ```javascript
-// 移動
+// Move
 mcp__unity-mcp-server__input_mouse({
   action: "move",
   x: 500,
   y: 300,
-  absolute: true  // スクリーン座標
+  absolute: true  // Screen coordinates
 })
 
-// クリック
+// Click
 mcp__unity-mcp-server__input_mouse({
   action: "click",
   x: 500,
   y: 300,
   button: "left",  // left, right, middle
-  clickCount: 2    // ダブルクリック
+  clickCount: 2    // Double-click
 })
 
-// ドラッグ
+// Drag
 mcp__unity-mcp-server__input_mouse({
   action: "drag",
   startX: 100,
@@ -160,13 +160,13 @@ mcp__unity-mcp-server__input_mouse({
   button: "left"
 })
 
-// スクロール
+// Scroll
 mcp__unity-mcp-server__input_mouse({
   action: "scroll",
-  deltaY: -120  // 負=下、正=上
+  deltaY: -120  // Negative=down, Positive=up
 })
 
-// ボタン長押し
+// Button hold
 mcp__unity-mcp-server__input_mouse({
   action: "button",
   buttonAction: "press",
@@ -175,30 +175,30 @@ mcp__unity-mcp-server__input_mouse({
 })
 ```
 
-### ゲームパッド入力
+### Gamepad Input
 
 ```javascript
-// ボタン押下
+// Button press
 mcp__unity-mcp-server__input_gamepad({
   action: "button",
   button: "a",  // a/cross, b/circle, x/square, y/triangle, start, select, etc.
   buttonAction: "press"
 })
 
-// アナログスティック
+// Analog stick
 mcp__unity-mcp-server__input_gamepad({
   action: "stick",
   stick: "left",
-  x: 1.0,   // -1.0 ～ 1.0
+  x: 1.0,   // -1.0 to 1.0
   y: 0.5,
   holdSeconds: 1.0
 })
 
-// トリガー
+// Trigger
 mcp__unity-mcp-server__input_gamepad({
   action: "trigger",
   trigger: "right",
-  value: 0.8,  // 0.0 ～ 1.0
+  value: 0.8,  // 0.0 to 1.0
   holdSeconds: 0.5
 })
 
@@ -210,10 +210,10 @@ mcp__unity-mcp-server__input_gamepad({
 })
 ```
 
-### タッチ入力
+### Touch Input
 
 ```javascript
-// タップ
+// Tap
 mcp__unity-mcp-server__input_touch({
   action: "tap",
   x: 500,
@@ -221,7 +221,7 @@ mcp__unity-mcp-server__input_touch({
   touchId: 0
 })
 
-// スワイプ
+// Swipe
 mcp__unity-mcp-server__input_touch({
   action: "swipe",
   startX: 100,
@@ -231,16 +231,16 @@ mcp__unity-mcp-server__input_touch({
   duration: 300  // ms
 })
 
-// ピンチ（ズーム）
+// Pinch (zoom)
 mcp__unity-mcp-server__input_touch({
   action: "pinch",
   centerX: 400,
   centerY: 300,
   startDistance: 100,
-  endDistance: 200  // ズームイン
+  endDistance: 200  // Zoom in
 })
 
-// マルチタッチ
+// Multi-touch
 mcp__unity-mcp-server__input_touch({
   action: "multi",
   touches: [
@@ -250,10 +250,10 @@ mcp__unity-mcp-server__input_touch({
 })
 ```
 
-### バッチ入力（複数アクションを順次実行）
+### Batch Input (Execute Multiple Actions Sequentially)
 
 ```javascript
-// キーボードバッチ
+// Keyboard batch
 mcp__unity-mcp-server__input_keyboard({
   actions: [
     { action: "press", key: "w", holdSeconds: 1.0 },
@@ -262,7 +262,7 @@ mcp__unity-mcp-server__input_keyboard({
   ]
 })
 
-// マウスバッチ
+// Mouse batch
 mcp__unity-mcp-server__input_mouse({
   actions: [
     { action: "move", x: 100, y: 100 },
@@ -275,186 +275,186 @@ mcp__unity-mcp-server__input_mouse({
 
 ## UI Automation
 
-### elementPath（uGUI / UI Toolkit / IMGUI）
+### elementPath (uGUI / UI Toolkit / IMGUI)
 
-`find_ui_elements` の戻り値 `path`（= `elementPath`）は、UIシステムごとに形式が異なります。
+The `path` (= `elementPath`) returned by `find_ui_elements` differs in format depending on the UI system.
 
-- uGUI: `/Canvas/...`（GameObject階層パス）
-- UI Toolkit: `uitk:<UIDocumentのGameObjectパス>#<VisualElement.name>`
-  - 例: `uitk:/UITK/UIDocument#UITK_Button`
-- IMGUI: `imgui:<controlId>`（OnGUI側で登録されたID）
-  - 例: `imgui:IMGUI/Button`
+- uGUI: `/Canvas/...` (GameObject hierarchy path)
+- UI Toolkit: `uitk:<UIDocument GameObject path>#<VisualElement.name>`
+  - Example: `uitk:/UITK/UIDocument#UITK_Button`
+- IMGUI: `imgui:<controlId>` (ID registered in OnGUI)
+  - Example: `imgui:IMGUI/Button`
 
-検証用シーン:
+Test scenes:
 - uGUI: `UnityMCPServer/Assets/Scenes/MCP_UI_UGUI_TestScene.unity`
 - UI Toolkit: `UnityMCPServer/Assets/Scenes/MCP_UI_UITK_TestScene.unity`
 - IMGUI: `UnityMCPServer/Assets/Scenes/MCP_UI_IMGUI_TestScene.unity`
-- uGUI/UI Toolkit/IMGUI 同居: `UnityMCPServer/Assets/Scenes/MCP_UI_AllSystems_TestScene.unity`
-  - 注: UI は `McpAllUiSystemsTestBootstrap` が Play Mode 開始時に生成するため、Edit Mode では見えない
-- MCP経由E2Eテスト（シーンロード→Play Mode→ui_* ツール呼び出し）:
+- uGUI/UI Toolkit/IMGUI combined: `UnityMCPServer/Assets/Scenes/MCP_UI_AllSystems_TestScene.unity`
+  - Note: UI is generated by `McpAllUiSystemsTestBootstrap` at Play Mode start, so it's not visible in Edit Mode
+- MCP E2E tests (scene load → Play Mode → ui_* tool calls):
   - stdio / tools/call: `node --test mcp-server/tests/e2e/ui-automation-mcp-protocol.test.js`
-  - UnityConnection直結: `node --test mcp-server/tests/e2e/ui-automation-scenes.test.js`
+  - UnityConnection direct: `node --test mcp-server/tests/e2e/ui-automation-scenes.test.js`
 
-### UI要素検索
+### Search UI Elements
 
 ```javascript
-// 要素タイプで検索
+// Search by element type
 mcp__unity-mcp-server__find_ui_elements({
   elementType: "Button"
 })
 
-// 名前パターンで検索
+// Search by name pattern
 mcp__unity-mcp-server__find_ui_elements({
-  namePattern: "Start.*",  // 正規表現
+  namePattern: "Start.*",  // Regular expression
   includeInactive: true
 })
 
-// Canvas内で検索
+// Search within Canvas
 mcp__unity-mcp-server__find_ui_elements({
   elementType: "Toggle",
   canvasFilter: "SettingsCanvas"
 })
 ```
 
-### UIクリック
+### UI Click
 
 ```javascript
-// 要素パスでクリック
+// Click by element path
 mcp__unity-mcp-server__click_ui_element({
   elementPath: "/Canvas/StartButton"
 })
 
-// UI Toolkit（UIDocument配下のVisualElementをnameで指定）
+// UI Toolkit (specify VisualElement by name under UIDocument)
 mcp__unity-mcp-server__click_ui_element({
   elementPath: "uitk:/UITK/UIDocument#UITK_Button"
 })
 
-// IMGUI（OnGUI側で登録されたcontrolIdを指定）
+// IMGUI (specify controlId registered in OnGUI)
 mcp__unity-mcp-server__click_ui_element({
   elementPath: "imgui:IMGUI/Button"
 })
 
-// 注: UI Toolkit / IMGUI は holdDuration / position を無視（警告で返却）
+// Note: UI Toolkit / IMGUI ignore holdDuration / position (returned as warning)
 
-// 右クリック
+// Right-click
 mcp__unity-mcp-server__click_ui_element({
   elementPath: "/Canvas/ContextMenu",
   clickType: "right"
 })
 
-// 長押し
+// Long press
 mcp__unity-mcp-server__click_ui_element({
   elementPath: "/Canvas/HoldButton",
-  holdDuration: 1000  // 1秒
+  holdDuration: 1000  // 1 second
 })
 
-// 要素内の特定位置をクリック
+// Click at specific position within element
 mcp__unity-mcp-server__click_ui_element({
   elementPath: "/Canvas/Slider",
-  position: { x: 0.8, y: 0.5 }  // 0-1の相対座標
+  position: { x: 0.8, y: 0.5 }  // Relative coordinates 0-1
 })
 ```
 
-### UI要素状態取得
+### Get UI Element State
 
 ```javascript
-// 要素の状態を取得
+// Get element state
 mcp__unity-mcp-server__get_ui_element_state({
   elementPath: "/Canvas/StartButton",
   includeInteractableInfo: true
 })
-// 戻り値: interactable, visible, position, size, etc.
+// Returns: interactable, visible, position, size, etc.
 
-// 子要素も含める
+// Include children
 mcp__unity-mcp-server__get_ui_element_state({
   elementPath: "/Canvas/Panel",
   includeChildren: true
 })
 ```
 
-### UI値設定
+### Set UI Value
 
 ```javascript
-// InputFieldにテキスト設定
+// Set text to InputField
 mcp__unity-mcp-server__set_ui_element_value({
   elementPath: "/Canvas/NameInput",
   value: "PlayerName",
-  triggerEvents: true  // OnValueChanged等を発火
+  triggerEvents: true  // Fire OnValueChanged etc.
 })
 
-// Sliderの値設定
+// Set Slider value
 mcp__unity-mcp-server__set_ui_element_value({
   elementPath: "/Canvas/VolumeSlider",
   value: 0.75
 })
 
-// Toggleの状態設定
+// Set Toggle state
 mcp__unity-mcp-server__set_ui_element_value({
   elementPath: "/Canvas/MuteToggle",
   value: true
 })
 
-// Dropdownの選択
+// Select Dropdown
 mcp__unity-mcp-server__set_ui_element_value({
   elementPath: "/Canvas/DifficultyDropdown",
-  value: "Hard"  // または index
+  value: "Hard"  // or index
 })
 ```
 
-### 複合UIシーケンス
+### Compound UI Sequence
 
 ```javascript
-// 複数のUI操作を順次実行
+// Execute multiple UI operations sequentially
 mcp__unity-mcp-server__simulate_ui_input({
   inputSequence: [
     { type: "click", params: { elementPath: "/Canvas/NameInput" }},
     { type: "setvalue", params: { elementPath: "/Canvas/NameInput", value: "Player1" }},
     { type: "click", params: { elementPath: "/Canvas/StartButton" }}
   ],
-  waitBetween: 500,     // アクション間500ms待機
-  validateState: true   // 各アクション後に状態検証
+  waitBetween: 500,     // Wait 500ms between actions
+  validateState: true   // Validate state after each action
 })
 ```
 
 ## Visual Capture
 
-### スクリーンショット
+### Screenshot
 
 ```javascript
-// ゲームビュー
+// Game View
 mcp__unity-mcp-server__capture_screenshot({
   captureMode: "game"
 })
 
-// シーンビュー
+// Scene View
 mcp__unity-mcp-server__capture_screenshot({
   captureMode: "scene"
 })
 
-// 解像度指定
+// Specify resolution
 mcp__unity-mcp-server__capture_screenshot({
   captureMode: "game",
   width: 1920,
   height: 1080
 })
 
-// UIを除外
+// Exclude UI
 mcp__unity-mcp-server__capture_screenshot({
   captureMode: "game",
   includeUI: false
 })
 
-// Base64で取得（即時分析用）
+// Get as Base64 (for immediate analysis)
 mcp__unity-mcp-server__capture_screenshot({
   captureMode: "game",
   encodeAsBase64: true
 })
 ```
 
-### Explorerモード（LLM最適化キャプチャ）
+### Explorer Mode (LLM-Optimized Capture)
 
 ```javascript
-// 特定オブジェクトにフォーカス
+// Focus on specific object
 mcp__unity-mcp-server__capture_screenshot({
   captureMode: "explorer",
   explorerSettings: {
@@ -470,7 +470,7 @@ mcp__unity-mcp-server__capture_screenshot({
   }
 })
 
-// タグで複数オブジェクトをキャプチャ
+// Capture multiple objects by tag
 mcp__unity-mcp-server__capture_screenshot({
   captureMode: "explorer",
   explorerSettings: {
@@ -485,7 +485,7 @@ mcp__unity-mcp-server__capture_screenshot({
   }
 })
 
-// エリア指定
+// Specify area
 mcp__unity-mcp-server__capture_screenshot({
   captureMode: "explorer",
   explorerSettings: {
@@ -498,36 +498,36 @@ mcp__unity-mcp-server__capture_screenshot({
 })
 ```
 
-### スクリーンショット分析
+### Screenshot Analysis
 
 ```javascript
-// 基本分析（色・サイズ）
+// Basic analysis (colors, size)
 mcp__unity-mcp-server__analyze_screenshot({
   imagePath: "Assets/../.unity/capture/screenshot.png",
   analysisType: "basic"
 })
 
-// UI要素検出
+// UI element detection
 mcp__unity-mcp-server__analyze_screenshot({
   analysisType: "ui"
 })
 
-// シーン内容分析
+// Scene content analysis
 mcp__unity-mcp-server__analyze_screenshot({
   analysisType: "content"
 })
 
-// 全分析
+// Full analysis
 mcp__unity-mcp-server__analyze_screenshot({
   analysisType: "full",
   prompt: "Find all buttons in the UI"
 })
 ```
 
-### 動画録画
+### Video Recording
 
 ```javascript
-// 録画開始
+// Start recording
 mcp__unity-mcp-server__capture_video_start({
   captureMode: "game",
   fps: 30,
@@ -535,153 +535,153 @@ mcp__unity-mcp-server__capture_video_start({
   height: 720
 })
 
-// 録画状態確認
+// Check recording status
 mcp__unity-mcp-server__capture_video_status()
 
-// 録画停止
+// Stop recording
 mcp__unity-mcp-server__capture_video_stop()
 
-// 一括録画（N秒間録画して自動停止）
+// One-shot recording (record for N seconds and auto-stop)
 mcp__unity-mcp-server__video_capture_for({
   durationSec: 10,
-  play: true,  // 自動でプレイモード開始
+  play: true,  // Auto-start Play Mode
   fps: 30
 })
 ```
 
 ## Testing & Debugging
 
-### テスト実行
+### Run Tests
 
 ```javascript
-// EditModeテスト実行
+// Run EditMode tests
 mcp__unity-mcp-server__run_tests({
   testMode: "EditMode"
 })
 
-// PlayModeテスト実行
+// Run PlayMode tests
 mcp__unity-mcp-server__run_tests({
   testMode: "PlayMode"
 })
 
-// 両方実行
+// Run both
 mcp__unity-mcp-server__run_tests({
   testMode: "All"
 })
 
-// フィルタ付き
+// With filters
 mcp__unity-mcp-server__run_tests({
   testMode: "EditMode",
-  filter: "PlayerTests",          // クラス名
-  namespace: "Tests.Player",      // 名前空間
-  category: "Unit",               // カテゴリ
+  filter: "PlayerTests",          // Class name
+  namespace: "Tests.Player",      // Namespace
+  category: "Unit",               // Category
   includeDetails: true
 })
 
-// 結果をXMLにエクスポート
+// Export results to XML
 mcp__unity-mcp-server__run_tests({
   testMode: "All",
   exportPath: "TestResults/results.xml"
 })
 ```
 
-### テスト状態確認
+### Check Test Status
 
 ```javascript
-// テスト実行状態
+// Test execution status
 mcp__unity-mcp-server__get_test_status()
 
-// 結果サマリー付き
+// With result summary
 mcp__unity-mcp-server__get_test_status({
   includeTestResults: true,
   includeFileContent: true
 })
 ```
 
-### コンソールログ
+### Console Logs
 
 ```javascript
-// ログ読み取り
+// Read logs
 mcp__unity-mcp-server__read_console({
   count: 100,
   logTypes: ["Log", "Warning", "Error"]
 })
 
-// エラーのみ
+// Errors only
 mcp__unity-mcp-server__read_console({
   logTypes: ["Error"],
   includeStackTrace: true
 })
 
-// テキストフィルタ
+// Text filter
 mcp__unity-mcp-server__read_console({
   filterText: "Player",
   sortOrder: "newest"
 })
 
-// 時間範囲指定
+// Time range specification
 mcp__unity-mcp-server__read_console({
   sinceTimestamp: "2024-01-01T00:00:00Z"
 })
 
-// コンソールクリア
+// Clear console
 mcp__unity-mcp-server__clear_console({
-  preserveErrors: true  // エラーは残す
+  preserveErrors: true  // Keep errors
 })
 ```
 
 ## Common Workflows
 
-### UI自動テスト
+### UI Automated Testing
 
 ```javascript
-// 1. プレイモード開始
+// 1. Start Play Mode
 mcp__unity-mcp-server__play_game()
 mcp__unity-mcp-server__playmode_wait_for_state({ isPlaying: true })
 
-// 2. メニュー操作
+// 2. Menu operation
 mcp__unity-mcp-server__click_ui_element({
   elementPath: "/Canvas/MainMenu/StartButton"
 })
 
-// 3. 待機
+// 3. Wait
 await new Promise(r => setTimeout(r, 1000))
 
-// 4. 入力
+// 4. Input
 mcp__unity-mcp-server__set_ui_element_value({
   elementPath: "/Canvas/NameInput",
   value: "TestPlayer"
 })
 
-// 5. 確認ボタン
+// 5. Confirm button
 mcp__unity-mcp-server__click_ui_element({
   elementPath: "/Canvas/ConfirmButton"
 })
 
-// 6. 結果をスクリーンショット
+// 6. Screenshot result
 mcp__unity-mcp-server__capture_screenshot({ captureMode: "game" })
 
-// 7. コンソールでエラー確認
+// 7. Check console for errors
 mcp__unity-mcp-server__read_console({ logTypes: ["Error"] })
 
-// 8. 停止
+// 8. Stop
 mcp__unity-mcp-server__stop_game()
 ```
 
-### ゲームプレイ記録
+### Gameplay Recording
 
 ```javascript
-// 1. 録画付きでプレイモード開始
+// 1. Start Play Mode with recording
 mcp__unity-mcp-server__video_capture_for({
   durationSec: 30,
   play: true
 })
 
-// または手動制御:
+// Or manual control:
 mcp__unity-mcp-server__play_game()
 mcp__unity-mcp-server__capture_video_start()
 
-// 2. ゲームプレイ入力
+// 2. Gameplay input
 mcp__unity-mcp-server__input_keyboard({
   actions: [
     { action: "press", key: "w", holdSeconds: 2.0 },
@@ -690,24 +690,24 @@ mcp__unity-mcp-server__input_keyboard({
   ]
 })
 
-// 3. 録画停止
+// 3. Stop recording
 mcp__unity-mcp-server__capture_video_stop()
 mcp__unity-mcp-server__stop_game()
 ```
 
-### バグ再現自動化
+### Bug Reproduction Automation
 
 ```javascript
-// 1. シーン読み込み
+// 1. Load scene
 mcp__unity-mcp-server__load_scene({
   scenePath: "Assets/Scenes/BugScene.unity"
 })
 
-// 2. プレイモード開始
+// 2. Start Play Mode
 mcp__unity-mcp-server__play_game()
 mcp__unity-mcp-server__playmode_wait_for_state({ isPlaying: true })
 
-// 3. 再現手順
+// 3. Reproduction steps
 mcp__unity-mcp-server__input_keyboard({
   action: "press",
   key: "e",
@@ -720,40 +720,40 @@ mcp__unity-mcp-server__input_mouse({
   y: 300
 })
 
-// 4. エラー確認
+// 4. Check for errors
 mcp__unity-mcp-server__read_console({
   logTypes: ["Error"],
   includeStackTrace: true
 })
 
-// 5. スクリーンショット
+// 5. Screenshot
 mcp__unity-mcp-server__capture_screenshot({ captureMode: "game" })
 
-// 6. 停止
+// 6. Stop
 mcp__unity-mcp-server__stop_game()
 ```
 
 ## Common Mistakes
 
-### 1. プレイモード状態の確認漏れ
+### 1. Missing Play Mode State Check
 
 ```javascript
-// ❌ 状態確認なしで入力
+// ❌ Input without state check
 mcp__unity-mcp-server__input_keyboard({ action: "press", key: "w" })
 
-// ✅ プレイモード確認後に入力
+// ✅ Input after confirming Play Mode
 mcp__unity-mcp-server__play_game()
 mcp__unity-mcp-server__playmode_wait_for_state({ isPlaying: true })
 mcp__unity-mcp-server__input_keyboard({ action: "press", key: "w" })
 ```
 
-### 2. 入力の即時リリース忘れ
+### 2. Forgetting Immediate Key Release
 
 ```javascript
-// ❌ press後にrelease忘れ（キーが押しっぱなし）
+// ❌ Forgetting release after press (key stays pressed)
 mcp__unity-mcp-server__input_keyboard({ action: "press", key: "shift" })
 
-// ✅ holdSecondsで自動リリース
+// ✅ Auto-release with holdSeconds
 mcp__unity-mcp-server__input_keyboard({
   action: "press",
   key: "shift",
@@ -761,66 +761,66 @@ mcp__unity-mcp-server__input_keyboard({
 })
 ```
 
-### 3. UI要素パスの誤り
+### 3. Wrong UI Element Path
 
 ```javascript
-// ❌ 相対パス
+// ❌ Relative path
 elementPath: "Canvas/Button"
 
-// ✅ 絶対パス（先頭スラッシュ）
+// ✅ Absolute path (leading slash)
 elementPath: "/Canvas/Button"
 ```
 
-### 4. 録画停止忘れ
+### 4. Forgetting to Stop Recording
 
 ```javascript
-// ✅ 録画は必ず停止
+// ✅ Always stop recording
 mcp__unity-mcp-server__capture_video_start()
-// ... 録画処理 ...
-mcp__unity-mcp-server__capture_video_stop()  // 忘れずに!
+// ... recording process ...
+mcp__unity-mcp-server__capture_video_stop()  // Don't forget!
 
-// ✅ または video_capture_for で自動停止
+// ✅ Or use video_capture_for for auto-stop
 mcp__unity-mcp-server__video_capture_for({ durationSec: 10 })
 ```
 
-### 5. テスト実行タイミング
+### 5. Test Execution Timing
 
 ```javascript
-// ❌ PlayModeテストをエディットモードで実行しようとする
-// （Unity側で自動的にプレイモードに切り替わるが、タイミング注意）
+// ❌ Trying to run PlayMode tests in Edit Mode
+// (Unity automatically switches to Play Mode, but timing requires attention)
 
-// ✅ 明示的にモードを指定
+// ✅ Explicitly specify mode
 mcp__unity-mcp-server__run_tests({
-  testMode: "PlayMode",  // EditModeテストなら "EditMode"
+  testMode: "PlayMode",  // "EditMode" for EditMode tests
   includeDetails: true
 })
 ```
 
 ## Tool Reference
 
-| ツール | 用途 |
-|--------|------|
-| `play_game` | プレイモード開始 |
-| `pause_game` | 一時停止/再開 |
-| `stop_game` | プレイモード停止 |
-| `get_editor_state` | 状態取得 |
-| `playmode_wait_for_state` | 状態待機 |
-| `input_keyboard` | キーボード入力 |
-| `input_mouse` | マウス入力 |
-| `input_gamepad` | ゲームパッド入力 |
-| `input_touch` | タッチ入力 |
-| `find_ui_elements` | UI要素検索 |
-| `click_ui_element` | UIクリック |
-| `get_ui_element_state` | UI状態取得 |
-| `set_ui_element_value` | UI値設定 |
-| `simulate_ui_input` | 複合UIシーケンス |
-| `capture_screenshot` | スクリーンショット |
-| `analyze_screenshot` | スクリーンショット分析 |
-| `capture_video_start` | 録画開始 |
-| `capture_video_stop` | 録画停止 |
-| `capture_video_status` | 録画状態 |
-| `video_capture_for` | 指定秒数録画 |
-| `run_tests` | テスト実行 |
-| `get_test_status` | テスト状態 |
-| `read_console` | ログ読み取り |
-| `clear_console` | ログクリア |
+| Tool | Purpose |
+|------|---------|
+| `play_game` | Start Play Mode |
+| `pause_game` | Pause/Resume |
+| `stop_game` | Stop Play Mode |
+| `get_editor_state` | Get state |
+| `playmode_wait_for_state` | Wait for state |
+| `input_keyboard` | Keyboard input |
+| `input_mouse` | Mouse input |
+| `input_gamepad` | Gamepad input |
+| `input_touch` | Touch input |
+| `find_ui_elements` | Search UI elements |
+| `click_ui_element` | UI click |
+| `get_ui_element_state` | Get UI state |
+| `set_ui_element_value` | Set UI value |
+| `simulate_ui_input` | Compound UI sequence |
+| `capture_screenshot` | Screenshot |
+| `analyze_screenshot` | Screenshot analysis |
+| `capture_video_start` | Start recording |
+| `capture_video_stop` | Stop recording |
+| `capture_video_status` | Recording status |
+| `video_capture_for` | Record for specified seconds |
+| `run_tests` | Run tests |
+| `get_test_status` | Test status |
+| `read_console` | Read logs |
+| `clear_console` | Clear logs |

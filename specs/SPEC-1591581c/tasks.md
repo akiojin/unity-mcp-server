@@ -132,7 +132,7 @@
 
 ### T007 ハンドラ登録（Unity側）
 
-**ファイル**: `UnityMCPServer/Packages/unity-mcp-server/Editor/UnityMCPServer.cs`
+**ファイル**: `UnityMCPServer/Packages/unity-mcp-server/Editor/Core/UnityMCPServer.cs`
 
 **タスク**:
 - ProfilerHandlerをインスタンス化

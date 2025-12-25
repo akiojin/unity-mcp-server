@@ -4,7 +4,7 @@
 **前提条件**: Unity 2020.3+ 環境, Addressables 有効 (サンプル用)
 
 ## Phase 3.1: セットアップ
-- [ ] T201 UnityMCPServer/Packages/... に Editor 用フォルダ/asmdef 追加
+- [ ] T201 UnityMCPServer/Packages/unity-mcp-server/Editor/ に Editor 用フォルダ/asmdef 追加
 - [ ] T202 [P] Addressables テスト用一時グループの作成/削除ユーティリティ雛形
 
 ## Phase 3.2: テストファースト
