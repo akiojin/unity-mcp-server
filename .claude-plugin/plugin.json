@@ -15,5 +15,8 @@
     "game-development",
     "csharp",
     "editor-automation"
-  ]
+  ],
+  "agents": "./plugins/unity-mcp-server/agents",
+  "commands": "./plugins/unity-mcp-server/commands",
+  "skills": "./plugins/unity-mcp-server/skills"
 }
