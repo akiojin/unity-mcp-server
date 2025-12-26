@@ -1,6 +1,6 @@
 {
   "name": "unity-mcp-server-workspace",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "private": true,
   "description": "Workspace root for unity-mcp-server monorepo",
   "scripts": {

@@ -4,6 +4,14 @@
 
 * `.unity/config.json` 対応を削除（Node は環境変数、Unity は Project Settings に統一）
 
+## [5.2.1](https://github.com/akiojin/unity-mcp-server/compare/v5.2.0...v5.2.1) (2025-12-26)
+
+
+### Bug Fixes
+
+* **plugin:** correct version placement in marketplace and plugin.json ([72c8edb](https://github.com/akiojin/unity-mcp-server/commit/72c8edb23c40f61054fe66280bcd2ab126dec5e3))
+* **plugin:** correct version placement in marketplace and plugin.json ([a6e72e3](https://github.com/akiojin/unity-mcp-server/commit/a6e72e30cd8cd70d5f1de3d8bf5b2a007303920b))
+
 ## [5.2.0](https://github.com/akiojin/unity-mcp-server/compare/v5.1.0...v5.2.0) (2025-12-25)
 
 
