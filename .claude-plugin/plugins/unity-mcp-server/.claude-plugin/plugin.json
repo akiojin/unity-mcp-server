@@ -1,0 +1,9 @@
+{
+  "name": "unity-mcp-server",
+  "description": "Claude Code skills for Unity MCP Server. Provides workflow-oriented guidance for C# editing, Scene/GameObject management, PlayMode testing, and Asset management using 108+ Unity automation tools.",
+  "version": "1.0.0",
+  "author": {
+    "name": "akiojin",
+    "url": "https://github.com/akiojin"
+  }
+}
