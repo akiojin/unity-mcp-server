@@ -1,5 +1,8 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "unity-mcp-server",
+  "version": "1.0.0",
+  "description": "Claude Code skills for Unity MCP Server. Provides workflow-oriented guidance for C# editing, Scene/GameObject management, PlayMode testing, and Asset management using 108+ Unity automation tools.",
   "owner": {
     "name": "akiojin",
     "url": "https://github.com/akiojin"
@@ -7,22 +10,10 @@
   "plugins": [
     {
       "name": "unity-mcp-server",
-      "source": "./",
       "description": "Claude Code skills for Unity MCP Server. Provides workflow-oriented guidance for C# editing, Scene/GameObject management, PlayMode testing, and Asset management using 108+ Unity automation tools.",
-      "version": "1.0.0",
-      "author": {
-        "name": "akiojin"
-      },
-      "homepage": "https://github.com/akiojin/unity-mcp-server",
-      "repository": "https://github.com/akiojin/unity-mcp-server",
-      "license": "MIT",
-      "keywords": [
-        "unity",
-        "mcp",
-        "game-development",
-        "csharp",
-        "editor-automation"
-      ]
+      "version": "1.0.1",
+      "source": "./.claude-plugin/plugins/unity-mcp-server",
+      "category": "development"
     }
   ]
 }
