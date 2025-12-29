@@ -53,14 +53,12 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 ENV TMPDIR=/root/.claude/tmp
 RUN mkdir -p /root/.claude/tmp
 
-# Enable Corepack for pnpm version pinning via packageManager field
-RUN corepack enable
+# Node.js依存（corepack + pnpm）
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile --ignore-scripts
 
 WORKDIR /unity-mcp-server
 
-# Install development tools (eslint, prettier, commitlint, etc.)
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
 # Use bash to invoke entrypoint to avoid exec-bit and CRLF issues on Windows mounts
 ENTRYPOINT ["bash", "/unity-mcp-server/scripts/entrypoint.sh"]
 CMD ["bash"]
