@@ -44,9 +44,11 @@ RUN set -eux; \
     ln -sf "$DOTNET_ROOT/dotnet" /usr/bin/dotnet; \
     dotnet --info
 
-# Install uv/uvx
-RUN curl -fsSL https://astral.sh/uv/install.sh | bash
-ENV PATH="/root/.cargo/bin:${PATH}"
+# Install CLI tools (uv/uvx, Bun, Claude Code)
+RUN curl -fsSL https://astral.sh/uv/install.sh | bash \
+    && curl -fsSL https://bun.sh/install | bash \
+    && curl -fsSL https://claude.ai/install.sh | bash
+ENV PATH="/root/.cargo/bin:/root/.bun/bin:/root/.claude/bin:${PATH}"
 
 # Claude Code EXDEV workaround (Issue #14799)
 # Prevents cross-device link error when /root/.claude and /tmp are on different filesystems

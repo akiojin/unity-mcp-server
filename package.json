@@ -10,7 +10,8 @@
   "devDependencies": {
     "@commitlint/cli": "^18.6.1",
     "@commitlint/config-conventional": "^18.6.3",
-    "bun": "^1.1.42",
+    "@google/gemini-cli": "^0",
+    "@openai/codex": "^0",
     "eslint": "^8.57.1",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.31.0",
