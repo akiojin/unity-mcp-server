@@ -57,7 +57,7 @@ RUN mkdir -p /root/.claude/tmp
 
 # Node.js依存（corepack + pnpm）
 COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile --ignore-scripts
+RUN corepack enable && pnpm install --frozen-lockfile
 
 WORKDIR /unity-mcp-server
 
