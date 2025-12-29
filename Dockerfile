@@ -56,10 +56,16 @@ RUN mkdir -p /root/.claude/tmp
 # Enable Corepack for npm version pinning via packageManager field
 RUN corepack enable
 
-# Note: All dev tools (eslint, prettier, commitlint, typescript, bun) are
-# managed via devDependencies and called via npx. No global installation needed.
-
 WORKDIR /unity-mcp-server
+
+# Copy package files for npm install (leveraging Docker layer cache)
+COPY package.json package-lock.json ./
+COPY mcp-server/package.json ./mcp-server/
+COPY packages/fast-sql/package.json ./packages/fast-sql/
+
+# Install dependencies (devDependencies include eslint, prettier, commitlint, bun)
+# Note: All dev tools are managed via devDependencies and called via npx.
+RUN npm ci
 # Use bash to invoke entrypoint to avoid exec-bit and CRLF issues on Windows mounts
 ENTRYPOINT ["bash", "/unity-mcp-server/scripts/entrypoint.sh"]
 CMD ["bash"]
