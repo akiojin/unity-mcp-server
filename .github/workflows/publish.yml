@@ -342,7 +342,8 @@ jobs:
         with:
           run_install: false
 
-      - name: Install dependencies
+      - name: Install mcp-server dependencies
+        working-directory: mcp-server
         run: pnpm install --frozen-lockfile
 
       - name: Run tests
