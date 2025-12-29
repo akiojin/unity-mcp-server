@@ -53,19 +53,19 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 ENV TMPDIR=/root/.claude/tmp
 RUN mkdir -p /root/.claude/tmp
 
-# Enable Corepack for npm version pinning via packageManager field
+# Enable Corepack for pnpm version pinning via packageManager field
 RUN corepack enable
 
 WORKDIR /unity-mcp-server
 
-# Copy package files for npm install (leveraging Docker layer cache)
-COPY package.json package-lock.json ./
+# Copy package files for pnpm install (leveraging Docker layer cache)
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY mcp-server/package.json ./mcp-server/
 COPY packages/fast-sql/package.json ./packages/fast-sql/
 
 # Install dependencies (devDependencies include eslint, prettier, commitlint, bun)
-# Note: All dev tools are managed via devDependencies and called via npx.
-RUN npm ci
+# Note: All dev tools are managed via devDependencies and called via pnpm exec.
+RUN pnpm install --frozen-lockfile
 # Use bash to invoke entrypoint to avoid exec-bit and CRLF issues on Windows mounts
 ENTRYPOINT ["bash", "/unity-mcp-server/scripts/entrypoint.sh"]
 CMD ["bash"]

@@ -121,9 +121,14 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - name: Install dependencies
         working-directory: mcp-server
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build better-sqlite3 native binding
         working-directory: mcp-server
@@ -135,9 +140,9 @@ jobs:
         run: |
           # Rebuild better-sqlite3 from source
           if [ "${{ matrix.cross }}" = "true" ]; then
-            npm rebuild better-sqlite3 --build-from-source --target_arch=${{ matrix.arch }}
+            pnpm rebuild better-sqlite3 --build-from-source --target_arch=${{ matrix.arch }}
           else
-            npm rebuild better-sqlite3 --build-from-source
+            pnpm rebuild better-sqlite3 --build-from-source
           fi
 
       - name: Copy binding to prebuilt directory
