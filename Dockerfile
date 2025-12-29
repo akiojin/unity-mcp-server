@@ -58,13 +58,8 @@ RUN corepack enable
 
 WORKDIR /unity-mcp-server
 
-# Copy package files for pnpm install (leveraging Docker layer cache)
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY mcp-server/package.json ./mcp-server/
-COPY packages/fast-sql/package.json ./packages/fast-sql/
-
-# Install dependencies (devDependencies include eslint, prettier, commitlint, bun)
-# Note: All dev tools are managed via devDependencies and called via pnpm exec.
+# Install development tools (eslint, prettier, commitlint, etc.)
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 # Use bash to invoke entrypoint to avoid exec-bit and CRLF issues on Windows mounts
 ENTRYPOINT ["bash", "/unity-mcp-server/scripts/entrypoint.sh"]

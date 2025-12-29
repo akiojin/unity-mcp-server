@@ -1,12 +1,10 @@
 {
-  "name": "unity-mcp-server-workspace",
+  "name": "unity-mcp-server-dev",
   "version": "4.1.3",
   "private": true,
   "packageManager": "pnpm@9.15.4",
-  "description": "Workspace root for unity-mcp-server monorepo",
+  "description": "Development environment for unity-mcp-server",
   "scripts": {
-    "postinstall": "pnpm -r run build",
-    "build": "pnpm -r run build",
     "release": "echo \"Release is handled by GitHub Actions (release-please).\" && exit 1"
   },
   "devDependencies": {
