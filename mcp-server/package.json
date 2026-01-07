@@ -48,7 +48,7 @@
   "author": "Akio Jinsenji <akio-jinsenji@cloud-creative-studios.com>",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.24.3",
+    "@modelcontextprotocol/sdk": "^1.25.2",
     "find-up": "^6.3.0",
     "@akiojin/fast-sql": "^0.1.0",
     "lru-cache": "^11.0.2"
