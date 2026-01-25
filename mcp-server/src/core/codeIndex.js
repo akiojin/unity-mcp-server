@@ -32,6 +32,7 @@ const driverStatus = {
 const sharedConnections = {
   db: null,
   dbPath: null,
+  dbStat: null,
   schemaInitialized: false,
   SQL: null // sql.js factory
 };
@@ -74,7 +75,6 @@ export class CodeIndex {
   }
 
   async open() {
-    if (this.db) return this.db;
     const ok = await this._ensureDriver();
     if (!ok) return null;
     const info = await this.projectInfo.get();
@@ -83,15 +83,50 @@ export class CodeIndex {
     const dbPath = path.join(dir, 'code-index.db');
     this.dbPath = dbPath;
 
+    const fileStat = (() => {
+      try {
+        if (!fs.existsSync(dbPath)) return null;
+        const stat = fs.statSync(dbPath);
+        return { mtimeMs: stat.mtimeMs, size: stat.size };
+      } catch {
+        return null;
+      }
+    })();
+
+    const invalidateSharedConnection = reason => {
+      if (reason) logger.info(`[index] ${reason}`);
+      try {
+        if (sharedConnections.db) {
+          sharedConnections.db.close();
+        }
+      } catch {
+        // Ignore close errors
+      }
+      sharedConnections.db = null;
+      sharedConnections.dbPath = null;
+      sharedConnections.dbStat = null;
+      sharedConnections.schemaInitialized = false;
+      queryCache.clear();
+      statsCache.clear();
+      this.db = null;
+    };
+
+    if (this.db && (sharedConnections.db !== this.db || sharedConnections.dbPath !== dbPath)) {
+      this.db = null;
+    }
+
     // Use shared connection for all CodeIndex instances
     if (sharedConnections.db && sharedConnections.dbPath === dbPath) {
       // Verify the DB file still exists before returning cached connection
-      if (!fs.existsSync(dbPath)) {
+      if (!fileStat) {
         // File was deleted or never created, invalidate cache
-        logger.info('[index] DB file missing, invalidating cached connection');
-        sharedConnections.db = null;
-        sharedConnections.dbPath = null;
-        sharedConnections.schemaInitialized = false;
+        invalidateSharedConnection('DB file missing, invalidating cached connection');
+      } else if (
+        sharedConnections.dbStat &&
+        (fileStat.mtimeMs !== sharedConnections.dbStat.mtimeMs ||
+          fileStat.size !== sharedConnections.dbStat.size)
+      ) {
+        invalidateSharedConnection('DB file changed on disk, reloading connection');
       } else {
         this.db = sharedConnections.db;
         return this.db;
@@ -108,6 +143,7 @@ export class CodeIndex {
       }
       sharedConnections.db = this.db;
       sharedConnections.dbPath = dbPath;
+      sharedConnections.dbStat = fileStat;
     } catch (e) {
       this.disabled = true;
       const errMsg = e && typeof e === 'object' && 'message' in e ? e.message : String(e);
@@ -131,6 +167,14 @@ export class CodeIndex {
       const data = this.db.exportDb();
       const buffer = Buffer.from(data);
       fs.writeFileSync(this.dbPath, buffer);
+      if (sharedConnections.dbPath === this.dbPath) {
+        try {
+          const stat = fs.statSync(this.dbPath);
+          sharedConnections.dbStat = { mtimeMs: stat.mtimeMs, size: stat.size };
+        } catch {
+          sharedConnections.dbStat = null;
+        }
+      }
     } catch (e) {
       const errMsg = e && typeof e === 'object' && 'message' in e ? e.message : String(e);
       logger.warn(`[index] Failed to save database: ${errMsg}`);
@@ -425,6 +469,7 @@ export class CodeIndex {
     if (sharedConnections.db === this.db) {
       sharedConnections.db = null;
       sharedConnections.dbPath = null;
+      sharedConnections.dbStat = null;
     }
   }
 }
@@ -449,4 +494,5 @@ export function __resetCodeIndexDriverStatusForTest() {
   sharedConnections.dbPath = null;
   sharedConnections.schemaInitialized = false;
   sharedConnections.SQL = null;
+  sharedConnections.dbStat = null;
 }

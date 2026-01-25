@@ -22,7 +22,11 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
     const jobManager = this.jobManager;
     const buildJobs = jobManager
       .getAllJobs()
-      .filter(job => typeof job?.id === 'string' && job.id.startsWith('build-'))
+      .filter(
+        job =>
+          typeof job?.id === 'string' &&
+          (job.id.startsWith('build-') || job.id.startsWith('watcher-'))
+      )
       .sort((a, b) => new Date(b.startedAt || 0).getTime() - new Date(a.startedAt || 0).getTime());
     const latestBuildJob = buildJobs.length > 0 ? buildJobs[0] : null;
 
