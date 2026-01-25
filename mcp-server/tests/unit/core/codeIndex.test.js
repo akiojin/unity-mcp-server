@@ -1,6 +1,8 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import fs from 'node:fs';
+import os from 'node:os';
 
 describe('CodeIndex', () => {
   describe('basic functionality', () => {
@@ -25,6 +27,69 @@ describe('CodeIndex', () => {
         assert.equal(index.disabled, false);
       } catch (e) {
         assert.ok(true, 'CodeIndex requires fast-sql');
+      }
+    });
+
+    it('should reload when database file changes on disk', async () => {
+      let tempRoot;
+      try {
+        const { CodeIndex, __resetCodeIndexDriverStatusForTest } =
+          await import('../../../src/core/codeIndex.js');
+        const { Database } = await import('@akiojin/fast-sql');
+
+        tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'code-index-test-'));
+        const codeIndexRoot = path.join(tempRoot, '.unity', 'cache', 'code-index');
+        fs.mkdirSync(codeIndexRoot, { recursive: true });
+
+        const index = new CodeIndex({ isConnected: () => false });
+        index.projectInfo.get = async () => ({
+          projectRoot: tempRoot,
+          assetsPath: path.join(tempRoot, 'Assets'),
+          packagesPath: path.join(tempRoot, 'Packages'),
+          packageCachePath: path.join(tempRoot, 'Library/PackageCache'),
+          codeIndexRoot
+        });
+
+        const readyBefore = await index.isReady();
+        assert.equal(readyBefore, false);
+
+        const dbPath = path.join(codeIndexRoot, 'code-index.db');
+
+        const db = await Database.create();
+        db.run(
+          `
+          CREATE TABLE IF NOT EXISTS symbols (
+            path TEXT NOT NULL,
+            name TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            container TEXT,
+            namespace TEXT,
+            line INTEGER,
+            column INTEGER
+          )
+        `
+        );
+        db.run(
+          'INSERT INTO symbols(path,name,kind,container,namespace,line,column) VALUES (?,?,?,?,?,?,?)',
+          ['Assets/Foo.cs', 'Foo', 'class', null, null, 1, 1]
+        );
+        const data = db.exportDb();
+        db.close();
+
+        fs.writeFileSync(dbPath, Buffer.from(data));
+        const now = new Date();
+        fs.utimesSync(dbPath, now, now);
+
+        const readyAfter = await index.isReady();
+        assert.equal(readyAfter, true);
+
+        __resetCodeIndexDriverStatusForTest();
+      } catch (e) {
+        assert.ok(true, 'CodeIndex requires fast-sql');
+      } finally {
+        if (tempRoot) {
+          fs.rmSync(tempRoot, { recursive: true, force: true });
+        }
       }
     });
   });
