@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     gnupg \
     vim \
+    tmux \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
