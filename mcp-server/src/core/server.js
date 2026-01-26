@@ -46,7 +46,7 @@ function readToolManifest() {
  * Lazily load handlers and dependencies
  * Called after MCP transport is connected
  */
-async function ensureInitialized() {
+async function ensureInitialized(deps = {}) {
   if (handlers !== null) return;
   if (initializationPromise) {
     await initializationPromise;
@@ -55,17 +55,23 @@ async function ensureInitialized() {
 
   initializationPromise = (async () => {
     // Load config first (needed for logging)
-    const configModule = await import('./config.js');
+    const configModule = deps.config
+      ? { config: deps.config, logger: deps.logger }
+      : await import('./config.js');
     config = configModule.config;
     logger = configModule.logger;
 
     // Load UnityConnection
-    const { UnityConnection } = await import('./unityConnection.js');
-    unityConnection = new UnityConnection();
+    const UnityConnectionClass = deps.UnityConnection
+      ? deps.UnityConnection
+      : (await import('./unityConnection.js')).UnityConnection;
+    unityConnection = deps.unityConnectionInstance || new UnityConnectionClass();
 
     // Load and create handlers
-    const { createHandlers } = await import('../handlers/index.js');
-    handlers = createHandlers(unityConnection);
+    const createHandlersFn = deps.createHandlers
+      ? deps.createHandlers
+      : (await import('../handlers/index.js')).createHandlers;
+    handlers = createHandlersFn(unityConnection);
 
     // Set up Unity connection event handlers
     unityConnection.on('connected', () => {
@@ -91,6 +97,7 @@ async function ensureInitialized() {
 // Initialize server
 export async function startServer(options = {}) {
   try {
+    const deps = options.deps || {};
     // MCP stdio transport requires stdout to stay clean (JSON-RPC only).
     // Guard against accidental console.log usage breaking the protocol.
     if (options.stdioEnabled !== false && process.env.UNITY_MCP_ALLOW_STDOUT !== '1') {
@@ -99,7 +106,10 @@ export async function startServer(options = {}) {
 
     // Step 1: Load minimal config for server metadata
     // (config import is lightweight; avoid importing the MCP TS SDK on startup)
-    const { config: serverConfig, logger: serverLogger } = await import('./config.js');
+    const configModule = deps.config
+      ? { config: deps.config, logger: deps.logger }
+      : await import('./config.js');
+    const { config: serverConfig, logger: serverLogger } = configModule;
     config = serverConfig;
     logger = serverLogger;
 
@@ -114,7 +124,7 @@ export async function startServer(options = {}) {
     const server =
       runtimeConfig.stdioEnabled === false
         ? null
-        : new StdioRpcServer({
+        : new (deps.StdioRpcServer || StdioRpcServer)({
             serverInfo: {
               name: config.server.name,
               version: config.server.version
@@ -145,15 +155,17 @@ export async function startServer(options = {}) {
       }
 
       // Start loading handlers in background so first request is faster
-      ensureInitialized().catch(err => {
+      ensureInitialized(deps).catch(err => {
         console.error(`[unity-mcp-server] Background initialization failed: ${err.message}`);
       });
 
       // Optional HTTP transport (requires handlers)
       if (runtimeConfig.http?.enabled) {
         (async () => {
-          await ensureInitialized();
-          const { createHttpServer } = await import('./httpServer.js');
+          await ensureInitialized(deps);
+          const createHttpServer = deps.createHttpServer
+            ? deps.createHttpServer
+            : (await import('./httpServer.js')).createHttpServer;
           httpServerInstance = createHttpServer({
             handlers,
             host: runtimeConfig.http.host,
@@ -175,7 +187,7 @@ export async function startServer(options = {}) {
 
       // Attempt to connect to Unity (deferred, non-blocking)
       (async () => {
-        await ensureInitialized();
+        await ensureInitialized(deps);
         console.error(`[unity-mcp-server] Unity connection starting...`);
         try {
           await unityConnection.connect();
@@ -190,8 +202,10 @@ export async function startServer(options = {}) {
       // Best-effort: prepare and start persistent C# LSP process (non-blocking)
       (async () => {
         try {
-          const { LspProcessManager } = await import('../lsp/LspProcessManager.js');
-          const mgr = new LspProcessManager();
+          const LspProcessManagerClass = deps.LspProcessManager
+            ? deps.LspProcessManager
+            : (await import('../lsp/LspProcessManager.js')).LspProcessManager;
+          const mgr = new LspProcessManagerClass();
           await mgr.ensureStarted();
           // Attach graceful shutdown
           const shutdown = async () => {
@@ -208,9 +222,11 @@ export async function startServer(options = {}) {
 
       // Start periodic index watcher (incremental)
       (async () => {
-        await ensureInitialized();
-        const { IndexWatcher } = await import('./indexWatcher.js');
-        const watcher = new IndexWatcher(unityConnection);
+        await ensureInitialized(deps);
+        const IndexWatcherClass = deps.IndexWatcher
+          ? deps.IndexWatcher
+          : (await import('./indexWatcher.js')).IndexWatcher;
+        const watcher = new IndexWatcherClass(unityConnection);
         watcher.start();
         const stopWatch = () => {
           try {
@@ -223,10 +239,12 @@ export async function startServer(options = {}) {
 
       // Auto-initialize code index if DB doesn't exist
       (async () => {
-        await ensureInitialized();
+        await ensureInitialized(deps);
         try {
-          const { CodeIndex } = await import('./codeIndex.js');
-          const index = new CodeIndex(unityConnection);
+          const CodeIndexClass = deps.CodeIndex
+            ? deps.CodeIndex
+            : (await import('./codeIndex.js')).CodeIndex;
+          const index = new CodeIndexClass(unityConnection);
           const ready = await index.isReady();
 
           if (!ready) {
@@ -237,9 +255,11 @@ export async function startServer(options = {}) {
               return;
             }
             logger.info('[startup] Code index DB not ready. Starting auto-build...');
-            const { CodeIndexBuildToolHandler } =
-              await import('../handlers/script/CodeIndexBuildToolHandler.js');
-            const builder = new CodeIndexBuildToolHandler(unityConnection);
+            const CodeIndexBuildToolHandlerClass = deps.CodeIndexBuildToolHandler
+              ? deps.CodeIndexBuildToolHandler
+              : (await import('../handlers/script/CodeIndexBuildToolHandler.js'))
+                  .CodeIndexBuildToolHandler;
+            const builder = new CodeIndexBuildToolHandlerClass(unityConnection);
             const result = await builder.execute({});
 
             if (result.success) {
@@ -294,7 +314,7 @@ export async function startServer(options = {}) {
         return { tools: manifestTools };
       }
 
-      await ensureInitialized();
+      await ensureInitialized(deps);
 
       const tools = Array.from(handlers.values())
         .map((handler, index) => {
@@ -321,7 +341,7 @@ export async function startServer(options = {}) {
 
     // Handle tool execution
     server?.setRequestHandler('tools/call', async request => {
-      await ensureInitialized();
+      await ensureInitialized(deps);
 
       const { name, arguments: args } = request.params || {};
       const requestTime = Date.now();
