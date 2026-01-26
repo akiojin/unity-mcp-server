@@ -14,7 +14,7 @@ describe('InputTouchToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'simulate_touch');
+      assert.equal(handler.name, 'input_touch');
     });
 
     it('should have action enum with tap, swipe, pinch, multi', () => {
