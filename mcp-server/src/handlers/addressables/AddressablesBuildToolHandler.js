@@ -6,7 +6,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export default class AddressablesBuildToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('build_addressables', 'Build Unity Addressables content or clean build cache', {
+    super('addressables_build', 'Build Unity Addressables content or clean build cache', {
       type: 'object',
       properties: {
         action: {

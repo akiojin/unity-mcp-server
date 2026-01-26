@@ -7,7 +7,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export default class AddressablesAnalyzeToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'analyze_addressables',
+      'addressables_analyze',
       'Analyze Unity Addressables for duplicates, dependencies, and unused assets',
       {
         type: 'object',

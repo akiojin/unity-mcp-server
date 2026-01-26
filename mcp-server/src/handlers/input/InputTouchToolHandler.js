@@ -127,7 +127,7 @@ function validateTouchAction(params, context = 'action') {
  */
 export class InputTouchToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('simulate_touch', 'Touch input (tap/swipe/pinch/multi) with batching.', {
+    super('input_touch', 'Touch input (tap/swipe/pinch/multi) with batching.', {
       type: 'object',
       properties: {
         ...actionProperties,

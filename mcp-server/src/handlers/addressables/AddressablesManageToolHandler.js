@@ -7,7 +7,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export default class AddressablesManageToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'manage_addressables',
+      'addressables_manage',
       'Manage Unity Addressables assets and groups - add, remove, organize entries and groups',
       {
         type: 'object',

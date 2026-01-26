@@ -5,7 +5,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
  */
 export class InputSystemControlToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('control_input_system', 'Main handler for Input System operations', {
+    super('input_system_control', 'Main handler for Input System operations', {
       type: 'object',
       properties: {
         operation: {
