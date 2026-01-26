@@ -104,18 +104,33 @@ export class ProjectInfoProvider {
       try {
         const info = await this.unityConnection.sendCommand('get_editor_info', {});
         if (info && info.projectRoot && info.assetsPath) {
-          this.cached = {
-            projectRoot: info.projectRoot,
-            assetsPath: info.assetsPath,
-            packagesPath: normalize(info.packagesPath || path.join(info.projectRoot, 'Packages')),
-            packageCachePath: normalize(
-              info.packageCachePath || path.join(info.projectRoot, 'Library/PackageCache')
-            ),
-            codeIndexRoot: normalize(
-              info.codeIndexRoot || resolveDefaultCodeIndexRoot(info.projectRoot)
-            )
-          };
-          return this.cached;
+          const projectRoot = normalize(info.projectRoot);
+          const assetsPath = normalize(info.assetsPath || path.join(info.projectRoot, 'Assets'));
+          const packagesPath = normalize(info.packagesPath || path.join(info.projectRoot, 'Packages'));
+          const localReady =
+            fs.existsSync(assetsPath) &&
+            fs.existsSync(packagesPath) &&
+            fs.statSync(assetsPath).isDirectory() &&
+            fs.statSync(packagesPath).isDirectory();
+
+          if (localReady) {
+            this.cached = {
+              projectRoot,
+              assetsPath,
+              packagesPath,
+              packageCachePath: normalize(
+                info.packageCachePath || path.join(info.projectRoot, 'Library/PackageCache')
+              ),
+              codeIndexRoot: normalize(
+                info.codeIndexRoot || resolveDefaultCodeIndexRoot(info.projectRoot)
+              )
+            };
+            return this.cached;
+          }
+
+          logger.warning(
+            'get_editor_info returned paths not found locally; falling back to local inference'
+          );
         }
       } catch (e) {
         logger.warning(`get_editor_info failed: ${e.message}`);

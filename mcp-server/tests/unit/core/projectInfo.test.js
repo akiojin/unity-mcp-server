@@ -81,4 +81,33 @@ describe('ProjectInfoProvider', () => {
       await fs.rm(tmpDir, { recursive: true, force: true });
     }
   });
+
+  it('falls back when Unity path is not available locally', async () => {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-project-'));
+    const originalCwd = process.cwd();
+    await fs.mkdir(path.join(tmpDir, 'Assets'), { recursive: true });
+    await fs.mkdir(path.join(tmpDir, 'Packages'), { recursive: true });
+
+    process.chdir(tmpDir);
+
+    try {
+      const { ProjectInfoProvider } = await importProjectInfoFresh();
+      const provider = new ProjectInfoProvider({
+        isConnected: () => true,
+        sendCommand: async () => ({
+          projectRoot: '/nonexistent',
+          assetsPath: '/nonexistent/Assets',
+          packagesPath: '/nonexistent/Packages'
+        })
+      });
+
+      const info = await provider.get();
+      assert.equal(info.projectRoot, tmpDir.replace(/\\/g, '/'));
+      assert.equal(info.assetsPath, path.join(tmpDir, 'Assets').replace(/\\/g, '/'));
+      assert.equal(info.packagesPath, path.join(tmpDir, 'Packages').replace(/\\/g, '/'));
+    } finally {
+      process.chdir(originalCwd);
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
 });
