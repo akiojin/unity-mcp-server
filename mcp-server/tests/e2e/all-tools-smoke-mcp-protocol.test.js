@@ -338,6 +338,24 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       };
 
       const called = new Set();
+      const toolCallAliases = new Map([
+        ['analyze_addressables', ['addressables_analyze']],
+        ['build_addressables', ['addressables_build']],
+        ['manage_addressables', ['addressables_manage']],
+        ['control_input_system', ['input_system_control']],
+        ['simulate_touch', ['input_touch']],
+        ['manage_packages', ['package_manager']]
+      ]);
+
+      const markCalled = name => {
+        called.add(name);
+        const aliases = toolCallAliases.get(name);
+        if (aliases) {
+          for (const alias of aliases) {
+            called.add(alias);
+          }
+        }
+      };
       let createdGoPath = `/${SMOKE_GO_NAME}`;
 
       async function callTool(name, args = {}, { timeoutMs = 60_000 } = {}) {
@@ -366,7 +384,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         }
 
         report.called.push(entry);
-        called.add(name);
+        markCalled(name);
         return { res, text, json: safeJson(text) };
       }
 
@@ -382,7 +400,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
             text: '',
             error: truncate(e.message || 'exception')
           });
-          called.add(name);
+          markCalled(name);
           return null;
         }
       }
