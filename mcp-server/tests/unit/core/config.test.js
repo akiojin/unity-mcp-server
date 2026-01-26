@@ -50,9 +50,10 @@ describe('Config', () => {
 
   it('should have correct default Unity settings', async () => {
     const { config } = await importConfigFresh();
+    const dockerDefault = fsSync.existsSync('/.dockerenv') ? 'host.docker.internal' : 'localhost';
 
     assert.equal(config.unity.unityHost, 'localhost');
-    assert.equal(config.unity.mcpHost, 'localhost');
+    assert.equal(config.unity.mcpHost, dockerDefault);
     assert.equal(config.unity.bindHost, 'localhost');
     assert.equal(config.unity.port, 6400);
     assert.equal(config.unity.reconnectDelay, 1000);

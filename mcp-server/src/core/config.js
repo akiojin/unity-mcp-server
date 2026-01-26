@@ -59,6 +59,14 @@ function envString(key) {
   return v.length > 0 ? v : undefined;
 }
 
+function isDockerEnvironment() {
+  try {
+    return fs.existsSync('/.dockerenv');
+  } catch {
+    return false;
+  }
+}
+
 function resolvePackageVersion() {
   const candidates = [];
 
@@ -187,8 +195,12 @@ function loadEnvConfig() {
 
   const out = {};
 
+  if (!mcpHost && isDockerEnvironment()) {
+    out.unity = { ...(out.unity || {}), mcpHost: 'host.docker.internal' };
+  }
+
   if (unityHost || mcpHost || unityPort !== undefined) {
-    out.unity = {};
+    out.unity = { ...(out.unity || {}) };
     if (unityHost) out.unity.unityHost = unityHost;
     if (mcpHost) out.unity.mcpHost = mcpHost;
     if (unityPort !== undefined) out.unity.port = unityPort;
