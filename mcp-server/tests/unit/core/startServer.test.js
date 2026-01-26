@@ -84,6 +84,39 @@ describe('startServer (deps injection)', () => {
               }),
               handle: async () => ({ status: 'success', result: { ok: true } })
             }
+          ],
+          [
+            'error_tool',
+            {
+              name: 'error_tool',
+              description: 'error tool',
+              inputSchema: { type: 'object' },
+              getDefinition: () => ({
+                name: 'error_tool',
+                description: 'error tool',
+                inputSchema: { type: 'object' }
+              }),
+              handle: async () => ({
+                status: 'error',
+                error: 'bad',
+                code: 'E_BAD',
+                details: { reason: 'fail' }
+              })
+            }
+          ],
+          [
+            'empty_tool',
+            {
+              name: 'empty_tool',
+              description: 'empty tool',
+              inputSchema: { type: 'object' },
+              getDefinition: () => ({
+                name: 'empty_tool',
+                description: 'empty tool',
+                inputSchema: { type: 'object' }
+              }),
+              handle: async () => ({ status: 'success', result: null })
+            }
           ]
         ]);
       },
@@ -147,6 +180,25 @@ describe('startServer (deps injection)', () => {
     const handler = server._requestHandlers.get('logging/setLevel');
     await handler({ params: { level: 'debug' } });
     assert.equal(loggerCalls.setLevel, 1);
+  });
+
+  it('formats handler error responses', async () => {
+    await startServer({ deps });
+    const server = stdio.instances[0];
+    const callHandler = server._requestHandlers.get('tools/call');
+    const response = await callHandler({ params: { name: 'error_tool', arguments: {} } });
+    const text = response.content[0].text;
+    assert.match(text, /Error: bad/);
+    assert.match(text, /Code: E_BAD/);
+    assert.match(text, /Details:/);
+  });
+
+  it('returns fallback text when handler returns null result', async () => {
+    await startServer({ deps });
+    const server = stdio.instances[0];
+    const callHandler = server._requestHandlers.get('tools/call');
+    const response = await callHandler({ params: { name: 'empty_tool', arguments: {} } });
+    assert.match(response.content[0].text, /Operation completed successfully/);
   });
 
   it('starts post-init work after initialized notification', async () => {
