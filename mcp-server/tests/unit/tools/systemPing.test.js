@@ -56,4 +56,16 @@ describe('system ping tool', () => {
       /Tool not found/
     );
   });
+
+  it('returns error when ping fails', async () => {
+    const server = new MockServer();
+    const unity = new MockUnityConnection();
+    unity.sendCommand = async () => {
+      throw new Error('offline');
+    };
+    registerPingTool(server, unity);
+    const res = await server.callHandler({ params: { name: 'ping', arguments: {} } });
+    assert.equal(res.isError, true);
+    assert.match(res.content[0].text, /Failed to ping Unity/);
+  });
 });

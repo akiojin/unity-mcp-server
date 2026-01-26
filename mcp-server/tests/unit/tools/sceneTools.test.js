@@ -33,9 +33,19 @@ describe('scene tool handlers', () => {
     const invalid = await createSceneHandler(unity, { sceneName: 'Bad/Name' });
     assert.equal(invalid.isError, true);
 
+    unity.response = { status: 'error', error: 'bad' };
+    const errored = await createSceneHandler(unity, { sceneName: 'Main' });
+    assert.equal(errored.isError, true);
+
     unity.response = { result: { summary: 'created' } };
     const ok = await createSceneHandler(unity, { sceneName: 'Main' });
     assert.equal(ok.isError, false);
+
+    unity.sendCommand = async () => {
+      throw new Error('boom');
+    };
+    const thrown = await createSceneHandler(unity, { sceneName: 'Main' });
+    assert.equal(thrown.isError, true);
   });
 
   it('listScenesHandler returns scene list', async () => {
@@ -45,31 +55,84 @@ describe('scene tool handlers', () => {
     assert.equal(notConnected.isError, true);
 
     unity.connected = true;
+    unity.response = { status: 'error', error: 'bad' };
+    const errored = await listScenesHandler(unity, {});
+    assert.equal(errored.isError, true);
+
     unity.response = { result: { summary: 'scenes', totalCount: 1 } };
     const ok = await listScenesHandler(unity, {});
     assert.equal(ok.isError, false);
+
+    unity.sendCommand = async () => {
+      throw new Error('boom');
+    };
+    const thrown = await listScenesHandler(unity, {});
+    assert.equal(thrown.isError, true);
   });
 
   it('loadSceneHandler validates params', async () => {
     const unity = new MockUnityConnection();
+    unity.connected = false;
+    const notConnected = await loadSceneHandler(unity, { sceneName: 'Main' });
+    assert.equal(notConnected.isError, true);
+
     unity.connected = true;
     const missing = await loadSceneHandler(unity, {});
     assert.equal(missing.isError, true);
 
+    const both = await loadSceneHandler(unity, {
+      sceneName: 'Main',
+      scenePath: 'Assets/Scenes/Main.unity'
+    });
+    assert.equal(both.isError, true);
+
+    const invalidMode = await loadSceneHandler(unity, {
+      sceneName: 'Main',
+      loadMode: 'Bad'
+    });
+    assert.equal(invalidMode.isError, true);
+
+    unity.response = { status: 'error', error: 'bad' };
+    const errored = await loadSceneHandler(unity, { sceneName: 'Main' });
+    assert.equal(errored.isError, true);
+
     unity.response = { result: { summary: 'loaded' } };
     const ok = await loadSceneHandler(unity, { sceneName: 'Main' });
     assert.equal(ok.isError, false);
+
+    unity.sendCommand = async () => {
+      throw new Error('boom');
+    };
+    const thrown = await loadSceneHandler(unity, { sceneName: 'Main' });
+    assert.equal(thrown.isError, true);
   });
 
   it('saveSceneHandler validates params', async () => {
     const unity = new MockUnityConnection();
+    unity.connected = false;
+    const notConnected = await saveSceneHandler(unity, {});
+    assert.equal(notConnected.isError, true);
+
     unity.connected = true;
     const missing = await saveSceneHandler(unity, {});
     assert.equal(missing.isError, true);
 
+    const saveAsMissing = await saveSceneHandler(unity, { saveAs: true });
+    assert.equal(saveAsMissing.isError, true);
+
+    unity.response = { status: 'error', error: 'bad' };
+    const errored = await saveSceneHandler(unity, { saveAs: true, scenePath: 'Assets/Scenes/X.unity' });
+    assert.equal(errored.isError, true);
+
     unity.response = { result: { summary: 'saved' } };
     const ok = await saveSceneHandler(unity, { saveAs: true, scenePath: 'Assets/Scenes/Main.unity' });
     assert.equal(ok.isError, false);
+
+    unity.sendCommand = async () => {
+      throw new Error('boom');
+    };
+    const thrown = await saveSceneHandler(unity, { saveAs: true, scenePath: 'Assets/Scenes/Main.unity' });
+    assert.equal(thrown.isError, true);
   });
 
   it('getSceneInfoHandler handles errors', async () => {
@@ -79,8 +142,24 @@ describe('scene tool handlers', () => {
     assert.equal(notConnected.isError, true);
 
     unity.connected = true;
+    const invalid = await getSceneInfoHandler(unity, {
+      sceneName: 'Main',
+      scenePath: 'Assets/Scenes/Main.unity'
+    });
+    assert.equal(invalid.isError, true);
+
+    unity.response = { error: 'bad' };
+    const errored = await getSceneInfoHandler(unity, {});
+    assert.equal(errored.isError, true);
+
     unity.response = { summary: 'info' };
     const ok = await getSceneInfoHandler(unity, {});
     assert.equal(ok.isError, false);
+
+    unity.sendCommand = async () => {
+      throw new Error('boom');
+    };
+    const thrown = await getSceneInfoHandler(unity, {});
+    assert.equal(thrown.isError, true);
   });
 });
