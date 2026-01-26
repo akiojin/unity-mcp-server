@@ -1,4 +1,4 @@
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { startServer } from '../../../src/core/server.js';
 
@@ -26,19 +26,29 @@ describe('startServer (deps injection)', () => {
   let stdio;
   let createHandlersCalls;
   let loggerCalls;
+  let loggerWarnings;
+  let loggerErrors;
   let unityConnectCalls;
   let buildCalls;
   let watcherStartCalls;
   let lspStartCalls;
+  let httpStartCalls;
+  let originalSigint;
+  let originalSigterm;
 
   beforeEach(() => {
+    originalSigint = process.listeners('SIGINT');
+    originalSigterm = process.listeners('SIGTERM');
     stdio = createStdioMock();
     createHandlersCalls = 0;
     loggerCalls = { setServer: 0, setLevel: 0 };
+    loggerWarnings = [];
+    loggerErrors = [];
     unityConnectCalls = 0;
     buildCalls = 0;
     watcherStartCalls = 0;
     lspStartCalls = 0;
+    httpStartCalls = 0;
 
     deps = {
       StdioRpcServer: stdio.StdioMock,
@@ -50,8 +60,12 @@ describe('startServer (deps injection)', () => {
       },
       logger: {
         info() {},
-        error() {},
-        warning() {},
+        error(message) {
+          loggerErrors.push(message);
+        },
+        warning(message) {
+          loggerWarnings.push(message);
+        },
         setLevel() {
           loggerCalls.setLevel += 1;
         },
@@ -145,8 +159,21 @@ describe('startServer (deps injection)', () => {
           buildCalls += 1;
           return { success: true, jobId: 'job-1' };
         }
-      }
+      },
+      createHttpServer: () => ({
+        start: async () => {
+          httpStartCalls += 1;
+        },
+        close: async () => {}
+      })
     };
+  });
+
+  afterEach(() => {
+    process.removeAllListeners('SIGINT');
+    process.removeAllListeners('SIGTERM');
+    for (const listener of originalSigint) process.on('SIGINT', listener);
+    for (const listener of originalSigterm) process.on('SIGTERM', listener);
   });
 
   it('registers stdio handlers and serves tool manifest without initializing handlers', async () => {
@@ -216,5 +243,42 @@ describe('startServer (deps injection)', () => {
     assert.equal(lspStartCalls, 1);
     assert.equal(watcherStartCalls, 1);
     assert.equal(buildCalls, 1);
+  });
+
+  it('starts http server when enabled', async () => {
+    await startServer({ deps, http: { enabled: true } });
+    const server = stdio.instances[0];
+    const listHandler = server._requestHandlers.get('tools/list');
+    await listHandler();
+    server.oninitialized();
+
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(httpStartCalls, 1);
+  });
+
+  it('skips code index auto-build when disabled', async () => {
+    deps.CodeIndex = class {
+      constructor() {
+        this.disabled = true;
+        this.disableReason = 'disabled';
+      }
+      async isReady() {
+        return false;
+      }
+    };
+
+    await startServer({ deps });
+    const server = stdio.instances[0];
+    const listHandler = server._requestHandlers.get('tools/list');
+    await listHandler();
+    server.oninitialized();
+
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(buildCalls, 0);
+    assert.ok(loggerWarnings.some(msg => String(msg).includes('Code index disabled')));
   });
 });
