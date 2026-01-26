@@ -17,6 +17,10 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
             type: 'string',
             description: 'Symbol name to search usages for.'
           },
+          startAfter: {
+            type: 'string',
+            description: 'Pagination cursor (file path). Return only results after this path.'
+          },
           scope: {
             type: 'string',
             enum: ['assets', 'packages', 'embedded', 'all'],
@@ -78,6 +82,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
   async execute(params) {
     const {
       name,
+      startAfter,
       scope = 'all',
       pageSize = 50,
       maxBytes = 1024 * 64,
@@ -219,8 +224,16 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
     let bytes = 0;
     let total = 0;
     let truncated = false;
+    let lastPath = null;
+    let started = !startAfter;
+    const sortedPaths = Array.from(perFile.keys()).sort();
 
-    for (const [filePath, arr] of perFile) {
+    for (const filePath of sortedPaths) {
+      if (!started) {
+        if (filePath <= startAfter) continue;
+        started = true;
+      }
+      const arr = perFile.get(filePath) || [];
       const references = [];
       for (const it of arr) {
         const ref = {
@@ -243,6 +256,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
 
       if (references.length > 0) {
         results.push({ path: filePath, references });
+        lastPath = filePath;
       }
 
       if (truncated) break;
@@ -254,7 +268,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
       truncated = true;
     }
 
-    return { success: true, results, total, truncated };
+    return { success: true, results, total, truncated, ...(truncated && lastPath ? { cursor: lastPath } : {}) };
   }
 }
 
