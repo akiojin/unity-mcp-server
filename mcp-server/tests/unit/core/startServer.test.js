@@ -35,6 +35,7 @@ describe('startServer (deps injection)', () => {
   let httpStartCalls;
   let originalSigint;
   let originalSigterm;
+  let originalExit;
 
   beforeEach(() => {
     originalSigint = process.listeners('SIGINT');
@@ -131,6 +132,22 @@ describe('startServer (deps injection)', () => {
               }),
               handle: async () => ({ status: 'success', result: null })
             }
+          ],
+          [
+            'throw_tool',
+            {
+              name: 'throw_tool',
+              description: 'throw tool',
+              inputSchema: { type: 'object' },
+              getDefinition: () => ({
+                name: 'throw_tool',
+                description: 'throw tool',
+                inputSchema: { type: 'object' }
+              }),
+              handle: async () => {
+                throw new Error('boom');
+              }
+            }
           ]
         ]);
       },
@@ -174,6 +191,7 @@ describe('startServer (deps injection)', () => {
     process.removeAllListeners('SIGTERM');
     for (const listener of originalSigint) process.on('SIGINT', listener);
     for (const listener of originalSigterm) process.on('SIGTERM', listener);
+    if (originalExit) process.exit = originalExit;
   });
 
   it('registers stdio handlers and serves tool manifest without initializing handlers', async () => {
@@ -228,6 +246,14 @@ describe('startServer (deps injection)', () => {
     assert.match(response.content[0].text, /Operation completed successfully/);
   });
 
+  it('returns error text when handler throws', async () => {
+    await startServer({ deps });
+    const server = stdio.instances[0];
+    const callHandler = server._requestHandlers.get('tools/call');
+    const response = await callHandler({ params: { name: 'throw_tool', arguments: {} } });
+    assert.match(response.content[0].text, /Error: boom/);
+  });
+
   it('starts post-init work after initialized notification', async () => {
     await startServer({ deps });
     const server = stdio.instances[0];
@@ -280,5 +306,58 @@ describe('startServer (deps injection)', () => {
 
     assert.equal(buildCalls, 0);
     assert.ok(loggerWarnings.some(msg => String(msg).includes('Code index disabled')));
+  });
+
+  it('skips code index auto-build when ready', async () => {
+    deps.CodeIndex = class {
+      constructor() {
+        this.disabled = false;
+      }
+      async isReady() {
+        return true;
+      }
+    };
+
+    await startServer({ deps });
+    const server = stdio.instances[0];
+    const listHandler = server._requestHandlers.get('tools/list');
+    await listHandler();
+    server.oninitialized();
+
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(buildCalls, 0);
+  });
+
+  it('runs post-init work immediately when stdio is disabled', async () => {
+    await startServer({ deps, stdioEnabled: false });
+
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(unityConnectCalls, 1);
+    assert.equal(lspStartCalls, 1);
+    assert.equal(watcherStartCalls, 1);
+    assert.equal(buildCalls, 1);
+  });
+
+  it('exits when http start fails in http-only mode', async () => {
+    let exitCode;
+    originalExit = process.exit;
+    process.exit = code => {
+      exitCode = code;
+    };
+
+    deps.createHttpServer = () => ({
+      start: async () => {
+        throw new Error('http failed');
+      },
+      close: async () => {}
+    });
+
+    await startServer({ deps, stdioEnabled: false, http: { enabled: true } });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(exitCode, 1);
   });
 });
