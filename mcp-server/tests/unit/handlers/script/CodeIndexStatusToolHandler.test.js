@@ -144,6 +144,33 @@ describe('CodeIndexStatusToolHandler', () => {
       assert.equal(result.index.buildJob.status, 'running');
     });
 
+    it('should report failed build job when index is not ready', async () => {
+      handler.codeIndex = {
+        disabled: false,
+        isReady: async () => false,
+        getStats: async () => ({ total: 0, lastIndexedAt: null, totalFilesEstimate: 0 })
+      };
+      handler.jobManager = {
+        getAllJobs: () => [
+          {
+            id: 'build-1730188800000',
+            status: 'failed',
+            startedAt: '2025-01-01T00:00:00Z',
+            failedAt: '2025-01-01T00:01:00Z',
+            error: 'boom'
+          }
+        ]
+      };
+
+      const result = await handler.execute({});
+
+      assert.equal(result.success, true);
+      assert.equal(result.status, 'failed');
+      assert.ok(result.index?.buildJob);
+      assert.equal(result.index.buildJob.status, 'failed');
+      assert.match(result.message, /failed/i);
+    });
+
     it('should include file breakdown by location', async () => {
       const mockResult = {
         success: true,
