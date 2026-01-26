@@ -122,6 +122,8 @@ Unity MCP Server は **100+ ツール**を提供します。`search_tools` を�
 
 ツール探索とコードインデックス運用は [docs/tools.md](docs/tools.md) を参照してください。
 
+補足: `find_refs` は `startAfter` によるページングに対応し、結果が切り詰められた場合は `cursor` を返します。
+
 ## Claude Code スキル
 
 このパッケージには、108以上のツールを効果的に使用するためのワークフロー指向のClaude Codeスキルが含まれています。
