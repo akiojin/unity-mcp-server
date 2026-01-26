@@ -261,6 +261,9 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       env: {
         ...process.env,
         UNITY_MCP_ALLOW_TEST_CONNECT: '1',
+        UNITY_MCP_UNITY_HOST: '127.0.0.1',
+        UNITY_MCP_MCP_HOST: '127.0.0.1',
+        UNITY_MCP_PORT: '6400',
         LOG_LEVEL: process.env.LOG_LEVEL || 'error'
       }
     });
