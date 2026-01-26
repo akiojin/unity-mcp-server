@@ -68,7 +68,7 @@ export default class AddressablesAnalyzeToolHandler extends BaseToolHandler {
       await this.unityConnection.connect();
     }
 
-    const result = await this.unityConnection.sendCommand('analyze_addressables', {
+    const result = await this.unityConnection.sendCommand('addressables_analyze', {
       action,
       ...parameters
     });

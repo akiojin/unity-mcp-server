@@ -75,7 +75,7 @@ export default class AddressablesBuildToolHandler extends BaseToolHandler {
     const timeout = 300000; // 5 minutes
 
     const result = await this.unityConnection.sendCommand(
-      'build_addressables',
+      'addressables_build',
       {
         action,
         ...parameters

@@ -141,7 +141,7 @@ export default class AddressablesManageToolHandler extends BaseToolHandler {
       await this.unityConnection.connect();
     }
 
-    const result = await this.unityConnection.sendCommand('manage_addressables', {
+    const result = await this.unityConnection.sendCommand('addressables_manage', {
       action,
       ...parameters
     });
