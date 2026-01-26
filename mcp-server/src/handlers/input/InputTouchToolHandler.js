@@ -181,7 +181,7 @@ export class InputTouchToolHandler extends BaseToolHandler {
     const hasBatch = Array.isArray(params.actions) && params.actions.length > 0;
     const payload = hasBatch ? { actions: params.actions } : params;
 
-    const result = await this.unityConnection.sendCommand('simulate_touch', payload);
+    const result = await this.unityConnection.sendCommand('input_touch', payload);
     return result;
   }
 }
