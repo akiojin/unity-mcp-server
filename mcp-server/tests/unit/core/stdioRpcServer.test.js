@@ -10,6 +10,11 @@ function captureWrites(server) {
   return writes;
 }
 
+function bufferFrom(obj) {
+  const body = Buffer.from(JSON.stringify(obj), 'utf8');
+  return Buffer.concat([body, Buffer.from('\n')]);
+}
+
 describe('StdioRpcServer', () => {
   it('validates request handler inputs', () => {
     const server = new StdioRpcServer();
@@ -83,6 +88,62 @@ describe('StdioRpcServer', () => {
     await server._handleMessage({ method: 'notifications/initialized', params: {} });
 
     assert.equal(called, true);
+  });
+
+  it('emits parse errors via onerror', async () => {
+    const server = new StdioRpcServer();
+    let error;
+    server.onerror = err => {
+      error = err;
+    };
+
+    server._handleChunk('{bad json\n');
+
+    assert.ok(error instanceof Error);
+  });
+
+  it('emits notification handler errors via onerror', async () => {
+    const server = new StdioRpcServer();
+    let error;
+    server.onerror = err => {
+      error = err;
+    };
+    server.setNotificationHandler('notify/test', () => {
+      throw new Error('notify failed');
+    });
+
+    await server._handleMessage({ method: 'notify/test', params: {} });
+
+    assert.ok(error instanceof Error);
+    assert.match(error.message, /notify failed/);
+  });
+
+  it('handles initialized notification errors via onerror', async () => {
+    const server = new StdioRpcServer();
+    let error;
+    server.onerror = err => {
+      error = err;
+    };
+    server.oninitialized = () => {
+      throw new Error('init failed');
+    };
+
+    await server._handleMessage({ method: 'notifications/initialized', params: {} });
+
+    assert.ok(error instanceof Error);
+    assert.match(error.message, /init failed/);
+  });
+
+  it('handles chunked newline-delimited messages', async () => {
+    const server = new StdioRpcServer();
+    const writes = captureWrites(server);
+
+    server._handleChunk(bufferFrom({ id: 10, method: 'initialize', params: {} }));
+    server._handleChunk(bufferFrom({ id: 11, method: 'unknown', params: {} }));
+
+    assert.equal(writes.length, 2);
+    assert.equal(writes[0].id, 10);
+    assert.equal(writes[1].error.code, -32601);
   });
 
   it('sends notifications with jsonrpc envelope', () => {
