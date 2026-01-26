@@ -52,12 +52,4 @@ fi
 echo "🚀 Docker environment is ready!"
 echo ""
 
-# Ensure Docker defaults for Unity host/port without affecting non-Docker runs
-if [ -f /.dockerenv ]; then
-    : "${UNITY_MCP_MCP_HOST:=host.docker.internal}"
-    : "${UNITY_MCP_UNITY_HOST:=host.docker.internal}"
-    : "${UNITY_MCP_PORT:=6400}"
-    export UNITY_MCP_MCP_HOST UNITY_MCP_UNITY_HOST UNITY_MCP_PORT
-fi
-
 exec "$@"
