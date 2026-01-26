@@ -9,7 +9,7 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
       'find_refs',
-      '[OFFLINE] No Unity connection required. Find code references/usages using fast file-based search. LLM-friendly paging/summary: respects pageSize and maxBytes, caps matches per file (maxMatchesPerFile), and trims snippet text to ~400 chars. Use scope/name/kind/path to narrow results.',
+      '[OFFLINE] No Unity connection required. Find code references/usages using fast file-based search. LLM-friendly paging/summary: respects pageSize and maxBytes, caps matches per file (maxMatchesPerFile), and trims snippet text to ~400 chars. Use scope/name/kind/path to narrow results. Use startAfter to continue from a cursor (file path).',
       {
         type: 'object',
         properties: {

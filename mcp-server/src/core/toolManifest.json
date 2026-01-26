@@ -3531,6 +3531,10 @@
           "type": "string",
           "description": "Symbol name to search usages for."
         },
+        "startAfter": {
+          "type": "string",
+          "description": "Pagination cursor (file path). Return only results after this path."
+        },
         "scope": {
           "type": "string",
           "enum": [
