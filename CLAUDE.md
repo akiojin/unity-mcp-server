@@ -895,6 +895,55 @@ README.mdにカバレッジバッジを追加する場合：
 
 ---
 
+## Unity MCP Server スキル・コマンド
+
+このプロジェクトでは、Unity開発を効率化するためのスキルとコマンドを提供しています。
+
+### 利用可能なスキル
+
+| スキル名 | 説明 | 使用場面 |
+|---------|------|---------|
+| `unity-development` | 親スキル。アーキテクチャパターン、ツール選択ガイド | Unity開発全般 |
+| `unity-csharp-editing` | C#編集、TDD、リファクタリング | コード編集時 |
+| `unity-scene-management` | シーン・GameObject操作 | シーン構築時 |
+| `unity-asset-management` | プレハブ、マテリアル、Addressables | アセット管理時 |
+| `unity-playmode-testing` | PlayModeテスト、入力シミュレーション | テスト実行時 |
+| `unity-game-ugui-design` | uGUI（Canvas/EventSystem） | ゲームUI実装時 |
+| `unity-game-ui-toolkit-design` | UI Toolkit（Runtime） | モダンUI実装時 |
+| `unity-editor-imgui-design` | IMGUI（EditorWindow/Inspector） | エディタ拡張時 |
+
+### 利用可能なコマンド
+
+| コマンド | 説明 |
+|---------|------|
+| `/unity-status` | Unity Editorの接続状態、シーン情報、コンパイル状態を確認 |
+| `/unity-screenshot` | Game/Scene/Explorerビューのスクリーンショットを撮影 |
+
+### 利用可能なエージェント
+
+| エージェント | 説明 |
+|------------|------|
+| `unity-helper` | 108+のUnityツールを活用した開発支援エージェント |
+
+### スキルの参照方法
+
+スキルは自動的に参照されますが、明示的に呼び出す場合：
+
+```
+Skillツールで unity-development を使用してください
+```
+
+### MCP ツールの命名規則
+
+Unity MCP Server のツールは以下の命名規則に従います：
+
+- `mcp__unity-mcp-server__<category>_<action>`
+- 例: `mcp__unity-mcp-server__gameobject_create`, `mcp__unity-mcp-server__scene_save`
+
+詳細は各スキルのドキュメントを参照してください。
+
+---
+
 ## Hook機能による自動化（Claude Code）
 
 このプロジェクトでは、Claude CodeのHook機能を活用して以下の自動化を実現しています。
