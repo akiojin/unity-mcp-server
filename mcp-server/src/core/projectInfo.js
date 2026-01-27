@@ -107,11 +107,16 @@ export class ProjectInfoProvider {
           const projectRoot = normalize(info.projectRoot);
           const assetsPath = normalize(info.assetsPath || path.join(info.projectRoot, 'Assets'));
           const packagesPath = normalize(info.packagesPath || path.join(info.projectRoot, 'Packages'));
-          const localReady =
-            fs.existsSync(assetsPath) &&
-            fs.existsSync(packagesPath) &&
-            fs.statSync(assetsPath).isDirectory() &&
-            fs.statSync(packagesPath).isDirectory();
+          let localReady = false;
+          try {
+            localReady =
+              fs.existsSync(assetsPath) &&
+              fs.existsSync(packagesPath) &&
+              fs.statSync(assetsPath).isDirectory() &&
+              fs.statSync(packagesPath).isDirectory();
+          } catch {
+            localReady = false;
+          }
 
           if (localReady) {
             this.cached = {

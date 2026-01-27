@@ -64,7 +64,7 @@ export default class AddressablesBuildToolHandler extends BaseToolHandler {
   }
 
   async execute(params) {
-    const { action, ...parameters } = params;
+    const { action, workspaceRoot, ...parameters } = params;
 
     // Ensure connected
     if (!this.unityConnection.isConnected()) {
@@ -74,10 +74,13 @@ export default class AddressablesBuildToolHandler extends BaseToolHandler {
     // Build operations can take several minutes
     const timeout = 300000; // 5 minutes
 
+    const { WORKSPACE_ROOT } = await import('../../core/config.js');
+    const resolvedWorkspaceRoot = workspaceRoot ?? WORKSPACE_ROOT;
     const result = await this.unityConnection.sendCommand(
       'addressables_build',
       {
         action,
+        workspaceRoot: resolvedWorkspaceRoot,
         ...parameters
       },
       timeout

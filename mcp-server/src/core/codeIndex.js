@@ -461,12 +461,13 @@ export class CodeIndex {
    * Close the database connection
    */
   close() {
+    const wasShared = sharedConnections.db === this.db;
     if (this.db) {
       this._saveToFile();
       this.db.close();
       this.db = null;
     }
-    if (sharedConnections.db === this.db) {
+    if (wasShared) {
       sharedConnections.db = null;
       sharedConnections.dbPath = null;
       sharedConnections.dbStat = null;

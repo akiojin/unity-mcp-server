@@ -77,15 +77,18 @@ export default class PackageManagerToolHandler extends BaseToolHandler {
   }
 
   async execute(params) {
-    const { action, ...parameters } = params;
+    const { action, workspaceRoot, ...parameters } = params;
 
     // Ensure connected
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }
 
+    const { WORKSPACE_ROOT } = await import('../../core/config.js');
+    const resolvedWorkspaceRoot = workspaceRoot ?? WORKSPACE_ROOT;
     const result = await this.unityConnection.sendCommand('package_manager', {
       action,
+      workspaceRoot: resolvedWorkspaceRoot,
       ...parameters
     });
 

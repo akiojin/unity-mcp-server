@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { describe, it, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -84,11 +84,10 @@ describe('ProjectInfoProvider', () => {
 
   it('falls back when Unity path is not available locally', async () => {
     const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unity-mcp-project-'));
-    const originalCwd = process.cwd();
     await fs.mkdir(path.join(tmpDir, 'Assets'), { recursive: true });
     await fs.mkdir(path.join(tmpDir, 'Packages'), { recursive: true });
 
-    process.chdir(tmpDir);
+    mock.method(process, 'cwd', () => tmpDir);
 
     try {
       const { ProjectInfoProvider } = await importProjectInfoFresh();
@@ -106,7 +105,7 @@ describe('ProjectInfoProvider', () => {
       assert.equal(info.assetsPath, path.join(tmpDir, 'Assets').replace(/\\/g, '/'));
       assert.equal(info.packagesPath, path.join(tmpDir, 'Packages').replace(/\\/g, '/'));
     } finally {
-      process.chdir(originalCwd);
+      mock.restoreAll();
       await fs.rm(tmpDir, { recursive: true, force: true });
     }
   });

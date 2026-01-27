@@ -27,8 +27,8 @@ class MockUnityConnection {
     this.connected = true;
     this.connectCalls += 1;
   }
-  async sendCommand() {
-    return { message: 'pong', echo: 'ping' };
+  async sendCommand(_type, params = {}) {
+    return { message: 'pong', echo: params.message ?? 'ping' };
   }
 }
 
@@ -45,6 +45,7 @@ describe('system ping tool', () => {
     const res = await server.callHandler({ params: { name: 'ping', arguments: { message: 'hi' } } });
     assert.equal(unity.connectCalls, 1);
     assert.match(res.content[0].text, /Unity responded/);
+    assert.match(res.content[0].text, /hi/);
   });
 
   it('returns error for unknown tool', async () => {

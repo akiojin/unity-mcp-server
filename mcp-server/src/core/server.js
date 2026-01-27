@@ -23,6 +23,14 @@ let config = null;
 let logger = null;
 let initializationPromise = null;
 
+const fallbackLogger = {
+  info() {},
+  warn() {},
+  error() {},
+  debug() {},
+  setServer() {}
+};
+
 let cachedToolManifest = null;
 function readToolManifest() {
   if (cachedToolManifest) return cachedToolManifest;
@@ -59,7 +67,7 @@ async function ensureInitialized(deps = {}) {
       ? { config: deps.config, logger: deps.logger }
       : await import('./config.js');
     config = configModule.config;
-    logger = configModule.logger;
+    logger = configModule.logger ?? deps.logger ?? fallbackLogger;
 
     // Load UnityConnection
     const UnityConnectionClass = deps.UnityConnection
@@ -111,7 +119,7 @@ export async function startServer(options = {}) {
       : await import('./config.js');
     const { config: serverConfig, logger: serverLogger } = configModule;
     config = serverConfig;
-    logger = serverLogger;
+    logger = serverLogger ?? deps.logger ?? fallbackLogger;
 
     const runtimeConfig = {
       ...config,

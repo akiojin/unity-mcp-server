@@ -33,22 +33,26 @@ function loadUnityCommandTypes(repoRootDir) {
   return new Set(matches);
 }
 
+const ALLOWED_NON_UNITY_TOOL_NAMES = new Set([
+  'search_tools',
+  'input_system_control',
+  'input_touch',
+  'package_manager',
+  'addressables_analyze',
+  'addressables_build',
+  'addressables_manage',
+  'playmode_wait_for_state',
+  'video_capture_for',
+  'read',
+  'search',
+  'create_class',
+  'list_packages',
+  'find_refs'
+]);
+
 function isAllowedNonUnityToolName(name) {
-  if (name === 'search_tools') return true;
-  if (name === 'input_system_control') return true;
-  if (name === 'input_touch') return true;
-  if (name === 'package_manager') return true;
-  if (name === 'addressables_analyze') return true;
-  if (name === 'addressables_build') return true;
-  if (name === 'addressables_manage') return true;
-  if (name === 'playmode_wait_for_state') return true;
-  if (name === 'video_capture_for') return true;
-  // Script tools (simplified names: read, search, create_class, edit_*, list_packages, find_*, *_symbol)
-  if (name === 'read') return true;
-  if (name === 'search') return true;
-  if (name === 'create_class') return true;
-  if (name === 'list_packages') return true;
-  if (name === 'find_refs') return true;
+  if (ALLOWED_NON_UNITY_TOOL_NAMES.has(name)) return true;
+  // Script tools (simplified names: edit_*, *_symbol)
   if (name.startsWith('edit_')) return true;
   if (name.endsWith('_symbol') || name === 'get_symbols') return true;
   // Code index tools (simplified names: build_index, get_index_status, update_index)

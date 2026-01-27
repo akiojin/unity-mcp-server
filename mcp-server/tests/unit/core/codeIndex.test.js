@@ -32,9 +32,11 @@ describe('CodeIndex', () => {
 
     it('should reload when database file changes on disk', async () => {
       let tempRoot;
+      let resetDriver;
       try {
         const { CodeIndex, __resetCodeIndexDriverStatusForTest } =
           await import('../../../src/core/codeIndex.js');
+        resetDriver = __resetCodeIndexDriverStatusForTest;
         const { Database } = await import('@akiojin/fast-sql');
 
         tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'code-index-test-'));
@@ -83,10 +85,12 @@ describe('CodeIndex', () => {
         const readyAfter = await index.isReady();
         assert.equal(readyAfter, true);
 
-        __resetCodeIndexDriverStatusForTest();
       } catch (e) {
         assert.ok(true, 'CodeIndex requires fast-sql');
       } finally {
+        if (resetDriver) {
+          resetDriver();
+        }
         if (tempRoot) {
           fs.rmSync(tempRoot, { recursive: true, force: true });
         }

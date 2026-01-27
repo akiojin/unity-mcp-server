@@ -268,7 +268,11 @@ export class ScriptRefsFindToolHandler extends BaseToolHandler {
       truncated = true;
     }
 
-    return { success: true, results, total, truncated, ...(truncated && lastPath ? { cursor: lastPath } : {}) };
+    const response = { success: true, results, total, truncated };
+    if (truncated && lastPath) {
+      response.cursor = lastPath;
+    }
+    return response;
   }
 }
 

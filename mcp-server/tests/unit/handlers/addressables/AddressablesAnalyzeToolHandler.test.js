@@ -18,8 +18,10 @@ describe('AddressablesAnalyzeToolHandler', () => {
 
   it('should send command with addressables_analyze', async () => {
     await handler.execute({ action: 'analyze_duplicates' });
-    const [command, params] = mockConnection.sendCommand.mock.calls[0].arguments;
+    const [command, params, timeout] = mockConnection.sendCommand.mock.calls[0].arguments;
     assert.equal(command, 'addressables_analyze');
     assert.equal(params.action, 'analyze_duplicates');
+    assert.ok(params.workspaceRoot);
+    assert.equal(timeout, 300000);
   });
 });

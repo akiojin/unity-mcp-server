@@ -178,8 +178,12 @@ export class InputTouchToolHandler extends BaseToolHandler {
       await this.unityConnection.connect();
     }
 
+    const { WORKSPACE_ROOT } = await import('../../core/config.js');
+    const resolvedWorkspaceRoot = params.workspaceRoot ?? WORKSPACE_ROOT;
     const hasBatch = Array.isArray(params.actions) && params.actions.length > 0;
-    const payload = hasBatch ? { actions: params.actions } : params;
+    const payload = hasBatch
+      ? { actions: params.actions, workspaceRoot: resolvedWorkspaceRoot }
+      : { ...params, workspaceRoot: resolvedWorkspaceRoot };
 
     const result = await this.unityConnection.sendCommand('input_touch', payload);
     return result;

@@ -38,8 +38,8 @@ describe('startServer (deps injection)', () => {
   let originalExit;
 
   beforeEach(() => {
-    originalSigint = process.listeners('SIGINT');
-    originalSigterm = process.listeners('SIGTERM');
+    originalSigint = process.listeners('SIGINT').slice();
+    originalSigterm = process.listeners('SIGTERM').slice();
     stdio = createStdioMock();
     createHandlersCalls = 0;
     loggerCalls = { setServer: 0, setLevel: 0 };

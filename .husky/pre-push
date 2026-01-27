@@ -2,7 +2,17 @@ echo "Running pre-push checks..."
 
 # CIと同じテストセットを実行（Unity接続テストを除外）
 echo "Running CI tests..."
-cd mcp-server && pnpm run test:ci
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT" || exit 1
+if command -v pnpm >/dev/null 2>&1; then
+  PNPM_CMD="pnpm"
+elif command -v corepack >/dev/null 2>&1; then
+  PNPM_CMD="corepack exec pnpm"
+else
+  echo "pnpm (or corepack) is required to run: cd mcp-server && pnpm run test:ci"
+  exit 1
+fi
+cd mcp-server && $PNPM_CMD run test:ci
 if [ $? -ne 0 ]; then
   echo "Tests failed. Please fix them before pushing."
   exit 1
