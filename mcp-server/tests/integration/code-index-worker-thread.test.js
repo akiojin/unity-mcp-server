@@ -501,12 +501,12 @@ describeSuite('SPEC-e757a01f US-10: Worker Threads Non-blocking Build', () => {
   });
 
   describe('NFR-022: Node.js Version Compatibility', () => {
-    it('should work on Node.js 18+', () => {
+    it('should work on Node.js 18+', async () => {
       const nodeVersion = parseInt(process.version.slice(1).split('.')[0], 10);
       assert.ok(nodeVersion >= 18, `Node.js version ${process.version} should be >=18`);
 
       // Verify Worker Threads are available
-      const { Worker, isMainThread } = require('worker_threads');
+      const { Worker, isMainThread } = await import('worker_threads');
       assert.ok(Worker, 'Worker should be available');
       assert.ok(isMainThread, 'Should be running in main thread');
     });
