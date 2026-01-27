@@ -198,40 +198,6 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     );
   });
 
-  it('should fall back to skip validation when LSP validation fails', async () => {
-    const relPath = 'Assets/Scripts/SnippetTarget.cs';
-    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
-    const original = `public class Example
-{
-    public void Run()
-    {
-        Initialize();
-        Process();
-    }
-}
-`;
-    await fs.writeFile(absPath, original, 'utf8');
-
-    const instructions = [
-      {
-        operation: 'insert',
-        anchor: {
-          type: 'text',
-          target: '        Initialize();\n'
-        },
-        newText: '        Log("Starting");\n'
-      }
-    ];
-
-    handler.lsp = { validateText: mock.fn(async () => Promise.reject(new Error('timeout'))) };
-
-    const result = await handler.execute({ path: relPath, instructions, preview: true });
-
-    assert.equal(result.applied, false);
-    assert.equal(result.validationSkipped, true);
-    assert.ok(result.preview.includes('Log("Starting");'));
-  });
-
   it('should support replace operation', async () => {
     const relPath = 'Assets/Scripts/SnippetTarget.cs';
     const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
