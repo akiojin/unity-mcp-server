@@ -9,6 +9,7 @@ import { preSyntaxCheck } from './csharpSyntaxCheck.js';
 const MAX_INSTRUCTIONS = 10;
 const MAX_DIFF_CHARS = 80;
 const PREVIEW_MAX = 1000;
+const LSP_VALIDATE_TIMEOUT_MS = 10000;
 
 const normalizeSlashes = p => p.replace(/\\/g, '/');
 
@@ -168,13 +169,23 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
 
     // LSP validation (skip if skipValidation=true for large files)
     let diagnostics = [];
+    let validationWarning;
+    let validationSkipped = skipValidation;
     if (!skipValidation) {
-      diagnostics = await this.#validateWithLsp(info, relative, working);
-      const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
-      if (hasErrors) {
-        const first = diagnostics.find(d => this.#severityIsError(d.severity));
-        const msg = first?.message || 'syntax error';
-        throw new Error(`syntax_error: ${msg}`);
+      try {
+        diagnostics = await this.#validateWithLsp(info, relative, working);
+      } catch (e) {
+        validationSkipped = true;
+        validationWarning = `lsp_validation_skipped: ${e.message || e}`;
+        diagnostics = [];
+      }
+      if (!validationSkipped) {
+        const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
+        if (hasErrors) {
+          const first = diagnostics.find(d => this.#severityIsError(d.severity));
+          const msg = first?.message || 'syntax error';
+          throw new Error(`syntax_error: ${msg}`);
+        }
       }
     }
 
@@ -188,7 +199,8 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       original,
       updated: working,
       diagnostics,
-      validationSkipped: skipValidation
+      validationSkipped,
+      validationWarning
     });
   }
 
@@ -296,10 +308,33 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
   }
 
   async #validateWithLsp(info, relative, updatedText) {
-    if (!this.lsp) {
-      this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
+    const client = this.lsp || (await this.#withTimeout(
+      LspRpcClientSingleton.getInstance(info.projectRoot),
+      LSP_VALIDATE_TIMEOUT_MS,
+      'lsp_start'
+    ));
+    this.lsp = client;
+    return await this.#withTimeout(
+      client.validateText(relative, updatedText),
+      LSP_VALIDATE_TIMEOUT_MS,
+      'lsp_validate'
+    );
+  }
+
+  async #withTimeout(promise, timeoutMs, label) {
+    if (!timeoutMs || timeoutMs <= 0) return await promise;
+    let timeoutId;
+    const timeout = new Promise((_, reject) => {
+      timeoutId = setTimeout(
+        () => reject(new Error(`${label} timed out after ${timeoutMs} ms`)),
+        timeoutMs
+      );
+    });
+    try {
+      return await Promise.race([promise, timeout]);
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
     }
-    return await this.lsp.validateText(relative, updatedText);
   }
 
   #buildResponse({
@@ -308,7 +343,8 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     original,
     updated,
     diagnostics = [],
-    validationSkipped = false
+    validationSkipped = false,
+    validationWarning
   }) {
     const out = {
       success: true,
@@ -319,6 +355,9 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       beforeHash: this.#hash(original),
       afterHash: this.#hash(updated)
     };
+    if (validationWarning) {
+      out.validationWarning = validationWarning;
+    }
     if (preview) {
       out.preview = this.#clipPreview(updated);
     }
