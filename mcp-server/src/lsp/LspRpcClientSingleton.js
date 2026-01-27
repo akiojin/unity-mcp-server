@@ -66,8 +66,8 @@ export class LspRpcClientSingleton {
         return;
       }
       try {
-        // Use workspace/symbol with empty query as a lightweight ping
-        await instance.request('workspace/symbol', { query: '' });
+        // Lightweight ping to avoid heavy workspace scans
+        await instance.request('mcp/ping', {});
       } catch (e) {
         logger.warning(`[LspRpcClientSingleton] heartbeat failed: ${e.message}, resetting...`);
         // Process is dead, reset instance for next request
