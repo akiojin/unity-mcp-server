@@ -107,6 +107,11 @@ sealed class LspServer
                     else if (method == "workspace/symbol")
                     {
                         var query = root.GetProperty("params").GetProperty("query").GetString() ?? "";
+                        if (string.IsNullOrWhiteSpace(query))
+                        {
+                            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = Array.Empty<object>() });
+                            continue;
+                        }
                         var result = await WorkspaceSymbolAsync(query);
                         await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result });
                     }
