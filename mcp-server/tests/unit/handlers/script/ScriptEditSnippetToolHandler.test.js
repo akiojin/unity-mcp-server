@@ -161,7 +161,7 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
 
     const after = await fs.readFile(absPath, 'utf8');
     assert.equal(after, original, 'file content should remain unchanged on syntax error');
-    assert.equal(validateText.mock.calls.length, 1);
+    assert.equal(validateText.mock.calls.length, 0);
   });
 
   it('should reject anchor with multiple matches (non-unique)', async () => {
@@ -196,6 +196,40 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
       () => handler.execute({ path: relPath, instructions, preview: true }),
       /anchor_not_unique.*2 locations/i
     );
+  });
+
+  it('should fall back to skip validation when LSP validation fails', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class Example
+{
+    public void Run()
+    {
+        Initialize();
+        Process();
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'insert',
+        anchor: {
+          type: 'text',
+          target: '        Initialize();\n'
+        },
+        newText: '        Log("Starting");\n'
+      }
+    ];
+
+    handler.lsp = { validateText: mock.fn(async () => Promise.reject(new Error('timeout'))) };
+
+    const result = await handler.execute({ path: relPath, instructions, preview: true });
+
+    assert.equal(result.applied, false);
+    assert.equal(result.validationSkipped, true);
+    assert.ok(result.preview.includes('Log("Starting");'));
   });
 
   it('should support replace operation', async () => {
