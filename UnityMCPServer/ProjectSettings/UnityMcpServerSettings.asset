@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityMCPServer.Editor::UnityMCPServer.Settings.UnityMcpServerProjectSettings
   unityHost: localhost
-  port: 6401
+  port: 6400
