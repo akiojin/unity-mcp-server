@@ -24,5 +24,17 @@
     "markdownlint-cli": {
       "glob": "11.1.0"
     }
+  },
+  "pnpm": {
+    "overrides": {
+      "@modelcontextprotocol/sdk": ">=1.25.2",
+      "glob": ">=11.1.0",
+      "qs": ">=6.14.1",
+      "lodash": ">=4.17.23",
+      "hono": ">=4.11.4",
+      "tar": ">=7.5.4",
+      "undici": ">=7.18.2",
+      "diff": ">=8.0.3"
+    }
   }
 }
