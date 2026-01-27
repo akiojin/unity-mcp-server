@@ -222,6 +222,27 @@ public class UseTestClass : MonoBehaviour
       assert.ok(result.total <= 1, 'Should respect pageSize');
     });
 
+    it('should support paging with startAfter cursor', async () => {
+      const first = await handler.execute({ name: 'TestClass', pageSize: 1 });
+      assert.equal(first.success, true);
+      assert.equal(first.total, 1);
+      assert.equal(first.truncated, true);
+      assert.ok(first.cursor, 'Should return cursor when truncated');
+      const firstPath = first.results[0]?.path;
+      assert.ok(firstPath, 'First page should have a path');
+
+      const second = await handler.execute({
+        name: 'TestClass',
+        pageSize: 1,
+        startAfter: first.cursor
+      });
+      assert.equal(second.success, true);
+      assert.equal(second.total, 1);
+      const secondPath = second.results[0]?.path;
+      assert.ok(secondPath, 'Second page should have a path');
+      assert.notEqual(secondPath, firstPath);
+    });
+
     it('should not match partial words', async () => {
       // Add a file with partial match
       await fs.writeFile(

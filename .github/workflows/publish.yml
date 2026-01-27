@@ -251,7 +251,7 @@ jobs:
       - name: Install dependencies
         if: steps.check.outputs.skip == 'false'
         working-directory: packages/fast-sql
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build fast-sql
         if: steps.check.outputs.skip == 'false'
