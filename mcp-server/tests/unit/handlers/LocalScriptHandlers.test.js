@@ -37,15 +37,22 @@ function setupTempUnityProject() {
     root,
     codeIndexRoot: path.join(root, '.unity', 'cache', 'code-index')
   };
+  process.env.UNITY_PROJECT_ROOT = root;
   return { root, relPkg: rel };
 }
 
 const originalProject = config.project ? { ...config.project } : null;
+const originalEnvRoot = process.env.UNITY_PROJECT_ROOT;
 test.afterEach(async () => {
   if (originalProject === null) {
     delete config.project;
   } else {
     config.project = { ...originalProject };
+  }
+  if (originalEnvRoot === undefined) {
+    delete process.env.UNITY_PROJECT_ROOT;
+  } else {
+    process.env.UNITY_PROJECT_ROOT = originalEnvRoot;
   }
   await LspRpcClientSingleton.reset();
   const mgr = new LspProcessManager();

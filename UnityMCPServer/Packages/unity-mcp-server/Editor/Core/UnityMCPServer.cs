@@ -646,7 +646,7 @@ namespace UnityMCPServer.Core
                         var gamepadResult = InputSystemHandler.SimulateGamepadInput(command.Parameters);
                         response = Response.SuccessResult(command.Id, gamepadResult);
                         break;
-                    case "simulate_touch":
+                    case "input_touch":
                         var touchResult = InputSystemHandler.SimulateTouchInput(command.Parameters);
                         response = Response.SuccessResult(command.Id, touchResult);
                         break;
@@ -697,7 +697,7 @@ namespace UnityMCPServer.Core
                         response = Response.SuccessResult(command.Id, executeMenuResult);
                         break;
                     // Package Manager commands
-                    case "manage_packages":
+                    case "package_manager":
                         var packageAction = command.Parameters?["action"]?.ToString() ?? "list";
                         var packageResult = PackageManagerHandler.HandleCommand(packageAction, command.Parameters);
                         response = Response.SuccessResult(command.Id, packageResult);
@@ -840,17 +840,17 @@ namespace UnityMCPServer.Core
                         response = Response.SuccessResult(command.Id, assetDependencyResult);
                         break;
                     // Addressables management commands
-                    case "manage_addressables":
+                    case "addressables_manage":
                         var addressablesManageResult = AddressablesHandler.HandleCommand(command.Parameters["action"]?.ToString(), command.Parameters);
                         response = Response.SuccessResult(command.Id, addressablesManageResult);
                         break;
                     // Addressables build commands
-                    case "build_addressables":
+                    case "addressables_build":
                         var addressablesBuildResult = AddressablesHandler.HandleCommand(command.Parameters["action"]?.ToString(), command.Parameters);
                         response = Response.SuccessResult(command.Id, addressablesBuildResult);
                         break;
                     // Addressables analyze commands
-                    case "analyze_addressables":
+                    case "addressables_analyze":
                         var addressablesAnalyzeResult = AddressablesHandler.HandleCommand(command.Parameters["action"]?.ToString(), command.Parameters);
                         response = Response.SuccessResult(command.Id, addressablesAnalyzeResult);
                         break;

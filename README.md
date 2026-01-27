@@ -122,6 +122,8 @@ Unity MCP Server ships **100+ tools**. Use the `search_tools` meta-tool to disco
 
 See [docs/tools.md](docs/tools.md) for discovery tips and the recommended Code Index workflow.
 
+Note: `find_refs` supports paging via `startAfter` and returns `cursor` when results are truncated.
+
 ## Claude Code Skills
 
 This package includes Claude Code skills that provide workflow-oriented guidance for effectively using the 108+ tools.

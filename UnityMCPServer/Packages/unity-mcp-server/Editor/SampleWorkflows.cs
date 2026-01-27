@@ -1,4 +1,5 @@
 using System.Linq;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 #if UNITY_ADDRESSABLES
@@ -61,7 +62,7 @@ public static class SampleWorkflows
           if (group != null)
           {
               var entry = group.entries.FirstOrDefault(e => e.address == "mcp/sample");
-              if (entry != null) settings.RemoveAssetEntry(entry); 
+              if (entry != null) settings.RemoveAssetEntry(entry.guid);
               settings.RemoveGroup(group);
           }
         }

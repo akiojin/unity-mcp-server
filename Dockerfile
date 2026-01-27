@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     gnupg \
     vim \
+    tmux \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -44,25 +45,23 @@ RUN set -eux; \
     ln -sf "$DOTNET_ROOT/dotnet" /usr/bin/dotnet; \
     dotnet --info
 
-# Install uv/uvx
-RUN curl -fsSL https://astral.sh/uv/install.sh | bash
-ENV PATH="/root/.cargo/bin:${PATH}"
+# Install CLI tools (uv/uvx, Bun, Claude Code)
+RUN bash -o pipefail -c "curl -fsSL https://astral.sh/uv/install.sh | bash \
+    && curl -fsSL https://bun.sh/install | bash \
+    && curl -fsSL https://claude.ai/install.sh | bash"
+ENV PATH="/root/.cargo/bin:/root/.bun/bin:/root/.claude/bin:${PATH}"
 
 # Claude Code EXDEV workaround (Issue #14799)
 # Prevents cross-device link error when /root/.claude and /tmp are on different filesystems
 ENV TMPDIR=/root/.claude/tmp
 RUN mkdir -p /root/.claude/tmp
 
-RUN npm i -g \
-    npm@latest \
-    bun@latest \
-    typescript@latest \
-    eslint@latest \
-    prettier@latest \
-    @commitlint/cli@latest \
-    @commitlint/config-conventional@latest
-
 WORKDIR /unity-mcp-server
+
+# Node.js依存（corepack + pnpm）
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
+
 # Use bash to invoke entrypoint to avoid exec-bit and CRLF issues on Windows mounts
 ENTRYPOINT ["bash", "/unity-mcp-server/scripts/entrypoint.sh"]
 CMD ["bash"]
