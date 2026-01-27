@@ -261,6 +261,9 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       env: {
         ...process.env,
         UNITY_MCP_ALLOW_TEST_CONNECT: '1',
+        UNITY_MCP_UNITY_HOST: '127.0.0.1',
+        UNITY_MCP_MCP_HOST: '127.0.0.1',
+        UNITY_MCP_PORT: '6400',
         LOG_LEVEL: process.env.LOG_LEVEL || 'error'
       }
     });
@@ -391,12 +394,12 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
 
       // Addressables (best-effort; may be unavailable in some projects)
       await safeCall(
-        'analyze_addressables',
+        'addressables_analyze',
         { action: 'analyze_unused', pageSize: 1, offset: 0 },
         { timeoutMs: 120_000 }
       );
-      await safeCall('build_addressables', { action: 'clean_build' }, { timeoutMs: 120_000 });
-      await safeCall('manage_addressables', { action: 'list_groups' }, { timeoutMs: 120_000 });
+      await safeCall('addressables_build', { action: 'clean_build' }, { timeoutMs: 120_000 });
+      await safeCall('addressables_manage', { action: 'list_groups' }, { timeoutMs: 120_000 });
 
       // Ensure clean-ish starting state
       await safeCall('stop_game', {}, { timeoutMs: 120_000 });
@@ -606,7 +609,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
 
       // Packages/settings
       await safeCall(
-        'manage_packages',
+        'package_manager',
         { action: 'list', includeBuiltIn: false },
         { timeoutMs: 120_000 }
       );
@@ -827,7 +830,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
       );
 
       // Input simulation (best-effort, may fail on headless environments)
-      await safeCall('control_input_system', { operation: 'get_state' }, { timeoutMs: 60_000 });
+      await safeCall('input_system_control', { operation: 'get_state' }, { timeoutMs: 60_000 });
       await safeCall(
         'input_keyboard',
         { action: 'type', text: 'smoke', typingSpeed: 5 },
@@ -838,7 +841,7 @@ describe('All tools smoke via MCP protocol (stdio → Unity)', () => {
         { action: 'move', x: 10, y: 10, absolute: true },
         { timeoutMs: 60_000 }
       );
-      await safeCall('simulate_touch', { action: 'tap', x: 0.5, y: 0.5 }, { timeoutMs: 60_000 });
+      await safeCall('input_touch', { action: 'tap', x: 0.5, y: 0.5 }, { timeoutMs: 60_000 });
       await safeCall(
         'input_gamepad',
         { action: 'button', button: 'a', buttonAction: 'press', holdSeconds: 0.1 },

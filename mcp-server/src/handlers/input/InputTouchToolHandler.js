@@ -127,7 +127,7 @@ function validateTouchAction(params, context = 'action') {
  */
 export class InputTouchToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
-    super('simulate_touch', 'Touch input (tap/swipe/pinch/multi) with batching.', {
+    super('input_touch', 'Touch input (tap/swipe/pinch/multi) with batching.', {
       type: 'object',
       properties: {
         ...actionProperties,
@@ -178,10 +178,14 @@ export class InputTouchToolHandler extends BaseToolHandler {
       await this.unityConnection.connect();
     }
 
+    const { WORKSPACE_ROOT } = await import('../../core/config.js');
+    const resolvedWorkspaceRoot = params.workspaceRoot ?? WORKSPACE_ROOT;
     const hasBatch = Array.isArray(params.actions) && params.actions.length > 0;
-    const payload = hasBatch ? { actions: params.actions } : params;
+    const payload = hasBatch
+      ? { actions: params.actions, workspaceRoot: resolvedWorkspaceRoot }
+      : { ...params, workspaceRoot: resolvedWorkspaceRoot };
 
-    const result = await this.unityConnection.sendCommand('simulate_touch', payload);
+    const result = await this.unityConnection.sendCommand('input_touch', payload);
     return result;
   }
 }

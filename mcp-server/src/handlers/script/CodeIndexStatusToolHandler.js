@@ -22,7 +22,11 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
     const jobManager = this.jobManager;
     const buildJobs = jobManager
       .getAllJobs()
-      .filter(job => typeof job?.id === 'string' && job.id.startsWith('build-'))
+      .filter(
+        job =>
+          typeof job?.id === 'string' &&
+          (job.id.startsWith('build-') || job.id.startsWith('watcher-'))
+      )
       .sort((a, b) => new Date(b.startedAt || 0).getTime() - new Date(a.startedAt || 0).getTime());
     const latestBuildJob = buildJobs.length > 0 ? buildJobs[0] : null;
 
@@ -51,6 +55,38 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
     }
     const buildInProgress = latestBuildJob?.status === 'running';
     if (!ready && !buildInProgress) {
+      if (latestBuildJob) {
+        const indexInfo = {
+          ready: false,
+          rows: 0,
+          lastIndexedAt: null,
+          buildJob: {
+            id: latestBuildJob.id,
+            status: latestBuildJob.status,
+            startedAt: latestBuildJob.startedAt ?? null
+          }
+        };
+        if (latestBuildJob.status === 'completed') {
+          indexInfo.buildJob.completedAt = latestBuildJob.completedAt ?? null;
+          indexInfo.buildJob.result = latestBuildJob.result ?? null;
+        } else if (latestBuildJob.status === 'failed') {
+          indexInfo.buildJob.failedAt = latestBuildJob.failedAt ?? null;
+          indexInfo.buildJob.error = latestBuildJob.error ?? 'Unknown error';
+        }
+        return {
+          success: true,
+          status: latestBuildJob.status === 'failed' ? 'failed' : 'pending',
+          ready: false,
+          totalFiles: 0,
+          indexedFiles: 0,
+          coverage: 0,
+          message:
+            latestBuildJob.status === 'failed'
+              ? 'Code index build failed. Check buildJob error or rerun build_index.'
+              : 'Code index is not ready yet. A build job exists but has not produced a usable index.',
+          index: indexInfo
+        };
+      }
       return {
         success: false,
         error: 'index_not_built',
