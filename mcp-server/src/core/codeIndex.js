@@ -74,6 +74,24 @@ export class CodeIndex {
     }
   }
 
+  invalidateSharedConnection(reason) {
+    if (reason) logger.info(`[index] ${reason}`);
+    try {
+      if (sharedConnections.db) {
+        sharedConnections.db.close();
+      }
+    } catch {
+      // Ignore close errors
+    }
+    sharedConnections.db = null;
+    sharedConnections.dbPath = null;
+    sharedConnections.dbStat = null;
+    sharedConnections.schemaInitialized = false;
+    queryCache.clear();
+    statsCache.clear();
+    this.db = null;
+  }
+
   async open() {
     const ok = await this._ensureDriver();
     if (!ok) return null;
@@ -93,24 +111,6 @@ export class CodeIndex {
       }
     })();
 
-    const invalidateSharedConnection = reason => {
-      if (reason) logger.info(`[index] ${reason}`);
-      try {
-        if (sharedConnections.db) {
-          sharedConnections.db.close();
-        }
-      } catch {
-        // Ignore close errors
-      }
-      sharedConnections.db = null;
-      sharedConnections.dbPath = null;
-      sharedConnections.dbStat = null;
-      sharedConnections.schemaInitialized = false;
-      queryCache.clear();
-      statsCache.clear();
-      this.db = null;
-    };
-
     if (this.db && (sharedConnections.db !== this.db || sharedConnections.dbPath !== dbPath)) {
       this.db = null;
     }
@@ -120,13 +120,13 @@ export class CodeIndex {
       // Verify the DB file still exists before returning cached connection
       if (!fileStat) {
         // File was deleted or never created, invalidate cache
-        invalidateSharedConnection('DB file missing, invalidating cached connection');
+        this.invalidateSharedConnection('DB file missing, invalidating cached connection');
       } else if (
         sharedConnections.dbStat &&
         (fileStat.mtimeMs !== sharedConnections.dbStat.mtimeMs ||
           fileStat.size !== sharedConnections.dbStat.size)
       ) {
-        invalidateSharedConnection('DB file changed on disk, reloading connection');
+        this.invalidateSharedConnection('DB file changed on disk, reloading connection');
       } else {
         this.db = sharedConnections.db;
         return this.db;

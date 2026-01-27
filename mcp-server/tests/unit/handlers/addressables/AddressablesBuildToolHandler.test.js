@@ -21,6 +21,16 @@ describe('AddressablesBuildToolHandler', () => {
     const [command, params, timeout] = mockConnection.sendCommand.mock.calls[0].arguments;
     assert.equal(command, 'addressables_build');
     assert.equal(params.action, 'clean_build');
+    assert.ok(params.workspaceRoot);
     assert.equal(timeout, 300000);
+  });
+
+  it('rejects invalid action', () => {
+    assert.throws(() => handler.validate({ action: 'invalid_action' }), /Invalid action/);
+  });
+
+  it('throws when Unity returns an error payload', async () => {
+    mockConnection.sendCommand = async () => ({ error: 'boom' });
+    await assert.rejects(() => handler.execute({ action: 'build' }), /boom/);
   });
 });

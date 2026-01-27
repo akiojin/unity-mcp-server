@@ -21,5 +21,26 @@ describe('AddressablesManageToolHandler', () => {
     const [command, params] = mockConnection.sendCommand.mock.calls[0].arguments;
     assert.equal(command, 'addressables_manage');
     assert.equal(params.action, 'list_groups');
+    assert.ok(params.workspaceRoot);
+  });
+
+  it('rejects invalid action', () => {
+    assert.throws(() => handler.validate({ action: 'invalid_action' }), /Invalid action/);
+  });
+
+  it('requires assetPath and address for add_entry', () => {
+    assert.throws(() => handler.validate({ action: 'add_entry' }), /assetPath is required/);
+    assert.throws(
+      () => handler.validate({ action: 'add_entry', assetPath: 'Assets/Foo.prefab' }),
+      /address is required/
+    );
+  });
+
+  it('throws when Unity returns an error payload', async () => {
+    mockConnection.sendCommand = async () => ({ error: 'boom' });
+    await assert.rejects(
+      () => handler.execute({ action: 'list_groups' }),
+      /boom/
+    );
   });
 });
