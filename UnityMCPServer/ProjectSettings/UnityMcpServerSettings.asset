@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87109c2c833a4cc88eaad4440116cfe7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityMCPServer.Editor::UnityMCPServer.Settings.UnityMcpServerProjectSettings
-  unityHost: localhost
+  unityHost: 0.0.0.0
   port: 6400
