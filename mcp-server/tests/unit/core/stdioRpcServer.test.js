@@ -25,7 +25,10 @@ describe('StdioRpcServer', () => {
   it('validates notification handler inputs', () => {
     const server = new StdioRpcServer();
     assert.throws(() => server.setNotificationHandler(123, () => {}), /method must be a string/);
-    assert.throws(() => server.setNotificationHandler('notify', 'nope'), /handler must be a function/);
+    assert.throws(
+      () => server.setNotificationHandler('notify', 'nope'),
+      /handler must be a function/
+    );
   });
 
   it('echoes the requested protocol version on initialize', async () => {

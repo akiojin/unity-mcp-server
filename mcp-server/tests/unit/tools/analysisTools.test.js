@@ -159,7 +159,9 @@ describe('analysis tool handlers', () => {
   it('analyzeInputActionsAssetHandler formats details', async () => {
     const unity = new MockUnityConnection();
     unity.connected = false;
-    const notConnected = await analyzeInputActionsAssetHandler(unity, { assetPath: 'Assets/Input.actions' });
+    const notConnected = await analyzeInputActionsAssetHandler(unity, {
+      assetPath: 'Assets/Input.actions'
+    });
     assert.equal(notConnected.isError, true);
 
     unity.connected = true;
@@ -167,11 +169,15 @@ describe('analysis tool handlers', () => {
     assert.equal(missingPath.isError, true);
 
     unity.response = 'bad';
-    const invalid = await analyzeInputActionsAssetHandler(unity, { assetPath: 'Assets/Input.actions' });
+    const invalid = await analyzeInputActionsAssetHandler(unity, {
+      assetPath: 'Assets/Input.actions'
+    });
     assert.equal(invalid.isError, true);
 
     unity.response = { error: 'bad' };
-    const errored = await analyzeInputActionsAssetHandler(unity, { assetPath: 'Assets/Input.actions' });
+    const errored = await analyzeInputActionsAssetHandler(unity, {
+      assetPath: 'Assets/Input.actions'
+    });
     assert.equal(errored.isError, true);
 
     unity.response = {
@@ -220,7 +226,9 @@ describe('analysis tool handlers', () => {
       ],
       jsonStructure: { maps: [{ name: 'Gameplay' }] }
     };
-    const success = await analyzeInputActionsAssetHandler(unity, { assetPath: 'Assets/Input.actions' });
+    const success = await analyzeInputActionsAssetHandler(unity, {
+      assetPath: 'Assets/Input.actions'
+    });
     assert.equal(success.isError, false);
     assert.match(success.content[0].text, /Statistics/);
     assert.match(success.content[0].text, /Raw JSON Structure/);

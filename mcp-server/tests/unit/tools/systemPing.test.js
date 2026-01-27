@@ -42,7 +42,9 @@ describe('system ping tool', () => {
     assert.equal(list.tools[0].name, 'ping');
 
     unity.connected = false;
-    const res = await server.callHandler({ params: { name: 'ping', arguments: { message: 'hi' } } });
+    const res = await server.callHandler({
+      params: { name: 'ping', arguments: { message: 'hi' } }
+    });
     assert.equal(unity.connectCalls, 1);
     assert.match(res.content[0].text, /Unity responded/);
     assert.match(res.content[0].text, /hi/);

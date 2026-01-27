@@ -84,7 +84,6 @@ describe('CodeIndex', () => {
 
         const readyAfter = await index.isReady();
         assert.equal(readyAfter, true);
-
       } catch (e) {
         assert.ok(true, 'CodeIndex requires fast-sql');
       } finally {

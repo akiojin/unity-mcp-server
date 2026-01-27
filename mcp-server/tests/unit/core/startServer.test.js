@@ -56,7 +56,13 @@ describe('startServer (deps injection)', () => {
       config: {
         server: { name: 'test-unity-mcp', version: '1.0.0' },
         unity: { unityHost: 'localhost', mcpHost: 'localhost', port: 6400, commandTimeout: 30000 },
-        http: { enabled: false, host: '0.0.0.0', port: 6401, healthPath: '/healthz', allowedHosts: [] },
+        http: {
+          enabled: false,
+          host: '0.0.0.0',
+          port: 6401,
+          healthPath: '/healthz',
+          allowedHosts: []
+        },
         telemetry: { enabled: false }
       },
       logger: {

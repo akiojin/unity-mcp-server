@@ -38,9 +38,6 @@ describe('AddressablesManageToolHandler', () => {
 
   it('throws when Unity returns an error payload', async () => {
     mockConnection.sendCommand = async () => ({ error: 'boom' });
-    await assert.rejects(
-      () => handler.execute({ action: 'list_groups' }),
-      /boom/
-    );
+    await assert.rejects(() => handler.execute({ action: 'list_groups' }), /boom/);
   });
 });

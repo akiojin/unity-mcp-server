@@ -106,7 +106,9 @@ export class ProjectInfoProvider {
         if (info && info.projectRoot && info.assetsPath) {
           const projectRoot = normalize(info.projectRoot);
           const assetsPath = normalize(info.assetsPath || path.join(info.projectRoot, 'Assets'));
-          const packagesPath = normalize(info.packagesPath || path.join(info.projectRoot, 'Packages'));
+          const packagesPath = normalize(
+            info.packagesPath || path.join(info.projectRoot, 'Packages')
+          );
           let localReady = false;
           try {
             localReady =

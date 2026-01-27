@@ -29,7 +29,10 @@ describe('input actions editor handlers', () => {
   it('handles connection errors', async () => {
     const unity = new MockUnityConnection();
     unity.connected = false;
-    const res = await createActionMapHandler(unity, { assetPath: 'Assets/Input.actions', mapName: 'Gameplay' });
+    const res = await createActionMapHandler(unity, {
+      assetPath: 'Assets/Input.actions',
+      mapName: 'Gameplay'
+    });
     assert.equal(res.isError, true);
   });
 

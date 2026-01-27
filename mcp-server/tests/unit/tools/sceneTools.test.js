@@ -121,17 +121,26 @@ describe('scene tool handlers', () => {
     assert.equal(saveAsMissing.isError, true);
 
     unity.response = { status: 'error', error: 'bad' };
-    const errored = await saveSceneHandler(unity, { saveAs: true, scenePath: 'Assets/Scenes/X.unity' });
+    const errored = await saveSceneHandler(unity, {
+      saveAs: true,
+      scenePath: 'Assets/Scenes/X.unity'
+    });
     assert.equal(errored.isError, true);
 
     unity.response = { result: { summary: 'saved' } };
-    const ok = await saveSceneHandler(unity, { saveAs: true, scenePath: 'Assets/Scenes/Main.unity' });
+    const ok = await saveSceneHandler(unity, {
+      saveAs: true,
+      scenePath: 'Assets/Scenes/Main.unity'
+    });
     assert.equal(ok.isError, false);
 
     unity.sendCommand = async () => {
       throw new Error('boom');
     };
-    const thrown = await saveSceneHandler(unity, { saveAs: true, scenePath: 'Assets/Scenes/Main.unity' });
+    const thrown = await saveSceneHandler(unity, {
+      saveAs: true,
+      scenePath: 'Assets/Scenes/Main.unity'
+    });
     assert.equal(thrown.isError, true);
   });
 
