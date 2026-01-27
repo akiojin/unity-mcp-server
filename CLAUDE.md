@@ -633,81 +633,96 @@ git commit -m "feat: add hooks and fix bug and update docs"
 
 ## バージョン管理
 
-### 自動リリース（release-please + GitHub Actions）
+### LLMベースリリースフロー（/release コマンド）
+
+本プロジェクトはClaude CodeのLLM機能を活用したインタラクティブなリリースフローを採用しています。
 
 #### Conventional Commits規約
 
-コミットメッセージで自動的にバージョンが決定されます：
+コミットメッセージでバージョンが決定されます：
 
-- **`feat:`** - 新機能追加 → **minor** version up (例: 2.16.3 → 2.17.0)
-- **`fix:`** - バグ修正 → **patch** version up (例: 2.16.3 → 2.16.4)
-- **`BREAKING CHANGE:`** または **`feat!:`** - 破壊的変更 → **major** version up (例: 2.16.3 → 3.0.0)
+- **`feat:`** - 新機能追加 → **minor** version up (例: 4.1.3 → 4.2.0)
+- **`fix:`** - バグ修正 → **patch** version up (例: 4.1.3 → 4.1.4)
+- **`BREAKING CHANGE:`** または **`feat!:`** - 破壊的変更 → **major** version up (例: 4.1.3 → 5.0.0)
 - **`chore:`**, **`docs:`**, **`test:`** - version up なし
 
 #### リリースフロー（feature → develop → main + tag）
 
 **PRターゲットの絶対ルール**
-- featureブランチから作成するPRの宛先は必ず`develop`。`main`への直接PRは禁止（hotfixも`develop`経由でバックポート）。
+
+- featureブランチから作成するPRの宛先は必ず`develop`
+- `main`への直接PRは禁止（hotfixも`develop`経由でバックポート）
+
+**リリース手順**:
 
 1. **featureブランチで開発**（Conventional Commits厳守）
-   - PRは `develop` 宛に作成（例: `gh pr create --base develop`）。
-   - Required Checks（Markdown/ESLint/Prettier・Commit Message Lint）成功でauto-merge。
-2. **develop→mainマージ**
-   - `/release` コマンドまたは手動で`prepare-release-pr.sh`を実行 → develop→main PRを作成・自動マージ。
-   - mainへのマージで`Release`ワークフローがトリガー。
-3. **release-pleaseによるバージョンアップPR作成**
-   - release-pleaseが`feat:`/`fix:`コミットを検出し、バージョン番号を決定。
-   - main向けにバージョンアップPRを自動作成（`chore(release): X.Y.Z`）。
-   - PR内容: `package.json`のバージョン更新 + `CHANGELOG.md`更新 + Unity Packageバージョン同期。
-   - **重要**: このPRが作成されるのは`skip-github-pull-request: false`の設定による（llm-routerと同じフロー）。
-4. **リリースPRマージ → タグ作成**
-   - バージョンアップPRをマージすると、release-pleaseが`vX.Y.Z`タグとGitHub Releaseを作成。
-   - GitHub Releaseにはrelease-pleaseが生成したリリースノートが添付される。
-5. **Publish（タグトリガー）**
-   - タグpushで`Publish`ワークフローがトリガー。
-   - csharp-lspを全RIDでビルドし、manifest＋バイナリをReleaseに添付。
-   - `mcp-server`をnpm publish。UnityパッケージはUnity 6.3で署名生成し、OpenUPMへpublish。
-   - 完了後、`main`→`develop`をバックマージ。
+   - PRは `develop` 宛に作成（例: `gh pr create --base develop`）
+   - Required Checks成功でマージ
 
-**重要**:
-- 手動でのバージョン変更・npm publishは禁止（すべて自動化）
-- バージョン・CHANGELOGの更新はmainブランチのみで行われる（developでは行わない）
-- release-pleaseが作成するバージョンアップPRを必ずマージすること（マージしないとリリースが完了しない）
+2. **`/release` コマンド実行**（developブランチで）
+   - LLMが変更内容を分析し、バージョンを自動判定
+   - プレビュー表示でユーザー確認
+   - バージョン更新（package.json × 2 + CHANGELOG.md）
+   - コミット・タグ作成・develop→main PR作成
 
-**注意事項**:
-- developブランチへのマージ後、すぐにリリースする必要はありません
-- 複数の機能をdevelopで統合してから、まとめてmainへリリースできます
-- リリースタイミングは `/release` コマンドで制御可能
+3. **PRマージ → Publish自動実行**
+   - PRをマージするとタグがpushされる
+   - `Publish`ワークフローが自動トリガー
+   - GitHub Release作成
+   - csharp-lspビルド・npm publish
+
+#### `/release` コマンド詳細
+
+```bash
+# developブランチで実行
+/release
+```
+
+**フロー**:
+
+1. 前提チェック（developブランチ、クリーンな状態）
+2. 変更分析（最新タグからのコミットを解析）
+3. バージョン判定（BREAKING → major, feat → minor, その他 → patch）
+4. プレビュー表示・ユーザー確認
+5. バージョン更新（`scripts/release/update-versions.mjs`）
+6. CHANGELOG.md更新
+7. コミット・タグ・PR作成
+
+**更新されるファイル**:
+
+- `mcp-server/package.json`
+- `UnityMCPServer/Packages/unity-mcp-server/package.json`
+- `CHANGELOG.md`
 
 #### コミット例
 
 ```bash
 # 新機能追加（minor version up）
-git commit -m "feat: Add video capture support"
+git commit -m "feat: add video capture support"
 
 # バグ修正（patch version up）
-git commit -m "fix: Resolve screenshot path issue"
+git commit -m "fix: resolve screenshot path issue"
 
 # 破壊的変更（major version up）
-git commit -m "feat!: Remove deprecated API"
+git commit -m "feat!: remove deprecated API"
 
 # バージョンアップなし
-git commit -m "chore: Update dependencies"
-git commit -m "docs: Update README"
-git commit -m "test: Add unit tests"
+git commit -m "chore: update dependencies"
+git commit -m "docs: update README"
+git commit -m "test: add unit tests"
 ```
 
 #### バージョン同期
 
-- **mcp-server / Unity Package**: release-please（manifest + extra-files）が自動更新
+- **mcp-server / Unity Package**: `/release` コマンドが一括更新
 - **csharp-lsp**: タグ `vX.Y.Z` に合わせてビルドし、GitHub Releaseに添付
-- **CHANGELOG.md**: release-pleaseのリリースノートで更新
+- **CHANGELOG.md**: `/release` コマンドが自動更新
 
 #### トラブルシューティング
 
-- **リリースが作成されない**: Conventional Commits形式とrelease-pleaseログを確認
-- **バージョンが不正**: manifest/extra-filesが更新されたか確認し、必要なら`Release`を再実行
-- **Unity Packageバージョン同期失敗**: release-pleaseのリリース結果を確認（手動で書き換えない）
+- **バージョンが不正**: `scripts/release/update-versions.mjs` を手動実行して修正
+- **PRマージ後にPublishが動かない**: タグがpushされているか確認
+- **npm publish失敗**: NPM_TOKENシークレットとpackage.jsonのバージョンを確認
 
 ### Git操作のベストプラクティス
 
