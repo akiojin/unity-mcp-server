@@ -110,6 +110,10 @@ sealed class LspServer
                         var result = await WorkspaceSymbolAsync(query);
                         await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result });
                     }
+                    else if (method == "mcp/ping")
+                    {
+                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = new { ok = true } });
+                    }
                     else if (method == "mcp/referencesByName")
                     {
                         var symName = root.GetProperty("params").GetProperty("name").GetString() ?? "";
