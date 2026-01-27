@@ -38,6 +38,12 @@ function isAllowedNonUnityToolName(name) {
   if (name === 'control_input_system') return true;
   if (name === 'playmode_wait_for_state') return true;
   if (name === 'video_capture_for') return true;
+  if (name === 'addressables_analyze') return true;
+  if (name === 'addressables_build') return true;
+  if (name === 'addressables_manage') return true;
+  if (name === 'input_system_control') return true;
+  if (name === 'input_touch') return true;
+  if (name === 'package_manager') return true;
   // Script tools (simplified names: read, search, create_class, edit_*, list_packages, find_*, *_symbol)
   if (name === 'read') return true;
   if (name === 'search') return true;

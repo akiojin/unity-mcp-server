@@ -1,14 +1,22 @@
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { IndexWatcher } from '../../../src/core/indexWatcher.js';
+import { config } from '../../../src/core/config.js';
 
 describe('IndexWatcher', () => {
   let watcher;
   let mockConnection;
+  let originalIndexingConfig;
 
   beforeEach(() => {
+    originalIndexingConfig = { ...(config.indexing || {}) };
     mockConnection = { isConnected: () => false };
     watcher = new IndexWatcher(mockConnection);
+  });
+
+  afterEach(() => {
+    config.indexing = { ...originalIndexingConfig };
+    watcher.stop();
   });
 
   describe('constructor', () => {
@@ -32,6 +40,19 @@ describe('IndexWatcher', () => {
 
     it('should call stop without error', () => {
       assert.doesNotThrow(() => watcher.stop());
+    });
+
+    it('should clear pending delayed start timeout when stopped early', () => {
+      config.indexing = {
+        ...config.indexing,
+        watch: true
+      };
+
+      watcher.start();
+      assert.ok(watcher.startTimeout, 'startTimeout should be set after start()');
+
+      watcher.stop();
+      assert.equal(watcher.startTimeout, null);
     });
   });
 
