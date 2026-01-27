@@ -15,8 +15,54 @@ permissions:
   pull-requests: write
 
 jobs:
+  # Create GitHub Release first (if not exists)
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get release tag
+        id: tag
+        run: |
+          TAG="${RELEASE_TAG}"
+          if [ -z "$TAG" ]; then
+            TAG=$(git describe --tags --abbrev=0)
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Check if release exists
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --generate-notes \
+            --draft=false
+
   build-csharp-lsp:
     name: Build csharp-lsp ${{ matrix.rid }}
+    needs: create-release
     runs-on: ${{ matrix.os }}
     env:
       RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
