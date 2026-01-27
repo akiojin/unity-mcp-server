@@ -36,6 +36,10 @@ For stable, fast code operations:
 2. `update_index` after editing specific files
 3. Use `find_symbol` / `get_symbols` to build accurate `symbolName` inputs for structured edits
 
+## `find_refs` Pagination
+
+`find_refs` supports pagination via `startAfter`. When results are truncated, the response includes `cursor`.
+
 ## Where the Tool Catalog Lives (Maintainers)
 
 - Manifest: `mcp-server/src/core/toolManifest.json`
@@ -78,6 +82,10 @@ Unity MCP Server は Unity Editor 自動化の **100+ ツール**を提供しま
 1. 初回（または大幅変更後）に `build_index`
 2. ファイル編集後は `update_index`
 3. `find_symbol` / `get_symbols` で `symbolName` を正確に作って構造化編集へ渡す
+
+## `find_refs` のページング
+
+`find_refs` は `startAfter` によるページングに対応し、結果が切り詰められた場合は `cursor` を返します。
 
 ## ツール一覧の実体（メンテナ向け）
 

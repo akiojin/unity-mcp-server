@@ -135,14 +135,15 @@ jobs:
         shell: bash
         env:
           npm_config_arch: ${{ matrix.arch }}
+          npm_config_build_from_source: 'true'
           CC: ${{ matrix.cross && 'aarch64-linux-gnu-gcc' || '' }}
           CXX: ${{ matrix.cross && 'aarch64-linux-gnu-g++' || '' }}
         run: |
           # Rebuild better-sqlite3 from source
           if [ "${{ matrix.cross }}" = "true" ]; then
-            pnpm rebuild better-sqlite3 --build-from-source --target_arch=${{ matrix.arch }}
+            pnpm rebuild better-sqlite3
           else
-            pnpm rebuild better-sqlite3 --build-from-source
+            pnpm rebuild better-sqlite3
           fi
 
       - name: Copy binding to prebuilt directory

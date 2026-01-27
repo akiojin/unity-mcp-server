@@ -29,11 +29,15 @@ Thank you for your interest in contributing to Unity MCP Server! This document p
 git clone https://github.com/akiojin/unity-mcp-server.git
 cd unity-mcp-server
 
-# Install dependencies
-npm ci --workspace=mcp-server
+# Enable Corepack (recommended) or install pnpm manually
+corepack enable
+# corepack prepare pnpm@9.15.4 --activate
+
+# Install dependencies (pnpm is required; see packageManager in package.json)
+pnpm install --frozen-lockfile
 
 # Run tests
-npm test --workspace=mcp-server
+pnpm -C mcp-server test
 
 # Verify installation
 node mcp-server/bin/unity-mcp-server --version

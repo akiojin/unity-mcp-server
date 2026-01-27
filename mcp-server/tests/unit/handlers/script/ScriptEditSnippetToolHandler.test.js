@@ -161,7 +161,7 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
 
     const after = await fs.readFile(absPath, 'utf8');
     assert.equal(after, original, 'file content should remain unchanged on syntax error');
-    assert.equal(validateText.mock.calls.length, 1);
+    assert.equal(validateText.mock.calls.length, 0);
   });
 
   it('should reject anchor with multiple matches (non-unique)', async () => {

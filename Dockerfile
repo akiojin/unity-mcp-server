@@ -46,9 +46,9 @@ RUN set -eux; \
     dotnet --info
 
 # Install CLI tools (uv/uvx, Bun, Claude Code)
-RUN curl -fsSL https://astral.sh/uv/install.sh | bash \
+RUN bash -o pipefail -c "curl -fsSL https://astral.sh/uv/install.sh | bash \
     && curl -fsSL https://bun.sh/install | bash \
-    && curl -fsSL https://claude.ai/install.sh | bash
+    && curl -fsSL https://claude.ai/install.sh | bash"
 ENV PATH="/root/.cargo/bin:/root/.bun/bin:/root/.claude/bin:${PATH}"
 
 # Claude Code EXDEV workaround (Issue #14799)
@@ -56,11 +56,11 @@ ENV PATH="/root/.cargo/bin:/root/.bun/bin:/root/.claude/bin:${PATH}"
 ENV TMPDIR=/root/.claude/tmp
 RUN mkdir -p /root/.claude/tmp
 
+WORKDIR /unity-mcp-server
+
 # Node.js依存（corepack + pnpm）
 COPY package.json pnpm-lock.yaml ./
 RUN corepack enable && pnpm install --frozen-lockfile
-
-WORKDIR /unity-mcp-server
 
 # Use bash to invoke entrypoint to avoid exec-bit and CRLF issues on Windows mounts
 ENTRYPOINT ["bash", "/unity-mcp-server/scripts/entrypoint.sh"]

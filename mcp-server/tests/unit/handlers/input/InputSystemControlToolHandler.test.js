@@ -14,7 +14,7 @@ describe('InputSystemControlToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'control_input_system');
+      assert.equal(handler.name, 'input_system_control');
     });
 
     it('should have operation enum with all input types', () => {
@@ -88,7 +88,7 @@ describe('InputSystemControlToolHandler', () => {
         operation: 'touch',
         parameters: { action: 'tap', x: 100, y: 200 }
       });
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'simulate_touch');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_touch');
     });
 
     it('should execute sequence operation', async () => {

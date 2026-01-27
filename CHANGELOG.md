@@ -4,6 +4,69 @@
 
 * `.unity/config.json` 対応を削除（Node は環境変数、Unity は Project Settings に統一）
 
+## [5.2.1](https://github.com/akiojin/unity-mcp-server/compare/v5.2.0...v5.2.1) (2025-12-26)
+
+
+### Bug Fixes
+
+* **plugin:** correct version placement in marketplace and plugin.json ([72c8edb](https://github.com/akiojin/unity-mcp-server/commit/72c8edb23c40f61054fe66280bcd2ab126dec5e3))
+* **plugin:** correct version placement in marketplace and plugin.json ([a6e72e3](https://github.com/akiojin/unity-mcp-server/commit/a6e72e30cd8cd70d5f1de3d8bf5b2a007303920b))
+
+## [5.2.0](https://github.com/akiojin/unity-mcp-server/compare/v5.1.0...v5.2.0) (2025-12-25)
+
+
+### Features
+
+* **plugin:** Claude Code plugin support ([1df3a3c](https://github.com/akiojin/unity-mcp-server/commit/1df3a3c7fbe7e0d149aba48d5c4805ad76595d33))
+
+## [5.1.0](https://github.com/akiojin/unity-mcp-server/compare/v5.0.0...v5.1.0) (2025-12-25)
+
+
+### Features
+
+* **mcp-server:** add native SQLite preload support ([28eb5c3](https://github.com/akiojin/unity-mcp-server/commit/28eb5c3ce61e56ee19fd294ffed073d6fdbe2c18))
+* **plugin:** add agents and commands for Claude Code plugin ([fe24db4](https://github.com/akiojin/unity-mcp-server/commit/fe24db4b3adbb9eae10fcf19983fb9755a3a4162))
+* **plugin:** add Claude Code plugin for Unity MCP Server ([e8d15b9](https://github.com/akiojin/unity-mcp-server/commit/e8d15b9881920f8304f332c244fad39dba87d6ee))
+* **plugin:** add Claude Code plugin support ([6bf0e96](https://github.com/akiojin/unity-mcp-server/commit/6bf0e96c6f93f629062cc33d32a17ccb0cb63118))
+* **plugin:** add Claude Code plugin support ([1e9dd4c](https://github.com/akiojin/unity-mcp-server/commit/1e9dd4c2ead669302e44debae0d96a19013b4e67))
+* **plugin:** add Claude Code plugin support with hierarchical skills ([b195e85](https://github.com/akiojin/unity-mcp-server/commit/b195e85d148421067346a74d905443d1ea263e7c))
+* **plugin:** add hierarchical skill structure with unity-development parent skill ([c471442](https://github.com/akiojin/unity-mcp-server/commit/c47144248fd82878da1a6105b6d6144346b55f2d))
+* **plugin:** add hierarchical skill structure with unity-development parent skill ([316fd5f](https://github.com/akiojin/unity-mcp-server/commit/316fd5fc005ebe56179a51ee17f5d2e751af5ea0))
+* **plugin:** enable akiojin-skills plugins ([f3f0a5f](https://github.com/akiojin/unity-mcp-server/commit/f3f0a5fb6cf104e394b00bb45af499efe6f6ff3c))
+* **plugin:** enable akiojin-skills plugins ([3321698](https://github.com/akiojin/unity-mcp-server/commit/3321698333da27e102b5897a826dd61d1102833e))
+* **plugin:** merge unity-development patterns into unity-csharp-editing ([5023a75](https://github.com/akiojin/unity-mcp-server/commit/5023a75ca4733779683a20b49e568be5fe1d7c8b))
+* **plugin:** merge unity-development patterns into unity-csharp-editing ([2d07ba6](https://github.com/akiojin/unity-mcp-server/commit/2d07ba642478ed70ce40a3ac85c8ee700fe14c5a))
+
+
+### Bug Fixes
+
+* **docker:** add TMPDIR workaround for Claude Code EXDEV error ([14fe9b8](https://github.com/akiojin/unity-mcp-server/commit/14fe9b80877c69b0363bab33f9e89f8bbbd6a38e))
+
+## [5.0.0](https://github.com/akiojin/unity-mcp-server/compare/v4.2.1...v5.0.0) (2025-12-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* **config:** Unity MCP ServerのProject Settings UI/assetは削除されました。
+* **config:** Unity側Host/PortはUNITY_MCP_UNITY_HOST/UNITY_MCP_PORTに統一。
+
+### Features
+
+* **config:** move unity config to env vars ([d7122e3](https://github.com/akiojin/unity-mcp-server/commit/d7122e39329724aa888014dc2853fe71895cf899))
+* **edit_snippet:** add skipValidation option for large files ([a63e5d6](https://github.com/akiojin/unity-mcp-server/commit/a63e5d687aa156e93ac11276250a363f56a4c498))
+* **edit_snippet:** add skipValidation option for large files ([ccd30e4](https://github.com/akiojin/unity-mcp-server/commit/ccd30e439016cf3b85957d45c562a2e120e7634f))
+
+
+### Bug Fixes
+
+* **config:** remove config.json references ([e898197](https://github.com/akiojin/unity-mcp-server/commit/e898197d13cf4605e3661bdc118ccadd2cb30d22))
+* **config:** switch hint to env vars ([50aad4a](https://github.com/akiojin/unity-mcp-server/commit/50aad4a2f320cf2edf89f99a0fd806e812635d8a))
+
+
+### Code Refactoring
+
+* **config:** remove unity settings files ([6f85dc4](https://github.com/akiojin/unity-mcp-server/commit/6f85dc4e2e2a85cc46d3c5dd989ea43c524f6d4b))
+
 ## [2.41.0](https://github.com/akiojin/unity-mcp-server/compare/v2.40.6...v2.41.0) (2025-11-21)
 
 
@@ -15,6 +78,46 @@
 ### Bug Fixes
 
 * add auto reconnect handling for Unity domain reload ([a33539e](https://github.com/akiojin/unity-mcp-server/commit/a33539e7228571dac1970783b80501cdbd127b22))
+
+## [4.2.1](https://github.com/akiojin/unity-mcp-server/compare/v4.2.0...v4.2.1) (2025-12-19)
+
+
+### Bug Fixes
+
+* **mcp-server:** correct package_manager command typo ([798a4f3](https://github.com/akiojin/unity-mcp-server/commit/798a4f330c36c07eb077a6e1469e0e582dd244d9))
+* **mcp-server:** correct package_manager command typo ([6cd7598](https://github.com/akiojin/unity-mcp-server/commit/6cd7598f9f51323c276d4dd874c138ce1cb45c1c))
+
+## [4.2.0](https://github.com/akiojin/unity-mcp-server/compare/v4.1.5...v4.2.0) (2025-12-19)
+
+
+### Features
+
+* **mcp-server:** add pre-syntax check for C# editing tools ([58ab376](https://github.com/akiojin/unity-mcp-server/commit/58ab3766594c5d4aa785aac333a53fbf1ded6f94))
+* **unity:** add Node environment variables reference section to Project Settings ([2c03baa](https://github.com/akiojin/unity-mcp-server/commit/2c03baac3b297c93c2a5037255bdd29974c9c554))
+* **unity:** display Node environment variable names in Project Settings ([84d44f7](https://github.com/akiojin/unity-mcp-server/commit/84d44f74b8e72af9b691323fd341d493c38d7326))
+* **unity:** enhance Project Settings with Node environment variable display ([2f24b01](https://github.com/akiojin/unity-mcp-server/commit/2f24b016210fa32d70fe72a1c4d91bdab5db6e3f))
+
+
+### Bug Fixes
+
+* **unity:** correct syntax errors in UnityMcpServerSettingsProvider ([fb014ae](https://github.com/akiojin/unity-mcp-server/commit/fb014aeb007da6884c256a7ef44ad66a00c3f585))
+* **unity:** prevent Update() from overwriting user input in settings ([b449aef](https://github.com/akiojin/unity-mcp-server/commit/b449aefb4c4b97f2c6893ae48ceaecd8b0e009bd))
+* **unity:** resolve Project Settings Host/Port save issue ([374ecff](https://github.com/akiojin/unity-mcp-server/commit/374ecffbf6d2eacceac47c75b64f11000bfbda53))
+
+## [4.1.5](https://github.com/akiojin/unity-mcp-server/compare/v4.1.4...v4.1.5) (2025-12-18)
+
+
+### Bug Fixes
+
+* **unity:** resolve PackageInfo ambiguous reference error ([63c8056](https://github.com/akiojin/unity-mcp-server/commit/63c8056b1bd01a95b4fd2307bb228fab16cc6e37))
+* **unity:** resolve PackageInfo ambiguous reference error ([c0f1ef7](https://github.com/akiojin/unity-mcp-server/commit/c0f1ef7f94bf1802c285526a855b6bfdf6416823))
+
+## [4.1.4](https://github.com/akiojin/unity-mcp-server/compare/v4.1.3...v4.1.4) (2025-12-18)
+
+
+### Bug Fixes
+
+* minor cleanup in gitignore ([#298](https://github.com/akiojin/unity-mcp-server/issues/298)) ([6fe2928](https://github.com/akiojin/unity-mcp-server/commit/6fe2928efcb46b4ef101199227f00dbe1fa49d0f))
 
 ## [4.1.3](https://github.com/akiojin/unity-mcp-server/compare/v4.1.2...v4.1.3) (2025-12-18)
 
