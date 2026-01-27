@@ -14,7 +14,7 @@ describe('InputTouchToolHandler', () => {
 
   describe('constructor', () => {
     it('should initialize with correct name', () => {
-      assert.equal(handler.name, 'simulate_touch');
+      assert.equal(handler.name, 'input_touch');
     });
 
     it('should have action enum with tap, swipe, pinch, multi', () => {
@@ -85,7 +85,7 @@ describe('InputTouchToolHandler', () => {
   describe('execute', () => {
     it('should execute tap action', async () => {
       const result = await handler.execute({ action: 'tap', x: 100, y: 200 });
-      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'simulate_touch');
+      assert.equal(mockConnection.sendCommand.mock.calls[0].arguments[0], 'input_touch');
       assert.ok(result.success);
     });
 
@@ -136,7 +136,7 @@ describe('InputTouchToolHandler', () => {
       });
 
       const [command, payload] = mockConnection.sendCommand.mock.calls[0].arguments;
-      assert.equal(command, 'simulate_touch');
+      assert.equal(command, 'input_touch');
       assert.equal(payload.actions.length, 2);
     });
   });

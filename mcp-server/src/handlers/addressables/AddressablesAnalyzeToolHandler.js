@@ -7,7 +7,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 export default class AddressablesAnalyzeToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
     super(
-      'analyze_addressables',
+      'addressables_analyze',
       'Analyze Unity Addressables for duplicates, dependencies, and unused assets',
       {
         type: 'object',
@@ -61,17 +61,25 @@ export default class AddressablesAnalyzeToolHandler extends BaseToolHandler {
   }
 
   async execute(params) {
-    const { action, ...parameters } = params;
+    const { action, workspaceRoot, ...parameters } = params;
 
     // Ensure connected
     if (!this.unityConnection.isConnected()) {
       await this.unityConnection.connect();
     }
 
-    const result = await this.unityConnection.sendCommand('analyze_addressables', {
-      action,
-      ...parameters
-    });
+    const { WORKSPACE_ROOT } = await import('../../core/config.js');
+    const resolvedWorkspaceRoot = workspaceRoot ?? WORKSPACE_ROOT;
+    const timeout = 300000; // 5 minutes
+    const result = await this.unityConnection.sendCommand(
+      'addressables_analyze',
+      {
+        action,
+        workspaceRoot: resolvedWorkspaceRoot,
+        ...parameters
+      },
+      timeout
+    );
 
     return this.formatResponse(action, result);
   }
