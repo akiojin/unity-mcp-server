@@ -1,11 +1,37 @@
 import { Worker } from 'worker_threads';
 import path from 'path';
+import os from 'os';
+import fs from 'fs';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { logger } from './config.js';
 import { JobManager } from './jobManager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const DEFAULT_TMP_DB_DIR = path.join(os.tmpdir(), 'unity-mcp-code-index');
+
+function resolveDbPath(options) {
+  if (typeof options?.dbPath === 'string' && options.dbPath.trim().length > 0) {
+    return options.dbPath;
+  }
+
+  const projectRoot = typeof options?.projectRoot === 'string' ? options.projectRoot : '';
+  const projectExists = projectRoot && fs.existsSync(projectRoot);
+
+  if (projectExists) {
+    return path.join(projectRoot, '.unity', 'cache', 'code-index', 'code-index.db');
+  }
+
+  // Fallback for mock/non-existent roots used in integration tests.
+  const hash = crypto
+    .createHash('sha1')
+    .update(projectRoot || 'unknown-project-root', 'utf8')
+    .digest('hex')
+    .slice(0, 12);
+  return path.join(DEFAULT_TMP_DB_DIR, hash, 'code-index.db');
+}
 
 /**
  * Worker Thread pool for non-blocking code index builds.
@@ -54,9 +80,11 @@ export class IndexBuildWorkerPool {
       const workerPath = path.join(__dirname, 'workers', 'indexBuildWorker.js');
 
       try {
+        const dbPath = resolveDbPath(options);
         this.worker = new Worker(workerPath, {
           workerData: {
             ...options,
+            dbPath,
             concurrency: options.concurrency || 1
           }
         });
