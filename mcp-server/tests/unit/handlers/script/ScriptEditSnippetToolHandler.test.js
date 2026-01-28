@@ -400,6 +400,43 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     assert.ok(afterContent.includes('Execute();'));
   });
 
+  it('should skip validation when LSP validation times out', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class TimeoutCase
+{
+    public void Test()
+    {
+        if (flag == null) return;
+        Execute();
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (flag == null) return;\n'
+        }
+      }
+    ];
+
+    handler.lsp = {
+      validateText: mock.fn(async () => {
+        throw new Error('validateTextEdits timed out after 5000 ms');
+      })
+    };
+
+    const result = await handler.execute({ path: relPath, instructions, preview: true });
+
+    assert.equal(result.validationSkipped, true);
+    assert.equal(result.applied, false);
+    assert.ok(result.preview.includes('Execute();'));
+  });
+
   it('should handle CRLF line endings in file content', async () => {
     const relPath = 'Assets/Scripts/SnippetTarget.cs';
     const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');

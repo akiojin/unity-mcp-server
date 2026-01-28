@@ -152,12 +152,19 @@ export class LspRpcClient {
     return resp;
   }
 
-  async request(method, params) {
-    return await this.#requestWithRetry(method, params, 1);
+  async request(method, params, options = {}) {
+    return await this.#requestWithRetry(method, params, 1, options);
   }
 
   async validateText(relative, newText) {
-    const resp = await this.request('mcp/validateTextEdits', { relative, newText });
+    const timeoutMs = Number.isFinite(config.lsp?.validationTimeoutMs)
+      ? config.lsp.validationTimeoutMs
+      : undefined;
+    const resp = await this.request(
+      'mcp/validateTextEdits',
+      { relative, newText },
+      { timeoutMs }
+    );
     if (!resp) return [];
     const payload = resp.result ?? resp;
     const diagnostics = Array.isArray(payload?.diagnostics) ? payload.diagnostics : [];
@@ -170,10 +177,14 @@ export class LspRpcClient {
     }));
   }
 
-  async #requestWithRetry(method, params, attempt) {
+  async #requestWithRetry(method, params, attempt, options) {
     let id = null;
     let timeoutHandle = null;
-    const timeoutMs = Math.max(1000, Math.min(300000, config.lsp?.requestTimeoutMs || 60000));
+    const configuredTimeout = config.lsp?.requestTimeoutMs || 60000;
+    const overrideTimeout = options?.timeoutMs;
+    const timeoutMs = Number.isFinite(overrideTimeout)
+      ? Math.max(1000, Math.min(300000, overrideTimeout))
+      : Math.max(1000, Math.min(300000, configuredTimeout));
     const startedAt = Date.now();
     try {
       await this.ensure();
