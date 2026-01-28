@@ -288,8 +288,11 @@ Polish (T111-T112) ← T109-T110完了が条件
 
 - [x] T-301: 目的別のLSPインスタンスが分離されること
 - [x] T-302: symbols/rename/edit_structured/remove_symbol/update_index が専用LSPを使用すること
+- [x] T-303: C# LSP並列実行のロック契約（file/write/limiter）を検証すること
 
-**テストファイル**: `tests/unit/lsp/LspIsolationRouting.test.js`
+**テストファイル**:
+- `tests/unit/lsp/LspIsolationRouting.test.js`
+- `csharp-lsp/ConcurrencyTests.cs`
 
 ---
 
