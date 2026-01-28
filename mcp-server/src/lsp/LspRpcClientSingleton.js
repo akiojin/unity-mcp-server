@@ -1,4 +1,5 @@
 import { LspRpcClient } from './LspRpcClient.js';
+import { LspProcessManager } from './LspProcessManager.js';
 import { logger } from '../core/config.js';
 
 /**
@@ -8,6 +9,9 @@ import { logger } from '../core/config.js';
 
 let instance = null;
 let currentProjectRoot = null;
+let validationInstance = null;
+let validationProjectRoot = null;
+const isolatedInstances = new Map();
 let heartbeatTimer = null;
 
 export class LspRpcClientSingleton {
@@ -34,6 +38,50 @@ export class LspRpcClientSingleton {
   }
 
   /**
+   * Get or create an isolated LspRpcClient instance for validation.
+   * Uses a separate LSP process to avoid blocking on long-running requests.
+   * @param {string} projectRoot - Project root path
+   * @returns {Promise<LspRpcClient>} Isolated client instance
+   */
+  static async getValidationInstance(projectRoot) {
+    if (validationInstance && validationProjectRoot !== projectRoot) {
+      logger.info('[LspRpcClientSingleton] validation projectRoot changed, resetting instance');
+      await LspRpcClientSingleton.#resetValidation();
+    }
+
+    if (!validationInstance) {
+      const manager = new LspProcessManager({ shared: false });
+      validationInstance = new LspRpcClient(projectRoot, manager);
+      validationProjectRoot = projectRoot;
+      logger.info(`[LspRpcClientSingleton] created validation instance for ${projectRoot}`);
+    }
+
+    return validationInstance;
+  }
+
+  /**
+   * Get or create an isolated LspRpcClient instance for a specific purpose.
+   * Each kind is backed by its own LSP process to avoid cross-tool blocking.
+   * @param {string} projectRoot - Project root path
+   * @param {string} kind - Purpose key (e.g., "symbols", "rename")
+   * @returns {Promise<LspRpcClient>} Isolated client instance
+   */
+  static async getIsolatedInstance(projectRoot, kind) {
+    if (!kind) {
+      throw new Error('kind is required for isolated LSP instance');
+    }
+    const key = `${projectRoot}::${kind}`;
+    const existing = isolatedInstances.get(key);
+    if (existing) return existing;
+
+    const manager = new LspProcessManager({ shared: false });
+    const client = new LspRpcClient(projectRoot, manager);
+    isolatedInstances.set(key, client);
+    logger.info(`[LspRpcClientSingleton] created isolated instance (${kind}) for ${projectRoot}`);
+    return client;
+  }
+
+  /**
    * Reset the singleton instance and stop the process.
    */
   static async reset() {
@@ -48,6 +96,35 @@ export class LspRpcClientSingleton {
       currentProjectRoot = null;
       logger.info('[LspRpcClientSingleton] instance reset');
     }
+    await LspRpcClientSingleton.#resetValidation();
+    await LspRpcClientSingleton.#resetIsolated();
+  }
+
+  static async #resetValidation() {
+    if (validationInstance) {
+      try {
+        await validationInstance.mgr.stop();
+      } catch (e) {
+        logger.warning(`[LspRpcClientSingleton] validation stop error: ${e.message}`);
+      }
+      validationInstance = null;
+      validationProjectRoot = null;
+      logger.info('[LspRpcClientSingleton] validation instance reset');
+    }
+  }
+
+  static async #resetIsolated() {
+    if (isolatedInstances.size === 0) return;
+    const entries = Array.from(isolatedInstances.entries());
+    isolatedInstances.clear();
+    for (const [key, client] of entries) {
+      try {
+        await client.mgr.stop();
+      } catch (e) {
+        logger.warning(`[LspRpcClientSingleton] isolated stop error (${key}): ${e.message}`);
+      }
+    }
+    logger.info('[LspRpcClientSingleton] isolated instances reset');
   }
 
   /**

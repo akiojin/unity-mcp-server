@@ -296,7 +296,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
 
   async #validateWithLsp(info, relative, updatedText) {
     if (!this.lsp) {
-      this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
+      this.lsp = await LspRpcClientSingleton.getValidationInstance(info.projectRoot);
     }
     return await this.lsp.validateText(relative, updatedText);
   }

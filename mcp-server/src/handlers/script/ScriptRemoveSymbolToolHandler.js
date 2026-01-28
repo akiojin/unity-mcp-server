@@ -39,7 +39,12 @@ export class ScriptRemoveSymbolToolHandler extends BaseToolHandler {
       removeEmptyFile = false
     } = params;
     const info = await this.projectInfo.get();
-    if (!this.lsp) this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
+    if (!this.lsp) {
+      this.lsp = await LspRpcClientSingleton.getIsolatedInstance(
+        info.projectRoot,
+        'remove_symbol'
+      );
+    }
     const resp = await this.lsp.request('mcp/removeSymbol', {
       relative: String(path).replace(/\\\\/g, '/'),
       namePath: String(namePath),

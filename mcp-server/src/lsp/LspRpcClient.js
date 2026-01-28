@@ -2,8 +2,8 @@ import { LspProcessManager } from './LspProcessManager.js';
 import { config, logger } from '../core/config.js';
 
 export class LspRpcClient {
-  constructor(projectRoot = null) {
-    this.mgr = new LspProcessManager();
+  constructor(projectRoot = null, manager = null) {
+    this.mgr = manager || new LspProcessManager();
     this.proc = null;
     this.seq = 1;
     this.pending = new Map();
@@ -174,6 +174,7 @@ export class LspRpcClient {
     let id = null;
     let timeoutHandle = null;
     const timeoutMs = Math.max(1000, Math.min(300000, config.lsp?.requestTimeoutMs || 60000));
+    const startedAt = Date.now();
     try {
       await this.ensure();
       id = this.seq++;
@@ -189,11 +190,29 @@ export class LspRpcClient {
       this.writeMessage({ jsonrpc: '2.0', id, method, params });
       const response = await p;
       if (timeoutHandle) clearTimeout(timeoutHandle);
+      const elapsedMs = Date.now() - startedAt;
+      const warnMs = Number.isFinite(config.lsp?.slowRequestWarnMs)
+        ? config.lsp.slowRequestWarnMs
+        : 2000;
+      if (elapsedMs >= warnMs) {
+        logger.warning(
+          `[unity-mcp-server:lsp] slow request: ${method} ${elapsedMs}ms (attempt ${attempt})`
+        );
+      }
       return response;
     } catch (e) {
       if (timeoutHandle) clearTimeout(timeoutHandle);
       if (id !== null && this.pending.has(id)) {
         this.pending.delete(id);
+      }
+      const elapsedMs = Date.now() - startedAt;
+      const warnMs = Number.isFinite(config.lsp?.slowRequestWarnMs)
+        ? config.lsp.slowRequestWarnMs
+        : 2000;
+      if (elapsedMs >= warnMs) {
+        logger.warning(
+          `[unity-mcp-server:lsp] slow request (error): ${method} ${elapsedMs}ms (attempt ${attempt})`
+        );
       }
       const msg = String((e && e.message) || e);
       const recoverable = this.#isRecoverableMessage(msg);
