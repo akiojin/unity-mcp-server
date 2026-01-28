@@ -97,7 +97,7 @@ jobs:
             node: 22
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node.js ${{ matrix.node }}
         uses: actions/setup-node@v4
@@ -184,7 +184,7 @@ jobs:
     if: always() && needs.prebuild.result == 'success'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download all artifacts
         uses: actions/download-artifact@v7
