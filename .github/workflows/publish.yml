@@ -140,7 +140,7 @@ jobs:
             -p:InformationalVersion="$VERSION" \
             --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
             -o out/${{ matrix.rid }}
-          BIN="out/${{ matrix.rid }}/server${{ matrix.ext }}"
+          BIN="out/${{ matrix.rid }}/Server${{ matrix.ext }}"
           ASSET="csharp-lsp-${{ matrix.rid }}${{ matrix.ext }}"
           test -f "$BIN" || { echo "binary not found: $BIN" >&2; exit 1; }
           mv "$BIN" "$ASSET"
@@ -309,7 +309,7 @@ jobs:
         working-directory: packages/fast-sql
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --access public
+        run: pnpm publish --access public --no-git-checks
 
   npm-publish:
     name: Publish to npm
@@ -400,4 +400,4 @@ jobs:
         working-directory: mcp-server
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --access public
+        run: pnpm publish --access public --no-git-checks
