@@ -171,7 +171,7 @@ jobs:
           fi
 
       - name: Upload prebuilt artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: prebuilt-${{ matrix.platform }}-${{ matrix.arch }}-node${{ matrix.node }}
           path: mcp-server/prebuilt/better-sqlite3/${{ matrix.platform }}-${{ matrix.arch }}-node${{ matrix.node }}/
@@ -204,7 +204,7 @@ jobs:
           find mcp-server/prebuilt -type f -name "*.node" | head -20
 
       - name: Upload combined prebuilts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: all-prebuilts
           path: mcp-server/prebuilt/
@@ -239,7 +239,7 @@ jobs:
           '
 
       - name: Upload manifest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: prebuilt-manifest
           path: prebuilt-manifest.json
