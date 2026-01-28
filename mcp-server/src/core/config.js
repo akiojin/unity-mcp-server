@@ -153,7 +153,8 @@ const baseConfig = {
 
   // LSP client defaults
   lsp: {
-    requestTimeoutMs: 120000
+    requestTimeoutMs: 120000,
+    slowRequestWarnMs: 2000
   },
 
   // Indexing (code index) settings
@@ -184,6 +185,7 @@ function loadEnvConfig() {
 
   const telemetryEnabled = parseBoolEnv(process.env.UNITY_MCP_TELEMETRY_ENABLED);
   const lspRequestTimeoutMs = parseIntEnv(process.env.UNITY_MCP_LSP_REQUEST_TIMEOUT_MS);
+  const lspSlowRequestWarnMs = parseIntEnv(process.env.UNITY_MCP_LSP_SLOW_REQUEST_WARN_MS);
 
   const out = {};
 
@@ -220,6 +222,9 @@ function loadEnvConfig() {
 
   if (lspRequestTimeoutMs !== undefined) {
     out.lsp = { requestTimeoutMs: lspRequestTimeoutMs };
+  }
+  if (lspSlowRequestWarnMs !== undefined) {
+    out.lsp = { ...(out.lsp || {}), slowRequestWarnMs: lspSlowRequestWarnMs };
   }
 
   return out;
@@ -299,6 +304,15 @@ function validateAndNormalizeConfig(cfg) {
         `[unity-mcp-server] WARN: Invalid UNITY_MCP_LSP_REQUEST_TIMEOUT_MS (${cfg.lsp.requestTimeoutMs}); using default 60000`
       );
       cfg.lsp.requestTimeoutMs = 60000;
+    }
+  }
+  if (cfg.lsp?.slowRequestWarnMs !== undefined) {
+    const t = Number(cfg.lsp.slowRequestWarnMs);
+    if (!Number.isFinite(t) || t < 0) {
+      logger.warning(
+        `[unity-mcp-server] WARN: Invalid UNITY_MCP_LSP_SLOW_REQUEST_WARN_MS (${cfg.lsp.slowRequestWarnMs}); using default 2000`
+      );
+      cfg.lsp.slowRequestWarnMs = 2000;
     }
   }
 }

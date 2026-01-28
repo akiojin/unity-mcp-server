@@ -37,6 +37,7 @@ function setupTempUnityProject() {
     root,
     codeIndexRoot: path.join(root, '.unity', 'cache', 'code-index')
   };
+  // ProjectInfoProvider prioritizes UNITY_PROJECT_ROOT, so align it with the temp project.
   process.env.UNITY_PROJECT_ROOT = root;
   return { root, relPkg: rel };
 }

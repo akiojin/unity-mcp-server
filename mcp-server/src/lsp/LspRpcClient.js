@@ -2,8 +2,8 @@ import { LspProcessManager } from './LspProcessManager.js';
 import { config, logger } from '../core/config.js';
 
 export class LspRpcClient {
-  constructor(projectRoot = null) {
-    this.mgr = new LspProcessManager();
+  constructor(projectRoot = null, manager = null) {
+    this.mgr = manager || new LspProcessManager();
     this.proc = null;
     this.seq = 1;
     this.pending = new Map();
@@ -13,19 +13,39 @@ export class LspRpcClient {
     this.boundOnData = null;
   }
 
-  async ensure() {
-    if (this.proc && !this.proc.killed) return this.proc;
-    this.proc = await this.mgr.ensureStarted();
+  async ensure(attempt = 1) {
+    if (this.#isProcessUsable(this.proc)) {
+      return this.proc;
+    }
+
+    if (this.proc && !this.#isProcessUsable(this.proc)) {
+      logger.warning('[unity-mcp-server:lsp] cached process stdin not writable, restarting');
+      await this.#restartProcess(this.proc);
+    }
+
+    const proc = await this.mgr.ensureStarted();
+    this.proc = proc;
+
+    if (!this.#isProcessUsable(proc)) {
+      if (attempt === 1) {
+        logger.warning('[unity-mcp-server:lsp] started process has non-writable stdin, retrying');
+        await this.#restartProcess(proc);
+        return await this.ensure(attempt + 1);
+      }
+      throw new Error('LSP stdin not writable');
+    }
+
     // Attach data handler once per process
     if (this.boundOnData) {
       try {
-        this.proc.stdout.off('data', this.boundOnData);
+        proc.stdout.off('data', this.boundOnData);
       } catch {}
     }
     this.boundOnData = chunk => this.onData(chunk);
-    this.proc.stdout.on('data', this.boundOnData);
+    proc.stdout.on('data', this.boundOnData);
+
     // On process close: reject all pending and reset state
-    this.proc.on('close', () => {
+    proc.on('close', () => {
       for (const [id, p] of Array.from(this.pending.entries())) {
         try {
           p.reject(new Error('LSP process exited'));
@@ -35,8 +55,24 @@ export class LspRpcClient {
       this.initialized = false;
       this.proc = null;
     });
-    if (!this.initialized) await this.initialize();
-    return this.proc;
+
+    if (!this.initialized) {
+      try {
+        await this.initialize();
+      } catch (e) {
+        const msg = String((e && e.message) || e);
+        if (attempt === 1 && this.#isRecoverableMessage(msg)) {
+          logger.warning(
+            `[unity-mcp-server:lsp] initialize recoverable error: ${msg}. Restarting once...`
+          );
+          await this.#restartProcess(proc);
+          return await this.ensure(attempt + 1);
+        }
+        throw e;
+      }
+    }
+
+    return proc;
   }
 
   onData(chunk) {
@@ -135,24 +171,51 @@ export class LspRpcClient {
   }
 
   async #requestWithRetry(method, params, attempt) {
-    await this.ensure();
-    const id = this.seq++;
+    let id = null;
+    let timeoutHandle = null;
     const timeoutMs = Math.max(1000, Math.min(300000, config.lsp?.requestTimeoutMs || 60000));
-    const p = new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
-      setTimeout(() => {
-        if (this.pending.has(id)) {
-          this.pending.delete(id);
-          reject(new Error(`${method} timed out after ${timeoutMs} ms`));
-        }
-      }, timeoutMs);
-    });
+    const startedAt = Date.now();
     try {
+      await this.ensure();
+      id = this.seq++;
+      const p = new Promise((resolve, reject) => {
+        this.pending.set(id, { resolve, reject });
+        timeoutHandle = setTimeout(() => {
+          if (this.pending.has(id)) {
+            this.pending.delete(id);
+            reject(new Error(`${method} timed out after ${timeoutMs} ms`));
+          }
+        }, timeoutMs);
+      });
       this.writeMessage({ jsonrpc: '2.0', id, method, params });
-      return await p;
+      const response = await p;
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      const elapsedMs = Date.now() - startedAt;
+      const warnMs = Number.isFinite(config.lsp?.slowRequestWarnMs)
+        ? config.lsp.slowRequestWarnMs
+        : 2000;
+      if (elapsedMs >= warnMs) {
+        logger.warning(
+          `[unity-mcp-server:lsp] slow request: ${method} ${elapsedMs}ms (attempt ${attempt})`
+        );
+      }
+      return response;
     } catch (e) {
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      if (id !== null && this.pending.has(id)) {
+        this.pending.delete(id);
+      }
+      const elapsedMs = Date.now() - startedAt;
+      const warnMs = Number.isFinite(config.lsp?.slowRequestWarnMs)
+        ? config.lsp.slowRequestWarnMs
+        : 2000;
+      if (elapsedMs >= warnMs) {
+        logger.warning(
+          `[unity-mcp-server:lsp] slow request (error): ${method} ${elapsedMs}ms (attempt ${attempt})`
+        );
+      }
       const msg = String((e && e.message) || e);
-      const recoverable = /timed out|LSP process exited/i.test(msg);
+      const recoverable = this.#isRecoverableMessage(msg);
       if (recoverable && attempt === 1) {
         // Auto-reinit and retry once with grace period for proper LSP shutdown
         try {
@@ -179,5 +242,34 @@ export class LspRpcClient {
       }
       throw new Error(`[${method}] failed: ${msg}. ${hint}`);
     }
+  }
+
+  #isProcessUsable(proc) {
+    return Boolean(
+      proc &&
+        !proc.killed &&
+        proc.stdin &&
+        !proc.stdin.destroyed &&
+        !proc.stdin.writableEnded &&
+        typeof proc.stdin.write === 'function'
+    );
+  }
+
+  #isRecoverableMessage(message) {
+    return /timed out|LSP process exited|stdin not writable|process not available/i.test(message);
+  }
+
+  async #restartProcess(proc) {
+    if (proc && this.boundOnData) {
+      try {
+        proc.stdout.off('data', this.boundOnData);
+      } catch {}
+    }
+    try {
+      await this.mgr.stop(0);
+    } catch {}
+    this.proc = null;
+    this.initialized = false;
+    this.buf = Buffer.alloc(0);
   }
 }

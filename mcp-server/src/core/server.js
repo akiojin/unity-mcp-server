@@ -230,6 +230,9 @@ export async function startServer(options = {}) {
 
       // Start periodic index watcher (incremental)
       (async () => {
+        if (process.env.NODE_ENV === 'test') {
+          return;
+        }
         await ensureInitialized(deps);
         const IndexWatcherClass = deps.IndexWatcher
           ? deps.IndexWatcher

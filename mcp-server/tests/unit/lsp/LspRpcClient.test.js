@@ -1,6 +1,29 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
 import { LspRpcClient } from '../../../src/lsp/LspRpcClient.js';
+
+const createMockProc = ({ stdinWritable = true } = {}) => {
+  const proc = new EventEmitter();
+  proc.killed = false;
+
+  const stdout = new EventEmitter();
+  const stderr = new EventEmitter();
+
+  proc.stdout = stdout;
+  proc.stderr = stderr;
+
+  proc.stdin = {
+    destroyed: !stdinWritable,
+    writableEnded: !stdinWritable,
+    write() {},
+    end() {
+      this.writableEnded = true;
+    }
+  };
+
+  return proc;
+};
 
 describe('LspRpcClient', () => {
   let client;
@@ -49,6 +72,36 @@ describe('LspRpcClient', () => {
 
     it('should be async (returns Promise)', () => {
       assert.equal(client.ensure.constructor.name, 'AsyncFunction');
+    });
+
+    it('should restart when cached process stdin is not writable', async () => {
+      const invalidProc = createMockProc({ stdinWritable: false });
+      const validProc = createMockProc({ stdinWritable: true });
+
+      client.proc = invalidProc;
+      client.initialized = true;
+      client.initialize = async () => {
+        client.initialized = true;
+        return {};
+      };
+
+      let stopCalls = 0;
+      let ensureCalls = 0;
+      client.mgr = {
+        async ensureStarted() {
+          ensureCalls += 1;
+          return validProc;
+        },
+        async stop() {
+          stopCalls += 1;
+        }
+      };
+
+      const proc = await client.ensure();
+
+      assert.equal(proc, validProc);
+      assert.equal(stopCalls, 1);
+      assert.equal(ensureCalls, 1);
     });
   });
 

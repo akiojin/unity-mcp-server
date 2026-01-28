@@ -60,7 +60,7 @@ export class CodeIndexUpdateToolHandler extends BaseToolHandler {
     const projectRoot = info.projectRoot;
 
     if (!this.lsp) {
-      this.lsp = await LspRpcClientSingleton.getInstance(projectRoot);
+      this.lsp = await LspRpcClientSingleton.getIsolatedInstance(projectRoot, 'update_index');
     }
 
     const normalized = requested.map(p => this._normalizePath(p, projectRoot));
