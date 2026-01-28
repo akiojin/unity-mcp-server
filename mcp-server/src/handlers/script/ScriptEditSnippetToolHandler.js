@@ -301,6 +301,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     return await this.lsp.validateText(relative, updatedText);
   }
 
+
   #buildResponse({
     preview,
     results,
