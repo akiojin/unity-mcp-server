@@ -2,8 +2,8 @@ import { LspProcessManager } from './LspProcessManager.js';
 import { config, logger } from '../core/config.js';
 
 export class LspRpcClient {
-  constructor(projectRoot = null) {
-    this.mgr = new LspProcessManager();
+  constructor(projectRoot = null, manager = null) {
+    this.mgr = manager || new LspProcessManager();
     this.proc = null;
     this.seq = 1;
     this.pending = new Map();

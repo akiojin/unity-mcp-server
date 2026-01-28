@@ -1,4 +1,5 @@
 import { LspRpcClient } from './LspRpcClient.js';
+import { LspProcessManager } from './LspProcessManager.js';
 import { logger } from '../core/config.js';
 
 /**
@@ -8,6 +9,8 @@ import { logger } from '../core/config.js';
 
 let instance = null;
 let currentProjectRoot = null;
+let validationInstance = null;
+let validationProjectRoot = null;
 let heartbeatTimer = null;
 
 export class LspRpcClientSingleton {
@@ -34,6 +37,28 @@ export class LspRpcClientSingleton {
   }
 
   /**
+   * Get or create an isolated LspRpcClient instance for validation.
+   * Uses a separate LSP process to avoid blocking on long-running requests.
+   * @param {string} projectRoot - Project root path
+   * @returns {Promise<LspRpcClient>} Isolated client instance
+   */
+  static async getValidationInstance(projectRoot) {
+    if (validationInstance && validationProjectRoot !== projectRoot) {
+      logger.info('[LspRpcClientSingleton] validation projectRoot changed, resetting instance');
+      await LspRpcClientSingleton.#resetValidation();
+    }
+
+    if (!validationInstance) {
+      const manager = new LspProcessManager({ shared: false });
+      validationInstance = new LspRpcClient(projectRoot, manager);
+      validationProjectRoot = projectRoot;
+      logger.info(`[LspRpcClientSingleton] created validation instance for ${projectRoot}`);
+    }
+
+    return validationInstance;
+  }
+
+  /**
    * Reset the singleton instance and stop the process.
    */
   static async reset() {
@@ -47,6 +72,20 @@ export class LspRpcClientSingleton {
       instance = null;
       currentProjectRoot = null;
       logger.info('[LspRpcClientSingleton] instance reset');
+    }
+    await LspRpcClientSingleton.#resetValidation();
+  }
+
+  static async #resetValidation() {
+    if (validationInstance) {
+      try {
+        await validationInstance.mgr.stop();
+      } catch (e) {
+        logger.warning(`[LspRpcClientSingleton] validation stop error: ${e.message}`);
+      }
+      validationInstance = null;
+      validationProjectRoot = null;
+      logger.info('[LspRpcClientSingleton] validation instance reset');
     }
   }
 

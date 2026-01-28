@@ -36,4 +36,12 @@ describe('LspRpcClientSingleton', () => {
       global.clearInterval = originalClearInterval;
     }
   });
+
+  it('creates isolated validation instance', async () => {
+    const main = await LspRpcClientSingleton.getInstance('/tmp');
+    const validation = await LspRpcClientSingleton.getValidationInstance('/tmp');
+
+    assert.notEqual(main, validation);
+    assert.notEqual(main.mgr, validation.mgr);
+  });
 });
