@@ -10,6 +10,7 @@ describe('LspProcessManager', () => {
     // LspProcessManager shares state across instances. Reset between tests.
     manager.state.proc = null;
     manager.state.starting = null;
+    manager.state.version = null;
   });
 
   describe('constructor', () => {
@@ -33,6 +34,42 @@ describe('LspProcessManager', () => {
 
     it('should be async (returns Promise)', () => {
       assert.equal(manager.ensureStarted.constructor.name, 'AsyncFunction');
+    });
+
+    it('should restart when desired version differs from running version', async () => {
+      const runningProc = { killed: false };
+      const nextProc = { killed: false };
+      let stopped = false;
+
+      manager.state.proc = runningProc;
+      manager.state.version = '1.0.0';
+      manager.state.starting = Promise.resolve(nextProc);
+
+      manager.utils = {
+        detectRid() {
+          return 'linux-x64';
+        },
+        getDesiredVersion() {
+          return '2.0.0';
+        },
+        readLocalVersion() {
+          return '2.0.0';
+        },
+        ensureLocal() {
+          throw new Error('ensureLocal should not be called in this test');
+        }
+      };
+
+      manager.stop = async () => {
+        stopped = true;
+        manager.state.proc = null;
+        manager.state.version = null;
+      };
+
+      const proc = await manager.ensureStarted();
+
+      assert.equal(stopped, true);
+      assert.equal(proc, nextProc);
     });
   });
 
