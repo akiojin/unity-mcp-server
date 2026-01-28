@@ -94,10 +94,11 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     assert.equal(typeof result.preview, 'string');
     assert.ok(result.preview.includes('DoSomething(first);'));
     assert.equal(validateText.mock.calls.length, 1);
-    assert.deepEqual(validateText.mock.calls[0].arguments, [
-      'Assets/Scripts/SnippetTarget.cs',
-      result.preview
-    ]);
+    const [validatePath, validateTextArg, validateOptions] = validateText.mock.calls[0].arguments;
+    assert.equal(validatePath, 'Assets/Scripts/SnippetTarget.cs');
+    assert.equal(validateTextArg, result.preview);
+    assert.equal(typeof validateOptions, 'object');
+    assert.equal(Number.isFinite(validateOptions.timeoutMs), true);
   });
 
   it('should reject instructions exceeding the 80 character diff limit', async () => {
