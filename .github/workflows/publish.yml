@@ -309,7 +309,7 @@ jobs:
         working-directory: packages/fast-sql
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --access public
+        run: pnpm publish --access public --no-git-checks
 
   npm-publish:
     name: Publish to npm
@@ -400,4 +400,4 @@ jobs:
         working-directory: mcp-server
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --access public
+        run: pnpm publish --access public --no-git-checks
