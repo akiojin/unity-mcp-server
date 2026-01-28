@@ -167,18 +167,8 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
 
     // LSP validation (skip if skipValidation=true for large files)
     let diagnostics = [];
-    let validationSkipped = skipValidation;
     if (!skipValidation) {
-      try {
-        diagnostics = await this.#validateWithLsp(info, relative, working);
-      } catch (e) {
-        if (this.#isRecoverableValidationError(e)) {
-          diagnostics = [];
-          validationSkipped = true;
-        } else {
-          throw e;
-        }
-      }
+      diagnostics = await this.#validateWithLsp(info, relative, working);
       const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
       if (hasErrors) {
         const first = diagnostics.find(d => this.#severityIsError(d.severity));
@@ -197,7 +187,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       original,
       updated: working,
       diagnostics,
-      validationSkipped
+      validationSkipped: skipValidation
     });
   }
 
@@ -311,17 +301,6 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     return await this.lsp.validateText(relative, updatedText);
   }
 
-  #isRecoverableValidationError(error) {
-    const msg = String(error?.message || error || '').toLowerCase();
-    return (
-      msg.includes('timed out') ||
-      msg.includes('timeout') ||
-      msg.includes('process exited') ||
-      msg.includes('parse error') ||
-      msg.includes('failed to parse') ||
-      msg.includes('stdin not writable')
-    );
-  }
 
   #buildResponse({
     preview,
