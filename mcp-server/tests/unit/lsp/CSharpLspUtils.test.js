@@ -177,4 +177,47 @@ describe('CSharpLspUtils', () => {
       }
     });
   });
+
+  describe('ensureLocal in test mode', () => {
+    const makeTmp = prefix => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+      tmpDirs.push(dir);
+      return dir;
+    };
+
+    it('skips auto-download when NODE_ENV=test and a binary already exists', async () => {
+      const rid = utils.detectRid();
+      const fakeRoot = makeTmp('lsp-tools-root-');
+      const originalToolsRoot = process.env.UNITY_MCP_TOOLS_ROOT;
+      const originalNodeEnv = process.env.NODE_ENV;
+
+      process.env.UNITY_MCP_TOOLS_ROOT = fakeRoot;
+      process.env.NODE_ENV = 'test';
+
+      try {
+        const binPath = utils.getLocalPath(rid);
+        fs.mkdirSync(path.dirname(binPath), { recursive: true });
+        fs.writeFileSync(binPath, '#!/bin/sh\necho test\n', 'utf8');
+        if (process.platform !== 'win32') {
+          fs.chmodSync(binPath, 0o755);
+        }
+
+        // Force a version mismatch to trigger the download path in non-test environments.
+        utils.writeLocalVersion(rid, '0.0.0');
+
+        const autoDownload = mock.method(utils, 'autoDownload', async () => {
+          throw new Error('autoDownload should not run in test mode');
+        });
+
+        const resolved = await utils.ensureLocal(rid);
+        assert.equal(resolved, binPath);
+        assert.equal(autoDownload.mock.calls.length, 0);
+      } finally {
+        if (originalToolsRoot === undefined) delete process.env.UNITY_MCP_TOOLS_ROOT;
+        else process.env.UNITY_MCP_TOOLS_ROOT = originalToolsRoot;
+        if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
+        else process.env.NODE_ENV = originalNodeEnv;
+      }
+    });
+  });
 });

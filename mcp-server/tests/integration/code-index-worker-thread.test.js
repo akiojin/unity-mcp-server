@@ -506,7 +506,7 @@ describeSuite('SPEC-e757a01f US-10: Worker Threads Non-blocking Build', () => {
       assert.ok(nodeVersion >= 18, `Node.js version ${process.version} should be >=18`);
 
       // Verify Worker Threads are available
-      const { Worker, isMainThread } = await import('worker_threads');
+      const { Worker, isMainThread } = await import('node:worker_threads');
       assert.ok(Worker, 'Worker should be available');
       assert.ok(isMainThread, 'Should be running in main thread');
     });

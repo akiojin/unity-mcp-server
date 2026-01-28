@@ -1,5 +1,8 @@
 import { Worker } from 'worker_threads';
 import path from 'path';
+import os from 'os';
+import fs from 'fs';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { logger, WORKSPACE_ROOT } from './config.js';
 import { JobManager } from './jobManager.js';
@@ -7,6 +10,7 @@ import { JobManager } from './jobManager.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DEFAULT_DB_RELATIVE_PATH = path.join('.unity', 'cache', 'code-index', 'code-index.db');
+const DEFAULT_TMP_DB_DIR = path.join(os.tmpdir(), 'unity-mcp-code-index');
 
 /**
  * Resolve database path for Worker Thread builds.
@@ -21,13 +25,33 @@ export function resolveDbPath(options = {}) {
     return options.dbPath;
   }
 
-  const baseRoot =
-    (typeof WORKSPACE_ROOT === 'string' && WORKSPACE_ROOT.trim().length > 0 && WORKSPACE_ROOT) ||
-    (typeof options.projectRoot === 'string' && options.projectRoot.trim().length > 0
-      ? options.projectRoot
-      : process.cwd());
+  const workspaceRoot =
+    typeof WORKSPACE_ROOT === 'string' && WORKSPACE_ROOT.trim().length > 0 ? WORKSPACE_ROOT : '';
+  if (workspaceRoot) {
+    return path.resolve(workspaceRoot, DEFAULT_DB_RELATIVE_PATH);
+  }
 
-  return path.resolve(baseRoot, DEFAULT_DB_RELATIVE_PATH);
+  const projectRoot =
+    typeof options.projectRoot === 'string' && options.projectRoot.trim().length > 0
+      ? options.projectRoot
+      : '';
+  const projectExists = projectRoot && fs.existsSync(projectRoot);
+
+  if (projectExists) {
+    return path.join(projectRoot, DEFAULT_DB_RELATIVE_PATH);
+  }
+
+  if (projectRoot) {
+    // Fallback for mock/non-existent roots used in integration tests.
+    const hash = crypto
+      .createHash('sha1')
+      .update(projectRoot || 'unknown-project-root', 'utf8')
+      .digest('hex')
+      .slice(0, 12);
+    return path.join(DEFAULT_TMP_DB_DIR, hash, 'code-index.db');
+  }
+
+  return path.resolve(process.cwd(), DEFAULT_DB_RELATIVE_PATH);
 }
 
 /**

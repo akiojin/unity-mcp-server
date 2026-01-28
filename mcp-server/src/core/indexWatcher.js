@@ -6,6 +6,7 @@ export class IndexWatcher {
   constructor(unityConnection) {
     this.unityConnection = unityConnection;
     this.timer = null;
+    this.startTimeout = null;
     this.running = false;
     this.jobManager = JobManager.getInstance();
     this.currentWatcherJobId = null;
@@ -16,7 +17,7 @@ export class IndexWatcher {
 
   start() {
     if (!config.indexing?.watch) return;
-    if (this.timer) return;
+    if (this.timer || this.startTimeout) return;
     const interval = Math.max(2000, Number(config.indexing.intervalMs || 15000));
     // Initial delay: wait longer to allow MCP server to fully initialize
     // and first tool calls to complete before starting background indexing
@@ -24,7 +25,8 @@ export class IndexWatcher {
     logger.info(`[index] watcher enabled (interval=${interval}ms, initialDelay=${initialDelay}ms)`);
 
     // Delay initial tick significantly to avoid blocking MCP server initialization
-    const delayedStart = setTimeout(() => {
+    this.startTimeout = setTimeout(() => {
+      this.startTimeout = null;
       this.tick();
       // Start periodic timer only after first tick
       this.timer = setInterval(() => this.tick(), interval);
@@ -32,12 +34,16 @@ export class IndexWatcher {
         this.timer.unref();
       }
     }, initialDelay);
-    if (typeof delayedStart.unref === 'function') {
-      delayedStart.unref();
+    if (typeof this.startTimeout?.unref === 'function') {
+      this.startTimeout.unref();
     }
   }
 
   stop() {
+    if (this.startTimeout) {
+      clearTimeout(this.startTimeout);
+      this.startTimeout = null;
+    }
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
