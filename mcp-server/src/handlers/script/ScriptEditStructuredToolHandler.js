@@ -110,7 +110,12 @@ export class ScriptEditStructuredToolHandler extends BaseToolHandler {
       }
     }
 
-    if (!this.lsp) this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
+    if (!this.lsp) {
+      this.lsp = await LspRpcClientSingleton.getIsolatedInstance(
+        info.projectRoot,
+        'edit_structured'
+      );
+    }
 
     if (operation === 'replace_body') {
       const resp = await this.lsp.request('mcp/replaceSymbolBody', {

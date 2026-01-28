@@ -7,11 +7,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "analyze_duplicates",
-            "analyze_dependencies",
-            "analyze_unused"
-          ],
+          "enum": ["analyze_duplicates", "analyze_dependencies", "analyze_unused"],
           "description": "The Addressables analysis operation to perform"
         },
         "assetPath": {
@@ -33,9 +29,7 @@
           "description": "Offset for pagination"
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     }
   },
   {
@@ -46,10 +40,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "build",
-            "clean_build"
-          ],
+          "enum": ["build", "clean_build"],
           "description": "The Addressables build operation to perform"
         },
         "buildTarget": {
@@ -66,9 +57,7 @@
           "description": "Optional build target platform (for build action)"
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     }
   },
   {
@@ -139,9 +128,7 @@
           "description": "Offset for pagination (for list_entries)"
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     }
   },
   {
@@ -170,9 +157,7 @@
           "default": false
         }
       },
-      "required": [
-        "gameObjectName"
-      ]
+      "required": ["gameObjectName"]
     }
   },
   {
@@ -211,9 +196,7 @@
           "default": -1
         }
       },
-      "required": [
-        "gameObjectName"
-      ]
+      "required": ["gameObjectName"]
     }
   },
   {
@@ -232,11 +215,7 @@
         },
         "searchScope": {
           "type": "string",
-          "enum": [
-            "scene",
-            "prefabs",
-            "all"
-          ],
+          "enum": ["scene", "prefabs", "all"],
           "description": "Where to search: current scene, prefabs, or all. Default: \"scene\""
         },
         "matchExactType": {
@@ -244,9 +223,7 @@
           "description": "Match exact type only (not derived types). Default: true"
         }
       },
-      "required": [
-        "componentType"
-      ]
+      "required": ["componentType"]
     }
   },
   {
@@ -276,10 +253,7 @@
           "description": "Include inherited properties. Default: true"
         }
       },
-      "required": [
-        "gameObjectName",
-        "componentType"
-      ]
+      "required": ["gameObjectName", "componentType"]
     }
   },
   {
@@ -313,9 +287,7 @@
           "description": "Maximum depth for child traversal. Default: 3, Range: 0-10"
         }
       },
-      "required": [
-        "gameObjectName"
-      ]
+      "required": ["gameObjectName"]
     }
   },
   {
@@ -341,9 +313,7 @@
           "description": "Also search for references in prefab assets. Default: false"
         }
       },
-      "required": [
-        "gameObjectName"
-      ]
+      "required": ["gameObjectName"]
     }
   },
   {
@@ -419,9 +389,7 @@
           "description": "Destination path for move/copy operations"
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     }
   },
   {
@@ -455,9 +423,7 @@
           "description": "Whether to include built-in assets in analysis (for find_unused)"
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     }
   },
   {
@@ -468,12 +434,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "get",
-            "modify",
-            "apply_preset",
-            "reimport"
-          ],
+          "enum": ["get", "modify", "apply_preset", "reimport"],
           "description": "The action to perform"
         },
         "assetPath": {
@@ -489,10 +450,7 @@
           "description": "Name of the preset to apply (required for apply_preset action)"
         }
       },
-      "required": [
-        "action",
-        "assetPath"
-      ]
+      "required": ["action", "assetPath"]
     }
   },
   {
@@ -522,9 +480,7 @@
           "description": "If true, overwrite existing material at the path."
         }
       },
-      "required": [
-        "materialPath"
-      ]
+      "required": ["materialPath"]
     }
   },
   {
@@ -546,10 +502,7 @@
           "description": "Optional: change the shader (e.g., Standard, Unlit/Color)."
         }
       },
-      "required": [
-        "materialPath",
-        "properties"
-      ]
+      "required": ["materialPath", "properties"]
     }
   },
   {
@@ -575,9 +528,7 @@
           "description": "If true, overwrite existing prefab at the destination path (default: false)."
         }
       },
-      "required": [
-        "prefabPath"
-      ]
+      "required": ["prefabPath"]
     }
   },
   {
@@ -642,9 +593,7 @@
           "description": "Override name for the instantiated object."
         }
       },
-      "required": [
-        "prefabPath"
-      ]
+      "required": ["prefabPath"]
     }
   },
   {
@@ -666,10 +615,7 @@
           "description": "If true, also apply to existing scene instances (default: true)."
         }
       },
-      "required": [
-        "prefabPath",
-        "modifications"
-      ]
+      "required": ["prefabPath", "modifications"]
     }
   },
   {
@@ -691,9 +637,7 @@
           "description": "Isolate the focused object in the hierarchy (default: false)"
         }
       },
-      "required": [
-        "prefabPath"
-      ]
+      "required": ["prefabPath"]
     }
   },
   {
@@ -764,9 +708,7 @@
           "description": "Maximum number of concurrent LSP requests. Default 4."
         }
       },
-      "required": [
-        "paths"
-      ]
+      "required": ["paths"]
     }
   },
   {
@@ -806,10 +748,7 @@
           "additionalProperties": true
         }
       },
-      "required": [
-        "gameObjectPath",
-        "componentType"
-      ]
+      "required": ["gameObjectPath", "componentType"]
     }
   },
   {
@@ -821,12 +760,7 @@
       "properties": {
         "scope": {
           "type": "string",
-          "enum": [
-            "auto",
-            "scene",
-            "prefabStage",
-            "prefabAsset"
-          ],
+          "enum": ["auto", "scene", "prefabStage", "prefabAsset"],
           "description": "Explicit scope for the operation. Use auto (default) to detect automatically."
         },
         "gameObjectPath": {
@@ -926,10 +860,7 @@
           "description": "Mark the owning scene dirty when modifying scene objects. Defaults to true."
         }
       },
-      "required": [
-        "componentType",
-        "fieldPath"
-      ]
+      "required": ["componentType", "fieldPath"]
     }
   },
   {
@@ -968,9 +899,7 @@
           "description": "Include inherited base component types (default: false)"
         }
       },
-      "required": [
-        "gameObjectPath"
-      ]
+      "required": ["gameObjectPath"]
     }
   },
   {
@@ -997,11 +926,7 @@
           "additionalProperties": true
         }
       },
-      "required": [
-        "gameObjectPath",
-        "componentType",
-        "properties"
-      ]
+      "required": ["gameObjectPath", "componentType", "properties"]
     }
   },
   {
@@ -1023,10 +948,7 @@
           "description": "Index of component if multiple of same type exist (default: 0)"
         }
       },
-      "required": [
-        "gameObjectPath",
-        "componentType"
-      ]
+      "required": ["gameObjectPath", "componentType"]
     }
   },
   {
@@ -1079,11 +1001,7 @@
           "description": "Filter by log types. Allowed: Log, Warning, Error. Error expands to include Exception/Assert internally. Default: all three.",
           "items": {
             "type": "string",
-            "enum": [
-              "Log",
-              "Warning",
-              "Error"
-            ]
+            "enum": ["Log", "Warning", "Error"]
           }
         },
         "filterText": {
@@ -1098,12 +1016,7 @@
         "format": {
           "type": "string",
           "description": "Output format for logs. Unity default: compact. RECOMMENDED: compact for general use, detailed for debugging",
-          "enum": [
-            "detailed",
-            "compact",
-            "json",
-            "plain"
-          ]
+          "enum": ["detailed", "compact", "json", "plain"]
         },
         "sinceTimestamp": {
           "type": "string",
@@ -1116,20 +1029,12 @@
         "sortOrder": {
           "type": "string",
           "description": "Sort order for logs (default: newest)",
-          "enum": [
-            "newest",
-            "oldest"
-          ]
+          "enum": ["newest", "oldest"]
         },
         "groupBy": {
           "type": "string",
           "description": "Group logs by criteria (default: none)",
-          "enum": [
-            "none",
-            "type",
-            "file",
-            "time"
-          ]
+          "enum": ["none", "type", "file", "time"]
         }
       }
     }
@@ -1142,13 +1047,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "add",
-            "remove",
-            "get",
-            "get_by_name",
-            "get_by_index"
-          ],
+          "enum": ["add", "remove", "get", "get_by_name", "get_by_index"],
           "description": "Operation: add, remove, get, get_by_name, or get_by_index."
         },
         "layerName": {
@@ -1162,9 +1061,7 @@
           "description": "Layer index (0-31). Required for get_by_index."
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     }
   },
   {
@@ -1183,12 +1080,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "get",
-            "set",
-            "clear",
-            "get_details"
-          ],
+          "enum": ["get", "set", "clear", "get_details"],
           "description": "Operation: get, set, clear, or get_details."
         },
         "objectPaths": {
@@ -1203,9 +1095,7 @@
           "description": "If true, return detailed info with get/get_details."
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     }
   },
   {
@@ -1216,11 +1106,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "add",
-            "remove",
-            "get"
-          ],
+          "enum": ["add", "remove", "get"],
           "description": "Operation: add, remove, or get."
         },
         "tagName": {
@@ -1228,9 +1114,7 @@
           "description": "Tag name (required for add/remove). Alphanumeric/underscore only."
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     }
   },
   {
@@ -1241,12 +1125,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "get",
-            "activate",
-            "deactivate",
-            "refresh"
-          ],
+          "enum": ["get", "activate", "deactivate", "refresh"],
           "description": "Operation: get, activate, deactivate, or refresh."
         },
         "toolName": {
@@ -1258,9 +1137,7 @@
           "description": "Optional: filter list by category."
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     }
   },
   {
@@ -1271,11 +1148,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "get",
-            "focus",
-            "get_state"
-          ],
+          "enum": ["get", "focus", "get_state"],
           "description": "Operation: get (list), focus, or get_state."
         },
         "windowType": {
@@ -1287,9 +1160,7 @@
           "description": "If true, includes hidden/minimized windows for get."
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     }
   },
   {
@@ -1305,14 +1176,7 @@
         "primitiveType": {
           "type": "string",
           "description": "Type of primitive to create",
-          "enum": [
-            "cube",
-            "sphere",
-            "cylinder",
-            "capsule",
-            "plane",
-            "quad"
-          ]
+          "enum": ["cube", "sphere", "cylinder", "capsule", "plane", "quad"]
         },
         "position": {
           "type": "object",
@@ -1538,10 +1402,7 @@
           "description": "Set active state"
         },
         "parentPath": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "description": "Path to new parent GameObject (null to unparent)"
         },
         "tag": {
@@ -1555,9 +1416,7 @@
           "maximum": 31
         }
       },
-      "required": [
-        "path"
-      ]
+      "required": ["path"]
     }
   },
   {
@@ -1581,19 +1440,11 @@
         "actionType": {
           "type": "string",
           "description": "Type of the action",
-          "enum": [
-            "Button",
-            "Value",
-            "PassThrough"
-          ],
+          "enum": ["Button", "Value", "PassThrough"],
           "default": "Button"
         }
       },
-      "required": [
-        "assetPath",
-        "mapName",
-        "actionName"
-      ]
+      "required": ["assetPath", "mapName", "actionName"]
     }
   },
   {
@@ -1621,20 +1472,13 @@
               },
               "type": {
                 "type": "string",
-                "enum": [
-                  "Button",
-                  "Value",
-                  "PassThrough"
-                ]
+                "enum": ["Button", "Value", "PassThrough"]
               }
             }
           }
         }
       },
-      "required": [
-        "assetPath",
-        "mapName"
-      ]
+      "required": ["assetPath", "mapName"]
     }
   },
   {
@@ -1652,10 +1496,7 @@
           "description": "Name of the Action Map to remove"
         }
       },
-      "required": [
-        "assetPath",
-        "mapName"
-      ]
+      "required": ["assetPath", "mapName"]
     }
   },
   {
@@ -1677,11 +1518,7 @@
           "description": "Name of the Action to remove"
         }
       },
-      "required": [
-        "assetPath",
-        "mapName",
-        "actionName"
-      ]
+      "required": ["assetPath", "mapName", "actionName"]
     }
   },
   {
@@ -1705,9 +1542,7 @@
           "default": true
         }
       },
-      "required": [
-        "assetPath"
-      ]
+      "required": ["assetPath"]
     }
   },
   {
@@ -1777,12 +1612,7 @@
           "description": "Processors (e.g., \"scale\", \"invert\")"
         }
       },
-      "required": [
-        "assetPath",
-        "mapName",
-        "actionName",
-        "path"
-      ]
+      "required": ["assetPath", "mapName", "actionName", "path"]
     }
   },
   {
@@ -1806,10 +1636,7 @@
         "compositeType": {
           "type": "string",
           "description": "Type of composite",
-          "enum": [
-            "2DVector",
-            "1DAxis"
-          ],
+          "enum": ["2DVector", "1DAxis"],
           "default": "2DVector"
         },
         "name": {
@@ -1845,12 +1672,7 @@
           "description": "Control scheme groups"
         }
       },
-      "required": [
-        "assetPath",
-        "mapName",
-        "actionName",
-        "bindings"
-      ]
+      "required": ["assetPath", "mapName", "actionName", "bindings"]
     }
   },
   {
@@ -1880,11 +1702,7 @@
           "description": "Path of the binding to remove (alternative to bindingIndex)"
         }
       },
-      "required": [
-        "assetPath",
-        "mapName",
-        "actionName"
-      ]
+      "required": ["assetPath", "mapName", "actionName"]
     }
   },
   {
@@ -1906,11 +1724,7 @@
           "description": "Name of the Action"
         }
       },
-      "required": [
-        "assetPath",
-        "mapName",
-        "actionName"
-      ]
+      "required": ["assetPath", "mapName", "actionName"]
     }
   },
   {
@@ -1926,11 +1740,7 @@
         "operation": {
           "type": "string",
           "description": "Operation to perform",
-          "enum": [
-            "add",
-            "remove",
-            "modify"
-          ]
+          "enum": ["add", "remove", "modify"]
         },
         "schemeName": {
           "type": "string",
@@ -1944,10 +1754,7 @@
           }
         }
       },
-      "required": [
-        "assetPath",
-        "operation"
-      ]
+      "required": ["assetPath", "operation"]
     }
   },
   {
@@ -1958,12 +1765,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "button",
-            "stick",
-            "trigger",
-            "dpad"
-          ],
+          "enum": ["button", "stick", "trigger", "dpad"],
           "description": "The gamepad action to perform"
         },
         "button": {
@@ -1972,18 +1774,12 @@
         },
         "buttonAction": {
           "type": "string",
-          "enum": [
-            "press",
-            "release"
-          ],
+          "enum": ["press", "release"],
           "description": "Button action (press or release)"
         },
         "stick": {
           "type": "string",
-          "enum": [
-            "left",
-            "right"
-          ],
+          "enum": ["left", "right"],
           "description": "Which analog stick to control"
         },
         "x": {
@@ -2000,10 +1796,7 @@
         },
         "trigger": {
           "type": "string",
-          "enum": [
-            "left",
-            "right"
-          ],
+          "enum": ["left", "right"],
           "description": "Which trigger to control"
         },
         "value": {
@@ -2014,13 +1807,7 @@
         },
         "direction": {
           "type": "string",
-          "enum": [
-            "up",
-            "down",
-            "left",
-            "right",
-            "none"
-          ],
+          "enum": ["up", "down", "left", "right", "none"],
           "description": "D-pad direction"
         },
         "holdSeconds": {
@@ -2036,12 +1823,7 @@
             "properties": {
               "action": {
                 "type": "string",
-                "enum": [
-                  "button",
-                  "stick",
-                  "trigger",
-                  "dpad"
-                ],
+                "enum": ["button", "stick", "trigger", "dpad"],
                 "description": "The gamepad action to perform"
               },
               "button": {
@@ -2050,18 +1832,12 @@
               },
               "buttonAction": {
                 "type": "string",
-                "enum": [
-                  "press",
-                  "release"
-                ],
+                "enum": ["press", "release"],
                 "description": "Button action (press or release)"
               },
               "stick": {
                 "type": "string",
-                "enum": [
-                  "left",
-                  "right"
-                ],
+                "enum": ["left", "right"],
                 "description": "Which analog stick to control"
               },
               "x": {
@@ -2078,10 +1854,7 @@
               },
               "trigger": {
                 "type": "string",
-                "enum": [
-                  "left",
-                  "right"
-                ],
+                "enum": ["left", "right"],
                 "description": "Which trigger to control"
               },
               "value": {
@@ -2092,13 +1865,7 @@
               },
               "direction": {
                 "type": "string",
-                "enum": [
-                  "up",
-                  "down",
-                  "left",
-                  "right",
-                  "none"
-                ],
+                "enum": ["up", "down", "left", "right", "none"],
                 "description": "D-pad direction"
               },
               "holdSeconds": {
@@ -2107,9 +1874,7 @@
                 "description": "Automatically reset stick/button/trigger/dpad after this many seconds"
               }
             },
-            "required": [
-              "action"
-            ]
+            "required": ["action"]
           }
         }
       }
@@ -2123,12 +1888,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "press",
-            "release",
-            "type",
-            "combo"
-          ],
+          "enum": ["press", "release", "type", "combo"],
           "description": "The keyboard action to perform"
         },
         "key": {
@@ -2163,12 +1923,7 @@
             "properties": {
               "action": {
                 "type": "string",
-                "enum": [
-                  "press",
-                  "release",
-                  "type",
-                  "combo"
-                ],
+                "enum": ["press", "release", "type", "combo"],
                 "description": "The keyboard action to perform"
               },
               "key": {
@@ -2196,9 +1951,7 @@
                 "description": "Automatically release after this many seconds (press/combo)"
               }
             },
-            "required": [
-              "action"
-            ]
+            "required": ["action"]
           }
         }
       }
@@ -2212,13 +1965,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "move",
-            "click",
-            "drag",
-            "scroll",
-            "button"
-          ],
+          "enum": ["move", "click", "drag", "scroll", "button"],
           "description": "The mouse action to perform"
         },
         "x": {
@@ -2235,19 +1982,12 @@
         },
         "button": {
           "type": "string",
-          "enum": [
-            "left",
-            "right",
-            "middle"
-          ],
+          "enum": ["left", "right", "middle"],
           "description": "Mouse button for click/drag/button actions"
         },
         "buttonAction": {
           "type": "string",
-          "enum": [
-            "press",
-            "release"
-          ],
+          "enum": ["press", "release"],
           "description": "Button action for button presses"
         },
         "clickCount": {
@@ -2291,13 +2031,7 @@
             "properties": {
               "action": {
                 "type": "string",
-                "enum": [
-                  "move",
-                  "click",
-                  "drag",
-                  "scroll",
-                  "button"
-                ],
+                "enum": ["move", "click", "drag", "scroll", "button"],
                 "description": "The mouse action to perform"
               },
               "x": {
@@ -2314,19 +2048,12 @@
               },
               "button": {
                 "type": "string",
-                "enum": [
-                  "left",
-                  "right",
-                  "middle"
-                ],
+                "enum": ["left", "right", "middle"],
                 "description": "Mouse button for click/drag/button actions"
               },
               "buttonAction": {
                 "type": "string",
-                "enum": [
-                  "press",
-                  "release"
-                ],
+                "enum": ["press", "release"],
                 "description": "Button action for button presses"
               },
               "clickCount": {
@@ -2363,9 +2090,7 @@
                 "description": "Automatically release button after this many seconds"
               }
             },
-            "required": [
-              "action"
-            ]
+            "required": ["action"]
           }
         }
       }
@@ -2379,14 +2104,7 @@
       "properties": {
         "operation": {
           "type": "string",
-          "enum": [
-            "keyboard",
-            "mouse",
-            "gamepad",
-            "touch",
-            "sequence",
-            "get_state"
-          ],
+          "enum": ["keyboard", "mouse", "gamepad", "touch", "sequence", "get_state"],
           "description": "The input operation to perform"
         },
         "parameters": {
@@ -2394,9 +2112,7 @@
           "description": "Parameters for the specific operation"
         }
       },
-      "required": [
-        "operation"
-      ]
+      "required": ["operation"]
     }
   },
   {
@@ -2407,12 +2123,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "tap",
-            "swipe",
-            "pinch",
-            "multi"
-          ],
+          "enum": ["tap", "swipe", "pinch", "multi"],
           "description": "The touch action to perform"
         },
         "x": {
@@ -2479,18 +2190,10 @@
               },
               "phase": {
                 "type": "string",
-                "enum": [
-                  "began",
-                  "moved",
-                  "stationary",
-                  "ended"
-                ]
+                "enum": ["began", "moved", "stationary", "ended"]
               }
             },
-            "required": [
-              "x",
-              "y"
-            ]
+            "required": ["x", "y"]
           }
         },
         "actions": {
@@ -2501,12 +2204,7 @@
             "properties": {
               "action": {
                 "type": "string",
-                "enum": [
-                  "tap",
-                  "swipe",
-                  "pinch",
-                  "multi"
-                ],
+                "enum": ["tap", "swipe", "pinch", "multi"],
                 "description": "The touch action to perform"
               },
               "x": {
@@ -2573,24 +2271,14 @@
                     },
                     "phase": {
                       "type": "string",
-                      "enum": [
-                        "began",
-                        "moved",
-                        "stationary",
-                        "ended"
-                      ]
+                      "enum": ["began", "moved", "stationary", "ended"]
                     }
                   },
-                  "required": [
-                    "x",
-                    "y"
-                  ]
+                  "required": ["x", "y"]
                 }
               }
             },
-            "required": [
-              "action"
-            ]
+            "required": ["action"]
           }
         }
       }
@@ -2608,10 +2296,7 @@
         },
         "action": {
           "type": "string",
-          "enum": [
-            "execute",
-            "get_available_menus"
-          ],
+          "enum": ["execute", "get_available_menus"],
           "description": "Action to perform: execute menu item or get available menus (default: execute)"
         },
         "alias": {
@@ -2627,9 +2312,7 @@
           "description": "Enable safety checks to prevent execution of dangerous menu items (default: true)"
         }
       },
-      "required": [
-        "menuPath"
-      ]
+      "required": ["menuPath"]
     }
   },
   {
@@ -2640,14 +2323,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "search",
-            "list",
-            "install",
-            "remove",
-            "info",
-            "recommend"
-          ],
+          "enum": ["search", "list", "install", "remove", "info", "recommend"],
           "description": "The package operation to perform"
         },
         "keyword": {
@@ -2668,13 +2344,7 @@
         },
         "category": {
           "type": "string",
-          "enum": [
-            "essential",
-            "rendering",
-            "tools",
-            "networking",
-            "mobile"
-          ],
+          "enum": ["essential", "rendering", "tools", "networking", "mobile"],
           "description": "Category for recommendations"
         },
         "includeBuiltIn": {
@@ -2686,9 +2356,7 @@
           "description": "Maximum number of search results (default: 20)"
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     }
   },
   {
@@ -2699,14 +2367,7 @@
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "list",
-            "add_openupm",
-            "add_nuget",
-            "remove",
-            "add_scope",
-            "recommend"
-          ],
+          "enum": ["list", "add_openupm", "add_nuget", "remove", "add_scope", "recommend"],
           "description": "The registry operation to perform"
         },
         "registryName": {
@@ -2730,16 +2391,11 @@
         },
         "registry": {
           "type": "string",
-          "enum": [
-            "openupm",
-            "nuget"
-          ],
+          "enum": ["openupm", "nuget"],
           "description": "Registry type for recommendations"
         }
       },
-      "required": [
-        "action"
-      ]
+      "required": ["action"]
     }
   },
   {
@@ -2755,9 +2411,7 @@
               "type": "boolean"
             }
           },
-          "required": [
-            "isPlaying"
-          ]
+          "required": ["isPlaying"]
         },
         "timeoutMs": {
           "type": "number"
@@ -2811,9 +2465,7 @@
           "description": "Polling interval in ms (default 500)"
         }
       },
-      "required": [
-        "isPlaying"
-      ]
+      "required": ["isPlaying"]
     }
   },
   {
@@ -2845,10 +2497,7 @@
       "properties": {
         "mode": {
           "type": "string",
-          "enum": [
-            "normal",
-            "deep"
-          ],
+          "enum": ["normal", "deep"],
           "default": "normal",
           "description": "Profiling mode. 'normal' for standard profiling, 'deep' for deep profiling (more detailed but higher overhead)"
         },
@@ -2916,9 +2565,7 @@
           "description": "Whether to add the scene to build settings (default: false)"
         }
       },
-      "required": [
-        "sceneName"
-      ]
+      "required": ["sceneName"]
     }
   },
   {
@@ -2979,10 +2626,7 @@
         },
         "loadMode": {
           "type": "string",
-          "enum": [
-            "Single",
-            "Additive"
-          ],
+          "enum": ["Single", "Additive"],
           "description": "How to load the scene. Single replaces current scene(s), Additive adds to current scene(s) (default: Single)"
         }
       }
@@ -3021,12 +2665,7 @@
         },
         "analysisType": {
           "type": "string",
-          "enum": [
-            "basic",
-            "ui",
-            "content",
-            "full"
-          ],
+          "enum": ["basic", "ui", "content", "full"],
           "description": "Type of analysis: basic (colors, dimensions), ui (UI element detection), content (scene content), full (all)"
         },
         "prompt": {
@@ -3044,12 +2683,7 @@
       "properties": {
         "captureMode": {
           "type": "string",
-          "enum": [
-            "game",
-            "scene",
-            "window",
-            "explorer"
-          ],
+          "enum": ["game", "scene", "window", "explorer"],
           "description": "Capture mode selection:\n- \"game\": Game View (player's perspective, what the user sees)\n- \"scene\": Scene View (editor's 3D workspace view)\n- \"explorer\": AI/LLM exploration mode (optimized view for understanding scene content)\n- \"window\": Specific Unity Editor window by name"
         },
         "width": {
@@ -3082,12 +2716,7 @@
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": [
-                    "gameObject",
-                    "tag",
-                    "area",
-                    "position"
-                  ],
+                  "enum": ["gameObject", "tag", "area", "position"],
                   "description": "Target selection method:\n- \"gameObject\": Focus on a specific GameObject by name\n- \"tag\": Focus on all objects with a specific tag\n- \"area\": Focus on a circular area defined by center and radius\n- \"position\": Manual camera positioning without auto-framing"
                 },
                 "name": {
@@ -3323,10 +2952,7 @@
           "description": "Apply immediately (default: false)"
         }
       },
-      "required": [
-        "path",
-        "className"
-      ]
+      "required": ["path", "className"]
     }
   },
   {
@@ -3353,11 +2979,7 @@
             "properties": {
               "operation": {
                 "type": "string",
-                "enum": [
-                  "delete",
-                  "replace",
-                  "insert"
-                ],
+                "enum": ["delete", "replace", "insert"],
                 "description": "Edit type."
               },
               "anchor": {
@@ -3366,9 +2988,7 @@
                 "properties": {
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "text"
-                    ],
+                    "enum": ["text"],
                     "default": "text"
                   },
                   "target": {
@@ -3377,34 +2997,22 @@
                   },
                   "position": {
                     "type": "string",
-                    "enum": [
-                      "before",
-                      "after"
-                    ],
+                    "enum": ["before", "after"],
                     "description": "For insert operations, whether to insert before or after the anchor text (default=after)."
                   }
                 },
-                "required": [
-                  "type",
-                  "target"
-                ]
+                "required": ["type", "target"]
               },
               "newText": {
                 "type": "string",
                 "description": "Replacement or insertion text. Required for replace/insert."
               }
             },
-            "required": [
-              "operation",
-              "anchor"
-            ]
+            "required": ["operation", "anchor"]
           }
         }
       },
-      "required": [
-        "path",
-        "instructions"
-      ]
+      "required": ["path", "instructions"]
     }
   },
   {
@@ -3415,11 +3023,7 @@
       "properties": {
         "operation": {
           "type": "string",
-          "enum": [
-            "insert_before",
-            "insert_after",
-            "replace_body"
-          ],
+          "enum": ["insert_before", "insert_after", "replace_body"],
           "description": "Edit type: insert_before, insert_after, or replace_body."
         },
         "path": {
@@ -3443,11 +3047,7 @@
           "description": "If true, returns a preview without writing files. Default=false to reduce large diff payloads."
         }
       },
-      "required": [
-        "operation",
-        "path",
-        "symbolName"
-      ]
+      "required": ["operation", "path", "symbolName"]
     }
   },
   {
@@ -3486,9 +3086,7 @@
           "description": "Maximum bytes to return to cap payload size for LLMs."
         }
       },
-      "required": [
-        "path"
-      ]
+      "required": ["path"]
     }
   },
   {
@@ -3514,11 +3112,7 @@
           "description": "Preview changes before applying (default: true)"
         }
       },
-      "required": [
-        "relative",
-        "namePath",
-        "newName"
-      ]
+      "required": ["relative", "namePath", "newName"]
     }
   },
   {
@@ -3531,14 +3125,13 @@
           "type": "string",
           "description": "Symbol name to search usages for."
         },
+        "startAfter": {
+          "type": "string",
+          "description": "Pagination cursor (file path). Return only results after this path."
+        },
         "scope": {
           "type": "string",
-          "enum": [
-            "assets",
-            "packages",
-            "embedded",
-            "all"
-          ],
+          "enum": ["assets", "packages", "embedded", "all"],
           "description": "Search scope: assets (Assets/), packages (Packages/), embedded, or all (default: all)."
         },
         "snippetContext": {
@@ -3574,9 +3167,7 @@
           "description": "Optional: symbol kind (class, method, field, property)."
         }
       },
-      "required": [
-        "name"
-      ]
+      "required": ["name"]
     }
   },
   {
@@ -3606,10 +3197,7 @@
           "description": "Remove file if it becomes empty (default: false)"
         }
       },
-      "required": [
-        "path",
-        "namePath"
-      ]
+      "required": ["path", "namePath"]
     }
   },
   {
@@ -3624,11 +3212,7 @@
         },
         "patternType": {
           "type": "string",
-          "enum": [
-            "substring",
-            "regex",
-            "glob"
-          ],
+          "enum": ["substring", "regex", "glob"],
           "description": "Pattern matching strategy: substring (default), regex, or glob-only scan."
         },
         "flags": {
@@ -3640,12 +3224,7 @@
         },
         "scope": {
           "type": "string",
-          "enum": [
-            "assets",
-            "packages",
-            "embedded",
-            "all"
-          ],
+          "enum": ["assets", "packages", "embedded", "all"],
           "description": "Search scope: assets (Assets/, default), packages (Packages/), embedded, or all."
         },
         "include": {
@@ -3674,21 +3253,12 @@
         },
         "returnMode": {
           "type": "string",
-          "enum": [
-            "metadata",
-            "snippets",
-            "full"
-          ],
+          "enum": ["metadata", "snippets", "full"],
           "description": "Result detail: metadata (fast), snippets (recommended), or full."
         },
         "detail": {
           "type": "string",
-          "enum": [
-            "compact",
-            "metadata",
-            "snippets",
-            "full"
-          ],
+          "enum": ["compact", "metadata", "snippets", "full"],
           "description": "Alias of returnMode. `compact` maps to `snippets`."
         },
         "startAfter": {
@@ -3734,12 +3304,7 @@
         },
         "scope": {
           "type": "string",
-          "enum": [
-            "assets",
-            "packages",
-            "embedded",
-            "all"
-          ],
+          "enum": ["assets", "packages", "embedded", "all"],
           "description": "Search scope: assets (Assets/), packages (Packages/), embedded, or all (default: all)."
         },
         "exact": {
@@ -3747,9 +3312,7 @@
           "description": "If true, match name exactly; otherwise allows partial matches (default: false)."
         }
       },
-      "required": [
-        "name"
-      ]
+      "required": ["name"]
     }
   },
   {
@@ -3763,9 +3326,7 @@
           "description": "Project-relative .cs path under Assets/ or Packages/ (e.g., Packages/unity-mcp-server/Editor/Foo.cs). Do NOT prefix repository folders (e.g., UnityMCPServer/…)."
         }
       },
-      "required": [
-        "path"
-      ]
+      "required": ["path"]
     }
   },
   {
@@ -3791,11 +3352,7 @@
         },
         "scope": {
           "type": "string",
-          "enum": [
-            "read",
-            "write",
-            "execute"
-          ],
+          "enum": ["read", "write", "execute"],
           "description": "Filter by scope: read, write, or execute"
         },
         "limit": {
@@ -3910,10 +3467,7 @@
           "properties": {
             "colorSpace": {
               "type": "string",
-              "enum": [
-                "Gamma",
-                "Linear"
-              ],
+              "enum": ["Gamma", "Linear"],
               "description": "Color space (requires Unity restart)"
             }
           }
@@ -4026,12 +3580,7 @@
             },
             "antiAliasing": {
               "type": "number",
-              "enum": [
-                0,
-                2,
-                4,
-                8
-              ],
+              "enum": [0, 2, 4, 8],
               "description": "Anti-aliasing samples"
             },
             "shadowDistance": {
@@ -4042,9 +3591,7 @@
           }
         }
       },
-      "required": [
-        "confirmChanges"
-      ]
+      "required": ["confirmChanges"]
     }
   },
   {
@@ -4103,11 +3650,7 @@
       "properties": {
         "testMode": {
           "type": "string",
-          "enum": [
-            "EditMode",
-            "PlayMode",
-            "All"
-          ],
+          "enum": ["EditMode", "PlayMode", "All"],
           "default": "EditMode",
           "description": "Test mode to run (EditMode: editor tests, PlayMode: runtime tests, All: both)"
         },
@@ -4147,11 +3690,7 @@
         },
         "clickType": {
           "type": "string",
-          "enum": [
-            "left",
-            "right",
-            "middle"
-          ],
+          "enum": ["left", "right", "middle"],
           "description": "Type of click (left, right, middle)"
         },
         "holdDuration": {
@@ -4179,9 +3718,7 @@
           "description": "Specific position within element to click"
         }
       },
-      "required": [
-        "elementPath"
-      ]
+      "required": ["elementPath"]
     }
   },
   {
@@ -4232,9 +3769,7 @@
           "description": "Include interaction capabilities (default: true)"
         }
       },
-      "required": [
-        "elementPath"
-      ]
+      "required": ["elementPath"]
     }
   },
   {
@@ -4275,10 +3810,7 @@
           "description": "Whether to trigger associated events (default: true)"
         }
       },
-      "required": [
-        "elementPath",
-        "value"
-      ]
+      "required": ["elementPath", "value"]
     }
   },
   {
@@ -4293,14 +3825,7 @@
         },
         "inputType": {
           "type": "string",
-          "enum": [
-            "click",
-            "doubleclick",
-            "rightclick",
-            "hover",
-            "focus",
-            "type"
-          ],
+          "enum": ["click", "doubleclick", "rightclick", "hover", "focus", "type"],
           "description": "Type of input to simulate (for simple input)"
         },
         "inputData": {
@@ -4321,10 +3846,7 @@
                 "description": "Parameters for the action"
               }
             },
-            "required": [
-              "type",
-              "params"
-            ]
+            "required": ["type", "params"]
           },
           "description": "Array of input actions to perform (for complex input)"
         },
@@ -4349,9 +3871,7 @@
       "properties": {
         "captureMode": {
           "type": "string",
-          "enum": [
-            "game"
-          ],
+          "enum": ["game"],
           "description": "Capture source. Currently only \"game\" supported."
         },
         "width": {
@@ -4375,9 +3895,7 @@
           "description": "Enter Play Mode before recording (default true if not already playing)"
         }
       },
-      "required": [
-        "durationSec"
-      ]
+      "required": ["durationSec"]
     }
   },
   {
@@ -4388,9 +3906,7 @@
       "properties": {
         "captureMode": {
           "type": "string",
-          "enum": [
-            "game"
-          ],
+          "enum": ["game"],
           "description": "Capture source. Currently only \"game\" supported."
         },
         "width": {

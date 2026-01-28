@@ -32,7 +32,12 @@ describe('httpServer', () => {
     const port = await server.start();
     started = true;
 
-    const payload = { jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'echo', arguments: { a: 1 } } };
+    const payload = {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'tools/call',
+      params: { name: 'echo', arguments: { a: 1 } }
+    };
     const res = await fetch(`http://127.0.0.1:${port}/rpc`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -46,7 +51,9 @@ describe('httpServer', () => {
   it('fails to start when port is already in use (EADDRINUSE)', async () => {
     // occupy a port
     const blocker = net.createServer();
-    await new Promise((resolve, reject) => blocker.listen(0, '127.0.0.1', err => (err ? reject(err) : resolve())));
+    await new Promise((resolve, reject) =>
+      blocker.listen(0, '127.0.0.1', err => (err ? reject(err) : resolve()))
+    );
     const port = blocker.address().port;
 
     const handlers = new Map();

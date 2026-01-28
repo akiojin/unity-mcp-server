@@ -8,7 +8,9 @@ import { InstanceRegistry } from '../../src/core/instanceRegistry.js';
 function startTcpServer() {
   const server = net.createServer(socket => socket.end());
   return new Promise((resolve, reject) => {
-    server.listen(0, '127.0.0.1', err => (err ? reject(err) : resolve({ server, port: server.address().port })));
+    server.listen(0, '127.0.0.1', err =>
+      err ? reject(err) : resolve({ server, port: server.address().port })
+    );
   });
 }
 
@@ -33,7 +35,11 @@ describe('instances CLI integration', () => {
   });
 
   it('lists and sets active instance', async () => {
-    const list = await listInstances({ ports: [tcpA.port, tcpB.port], host: '127.0.0.1', registry });
+    const list = await listInstances({
+      ports: [tcpA.port, tcpB.port],
+      host: '127.0.0.1',
+      registry
+    });
     assert.equal(list.length, 2);
     await setActive({ id: `127.0.0.1:${tcpB.port}`, registry });
     const after = registry.list();

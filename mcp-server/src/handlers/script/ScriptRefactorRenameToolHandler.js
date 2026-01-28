@@ -38,7 +38,9 @@ export class ScriptRefactorRenameToolHandler extends BaseToolHandler {
   async execute(params) {
     const { relative, namePath, newName, preview = true } = params;
     const info = await this.projectInfo.get();
-    if (!this.lsp) this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
+    if (!this.lsp) {
+      this.lsp = await LspRpcClientSingleton.getIsolatedInstance(info.projectRoot, 'rename');
+    }
     const resp = await this.lsp.request('mcp/renameByNamePath', {
       relative: String(relative).replace(/\\\\/g, '/'),
       namePath: String(namePath),

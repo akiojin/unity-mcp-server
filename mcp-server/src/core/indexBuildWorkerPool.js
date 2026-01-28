@@ -1,11 +1,58 @@
 import { Worker } from 'worker_threads';
 import path from 'path';
+import os from 'os';
+import fs from 'fs';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
-import { logger } from './config.js';
+import { logger, WORKSPACE_ROOT } from './config.js';
 import { JobManager } from './jobManager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const DEFAULT_DB_RELATIVE_PATH = path.join('.unity', 'cache', 'code-index', 'code-index.db');
+const DEFAULT_TMP_DB_DIR = path.join(os.tmpdir(), 'unity-mcp-code-index');
+
+/**
+ * Resolve database path for Worker Thread builds.
+ * Falls back to workspace-root based cache when dbPath is not provided.
+ * @param {Object} [options] - Build options
+ * @param {string} [options.dbPath] - Explicit database path
+ * @param {string} [options.projectRoot] - Unity project root path
+ * @returns {string} Resolved database path
+ */
+export function resolveDbPath(options = {}) {
+  if (typeof options.dbPath === 'string' && options.dbPath.trim().length > 0) {
+    return options.dbPath;
+  }
+
+  const workspaceRoot =
+    typeof WORKSPACE_ROOT === 'string' && WORKSPACE_ROOT.trim().length > 0 ? WORKSPACE_ROOT : '';
+  if (workspaceRoot) {
+    return path.resolve(workspaceRoot, DEFAULT_DB_RELATIVE_PATH);
+  }
+
+  const projectRoot =
+    typeof options.projectRoot === 'string' && options.projectRoot.trim().length > 0
+      ? options.projectRoot
+      : '';
+  const projectExists = projectRoot && fs.existsSync(projectRoot);
+
+  if (projectExists) {
+    return path.join(projectRoot, DEFAULT_DB_RELATIVE_PATH);
+  }
+
+  if (projectRoot) {
+    // Fallback for mock/non-existent roots used in integration tests.
+    const hash = crypto
+      .createHash('sha1')
+      .update(projectRoot || 'unknown-project-root', 'utf8')
+      .digest('hex')
+      .slice(0, 12);
+    return path.join(DEFAULT_TMP_DB_DIR, hash, 'code-index.db');
+  }
+
+  return path.resolve(process.cwd(), DEFAULT_DB_RELATIVE_PATH);
+}
 
 /**
  * Worker Thread pool for non-blocking code index builds.
@@ -52,12 +99,19 @@ export class IndexBuildWorkerPool {
 
     return new Promise((resolve, reject) => {
       const workerPath = path.join(__dirname, 'workers', 'indexBuildWorker.js');
+      const buildOptions = options ?? {};
+      const resolvedDbPath = resolveDbPath(buildOptions);
+      const concurrency =
+        Number.isFinite(buildOptions.concurrency) && buildOptions.concurrency > 0
+          ? buildOptions.concurrency
+          : 1;
 
       try {
         this.worker = new Worker(workerPath, {
           workerData: {
-            ...options,
-            concurrency: options.concurrency || 1
+            ...buildOptions,
+            dbPath: resolvedDbPath,
+            concurrency
           }
         });
 

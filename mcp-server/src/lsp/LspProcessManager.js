@@ -8,8 +8,9 @@ const sharedState = {
 };
 
 export class LspProcessManager {
-  constructor() {
-    this.state = sharedState;
+  constructor(options = {}) {
+    const useShared = options.shared !== false;
+    this.state = useShared ? sharedState : { proc: null, starting: null };
     this.utils = new CSharpLspUtils();
   }
 

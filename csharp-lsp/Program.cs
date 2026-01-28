@@ -1,10 +1,15 @@
 using System.Text.Json;
 using System.Text;
+using System;
+using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 
 // Minimal LSP over stdio: initialize / initialized / shutdown / exit / documentSymbol / workspace/symbol / mcp/referencesByName / mcp/renameByNamePath / mcp/replaceSymbolBody / mcp/insertBeforeSymbol / mcp/insertAfterSymbol / mcp/removeSymbol
 // This is a lightweight PoC that parses each file independently using Roslyn SyntaxTree.
@@ -22,6 +27,11 @@ sealed class LspServer
     };
     private bool _shutdownRequested;
     private string _rootDir = "";
+    private readonly SemaphoreSlim _requestLimiter = new(Math.Max(1, Environment.ProcessorCount), Math.Max(1, Environment.ProcessorCount));
+    private readonly SemaphoreSlim _writeLock = new(1, 1);
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> _fileLocks = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<Task> _inFlight = new();
+    private readonly object _inFlightLock = new();
 
     public async Task RunAsync()
     {
@@ -37,155 +47,30 @@ sealed class LspServer
                 var id = root.TryGetProperty("id", out var idEl) ? idEl : default;
                 if (method is not null)
                 {
-                    if (method == "initialize")
+                    if (method == "exit" || method == "shutdown")
                     {
-                        LspLogger.Debug("initialize");
-                        try
-                        {
-                            var rootUri = root.GetProperty("params").GetProperty("rootUri").GetString();
-                            if (!string.IsNullOrEmpty(rootUri))
-                            {
-                                _rootDir = Uri2Path(rootUri);
-                                LspLogger.Info($"rootDir={_rootDir}");
-                            }
-                        }
-                        catch { }
-                        var resp = new
-                        {
-                            jsonrpc = "2.0",
-                            id = id.ValueKind == JsonValueKind.Number ? id.GetInt32() : (int?)null,
-                            result = new
-                            {
-                                capabilities = new { documentSymbolProvider = true }
-                            }
-                        };
-                        await WriteMessageAsync(resp);
-                    }
-                    else if (method == "shutdown")
-                    {
-                        LspLogger.Info("shutdown");
-                        _shutdownRequested = true;
-                        var resp = new { jsonrpc = "2.0", id = id.GetInt32(), result = (object?)null };
-                        await WriteMessageAsync(resp);
-                    }
-                    else if (method == "exit")
-                    {
-                        LspLogger.Info("exit");
-                        break;
-                    }
-                    else if (method == "textDocument/documentSymbol")
-                    {
-                        var uri = root.GetProperty("params").GetProperty("textDocument").GetProperty("uri").GetString() ?? "";
-                        var path = Uri2Path(uri);
-                        var result = await DocumentSymbolsAsync(path);
-                        var resp = new { jsonrpc = "2.0", id = id.GetInt32(), result };
-                        await WriteMessageAsync(resp);
-                    }
-                    else if (method == "textDocument/definition")
-                    {
-                        var p = root.GetProperty("params");
-                        var uri = p.GetProperty("textDocument").GetProperty("uri").GetString() ?? "";
-                        var pos = p.GetProperty("position");
-                        var def = await DefinitionAsync(Uri2Path(uri), pos.GetProperty("line").GetInt32(), pos.GetProperty("character").GetInt32());
-                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = def });
-                    }
-                    else if (method == "textDocument/implementation")
-                    {
-                        var p = root.GetProperty("params");
-                        var uri = p.GetProperty("textDocument").GetProperty("uri").GetString() ?? "";
-                        var pos = p.GetProperty("position");
-                        var impl = await DefinitionAsync(Uri2Path(uri), pos.GetProperty("line").GetInt32(), pos.GetProperty("character").GetInt32());
-                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = impl });
-                    }
-                    else if (method == "textDocument/formatting")
-                    {
-                        var p = root.GetProperty("params");
-                        var uri = p.GetProperty("textDocument").GetProperty("uri").GetString() ?? "";
-                        var edits = await FormattingAsync(Uri2Path(uri));
-                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = edits });
-                    }
-                    else if (method == "workspace/symbol")
-                    {
-                        var query = root.GetProperty("params").GetProperty("query").GetString() ?? "";
-                        var result = await WorkspaceSymbolAsync(query);
-                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result });
-                    }
-                    else if (method == "mcp/referencesByName")
-                    {
-                        var symName = root.GetProperty("params").GetProperty("name").GetString() ?? "";
-                        var list = await ReferencesByNameAsync(symName);
-                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = list });
-                    }
-                    else if (method == "mcp/renameByNamePath")
-                    {
-                        var p = root.GetProperty("params");
-                        var relative = p.GetProperty("relative").GetString() ?? "";
-                        var namePath = p.GetProperty("namePath").GetString() ?? "";
-                        var newName = p.GetProperty("newName").GetString() ?? "";
-                        var apply = p.TryGetProperty("apply", out var a) && a.GetBoolean();
-                        var resp = await RenameByNamePathAsync(relative, namePath, newName, apply);
-                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
-                    }
-                    else if (method == "mcp/replaceSymbolBody")
-                    {
-                        var p = root.GetProperty("params");
-                        var relative = p.GetProperty("relative").GetString() ?? "";
-                        var namePath = p.GetProperty("namePath").GetString() ?? "";
-                        var body = p.GetProperty("body").GetString() ?? "";
-                        var apply = p.TryGetProperty("apply", out var a2) && a2.GetBoolean();
-                        var resp = await ReplaceSymbolBodyAsync(relative, namePath, body, apply);
-                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
-                    }
-                    else if (method == "mcp/insertBeforeSymbol" || method == "mcp/insertAfterSymbol")
-                    {
-                        var p = root.GetProperty("params");
-                        var relative = p.GetProperty("relative").GetString() ?? "";
-                        var namePath = p.GetProperty("namePath").GetString() ?? "";
-                        var text = p.GetProperty("text").GetString() ?? "";
-                        var apply = p.TryGetProperty("apply", out var a3) && a3.GetBoolean();
-                        bool after = method.EndsWith("AfterSymbol", StringComparison.Ordinal);
-                        var resp = await InsertAroundSymbolAsync(relative, namePath, text, after, apply);
-                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
-                    }
-                    else if (method == "mcp/validateTextEdits")
-                    {
-                        var p = root.GetProperty("params");
-                        var relative = p.GetProperty("relative").GetString() ?? "";
-                        var newText = p.GetProperty("newText").GetString() ?? "";
-                        var result = await ValidateTextEditsAsync(relative, newText);
-                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result });
-                    }
-                    else if (method == "mcp/removeSymbol")
-                    {
-                        var p = root.GetProperty("params");
-                        var relative = p.GetProperty("relative").GetString() ?? p.GetProperty("path").GetString() ?? "";
-                        var namePath = p.GetProperty("namePath").GetString() ?? "";
-                        var apply = p.TryGetProperty("apply", out var a4) && a4.GetBoolean();
-                        var failOnRefs = !p.TryGetProperty("failOnReferences", out var fr) || fr.GetBoolean();
-                        var removeEmpty = p.TryGetProperty("removeEmptyFile", out var rf) && rf.GetBoolean();
-                        var resp = await RemoveSymbolAsync(relative, namePath, apply, failOnRefs, removeEmpty);
-                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
-                    }
-                    else if (method == "mcp/buildCodeIndex")
-                    {
-                        string? outputPath = null;
-                        if (root.TryGetProperty("params", out var param) && param.ValueKind == JsonValueKind.Object)
-                        {
-                            if (param.TryGetProperty("outputPath", out var op) && op.ValueKind == JsonValueKind.String)
-                            {
-                                outputPath = op.GetString();
-                            }
-                        }
-
-                        var resp = await BuildCodeIndexAsync(outputPath);
-                        await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
+                        await DrainInFlightAsync();
+                        await HandleMessageAsync(root, method, id);
+                        if (method == "exit") break;
                     }
                     else
                     {
-                        // respond with empty for unknown methods to keep client unblocked
-                        if (id.ValueKind != JsonValueKind.Undefined)
+                        var task = Task.Run(async () =>
                         {
-                            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = (object?)null });
+                            await _requestLimiter.WaitAsync();
+                            try
+                            {
+                                await HandleMessageAsync(root, method, id);
+                            }
+                            finally
+                            {
+                                _requestLimiter.Release();
+                            }
+                        });
+                        lock (_inFlightLock)
+                        {
+                            _inFlight.Add(task);
+                            _inFlight.RemoveAll(t => t.IsCompleted);
                         }
                     }
                 }
@@ -195,6 +80,210 @@ sealed class LspServer
                 LspLogger.Error($"Failed to process message: {ex.Message}");
             }
         }
+        await DrainInFlightAsync();
+    }
+
+    private async Task DrainInFlightAsync()
+    {
+        Task[] snapshot;
+        lock (_inFlightLock)
+        {
+            snapshot = _inFlight.ToArray();
+            _inFlight.Clear();
+        }
+        if (snapshot.Length > 0)
+        {
+            try { await Task.WhenAll(snapshot); } catch { }
+        }
+    }
+
+    private async Task HandleMessageAsync(JsonElement root, string method, JsonElement id)
+    {
+        if (method == "initialize")
+        {
+            LspLogger.Debug("initialize");
+            try
+            {
+                var rootUri = root.GetProperty("params").GetProperty("rootUri").GetString();
+                if (!string.IsNullOrEmpty(rootUri))
+                {
+                    _rootDir = Uri2Path(rootUri);
+                    LspLogger.Info($"rootDir={_rootDir}");
+                }
+            }
+            catch { }
+            var resp = new
+            {
+                jsonrpc = "2.0",
+                id = id.ValueKind == JsonValueKind.Number ? id.GetInt32() : (int?)null,
+                result = new
+                {
+                    capabilities = new { documentSymbolProvider = true }
+                }
+            };
+            await WriteMessageAsync(resp);
+            return;
+        }
+        if (method == "shutdown")
+        {
+            LspLogger.Info("shutdown");
+            _shutdownRequested = true;
+            var resp = new { jsonrpc = "2.0", id = id.GetInt32(), result = (object?)null };
+            await WriteMessageAsync(resp);
+            return;
+        }
+        if (method == "exit")
+        {
+            LspLogger.Info("exit");
+            return;
+        }
+        if (method == "textDocument/documentSymbol")
+        {
+            var uri = root.GetProperty("params").GetProperty("textDocument").GetProperty("uri").GetString() ?? "";
+            var path = Uri2Path(uri);
+            var result = await DocumentSymbolsAsync(path);
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result });
+            return;
+        }
+        if (method == "textDocument/definition")
+        {
+            var p = root.GetProperty("params");
+            var uri = p.GetProperty("textDocument").GetProperty("uri").GetString() ?? "";
+            var pos = p.GetProperty("position");
+            var def = await DefinitionAsync(Uri2Path(uri), pos.GetProperty("line").GetInt32(), pos.GetProperty("character").GetInt32());
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = def });
+            return;
+        }
+        if (method == "textDocument/implementation")
+        {
+            var p = root.GetProperty("params");
+            var uri = p.GetProperty("textDocument").GetProperty("uri").GetString() ?? "";
+            var pos = p.GetProperty("position");
+            var impl = await DefinitionAsync(Uri2Path(uri), pos.GetProperty("line").GetInt32(), pos.GetProperty("character").GetInt32());
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = impl });
+            return;
+        }
+        if (method == "textDocument/formatting")
+        {
+            var p = root.GetProperty("params");
+            var uri = p.GetProperty("textDocument").GetProperty("uri").GetString() ?? "";
+            var edits = await FormattingAsync(Uri2Path(uri));
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = edits });
+            return;
+        }
+        if (method == "workspace/symbol")
+        {
+            var query = root.GetProperty("params").GetProperty("query").GetString() ?? "";
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = Array.Empty<object>() });
+                return;
+            }
+            var result = await WorkspaceSymbolAsync(query);
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result });
+            return;
+        }
+        if (method == "mcp/ping")
+        {
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = new { ok = true } });
+            return;
+        }
+        if (method == "mcp/referencesByName")
+        {
+            var symName = root.GetProperty("params").GetProperty("name").GetString() ?? "";
+            var list = await ReferencesByNameAsync(symName);
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = list });
+            return;
+        }
+        if (method == "mcp/renameByNamePath")
+        {
+            var p = root.GetProperty("params");
+            var relative = p.GetProperty("relative").GetString() ?? "";
+            var namePath = p.GetProperty("namePath").GetString() ?? "";
+            var newName = p.GetProperty("newName").GetString() ?? "";
+            var apply = p.TryGetProperty("apply", out var a) && a.GetBoolean();
+            var resp = await RenameByNamePathAsync(relative, namePath, newName, apply);
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
+            return;
+        }
+        if (method == "mcp/replaceSymbolBody")
+        {
+            var p = root.GetProperty("params");
+            var relative = p.GetProperty("relative").GetString() ?? "";
+            var namePath = p.GetProperty("namePath").GetString() ?? "";
+            var body = p.GetProperty("body").GetString() ?? "";
+            var apply = p.TryGetProperty("apply", out var a2) && a2.GetBoolean();
+            var resp = await ReplaceSymbolBodyAsync(relative, namePath, body, apply);
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
+            return;
+        }
+        if (method == "mcp/insertBeforeSymbol" || method == "mcp/insertAfterSymbol")
+        {
+            var p = root.GetProperty("params");
+            var relative = p.GetProperty("relative").GetString() ?? "";
+            var namePath = p.GetProperty("namePath").GetString() ?? "";
+            var text = p.GetProperty("text").GetString() ?? "";
+            var apply = p.TryGetProperty("apply", out var a3) && a3.GetBoolean();
+            bool after = method.EndsWith("AfterSymbol", StringComparison.Ordinal);
+            var resp = await InsertAroundSymbolAsync(relative, namePath, text, after, apply);
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
+            return;
+        }
+        if (method == "mcp/validateTextEdits")
+        {
+            var p = root.GetProperty("params");
+            var relative = p.GetProperty("relative").GetString() ?? "";
+            var newText = p.GetProperty("newText").GetString() ?? "";
+            var result = await ValidateTextEditsAsync(relative, newText);
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result });
+            return;
+        }
+        if (method == "mcp/removeSymbol")
+        {
+            var p = root.GetProperty("params");
+            var relative = p.GetProperty("relative").GetString() ?? p.GetProperty("path").GetString() ?? "";
+            var namePath = p.GetProperty("namePath").GetString() ?? "";
+            var apply = p.TryGetProperty("apply", out var a4) && a4.GetBoolean();
+            var failOnRefs = !p.TryGetProperty("failOnReferences", out var fr) || fr.GetBoolean();
+            var removeEmpty = p.TryGetProperty("removeEmptyFile", out var rf) && rf.GetBoolean();
+            var resp = await RemoveSymbolAsync(relative, namePath, apply, failOnRefs, removeEmpty);
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
+            return;
+        }
+        if (method == "mcp/buildCodeIndex")
+        {
+            string? outputPath = null;
+            if (root.TryGetProperty("params", out var param) && param.ValueKind == JsonValueKind.Object)
+            {
+                if (param.TryGetProperty("outputPath", out var op) && op.ValueKind == JsonValueKind.String)
+                {
+                    outputPath = op.GetString();
+                }
+            }
+
+            var resp = await BuildCodeIndexAsync(outputPath);
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = resp });
+            return;
+        }
+        if (id.ValueKind != JsonValueKind.Undefined)
+        {
+            await WriteMessageAsync(new { jsonrpc = "2.0", id = id.GetInt32(), result = (object?)null });
+        }
+    }
+
+    private async Task<IDisposable> AcquireFileLockAsync(string path)
+    {
+        var key = path ?? string.Empty;
+        var sem = _fileLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+        await sem.WaitAsync();
+        return new Releaser(() => sem.Release());
+    }
+
+    private sealed class Releaser : IDisposable
+    {
+        private readonly Action _release;
+        public Releaser(Action release) => _release = release;
+        public void Dispose() => _release();
     }
 
     private static string Uri2Path(string uri)
@@ -207,47 +296,55 @@ sealed class LspServer
     {
         try
         {
-            var text = await File.ReadAllTextAsync(path);
-            var tree = CSharpSyntaxTree.ParseText(text);
-            var root = await tree.GetRootAsync();
-            var list = new List<object>();
-            foreach (var node in root.DescendantNodes())
+            var handle = await AcquireFileLockAsync(path);
+            try
             {
-                if (node is NamespaceDeclarationSyntax ns)
+                var text = await File.ReadAllTextAsync(path);
+                var tree = CSharpSyntaxTree.ParseText(text);
+                var root = await tree.GetRootAsync();
+                var list = new List<object>();
+                foreach (var node in root.DescendantNodes())
                 {
-                    list.Add(MakeSym(ns.Name.ToString(), 3, node));
+                    if (node is NamespaceDeclarationSyntax ns)
+                    {
+                        list.Add(MakeSym(ns.Name.ToString(), 3, node));
+                    }
+                    else if (node is ClassDeclarationSyntax c)
+                    {
+                        list.Add(MakeSym(c.Identifier.ValueText, 5, node));
+                    }
+                    else if (node is StructDeclarationSyntax s)
+                    {
+                        list.Add(MakeSym(s.Identifier.ValueText, 23, node));
+                    }
+                    else if (node is InterfaceDeclarationSyntax i)
+                    {
+                        list.Add(MakeSym(i.Identifier.ValueText, 11, node));
+                    }
+                    else if (node is EnumDeclarationSyntax e)
+                    {
+                        list.Add(MakeSym(e.Identifier.ValueText, 10, node));
+                    }
+                    else if (node is MethodDeclarationSyntax m)
+                    {
+                        list.Add(MakeSym(m.Identifier.ValueText, 6, node));
+                    }
+                    else if (node is PropertyDeclarationSyntax p)
+                    {
+                        list.Add(MakeSym(p.Identifier.ValueText, 7, node));
+                    }
+                    else if (node is FieldDeclarationSyntax f)
+                    {
+                        var v = f.Declaration.Variables.FirstOrDefault();
+                        if (v != null) list.Add(MakeSym(v.Identifier.ValueText, 8, node));
+                    }
                 }
-                else if (node is ClassDeclarationSyntax c)
-                {
-                    list.Add(MakeSym(c.Identifier.ValueText, 5, node));
-                }
-                else if (node is StructDeclarationSyntax s)
-                {
-                    list.Add(MakeSym(s.Identifier.ValueText, 23, node));
-                }
-                else if (node is InterfaceDeclarationSyntax i)
-                {
-                    list.Add(MakeSym(i.Identifier.ValueText, 11, node));
-                }
-                else if (node is EnumDeclarationSyntax e)
-                {
-                    list.Add(MakeSym(e.Identifier.ValueText, 10, node));
-                }
-                else if (node is MethodDeclarationSyntax m)
-                {
-                    list.Add(MakeSym(m.Identifier.ValueText, 6, node));
-                }
-                else if (node is PropertyDeclarationSyntax p)
-                {
-                    list.Add(MakeSym(p.Identifier.ValueText, 7, node));
-                }
-                else if (node is FieldDeclarationSyntax f)
-                {
-                    var v = f.Declaration.Variables.FirstOrDefault();
-                    if (v != null) list.Add(MakeSym(v.Identifier.ValueText, 8, node));
-                }
+                return list;
             }
-            return list;
+            finally
+            {
+                handle.Dispose();
+            }
         }
         catch
         {
@@ -262,33 +359,41 @@ sealed class LspServer
         {
             try
             {
-                var text = await File.ReadAllTextAsync(file);
-                var tree = CSharpSyntaxTree.ParseText(text);
-                var root = await tree.GetRootAsync();
-                foreach (var node in root.DescendantNodes())
+                var handle = await AcquireFileLockAsync(file);
+                try
                 {
-                    (int kind, string name) = node switch
+                    var text = await File.ReadAllTextAsync(file);
+                    var tree = CSharpSyntaxTree.ParseText(text);
+                    var root = await tree.GetRootAsync();
+                    foreach (var node in root.DescendantNodes())
                     {
-                        ClassDeclarationSyntax c => (5, c.Identifier.ValueText),
-                        StructDeclarationSyntax s => (23, s.Identifier.ValueText),
-                        InterfaceDeclarationSyntax i => (11, i.Identifier.ValueText),
-                        EnumDeclarationSyntax e => (10, e.Identifier.ValueText),
-                        MethodDeclarationSyntax m => (6, m.Identifier.ValueText),
-                        PropertyDeclarationSyntax p => (7, p.Identifier.ValueText),
-                        FieldDeclarationSyntax f => (8, f.Declaration.Variables.FirstOrDefault()?.Identifier.ValueText ?? ""),
-                        _ => (0, "")
-                    };
-                    if (kind == 0 || string.IsNullOrEmpty(name)) continue;
-                    if (name.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
-                    var span = node.GetLocation().GetLineSpan();
-                    var start = new { line = span.StartLinePosition.Line, character = span.StartLinePosition.Character };
-                    var end = new { line = span.EndLinePosition.Line, character = span.EndLinePosition.Character };
-                    results.Add(new
-                    {
-                        name,
-                        kind,
-                        location = new { uri = Path2Uri(file), range = new { start, end } }
-                    });
+                        (int kind, string name) = node switch
+                        {
+                            ClassDeclarationSyntax c => (5, c.Identifier.ValueText),
+                            StructDeclarationSyntax s => (23, s.Identifier.ValueText),
+                            InterfaceDeclarationSyntax i => (11, i.Identifier.ValueText),
+                            EnumDeclarationSyntax e => (10, e.Identifier.ValueText),
+                            MethodDeclarationSyntax m => (6, m.Identifier.ValueText),
+                            PropertyDeclarationSyntax p => (7, p.Identifier.ValueText),
+                            FieldDeclarationSyntax f => (8, f.Declaration.Variables.FirstOrDefault()?.Identifier.ValueText ?? ""),
+                            _ => (0, "")
+                        };
+                        if (kind == 0 || string.IsNullOrEmpty(name)) continue;
+                        if (name.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        var span = node.GetLocation().GetLineSpan();
+                        var start = new { line = span.StartLinePosition.Line, character = span.StartLinePosition.Character };
+                        var end = new { line = span.EndLinePosition.Line, character = span.EndLinePosition.Character };
+                        results.Add(new
+                        {
+                            name,
+                            kind,
+                            location = new { uri = Path2Uri(file), range = new { start, end } }
+                        });
+                    }
+                }
+                finally
+                {
+                    handle.Dispose();
                 }
             }
             catch { }
@@ -304,16 +409,24 @@ sealed class LspServer
         {
             try
             {
-                var text = await File.ReadAllTextAsync(file);
-                var tree = CSharpSyntaxTree.ParseText(text);
-                var root = await tree.GetRootAsync();
-                foreach (var id in root.DescendantTokens().Where(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ValueText == name))
+                var handle = await AcquireFileLockAsync(file);
+                try
                 {
-                    var span = id.GetLocation().GetLineSpan();
-                    var lineIdx = span.StartLinePosition.Line;
-                    var col = span.StartLinePosition.Character + 1;
-                    var snippet = GetLine(text, lineIdx).Trim();
-                    list.Add(new { path = ToRel(file, _rootDir), line = lineIdx + 1, column = col, snippet });
+                    var text = await File.ReadAllTextAsync(file);
+                    var tree = CSharpSyntaxTree.ParseText(text);
+                    var root = await tree.GetRootAsync();
+                    foreach (var id in root.DescendantTokens().Where(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ValueText == name))
+                    {
+                        var span = id.GetLocation().GetLineSpan();
+                        var lineIdx = span.StartLinePosition.Line;
+                        var col = span.StartLinePosition.Character + 1;
+                        var snippet = GetLine(text, lineIdx).Trim();
+                        list.Add(new { path = ToRel(file, _rootDir), line = lineIdx + 1, column = col, snippet });
+                    }
+                }
+                finally
+                {
+                    handle.Dispose();
                 }
             }
             catch { }
@@ -336,28 +449,36 @@ sealed class LspServer
     {
         try
         {
-            var text = await File.ReadAllTextAsync(path);
-            var tree = CSharpSyntaxTree.ParseText(text);
-            var root = await tree.GetRootAsync();
-            int offset = GetOffset(text, line, character);
-            var token = root.FindToken(offset);
-            var idName = token.Parent?.AncestorsAndSelf().OfType<IdentifierNameSyntax>().FirstOrDefault();
-            if (idName == null) return Array.Empty<object>();
-            // Search same-file declarations
-            SyntaxNode? decl = root.DescendantNodes().FirstOrDefault(n =>
-                n is ClassDeclarationSyntax c && c.Identifier.ValueText == idName.Identifier.ValueText
-             || n is StructDeclarationSyntax s && s.Identifier.ValueText == idName.Identifier.ValueText
-             || n is InterfaceDeclarationSyntax i && i.Identifier.ValueText == idName.Identifier.ValueText
-             || n is EnumDeclarationSyntax e && e.Identifier.ValueText == idName.Identifier.ValueText
-             || n is MethodDeclarationSyntax m && m.Identifier.ValueText == idName.Identifier.ValueText
-             || n is PropertyDeclarationSyntax p && p.Identifier.ValueText == idName.Identifier.ValueText
-             || (n is FieldDeclarationSyntax f && f.Declaration.Variables.Any(v => v.Identifier.ValueText == idName.Identifier.ValueText))
-            );
-            if (decl == null) return Array.Empty<object>();
-            var span = decl.GetLocation().GetLineSpan();
-            var start = new { line = span.StartLinePosition.Line, character = span.StartLinePosition.Character };
-            var end = new { line = span.EndLinePosition.Line, character = span.EndLinePosition.Character };
-            return new[] { new { uri = Path2Uri(path), range = new { start, end } } };
+            var handle = await AcquireFileLockAsync(path);
+            try
+            {
+                var text = await File.ReadAllTextAsync(path);
+                var tree = CSharpSyntaxTree.ParseText(text);
+                var root = await tree.GetRootAsync();
+                int offset = GetOffset(text, line, character);
+                var token = root.FindToken(offset);
+                var idName = token.Parent?.AncestorsAndSelf().OfType<IdentifierNameSyntax>().FirstOrDefault();
+                if (idName == null) return Array.Empty<object>();
+                // Search same-file declarations
+                SyntaxNode? decl = root.DescendantNodes().FirstOrDefault(n =>
+                    n is ClassDeclarationSyntax c && c.Identifier.ValueText == idName.Identifier.ValueText
+                 || n is StructDeclarationSyntax s && s.Identifier.ValueText == idName.Identifier.ValueText
+                 || n is InterfaceDeclarationSyntax i && i.Identifier.ValueText == idName.Identifier.ValueText
+                 || n is EnumDeclarationSyntax e && e.Identifier.ValueText == idName.Identifier.ValueText
+                 || n is MethodDeclarationSyntax m && m.Identifier.ValueText == idName.Identifier.ValueText
+                 || n is PropertyDeclarationSyntax p && p.Identifier.ValueText == idName.Identifier.ValueText
+                 || (n is FieldDeclarationSyntax f && f.Declaration.Variables.Any(v => v.Identifier.ValueText == idName.Identifier.ValueText))
+                );
+                if (decl == null) return Array.Empty<object>();
+                var span = decl.GetLocation().GetLineSpan();
+                var start = new { line = span.StartLinePosition.Line, character = span.StartLinePosition.Character };
+                var end = new { line = span.EndLinePosition.Line, character = span.EndLinePosition.Character };
+                return new[] { new { uri = Path2Uri(path), range = new { start, end } } };
+            }
+            finally
+            {
+                handle.Dispose();
+            }
         }
         catch { return Array.Empty<object>(); }
     }
@@ -376,15 +497,23 @@ sealed class LspServer
     {
         try
         {
-            var text = await File.ReadAllTextAsync(path);
-            var tree = CSharpSyntaxTree.ParseText(text);
-            var root = await tree.GetRootAsync();
-            // Without Workspaces dependency, return full-document replace as no-op or minimal normalized
-            var newText = root.ToFullString();
-            if (newText == text) return Array.Empty<object>();
-            var start = new { line = 0, character = 0 };
-            var end = new { line = text.Split('\n').Length, character = 0 };
-            return new[] { new { range = new { start, end }, newText } };
+            var handle = await AcquireFileLockAsync(path);
+            try
+            {
+                var text = await File.ReadAllTextAsync(path);
+                var tree = CSharpSyntaxTree.ParseText(text);
+                var root = await tree.GetRootAsync();
+                // Without Workspaces dependency, return full-document replace as no-op or minimal normalized
+                var newText = root.ToFullString();
+                if (newText == text) return Array.Empty<object>();
+                var start = new { line = 0, character = 0 };
+                var end = new { line = text.Split('\n').Length, character = 0 };
+                return new[] { new { range = new { start, end }, newText } };
+            }
+            finally
+            {
+                handle.Dispose();
+            }
         }
         catch { return Array.Empty<object>(); }
     }
@@ -395,6 +524,9 @@ sealed class LspServer
         if (!File.Exists(full)) return new { success = false, applied = false, error = "file_not_found" };
         try
         {
+            var handle = await AcquireFileLockAsync(full);
+            try
+            {
             var text = await File.ReadAllTextAsync(full);
             var tree = CSharpSyntaxTree.ParseText(text);
             var root = await tree.GetRootAsync();
@@ -516,52 +648,78 @@ sealed class LspServer
                 if (isMemberDecl && !string.Equals(file, full, StringComparison.OrdinalIgnoreCase)) continue;
                 try
                 {
-                    var src = await File.ReadAllTextAsync(file);
-                    var t = CSharpSyntaxTree.ParseText(src);
-                    var r = await t.GetRootAsync();
-                    var tokens = r.DescendantTokens().Where(tk => tk.IsKind(SyntaxKind.IdentifierToken) && tk.ValueText == oldName).ToArray();
-                    if (tokens.Length == 0) continue;
-                    bool changed = false;
-                    SyntaxNode rr = r;
-                    foreach (var tk in tokens)
+                    var fileHandle = await AcquireFileLockAsync(file);
+                    try
                     {
-                        bool inUsing = tk.Parent != null && tk.Parent.AncestorsAndSelf().Any(a => a is UsingDirectiveSyntax);
-                        if (isMemberDecl && inUsing) continue;
-                        if (!NamespaceEndsWith(GetNamespaceChain(tk.Parent), nsTarget)) continue;
-                        if (inUsing && isTypeDecl)
+                        var src = await File.ReadAllTextAsync(file);
+                        var t = CSharpSyntaxTree.ParseText(src);
+                        var r = await t.GetRootAsync();
+                        var tokens = r.DescendantTokens().Where(tk => tk.IsKind(SyntaxKind.IdentifierToken) && tk.ValueText == oldName).ToArray();
+                        if (tokens.Length == 0) continue;
+                        bool changed = false;
+                        SyntaxNode rr = r;
+                        foreach (var tk in tokens)
                         {
-                            var chain = GetUsingNameChain(tk.Parent);
-                            if (!ChainEndsWith(chain, Concat(containers, oldName))) continue;
-                        }
-                        else
-                        {
-                            if (!ContainerEndsWith(GetTypeContainerChain(tk.Parent), containers)) continue;
-                        }
-                        if (isTypeDecl)
-                        {
-                            rr = rr.ReplaceToken(tk, SyntaxFactory.Identifier(newName).WithTriviaFrom(tk));
-                            changed = true;
-                        }
-                        else if (isMemberDecl)
-                        {
-                            if (tk.Parent is IdentifierNameSyntax)
+                            bool inUsing = tk.Parent != null && tk.Parent.AncestorsAndSelf().Any(a => a is UsingDirectiveSyntax);
+                            if (isMemberDecl && inUsing) continue;
+                            if (!NamespaceEndsWith(GetNamespaceChain(tk.Parent), nsTarget)) continue;
+                            if (inUsing && isTypeDecl)
+                            {
+                                var chain = GetUsingNameChain(tk.Parent);
+                                if (!ChainEndsWith(chain, Concat(containers, oldName))) continue;
+                            }
+                            else
+                            {
+                                if (!ContainerEndsWith(GetTypeContainerChain(tk.Parent), containers)) continue;
+                            }
+                            if (isTypeDecl)
                             {
                                 rr = rr.ReplaceToken(tk, SyntaxFactory.Identifier(newName).WithTriviaFrom(tk));
                                 changed = true;
                             }
+                            else if (isMemberDecl)
+                            {
+                                if (tk.Parent is IdentifierNameSyntax)
+                                {
+                                    rr = rr.ReplaceToken(tk, SyntaxFactory.Identifier(newName).WithTriviaFrom(tk));
+                                    changed = true;
+                                }
+                            }
                         }
+                        if (changed) updatedFiles[file] = rr.ToFullString();
                     }
-                    if (changed) updatedFiles[file] = rr.ToFullString();
+                    finally
+                    {
+                        fileHandle.Dispose();
+                    }
                 }
                 catch { }
             }
             if (apply)
             {
-                foreach (var kv in updatedFiles)
-                    await File.WriteAllTextAsync(kv.Key, kv.Value, Encoding.UTF8);
+                var filesToLock = updatedFiles.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToArray();
+                var locks = new List<IDisposable>(filesToLock.Length);
+                try
+                {
+                    foreach (var file in filesToLock)
+                    {
+                        locks.Add(await AcquireFileLockAsync(file));
+                    }
+                    foreach (var kv in updatedFiles)
+                        await File.WriteAllTextAsync(kv.Key, kv.Value, Encoding.UTF8);
+                }
+                finally
+                {
+                    foreach (var l in locks) l.Dispose();
+                }
                 return new { success = true, applied = true, updated = updatedFiles.Count };
             }
             return new { success = true, applied = false, preview = DiffPreview(text, updatedFiles.Values.FirstOrDefault() ?? newRoot.ToFullString()) };
+            }
+            finally
+            {
+                handle.Dispose();
+            }
         }
         catch (Exception ex)
         {
@@ -576,7 +734,7 @@ sealed class LspServer
         return newText;
     }
 
-private async Task<object> ValidateTextEditsAsync(string relative, string newText)
+    private async Task<object> ValidateTextEditsAsync(string relative, string newText)
     {
         try
         {
@@ -584,7 +742,18 @@ private async Task<object> ValidateTextEditsAsync(string relative, string newTex
             if (string.IsNullOrEmpty(text))
             {
                 var full = Path.Combine(_rootDir, relative.Replace('/', Path.DirectorySeparatorChar));
-                text = File.Exists(full) ? await File.ReadAllTextAsync(full) : string.Empty;
+                if (File.Exists(full))
+                {
+                    var handle = await AcquireFileLockAsync(full);
+                    try
+                    {
+                        text = await File.ReadAllTextAsync(full);
+                    }
+                    finally
+                    {
+                        handle.Dispose();
+                    }
+                }
             }
             var tree = CSharpSyntaxTree.ParseText(text);
             var diagnostics = tree.GetDiagnostics();
@@ -626,65 +795,81 @@ private async Task<object> ValidateTextEditsAsync(string relative, string newTex
     {
         var full = Path.Combine(_rootDir, relative.Replace('/', Path.DirectorySeparatorChar));
         if (!File.Exists(full)) return new { success = false, applied = false, error = "file_not_found" };
-        var text = await File.ReadAllTextAsync(full);
-        var tree = CSharpSyntaxTree.ParseText(text);
-        var root = await tree.GetRootAsync();
-        var (_, last) = FindNodeByNamePath(root, namePath);
-        if (last is not MethodDeclarationSyntax method) return new { success = false, applied = false, error = "method_not_found" };
-        var block = ParseBlock(bodyText);
-        // handle expression-bodied to block conversion
-        var m2 = method.WithExpressionBody(null).WithSemicolonToken(default).WithBody(block);
-        var newRoot = root.ReplaceNode(method, m2);
-        var newText = newRoot.ToFullString();
-        if (apply) { await File.WriteAllTextAsync(full, newText, Encoding.UTF8); return new { success = true, applied = true }; }
-        return new { success = true, applied = false, preview = DiffPreview(text, newText) };
+        var handle = await AcquireFileLockAsync(full);
+        try
+        {
+            var text = await File.ReadAllTextAsync(full);
+            var tree = CSharpSyntaxTree.ParseText(text);
+            var root = await tree.GetRootAsync();
+            var (_, last) = FindNodeByNamePath(root, namePath);
+            if (last is not MethodDeclarationSyntax method) return new { success = false, applied = false, error = "method_not_found" };
+            var block = ParseBlock(bodyText);
+            // handle expression-bodied to block conversion
+            var m2 = method.WithExpressionBody(null).WithSemicolonToken(default).WithBody(block);
+            var newRoot = root.ReplaceNode(method, m2);
+            var newText = newRoot.ToFullString();
+            if (apply) { await File.WriteAllTextAsync(full, newText, Encoding.UTF8); return new { success = true, applied = true }; }
+            return new { success = true, applied = false, preview = DiffPreview(text, newText) };
+        }
+        finally
+        {
+            handle.Dispose();
+        }
     }
 
     private async Task<object> InsertAroundSymbolAsync(string relative, string namePath, string textToInsert, bool after, bool apply)
     {
         var full = Path.Combine(_rootDir, relative.Replace('/', Path.DirectorySeparatorChar));
         if (!File.Exists(full)) return new { success = false, applied = false, error = "file_not_found" };
-        var original = await File.ReadAllTextAsync(full);
-        var tree = CSharpSyntaxTree.ParseText(original);
-        var root = await tree.GetRootAsync();
-        var (_, last) = FindNodeByNamePath(root, namePath);
-        if (last is null) return new { success = false, applied = false, error = "symbol_not_found" };
-        // insert members at class/namespace level using Roslyn API
-        var member = SyntaxFactory.ParseMemberDeclaration(textToInsert);
-        if (member is null)
+        var handle = await AcquireFileLockAsync(full);
+        try
         {
-            // fallback to textual insertion
-            var pos = after ? last.FullSpan.End : last.FullSpan.Start;
-            var newText0 = original.Substring(0, pos) + textToInsert + original.Substring(pos);
-            if (apply) { await File.WriteAllTextAsync(full, newText0, Encoding.UTF8); return new { success = true, applied = true }; }
-            return new { success = true, applied = false, preview = DiffPreview(original, newText0) };
+            var original = await File.ReadAllTextAsync(full);
+            var tree = CSharpSyntaxTree.ParseText(original);
+            var root = await tree.GetRootAsync();
+            var (_, last) = FindNodeByNamePath(root, namePath);
+            if (last is null) return new { success = false, applied = false, error = "symbol_not_found" };
+            // insert members at class/namespace level using Roslyn API
+            var member = SyntaxFactory.ParseMemberDeclaration(textToInsert);
+            if (member is null)
+            {
+                // fallback to textual insertion
+                var pos = after ? last.FullSpan.End : last.FullSpan.Start;
+                var newText0 = original.Substring(0, pos) + textToInsert + original.Substring(pos);
+                if (apply) { await File.WriteAllTextAsync(full, newText0, Encoding.UTF8); return new { success = true, applied = true }; }
+                return new { success = true, applied = false, preview = DiffPreview(original, newText0) };
+            }
+            SyntaxNode newRoot;
+            if (last.Parent is ClassDeclarationSyntax cls)
+            {
+                var members = after ? cls.Members.Insert(cls.Members.IndexOf((MemberDeclarationSyntax)last) + 1, member)
+                                    : cls.Members.Insert(cls.Members.IndexOf((MemberDeclarationSyntax)last), member);
+                var cls2 = cls.WithMembers(members);
+                newRoot = root.ReplaceNode(cls, cls2);
+            }
+            else if (last.Parent is NamespaceDeclarationSyntax ns)
+            {
+                var members = after ? ns.Members.Insert(ns.Members.IndexOf((MemberDeclarationSyntax)last) + 1, member)
+                                    : ns.Members.Insert(ns.Members.IndexOf((MemberDeclarationSyntax)last), member);
+                var ns2 = ns.WithMembers(members);
+                newRoot = root.ReplaceNode(ns, ns2);
+            }
+            else
+            {
+                // fallback textual for unsupported contexts
+                var pos = after ? last.FullSpan.End : last.FullSpan.Start;
+                var newText1 = original.Substring(0, pos) + textToInsert + original.Substring(pos);
+                if (apply) { await File.WriteAllTextAsync(full, newText1, Encoding.UTF8); return new { success = true, applied = true }; }
+                return new { success = true, applied = false, preview = DiffPreview(original, newText1) };
+            }
+            var newText = newRoot.ToFullString();
+            if (apply) { await File.WriteAllTextAsync(full, newText, Encoding.UTF8); return new { success = true, applied = true }; }
+            return new { success = true, applied = false, preview = DiffPreview(original, newText) };
         }
-        SyntaxNode newRoot;
-        if (last.Parent is ClassDeclarationSyntax cls)
+        finally
         {
-            var members = after ? cls.Members.Insert(cls.Members.IndexOf((MemberDeclarationSyntax)last) + 1, member)
-                                : cls.Members.Insert(cls.Members.IndexOf((MemberDeclarationSyntax)last), member);
-            var cls2 = cls.WithMembers(members);
-            newRoot = root.ReplaceNode(cls, cls2);
+            handle.Dispose();
         }
-        else if (last.Parent is NamespaceDeclarationSyntax ns)
-        {
-            var members = after ? ns.Members.Insert(ns.Members.IndexOf((MemberDeclarationSyntax)last) + 1, member)
-                                : ns.Members.Insert(ns.Members.IndexOf((MemberDeclarationSyntax)last), member);
-            var ns2 = ns.WithMembers(members);
-            newRoot = root.ReplaceNode(ns, ns2);
-        }
-        else
-        {
-            // fallback textual for unsupported contexts
-            var pos = after ? last.FullSpan.End : last.FullSpan.Start;
-            var newText1 = original.Substring(0, pos) + textToInsert + original.Substring(pos);
-            if (apply) { await File.WriteAllTextAsync(full, newText1, Encoding.UTF8); return new { success = true, applied = true }; }
-            return new { success = true, applied = false, preview = DiffPreview(original, newText1) };
-        }
-        var newText = newRoot.ToFullString();
-        if (apply) { await File.WriteAllTextAsync(full, newText, Encoding.UTF8); return new { success = true, applied = true }; }
-        return new { success = true, applied = false, preview = DiffPreview(original, newText) };
     }
 
     private static (SyntaxNode cursor, SyntaxNode? last) FindNodeByNamePath(SyntaxNode root, string namePath)
@@ -822,6 +1007,9 @@ private async Task<object> ValidateTextEditsAsync(string relative, string newTex
         if (!File.Exists(full)) return new { success = false, applied = false, error = "file_not_found" };
         try
         {
+            var handle = await AcquireFileLockAsync(full);
+            try
+            {
             // Locate target declaration first
             var original = await File.ReadAllTextAsync(full);
             var tree0 = CSharpSyntaxTree.ParseText(original);
@@ -841,23 +1029,31 @@ private async Task<object> ValidateTextEditsAsync(string relative, string newTex
                     {
                         try
                         {
-                            var src = await File.ReadAllTextAsync(file);
-                            var t = CSharpSyntaxTree.ParseText(src);
-                            var r = await t.GetRootAsync();
-                            foreach (var id in r.DescendantTokens().Where(tk => tk.IsKind(SyntaxKind.IdentifierToken) && tk.ValueText == lastSeg))
+                            var fileHandle = await AcquireFileLockAsync(file);
+                            try
                             {
-                                // ignore identifiers within the target span (same file only)
-                                if (string.Equals(file, full, StringComparison.OrdinalIgnoreCase))
+                                var src = await File.ReadAllTextAsync(file);
+                                var t = CSharpSyntaxTree.ParseText(src);
+                                var r = await t.GetRootAsync();
+                                foreach (var id in r.DescendantTokens().Where(tk => tk.IsKind(SyntaxKind.IdentifierToken) && tk.ValueText == lastSeg))
                                 {
-                                    var span = targetNode.FullSpan;
-                                    var pos = id.SpanStart;
-                                    if (pos >= span.Start && pos <= span.End) continue;
+                                    // ignore identifiers within the target span (same file only)
+                                    if (string.Equals(file, full, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        var span = targetNode.FullSpan;
+                                        var pos = id.SpanStart;
+                                        if (pos >= span.Start && pos <= span.End) continue;
+                                    }
+                                    if (ContainerEndsWith(GetTypeContainerChain(id.Parent), declContainers))
+                                    {
+                                        var sp = id.GetLocation().GetLineSpan();
+                                        refs.Add(new { path = ToRel(file, _rootDir), line = sp.StartLinePosition.Line + 1, column = sp.StartLinePosition.Character + 1 });
+                                    }
                                 }
-                                if (ContainerEndsWith(GetTypeContainerChain(id.Parent), declContainers))
-                                {
-                                    var sp = id.GetLocation().GetLineSpan();
-                                    refs.Add(new { path = ToRel(file, _rootDir), line = sp.StartLinePosition.Line + 1, column = sp.StartLinePosition.Character + 1 });
-                                }
+                            }
+                            finally
+                            {
+                                fileHandle.Dispose();
                             }
                         }
                         catch { }
@@ -891,6 +1087,11 @@ private async Task<object> ValidateTextEditsAsync(string relative, string newTex
                 return new { success = true, applied = true };
             }
             return new { success = true, applied = false, preview = DiffPreview(original, newText) };
+            }
+            finally
+            {
+                handle.Dispose();
+            }
         }
         catch (Exception ex)
         {
@@ -1164,9 +1365,17 @@ private async Task<object> ValidateTextEditsAsync(string relative, string newTex
     {
         var json = JsonSerializer.Serialize(payload, _json);
         var header = $"Content-Length: {Encoding.UTF8.GetByteCount(json)}\r\n\r\n";
-        await Console.Out.WriteAsync(header);
-        await Console.Out.WriteAsync(json);
-        await Console.Out.FlushAsync();
+        await _writeLock.WaitAsync();
+        try
+        {
+            await Console.Out.WriteAsync(header);
+            await Console.Out.WriteAsync(json);
+            await Console.Out.FlushAsync();
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
     }
 
     private sealed class CodeIndexDocument

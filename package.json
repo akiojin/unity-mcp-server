@@ -2,19 +2,39 @@
   "name": "unity-mcp-server-workspace",
   "version": "5.2.1",
   "private": true,
-  "description": "Workspace root for unity-mcp-server monorepo",
+  "packageManager": "pnpm@9.15.4",
+  "description": "Development environment for unity-mcp-server",
   "scripts": {
-    "postinstall": "npm run build --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present",
     "release": "echo \"Release is handled by GitHub Actions (release-please).\" && exit 1"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^18.6.1",
+    "@commitlint/config-conventional": "^18.6.3",
+    "@google/gemini-cli": "^0",
+    "@openai/codex": "^0",
+    "eslint": "^8.57.1",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.6.0",
+    "markdownlint-cli": "^0.43.0",
+    "prettier": "^3.4.2"
   },
   "overrides": {
     "markdownlint-cli": {
       "glob": "11.1.0"
     }
   },
-  "workspaces": [
-    "mcp-server",
-    "packages/fast-sql"
-  ]
+  "pnpm": {
+    "overrides": {
+      "@modelcontextprotocol/sdk": ">=1.25.2",
+      "glob": ">=11.1.0",
+      "qs": ">=6.14.1",
+      "lodash": ">=4.17.23",
+      "hono": ">=4.11.4",
+      "tar": ">=7.5.4",
+      "undici": ">=7.18.2",
+      "diff": ">=8.0.3"
+    }
+  }
 }

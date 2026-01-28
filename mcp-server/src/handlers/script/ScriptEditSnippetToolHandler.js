@@ -9,7 +9,6 @@ import { preSyntaxCheck } from './csharpSyntaxCheck.js';
 const MAX_INSTRUCTIONS = 10;
 const MAX_DIFF_CHARS = 80;
 const PREVIEW_MAX = 1000;
-
 const normalizeSlashes = p => p.replace(/\\/g, '/');
 
 export class ScriptEditSnippetToolHandler extends BaseToolHandler {
@@ -297,7 +296,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
 
   async #validateWithLsp(info, relative, updatedText) {
     if (!this.lsp) {
-      this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
+      this.lsp = await LspRpcClientSingleton.getValidationInstance(info.projectRoot);
     }
     return await this.lsp.validateText(relative, updatedText);
   }

@@ -1,16 +1,5 @@
 <Project>
   <PropertyGroup>
-    <!-- publish.sh により mcp-server の version と同期更新されます -->
-    <Version>2.38.1</Version>
-    <AssemblyVersion>2.38.1.0</AssemblyVersion>
-    <FileVersion>2.38.1.0</FileVersion>
-    <AssemblyInformationalVersion>2.38.1</AssemblyInformationalVersion>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>server</AssemblyName>
-    <OutputType>Exe</OutputType>
-    <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>true</SelfContained>
+    <SelfContained>false</SelfContained>
   </PropertyGroup>
 </Project>
