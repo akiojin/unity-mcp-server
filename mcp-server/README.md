@@ -63,6 +63,7 @@ Use the `search_tools` meta-tool to find the right tool quickly.
 ```
 
 More details:
+
 - Tools & Code Index workflow: [`docs/tools.md`](https://github.com/akiojin/unity-mcp-server/blob/main/docs/tools.md)
 - Configuration reference: [`docs/configuration.md`](https://github.com/akiojin/unity-mcp-server/blob/main/docs/configuration.md)
 

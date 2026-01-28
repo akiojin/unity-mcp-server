@@ -35,7 +35,12 @@ describe('HTTP mode integration', () => {
     const callRes = await fetch(`http://127.0.0.1:${port}/rpc`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'ping', arguments: {} } })
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 2,
+        method: 'tools/call',
+        params: { name: 'ping', arguments: {} }
+      })
     });
     assert.equal(callRes.status, 200);
     const callBody = await callRes.json();

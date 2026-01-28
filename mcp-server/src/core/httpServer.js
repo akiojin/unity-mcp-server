@@ -59,7 +59,9 @@ export function createHttpServer({
           payload = JSON.parse(raw || '{}');
         } catch (e) {
           res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ jsonrpc: '2.0', error: { code: -32700, message: 'Invalid JSON' } }));
+          res.end(
+            JSON.stringify({ jsonrpc: '2.0', error: { code: -32700, message: 'Invalid JSON' } })
+          );
           return;
         }
 
@@ -77,7 +79,13 @@ export function createHttpServer({
           const handler = handlers.get(name);
           if (!handler) {
             res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
-            res.end(JSON.stringify({ jsonrpc: '2.0', id, error: { code: -32004, message: `Tool not found: ${name}` } }));
+            res.end(
+              JSON.stringify({
+                jsonrpc: '2.0',
+                id,
+                error: { code: -32004, message: `Tool not found: ${name}` }
+              })
+            );
             return;
           }
           try {
@@ -87,13 +95,21 @@ export function createHttpServer({
           } catch (e) {
             logger.error(`[http] tool error ${name}: ${e.message}`);
             res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-            res.end(JSON.stringify({ jsonrpc: '2.0', id, error: { code: -32000, message: e.message } }));
+            res.end(
+              JSON.stringify({ jsonrpc: '2.0', id, error: { code: -32000, message: e.message } })
+            );
           }
           return;
         }
 
         res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ jsonrpc: '2.0', id, error: { code: -32601, message: 'Method not found' } }));
+        res.end(
+          JSON.stringify({
+            jsonrpc: '2.0',
+            id,
+            error: { code: -32601, message: 'Method not found' }
+          })
+        );
         return;
       }
 
@@ -125,7 +141,9 @@ export function createHttpServer({
       server.listen(port, host, () => {
         server.off('error', onError);
         const address = server.address();
-        logger.info(`HTTP listening on http://${host}:${address.port}, telemetry: ${telemetryEnabled ? 'on' : 'off'}`);
+        logger.info(
+          `HTTP listening on http://${host}:${address.port}, telemetry: ${telemetryEnabled ? 'on' : 'off'}`
+        );
         resolve(address.port);
       });
     });
@@ -142,6 +160,12 @@ export function createHttpServer({
     start,
     close,
     getPort: () => server.address()?.port,
-    health: () => buildHealthResponse({ startedAt, mode: 'http', port: server.address()?.port, telemetryEnabled })
+    health: () =>
+      buildHealthResponse({
+        startedAt,
+        mode: 'http',
+        port: server.address()?.port,
+        telemetryEnabled
+      })
   };
 }

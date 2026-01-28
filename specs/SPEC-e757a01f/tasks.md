@@ -39,6 +39,16 @@
 
 ---
 
+## US-2: 参照検索ページング（完了）
+
+### Phase 3: テスト ✅
+
+- [x] T-201: `find_refs` の cursor/startAfter ページング動作（ユニット）
+
+**テストファイル**: `tests/unit/handlers/script/ScriptRefsFindToolHandler.test.js`
+
+---
+
 ## US-7: 軽量スニペット編集（完了済み）
 
 ### Phase 0: リサーチ ✅

@@ -13,8 +13,6 @@ import { ScriptSymbolFindToolHandler } from '../../../src/handlers/script/Script
 import { LspRpcClientSingleton } from '../../../src/lsp/LspRpcClientSingleton.js';
 import { LspProcessManager } from '../../../src/lsp/LspProcessManager.js';
 
-const originalUnityProjectRoot = process.env.UNITY_PROJECT_ROOT;
-
 function setupTempUnityProject() {
   const root = mkdtempSync(path.join(os.tmpdir(), 'unityproj-'));
   const assets = path.join(root, 'Assets');
@@ -45,16 +43,17 @@ function setupTempUnityProject() {
 }
 
 const originalProject = config.project ? { ...config.project } : null;
+const originalEnvRoot = process.env.UNITY_PROJECT_ROOT;
 test.afterEach(async () => {
   if (originalProject === null) {
     delete config.project;
   } else {
     config.project = { ...originalProject };
   }
-  if (originalUnityProjectRoot === undefined) {
+  if (originalEnvRoot === undefined) {
     delete process.env.UNITY_PROJECT_ROOT;
   } else {
-    process.env.UNITY_PROJECT_ROOT = originalUnityProjectRoot;
+    process.env.UNITY_PROJECT_ROOT = originalEnvRoot;
   }
   await LspRpcClientSingleton.reset();
   const mgr = new LspProcessManager();
