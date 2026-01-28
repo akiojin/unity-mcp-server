@@ -1,8 +1,34 @@
 ## [Unreleased]
 
-### ⚠ BREAKING CHANGES
+## [5.3.0](https://github.com/akiojin/unity-mcp-server/compare/v5.2.1...v5.3.0) (2026-01-28)
 
-* `.unity/config.json` 対応を削除（Node は環境変数、Unity は Project Settings に統一）
+### Features
+
+* **release:** /releaseコマンドをLLMベースのインタラクティブフローに刷新
+* **mcp-server:** find_refsにページング機能を追加
+* **skill:** Unity MCP Serverスキルをシンボリックリンクで有効化
+
+### Bug Fixes
+
+* **mcp-server:** LSPハートビートを軽量化、タイムアウト短縮
+* **mcp-server:** edit_snippetのLSP検証タイムアウトを短縮
+* **mcp-server:** Docker環境のMCPホスト既定値を補完
+* **unity:** Addressables削除とファイル操作を修正
+* **mcp-server:** input_touch送信を統一
+* **mcp-server:** インデックス更新検知とwatcher反映を改善
+* **csharp-lsp:** 空クエリのworkspace/symbolを短絡
+* **deps:** セキュリティ脆弱性を解決
+
+### Refactor
+
+* **plugin:** commit-commandsプラグインを削除（/releaseは.claude/commands/へ移動）
+* **build:** ワークスペース構造を簡素化、Dockerfileを最適化
+
+### Chore
+
+* **docker:** tmux、AI coding assistants、Bun runtimeを追加
+* **deps:** npmからpnpmへ移行
+* **ci:** Dependabotをdevelopブランチ向けに設定
 
 ## [5.2.1](https://github.com/akiojin/unity-mcp-server/compare/v5.2.0...v5.2.1) (2025-12-26)
 
