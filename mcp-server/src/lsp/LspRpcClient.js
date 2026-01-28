@@ -152,12 +152,12 @@ export class LspRpcClient {
     return resp;
   }
 
-  async request(method, params, options = {}) {
-    return await this.#requestWithRetry(method, params, 1, options);
+  async request(method, params) {
+    return await this.#requestWithRetry(method, params, 1);
   }
 
-  async validateText(relative, newText, options = {}) {
-    const resp = await this.request('mcp/validateTextEdits', { relative, newText }, options);
+  async validateText(relative, newText) {
+    const resp = await this.request('mcp/validateTextEdits', { relative, newText });
     if (!resp) return [];
     const payload = resp.result ?? resp;
     const diagnostics = Array.isArray(payload?.diagnostics) ? payload.diagnostics : [];
@@ -170,14 +170,10 @@ export class LspRpcClient {
     }));
   }
 
-  async #requestWithRetry(method, params, attempt, options = {}) {
+  async #requestWithRetry(method, params, attempt) {
     let id = null;
     let timeoutHandle = null;
-    const rawTimeout =
-      Number.isFinite(options.timeoutMs) && options.timeoutMs > 0
-        ? options.timeoutMs
-        : config.lsp?.requestTimeoutMs || 60000;
-    const timeoutMs = Math.max(1000, Math.min(300000, rawTimeout));
+    const timeoutMs = Math.max(1000, Math.min(300000, config.lsp?.requestTimeoutMs || 60000));
     try {
       await this.ensure();
       id = this.seq++;
@@ -212,7 +208,7 @@ export class LspRpcClient {
         logger.warning(
           `[unity-mcp-server:lsp] recoverable error on ${method}: ${msg}. Retrying once...`
         );
-        return await this.#requestWithRetry(method, params, attempt + 1, options);
+        return await this.#requestWithRetry(method, params, attempt + 1);
       }
       // Standardize error message with actionable recovery instructions
       let hint;

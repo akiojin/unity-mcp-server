@@ -3,7 +3,6 @@ import path from 'path';
 import crypto from 'crypto';
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
-import { config } from '../../core/config.js';
 import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 import { preSyntaxCheck } from './csharpSyntaxCheck.js';
 
@@ -120,7 +119,6 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     const { relative, absolute } = this.#resolvePaths(info, params.path);
     const preview = params.preview === true;
     const skipValidation = params.skipValidation === true;
-    let validationSkipped = skipValidation;
     const instructions = params.instructions;
 
     let original;
@@ -154,7 +152,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
         results,
         original,
         updated: working,
-        validationSkipped
+        validationSkipped: skipValidation
       });
     }
 
@@ -170,22 +168,12 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     // LSP validation (skip if skipValidation=true for large files)
     let diagnostics = [];
     if (!skipValidation) {
-      try {
-        diagnostics = await this.#validateWithLsp(info, relative, working);
-        const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
-        if (hasErrors) {
-          const first = diagnostics.find(d => this.#severityIsError(d.severity));
-          const msg = first?.message || 'syntax error';
-          throw new Error(`syntax_error: ${msg}`);
-        }
-      } catch (e) {
-        const msg = String((e && e.message) || e);
-        if (this.#isRecoverableValidationError(msg)) {
-          validationSkipped = true;
-          diagnostics = [];
-        } else {
-          throw e;
-        }
+      diagnostics = await this.#validateWithLsp(info, relative, working);
+      const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
+      if (hasErrors) {
+        const first = diagnostics.find(d => this.#severityIsError(d.severity));
+        const msg = first?.message || 'syntax error';
+        throw new Error(`syntax_error: ${msg}`);
       }
     }
 
@@ -199,7 +187,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       original,
       updated: working,
       diagnostics,
-      validationSkipped
+      validationSkipped: skipValidation
     });
   }
 
@@ -310,16 +298,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     if (!this.lsp) {
       this.lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
     }
-    const timeoutMs = Number.isFinite(config.lsp?.validationTimeoutMs)
-      ? config.lsp.validationTimeoutMs
-      : 5000;
-    return await this.lsp.validateText(relative, updatedText, { timeoutMs });
-  }
-
-  #isRecoverableValidationError(message) {
-    return /timed out|process exited|parse error|stdin not writable|process not available/i.test(
-      message
-    );
+    return await this.lsp.validateText(relative, updatedText);
   }
 
   #buildResponse({
