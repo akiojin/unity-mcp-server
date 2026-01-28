@@ -1,5 +1,6 @@
 import http from 'node:http';
 import { logger } from './config.js';
+import { createProjectRootGuard } from './projectRootGuard.js';
 
 function buildHealthResponse({ startedAt, mode, port, telemetryEnabled }) {
   return {
@@ -22,10 +23,12 @@ export function createHttpServer({
   port = 6401,
   telemetryEnabled = false,
   healthPath = '/healthz',
-  allowedHosts = ['localhost', '127.0.0.1']
+  allowedHosts = ['localhost', '127.0.0.1'],
+  requireClientRoot = false
 } = {}) {
   const startedAt = Date.now();
   let server;
+  const projectRootGuard = createProjectRootGuard({ requireClientRoot, logger });
 
   const listener = async (req, res) => {
     try {
@@ -76,6 +79,18 @@ export function createHttpServer({
         if (method === 'tools/call' || method === 'callTool') {
           const name = params?.name;
           const args = params?.arguments || {};
+          const guardError = await projectRootGuard(args);
+          if (guardError) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(
+              JSON.stringify({
+                jsonrpc: '2.0',
+                id,
+                error: { code: -32010, message: guardError }
+              })
+            );
+            return;
+          }
           const handler = handlers.get(name);
           if (!handler) {
             res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
