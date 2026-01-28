@@ -1,18 +1,17 @@
 ---
-description: LLMベースのインタラクティブリリースフロー。develop→mainへのPR作成、バージョン更新、タグ作成を実行。
+description: LLMベースのインタラクティブリリースフロー。バージョン更新、タグ作成、develop→mainへのPR作成を実行。
 ---
 
 # /release コマンド
 
-developブランチからmainブランチへのリリースを実行するLLMベースのインタラクティブフローです。
+LLMベースのインタラクティブリリースフローです。どのブランチからでも実行可能です。
 
 ## 前提条件チェック
 
 以下を確認してください:
 
-1. **ブランチ確認**: developブランチであること
-2. **クリーンな状態**: ワーキングディレクトリに未コミットの変更がないこと
-3. **リモート同期**: developがorigin/developと同期していること
+1. **クリーンな状態**: ワーキングディレクトリに未コミットの変更がないこと
+2. **リモート同期**: 現在のブランチがリモートと同期していること
 
 ```bash
 # 現在のブランチを確認
@@ -21,12 +20,11 @@ git branch --show-current
 # ワーキングディレクトリの状態を確認
 git status --porcelain
 
-# リモートとの同期状態を確認
-git fetch origin
-git rev-list --left-right --count origin/develop...HEAD
+# タグを取得
+git fetch --tags origin
 ```
 
-前提条件を満たしていない場合は、エラーメッセージを表示して中止してください。
+未コミットの変更がある場合はエラーメッセージを表示して中止してください。
 
 ## Phase 1: 変更分析
 
@@ -124,6 +122,9 @@ CHANGELOG.md の先頭に新しいリリースエントリを追加:
 ## Phase 5: コミット・タグ・PR作成
 
 ```bash
+# 現在のブランチ名を取得
+CURRENT_BRANCH=$(git branch --show-current)
+
 # 変更をステージング
 git add mcp-server/package.json UnityMCPServer/Packages/unity-mcp-server/package.json CHANGELOG.md
 
@@ -137,11 +138,11 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 # タグ作成
 git tag -a vX.Y.Z -m "vX.Y.Z"
 
-# プッシュ
-git push origin develop --tags
+# 現在のブランチをプッシュ（タグ含む）
+git push origin "$CURRENT_BRANCH" --tags
 
-# PR作成 (develop → main)
-gh pr create --base main --head develop --title "chore(release): vX.Y.Z" --body "$(cat <<'EOF'
+# PR作成 (現在のブランチ → main)
+gh pr create --base main --head "$CURRENT_BRANCH" --title "chore(release): vX.Y.Z" --body "$(cat <<'EOF'
 ## Release vX.Y.Z
 
 [変更サマリーを挿入]
@@ -166,15 +167,6 @@ PR: https://github.com/akiojin/unity-mcp-server/pull/XXX
 
 ## エラーハンドリング
 
-### developブランチでない場合
-
-```
-❌ エラー: developブランチで実行してください
-現在のブランチ: feature/xxx
-
-/release コマンドはdevelopブランチからのみ実行できます。
-```
-
 ### 未コミットの変更がある場合
 
 ```
@@ -196,7 +188,7 @@ PR: https://github.com/akiojin/unity-mcp-server/pull/XXX
 
 ## 注意事項
 
-- このコマンドはdevelopブランチからのみ実行可能です
+- どのブランチからでも実行可能です
 - バージョン番号はsemverに従います
 - CHANGELOG.mdは自動更新されます
 - PRマージ後、publish.ymlワークフローが自動実行されます
