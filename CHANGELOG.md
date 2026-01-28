@@ -1,5 +1,12 @@
 ## [Unreleased]
 
+## [5.3.2](https://github.com/akiojin/unity-mcp-server/compare/v5.3.1...v5.3.2) (2026-01-28)
+
+
+### Bug Fixes
+
+* **lsp:** restart when binary version changes ([96e141e](https://github.com/akiojin/unity-mcp-server/commit/96e141e))
+
 ## [5.3.1](https://github.com/akiojin/unity-mcp-server/compare/v5.2.1...v5.3.1) (2026-01-28)
 
 
