@@ -3603,6 +3603,14 @@
     }
   },
   {
+    "name": "get_server_info",
+    "description": "Get MCP server identifying information (pid, project root, workspace)",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
     "name": "ping",
     "description": "Test connection to Unity Editor",
     "inputSchema": {
