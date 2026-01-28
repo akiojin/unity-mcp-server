@@ -6,6 +6,16 @@ using Xunit;
 
 public sealed class ConcurrencyTests
 {
+    private static void UpdateMax(ref int max, int value)
+    {
+        int initial;
+        do
+        {
+            initial = max;
+            if (value <= initial) return;
+        } while (Interlocked.CompareExchange(ref max, value, initial) != initial);
+    }
+
     private sealed class AsyncLock
     {
         private readonly SemaphoreSlim _sem;
@@ -35,10 +45,10 @@ public sealed class ConcurrencyTests
         {
             using (await fileLock.AcquireAsync())
             {
-                concurrent++;
-                max = Math.Max(max, concurrent);
+                var current = Interlocked.Increment(ref concurrent);
+                UpdateMax(ref max, current);
                 await Task.Delay(50);
-                concurrent--;
+                Interlocked.Decrement(ref concurrent);
             }
         }
 
@@ -58,10 +68,10 @@ public sealed class ConcurrencyTests
             await limiter.WaitAsync();
             try
             {
-                concurrent++;
-                max = Math.Max(max, concurrent);
+                var current = Interlocked.Increment(ref concurrent);
+                UpdateMax(ref max, current);
                 await Task.Delay(50);
-                concurrent--;
+                Interlocked.Decrement(ref concurrent);
             }
             finally
             {
