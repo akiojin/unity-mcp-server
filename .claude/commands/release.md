@@ -1,21 +1,32 @@
 ---
-description: LLMベースのインタラクティブリリースフロー。バージョン更新、タグ作成、develop→mainへのPR作成を実行。
+description: LLMベースのインタラクティブリリースフロー。developブランチで実行し、バージョン更新、タグ作成、develop→mainへのPR作成を実行。
 ---
 
 # /release コマンド
 
-LLMベースのインタラクティブリリースフローです。どのブランチからでも実行可能です。
+LLMベースのインタラクティブリリースフローです。**developブランチでのみ実行可能**です。
 
 ## 前提条件チェック
 
 以下を確認してください:
 
-1. **クリーンな状態**: ワーキングディレクトリに未コミットの変更がないこと
-2. **リモート同期**: 現在のブランチがリモートと同期していること
+1. **developブランチであること**: `develop`以外のブランチでは実行不可
+2. **クリーンな状態**: ワーキングディレクトリに未コミットの変更がないこと
+3. **リモート同期**: developブランチがリモートと同期していること
 
 ```bash
 # 現在のブランチを確認
-git branch --show-current
+CURRENT_BRANCH=$(git branch --show-current)
+
+# developブランチかチェック
+if [ "$CURRENT_BRANCH" != "develop" ]; then
+  echo "❌ エラー: /release コマンドは develop ブランチでのみ実行可能です"
+  echo "現在のブランチ: $CURRENT_BRANCH"
+  echo ""
+  echo "以下の手順でdevelopブランチに移動してください:"
+  echo "  git checkout develop"
+  exit 1
+fi
 
 # ワーキングディレクトリの状態を確認
 git status --porcelain
@@ -24,7 +35,7 @@ git status --porcelain
 git fetch --tags origin
 ```
 
-未コミットの変更がある場合はエラーメッセージを表示して中止してください。
+developブランチでない場合、または未コミットの変更がある場合はエラーメッセージを表示して中止してください。
 
 ## Phase 1: 変更分析
 
@@ -65,11 +76,32 @@ git diff $(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")..HEAD --
 
 コミットメッセージを分析してsemverを決定:
 
-| 検出内容 | バージョン変更 |
-|---------|--------------|
-| `BREAKING CHANGE:` または `feat!:` | major (X.0.0) |
-| `feat:` | minor (x.Y.0) |
-| `fix:`, `perf:`, その他 | patch (x.y.Z) |
+| 検出内容 | バージョン変更 | 用途 |
+|---------|--------------|------|
+| `BREAKING CHANGE:` または `feat!:` | major (X.0.0) | ユーザー向け破壊的変更 |
+| `feat:` | minor (x.Y.0) | **ユーザー向け新機能のみ** |
+| `fix:`, `perf:` | patch (x.y.Z) | バグ修正、性能改善 |
+| `chore:`, `refactor:`, `ci:`, `build:`, `docs:`, `test:` | なし | 内部的な変更 |
+
+### コミットタイプの使い分け（重要）
+
+**`feat:` はユーザー向け新機能のみ**に使用。内部的な変更には適切なタイプを使う:
+
+| 変更内容 | 正しいタイプ | 誤ったタイプ |
+|---------|------------|------------|
+| /releaseコマンド改善 | `chore(release):` | ~~`feat(release):`~~ |
+| プラグイン構造変更 | `refactor(plugin):` | ~~`feat(plugin):`~~ |
+| CI/Docker設定 | `ci:` / `chore(docker):` | ~~`feat(ci):`~~ |
+| 依存関係更新 | `chore(deps):` | ~~`feat(deps):`~~ |
+| テスト追加 | `test:` | ~~`feat(test):`~~ |
+| スキル設定変更 | `chore(skill):` | ~~`feat(skill):`~~ |
+
+### ユーザー向け新機能の例（`feat:` を使用）
+
+- `feat(mcp-server): add new tool handler`
+- `feat(unity): add scene analysis feature`
+- `feat(api): add pagination support`
+- `feat: add video capture support`
 
 現在のバージョンは `mcp-server/package.json` から取得します。
 
@@ -122,9 +154,6 @@ CHANGELOG.md の先頭に新しいリリースエントリを追加:
 ## Phase 5: コミット・タグ・PR作成
 
 ```bash
-# 現在のブランチ名を取得
-CURRENT_BRANCH=$(git branch --show-current)
-
 # 変更をステージング
 git add mcp-server/package.json UnityMCPServer/Packages/unity-mcp-server/package.json CHANGELOG.md
 
@@ -138,11 +167,11 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 # タグ作成
 git tag -a vX.Y.Z -m "vX.Y.Z"
 
-# 現在のブランチをプッシュ（タグ含む）
-git push origin "$CURRENT_BRANCH" --tags
+# developブランチをプッシュ（タグ含む）
+git push origin develop --tags
 
-# PR作成 (現在のブランチ → main)
-gh pr create --base main --head "$CURRENT_BRANCH" --title "chore(release): vX.Y.Z" --body "$(cat <<'EOF'
+# PR作成 (develop → main)
+gh pr create --base main --head develop --title "chore(release): vX.Y.Z" --body "$(cat <<'EOF'
 ## Release vX.Y.Z
 
 [変更サマリーを挿入]
@@ -152,6 +181,8 @@ gh pr create --base main --head "$CURRENT_BRANCH" --title "chore(release): vX.Y.
 EOF
 )"
 ```
+
+**重要**: PRは必ず `develop → main` で作成します。featureブランチから直接mainへのPRは禁止です。
 
 ## Phase 6: 完了通知
 
@@ -186,9 +217,41 @@ PR: https://github.com/akiojin/unity-mcp-server/pull/XXX
 最新タグ vX.Y.Z 以降、feat: や fix: などのリリース対象コミットがありません。
 ```
 
+### developブランチでない場合
+
+```
+❌ エラー: /release コマンドは develop ブランチでのみ実行可能です
+
+現在のブランチ: feature/xxx
+
+以下の手順でdevelopブランチに移動してください:
+1. featureブランチの変更をdevelopにマージ（PRを作成してマージ）
+2. developブランチに切り替え: git checkout develop
+3. /release コマンドを再実行
+```
+
 ## 注意事項
 
-- どのブランチからでも実行可能です
+- **developブランチでのみ実行可能**です
 - バージョン番号はsemverに従います
 - CHANGELOG.mdは自動更新されます
 - PRマージ後、publish.ymlワークフローが自動実行されます
+
+## リリースフロー全体像
+
+```
+feature → develop → main + tag
+   │         │         │
+   │         │         └── publish.ymlが自動実行
+   │         │              - GitHub Release作成
+   │         │              - npm publish
+   │         │              - csharp-lspビルド
+   │         │
+   │         └── /release コマンド実行
+   │              - バージョン更新
+   │              - タグ作成
+   │              - develop→main PR作成
+   │
+   └── featureブランチからdevelopへPR
+        - gh pr create --base develop
+```
