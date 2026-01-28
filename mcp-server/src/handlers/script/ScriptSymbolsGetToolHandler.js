@@ -65,7 +65,7 @@ export class ScriptSymbolsGetToolHandler extends BaseToolHandler {
         };
       }
       try {
-        const lsp = await LspRpcClientSingleton.getInstance(info.projectRoot);
+        const lsp = await LspRpcClientSingleton.getIsolatedInstance(info.projectRoot, 'symbols');
         const uri = 'file://' + abs.replace(/\\\\/g, '/');
         const res = await lsp.request('textDocument/documentSymbol', { textDocument: { uri } });
         const docSymbols = res?.result ?? res ?? [];

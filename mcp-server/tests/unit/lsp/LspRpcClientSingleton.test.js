@@ -44,4 +44,14 @@ describe('LspRpcClientSingleton', () => {
     assert.notEqual(main, validation);
     assert.notEqual(main.mgr, validation.mgr);
   });
+
+  it('creates isolated instances per kind', async () => {
+    const symbols = await LspRpcClientSingleton.getIsolatedInstance('/tmp', 'symbols');
+    const rename = await LspRpcClientSingleton.getIsolatedInstance('/tmp', 'rename');
+    const symbolsAgain = await LspRpcClientSingleton.getIsolatedInstance('/tmp', 'symbols');
+
+    assert.notEqual(symbols, rename);
+    assert.equal(symbols, symbolsAgain);
+    assert.notEqual(symbols.mgr, rename.mgr);
+  });
 });

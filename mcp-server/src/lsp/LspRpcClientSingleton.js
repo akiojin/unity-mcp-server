@@ -11,6 +11,7 @@ let instance = null;
 let currentProjectRoot = null;
 let validationInstance = null;
 let validationProjectRoot = null;
+const isolatedInstances = new Map();
 let heartbeatTimer = null;
 
 export class LspRpcClientSingleton {
@@ -59,6 +60,28 @@ export class LspRpcClientSingleton {
   }
 
   /**
+   * Get or create an isolated LspRpcClient instance for a specific purpose.
+   * Each kind is backed by its own LSP process to avoid cross-tool blocking.
+   * @param {string} projectRoot - Project root path
+   * @param {string} kind - Purpose key (e.g., "symbols", "rename")
+   * @returns {Promise<LspRpcClient>} Isolated client instance
+   */
+  static async getIsolatedInstance(projectRoot, kind) {
+    if (!kind) {
+      throw new Error('kind is required for isolated LSP instance');
+    }
+    const key = `${projectRoot}::${kind}`;
+    const existing = isolatedInstances.get(key);
+    if (existing) return existing;
+
+    const manager = new LspProcessManager({ shared: false });
+    const client = new LspRpcClient(projectRoot, manager);
+    isolatedInstances.set(key, client);
+    logger.info(`[LspRpcClientSingleton] created isolated instance (${kind}) for ${projectRoot}`);
+    return client;
+  }
+
+  /**
    * Reset the singleton instance and stop the process.
    */
   static async reset() {
@@ -74,6 +97,7 @@ export class LspRpcClientSingleton {
       logger.info('[LspRpcClientSingleton] instance reset');
     }
     await LspRpcClientSingleton.#resetValidation();
+    await LspRpcClientSingleton.#resetIsolated();
   }
 
   static async #resetValidation() {
@@ -87,6 +111,20 @@ export class LspRpcClientSingleton {
       validationProjectRoot = null;
       logger.info('[LspRpcClientSingleton] validation instance reset');
     }
+  }
+
+  static async #resetIsolated() {
+    if (isolatedInstances.size === 0) return;
+    const entries = Array.from(isolatedInstances.entries());
+    isolatedInstances.clear();
+    for (const [key, client] of entries) {
+      try {
+        await client.mgr.stop();
+      } catch (e) {
+        logger.warning(`[LspRpcClientSingleton] isolated stop error (${key}): ${e.message}`);
+      }
+    }
+    logger.info('[LspRpcClientSingleton] isolated instances reset');
   }
 
   /**
