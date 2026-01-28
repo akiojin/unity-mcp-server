@@ -1,7 +1,7 @@
 {
   "name": "com.akiojin.unity-mcp-server",
   "displayName": "Unity MCP Server",
-  "version": "5.2.1",
+  "version": "5.3.1",
   "unity": "6000.0",
   "description": "Unity MCP Server bridge and tooling for AI-assisted development (screenshots, video capture, scene analysis, input automation).",
   "keywords": [

@@ -1,8 +1,36 @@
 ## [Unreleased]
 
-### ⚠ BREAKING CHANGES
+## [5.3.1](https://github.com/akiojin/unity-mcp-server/compare/v5.2.1...v5.3.1) (2026-01-28)
 
-* `.unity/config.json` 対応を削除（Node は環境変数、Unity は Project Settings に統一）
+
+### Features
+
+* **lsp:** concurrent requests with file-level locks ([6723fda](https://github.com/akiojin/unity-mcp-server/commit/6723fda))
+* **mcp-server:** find_refsにページングを追加 ([595cb48](https://github.com/akiojin/unity-mcp-server/commit/595cb48))
+* **release:** implement LLM-based interactive release flow ([7a61745](https://github.com/akiojin/unity-mcp-server/commit/7a61745))
+* **skill:** enable Unity MCP Server skills via symlinks ([b98e445](https://github.com/akiojin/unity-mcp-server/commit/b98e445))
+
+
+### Bug Fixes
+
+* **code-index:** dbPath未指定時に既定値を解決する ([0dabd87](https://github.com/akiojin/unity-mcp-server/commit/0dabd87))
+* **csharp-lsp:** 空クエリのworkspace/symbolを短絡 ([902046c](https://github.com/akiojin/unity-mcp-server/commit/902046c))
+* **deps:** resolve security vulnerabilities in dependencies ([7f9fdf5](https://github.com/akiojin/unity-mcp-server/commit/7f9fdf5))
+* **edit_snippet:** fail fast on LSP validation delays ([5ae7db4](https://github.com/akiojin/unity-mcp-server/commit/5ae7db4))
+* **index:** resolve dbPath using workspace root ([a6bd513](https://github.com/akiojin/unity-mcp-server/commit/a6bd513))
+* **lsp:** isolate processes per LSP tool ([38f05b2](https://github.com/akiojin/unity-mcp-server/commit/38f05b2))
+* **lsp:** isolate validation process for edit_snippet ([0ecde11](https://github.com/akiojin/unity-mcp-server/commit/0ecde11))
+* **lsp:** stdin不可時にLSPを再起動して再試行する ([944a594](https://github.com/akiojin/unity-mcp-server/commit/944a594))
+* **lsp:** test環境では既存バイナリを優先して再DLを抑止する ([9174e86](https://github.com/akiojin/unity-mcp-server/commit/9174e86))
+* **mcp-server:** Docker環境のMCPホスト既定値を補完 ([4252dbb](https://github.com/akiojin/unity-mcp-server/commit/4252dbb))
+* **mcp-server:** edit_snippetのLSP検証タイムアウトを短縮 ([0cc6750](https://github.com/akiojin/unity-mcp-server/commit/0cc6750))
+* **mcp-server:** LSPハートビートを軽量化 ([173313a](https://github.com/akiojin/unity-mcp-server/commit/173313a))
+* **mcp-server:** Unityのパス不整合時にローカル推定へ切替 ([54445bf](https://github.com/akiojin/unity-mcp-server/commit/54445bf))
+* **mcp-server:** インデックス更新検知とwatcherビルド反映 ([481b8c9](https://github.com/akiojin/unity-mcp-server/commit/481b8c9))
+* **mcp-server:** インデックス未準備時の状態表示を改善 ([533251a](https://github.com/akiojin/unity-mcp-server/commit/533251a))
+* **mcp-server:** input_touch送信に統一 ([6e74eba](https://github.com/akiojin/unity-mcp-server/commit/6e74eba))
+* **mcp-server:** ツール名をmanifestに統一 ([4ef806c](https://github.com/akiojin/unity-mcp-server/commit/4ef806c))
+* **unity:** SampleWorkflowsのファイル操作とAddressables削除を修正 ([8bf8c5f](https://github.com/akiojin/unity-mcp-server/commit/8bf8c5f))
 
 ## [5.2.1](https://github.com/akiojin/unity-mcp-server/compare/v5.2.0...v5.2.1) (2025-12-26)
 
