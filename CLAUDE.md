@@ -481,7 +481,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 ```
 
 **type（必須）**:
-- `feat`: 新機能追加 → **minor version up** (2.16.3 → 2.17.0)
+- `feat`: **ユーザー向け**新機能追加 → **minor version up** (2.16.3 → 2.17.0)
 - `fix`: バグ修正 → **patch version up** (2.16.3 → 2.16.4)
 - `docs`: ドキュメント変更のみ → version up なし
 - `style`: コード意味に影響しない変更（フォーマット等） → version up なし
@@ -492,6 +492,24 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 - `ci`: CI設定変更 → version up なし
 - `build`: ビルドシステム変更 → version up なし
 - `revert`: コミット取り消し → version up なし
+
+**⚠️ `feat:` の正しい使い方**:
+
+`feat:` は**ユーザー向けの新機能のみ**に使用します。内部的な変更には適切なタイプを使用してください。
+
+| 変更内容 | 正しいタイプ | 誤ったタイプ |
+|---------|------------|------------|
+| MCPサーバーに新ツール追加 | `feat(mcp-server):` | ✅ |
+| Unity APIに新機能追加 | `feat(unity):` | ✅ |
+| /releaseコマンド改善 | `chore(release):` | ~~`feat(release):`~~ |
+| プラグイン構造変更 | `refactor(plugin):` | ~~`feat(plugin):`~~ |
+| CI/Docker設定 | `ci:` / `chore(docker):` | ~~`feat(ci):`~~ |
+| 依存関係更新 | `chore(deps):` | ~~`feat(deps):`~~ |
+| テスト追加 | `test:` | ~~`feat(test):`~~ |
+| スキル設定変更 | `chore(skill):` | ~~`feat(skill):`~~ |
+| ドキュメント改善 | `docs:` | ~~`feat(docs):`~~ |
+
+**判断基準**: ユーザーが「新しい機能が使えるようになった」と感じる変更のみ `feat:` を使用
 
 **scope（推奨）**: 変更範囲（例: `hooks`, `spec`, `mcp-server`, `unity`）
 
