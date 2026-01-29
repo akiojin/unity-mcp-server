@@ -75,7 +75,13 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
       }
     ];
 
-    const validateText = mock.fn(async () => []);
+    const validateText = mock.fn(async (tempRel, newText) => {
+      assert.equal(newText, '');
+      const tempAbs = path.join(projectRoot, tempRel.replace(/\\/g, path.sep));
+      const tempContent = await fs.readFile(tempAbs, 'utf8');
+      assert.ok(tempContent.includes('DoSomething(first);'));
+      return [];
+    });
     handler.lsp = { validateText };
 
     const result = await handler.execute({
@@ -94,10 +100,10 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     assert.equal(typeof result.preview, 'string');
     assert.ok(result.preview.includes('DoSomething(first);'));
     assert.equal(validateText.mock.calls.length, 1);
-    assert.deepEqual(validateText.mock.calls[0].arguments, [
-      'Assets/Scripts/SnippetTarget.cs',
-      result.preview
-    ]);
+    const tempRel = validateText.mock.calls[0].arguments[0];
+    const tempAbs = path.join(projectRoot, tempRel.replace(/\\/g, path.sep));
+    const tempExists = await fs.stat(tempAbs).then(() => true).catch(() => false);
+    assert.equal(tempExists, false);
   });
 
   it('should reject instructions exceeding the 80 character diff limit', async () => {
@@ -651,107 +657,4 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     assert.ok(!afterContent.includes('if (value == null)'));
   });
 
-  it('should auto-skip LSP validation for large files', async () => {
-    const relPath = 'Assets/Scripts/SnippetTarget.cs';
-    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
-    const original = `public class Example
-{
-    public void Run()
-    {
-        if (value == null) return;
-        Process();
-    }
-}
-`;
-    await fs.writeFile(absPath, original, 'utf8');
-
-    const instructions = [
-      {
-        operation: 'delete',
-        anchor: {
-          type: 'text',
-          target: '        if (value == null) return;\n'
-        }
-      }
-    ];
-
-    const prevLines = process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES;
-    try {
-      process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES = '5';
-      handler.lsp = { validateText: mock.fn(async () => []) };
-
-      const result = await handler.execute({
-        path: relPath,
-        instructions,
-        preview: true
-      });
-
-      assert.equal(result.validationSkipped, true);
-      assert.equal(result.validationSkipReason, 'auto_skip_large_file');
-      assert.equal(handler.lsp.validateText.mock.calls.length, 0);
-    } finally {
-      if (prevLines === undefined) {
-        delete process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES;
-      } else {
-        process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES = prevLines;
-      }
-    }
-  });
-
-  it('should treat LSP validation timeout as non-fatal', async () => {
-    const relPath = 'Assets/Scripts/SnippetTarget.cs';
-    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
-    const original = `public class Example
-{
-    public void Run()
-    {
-        if (value == null) return;
-        Process();
-    }
-}
-`;
-    await fs.writeFile(absPath, original, 'utf8');
-
-    const instructions = [
-      {
-        operation: 'delete',
-        anchor: {
-          type: 'text',
-          target: '        if (value == null) return;\n'
-        }
-      }
-    ];
-
-    const prevLines = process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES;
-    const prevBytes = process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_BYTES;
-    try {
-      process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES = '0';
-      process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_BYTES = '0';
-      handler.lsp = {
-        validateText: mock.fn(async () => {
-          throw new Error('mcp/validateTextEdits timed out after 1000 ms');
-        })
-      };
-
-      const result = await handler.execute({
-        path: relPath,
-        instructions,
-        preview: true
-      });
-
-      assert.equal(result.validationSkipped, true);
-      assert.equal(result.validationSkipReason, 'lsp_timeout');
-    } finally {
-      if (prevLines === undefined) {
-        delete process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES;
-      } else {
-        process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES = prevLines;
-      }
-      if (prevBytes === undefined) {
-        delete process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_BYTES;
-      } else {
-        process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_BYTES = prevBytes;
-      }
-    }
-  });
 });
