@@ -1,11 +1,14 @@
 {
   "mcpServers": {
     "unity-mcp-server": {
-      "command": "bash",
+      "command": "node",
       "args": [
-        "-lc",
-        "UNITY_MCP_MCP_HOST=\"$UNITY_MCP_MCP_HOST\" node mcp-server/bin/unity-mcp-server.js"
-      ]
+        "mcp-server/bin/unity-mcp-server.js"
+      ],
+      "env": {
+        "UNITY_MCP_MCP_HOST": "${UNITY_MCP_MCP_HOST}",
+        "UNITY_MCP_PORT": "${UNITY_MCP_PORT}"
+      }
     },
     "context7": {
       "type": "sse",
