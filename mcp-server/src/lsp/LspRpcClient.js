@@ -238,7 +238,7 @@ export class LspRpcClient {
         logger.warning(
           `[unity-mcp-server:lsp] recoverable error on ${method}: ${msg}. Retrying once...`
         );
-        return await this.#requestWithRetry(method, params, attempt + 1);
+        return await this.#requestWithRetry(method, params, attempt + 1, options);
       }
       // Standardize error message with actionable recovery instructions
       let hint;
