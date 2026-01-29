@@ -1,6 +1,7 @@
 import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { JobManager } from '../../core/jobManager.js';
 import { CodeIndex } from '../../core/codeIndex.js';
+import { getWorkerPool } from '../../core/indexBuildWorkerPool.js';
 
 export class CodeIndexStatusToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
@@ -16,6 +17,7 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
     this.unityConnection = unityConnection;
     this.jobManager = JobManager.getInstance();
     this.codeIndex = new CodeIndex(unityConnection);
+    this.workerPool = getWorkerPool();
   }
 
   async execute() {
@@ -53,7 +55,8 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
         }
       };
     }
-    const buildInProgress = latestBuildJob?.status === 'running';
+    const workerBuildRunning = Boolean(this.workerPool?.isRunning?.());
+    const buildInProgress = latestBuildJob?.status === 'running' || workerBuildRunning;
     if (!ready && !buildInProgress) {
       if (latestBuildJob) {
         const indexInfo = {
@@ -91,6 +94,44 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
         success: false,
         error: 'index_not_built',
         message: 'Code index is not built. Please run UnityMCP.build_index first.'
+      };
+    }
+    if (!ready && buildInProgress) {
+      const buildJob = latestBuildJob
+        ? {
+            id: latestBuildJob.id,
+            status: latestBuildJob.status,
+            startedAt: latestBuildJob.startedAt ?? null,
+            ...(latestBuildJob.progress ? { progress: { ...latestBuildJob.progress } } : {})
+          }
+        : {
+            id: null,
+            status: 'running',
+            startedAt: null,
+            source: 'worker'
+          };
+
+      if (latestBuildJob?.status === 'failed') {
+        buildJob.failedAt = latestBuildJob.failedAt ?? null;
+        buildJob.error = latestBuildJob.error ?? 'Unknown error';
+      }
+
+      return {
+        success: true,
+        status: latestBuildJob?.status === 'failed' ? 'failed' : 'pending',
+        ready: false,
+        totalFiles: 0,
+        indexedFiles: 0,
+        coverage: 0,
+        message: buildInProgress
+          ? 'Code index build is running. Check back with get_index_status.'
+          : 'Code index is not ready yet.',
+        index: {
+          ready: false,
+          rows: 0,
+          lastIndexedAt: null,
+          buildJob
+        }
       };
     }
 
