@@ -650,4 +650,108 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     const afterContent = await fs.readFile(absPath, 'utf8');
     assert.ok(!afterContent.includes('if (value == null)'));
   });
+
+  it('should auto-skip LSP validation for large files', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class Example
+{
+    public void Run()
+    {
+        if (value == null) return;
+        Process();
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (value == null) return;\n'
+        }
+      }
+    ];
+
+    const prevLines = process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES;
+    try {
+      process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES = '5';
+      handler.lsp = { validateText: mock.fn(async () => []) };
+
+      const result = await handler.execute({
+        path: relPath,
+        instructions,
+        preview: true
+      });
+
+      assert.equal(result.validationSkipped, true);
+      assert.equal(result.validationSkipReason, 'auto_skip_large_file');
+      assert.equal(handler.lsp.validateText.mock.calls.length, 0);
+    } finally {
+      if (prevLines === undefined) {
+        delete process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES;
+      } else {
+        process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES = prevLines;
+      }
+    }
+  });
+
+  it('should treat LSP validation timeout as non-fatal', async () => {
+    const relPath = 'Assets/Scripts/SnippetTarget.cs';
+    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
+    const original = `public class Example
+{
+    public void Run()
+    {
+        if (value == null) return;
+        Process();
+    }
+}
+`;
+    await fs.writeFile(absPath, original, 'utf8');
+
+    const instructions = [
+      {
+        operation: 'delete',
+        anchor: {
+          type: 'text',
+          target: '        if (value == null) return;\n'
+        }
+      }
+    ];
+
+    const prevLines = process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES;
+    const prevBytes = process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_BYTES;
+    try {
+      process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES = '0';
+      process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_BYTES = '0';
+      handler.lsp = {
+        validateText: mock.fn(async () => {
+          throw new Error('mcp/validateTextEdits timed out after 1000 ms');
+        })
+      };
+
+      const result = await handler.execute({
+        path: relPath,
+        instructions,
+        preview: true
+      });
+
+      assert.equal(result.validationSkipped, true);
+      assert.equal(result.validationSkipReason, 'lsp_timeout');
+    } finally {
+      if (prevLines === undefined) {
+        delete process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES;
+      } else {
+        process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES = prevLines;
+      }
+      if (prevBytes === undefined) {
+        delete process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_BYTES;
+      } else {
+        process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_BYTES = prevBytes;
+      }
+    }
+  });
 });
