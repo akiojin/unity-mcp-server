@@ -491,9 +491,9 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     assert.ok(!result.preview.includes('if (x == null)'));
   });
 
-  // ==================== skipValidation option tests (Issue #310) ====================
+  // ==================== skipValidation option (deprecated) ====================
 
-  it('should skip LSP validation when skipValidation is true', async () => {
+  it('should reject skipValidation flag', async () => {
     const relPath = 'Assets/Scripts/SnippetTarget.cs';
     const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
     const original = `public class Example
@@ -517,62 +517,12 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
       }
     ];
 
-    const validateText = mock.fn(async () => []);
-    handler.lsp = { validateText };
+    handler.lsp = { validateText: mock.fn(async () => []) };
 
-    const result = await handler.execute({
-      path: relPath,
-      instructions,
-      skipValidation: true,
-      preview: true
-    });
-
-    assert.equal(result.applied, false);
-    assert.equal(result.results[0].status, 'applied');
-    // LSP validateText should NOT be called when skipValidation is true
-    assert.equal(validateText.mock.calls.length, 0);
-    // Response should include validationSkipped flag
-    assert.equal(result.validationSkipped, true);
-  });
-
-  it('should still run preSyntaxCheck when skipValidation is true (brace balance)', async () => {
-    const relPath = 'Assets/Scripts/SnippetTarget.cs';
-    const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');
-    const original = `public class Broken
-{
-    public void Execute()
-    {
-        if (flag)
-        {
-            DoThing();
-        }
-    }
-}
-`;
-    await fs.writeFile(absPath, original, 'utf8');
-
-    // Delete a closing brace to break the syntax
-    const instructions = [
-      {
-        operation: 'delete',
-        anchor: {
-          type: 'text',
-          target: '        }\n    }\n}'
-        }
-      }
-    ];
-
-    const validateText = mock.fn(async () => []);
-    handler.lsp = { validateText };
-
-    // preSyntaxCheck should catch the brace imbalance even with skipValidation=true
     await assert.rejects(
       () => handler.execute({ path: relPath, instructions, skipValidation: true, preview: true }),
-      /syntax|brace|bracket/i
+      /skipValidation/i
     );
-
-    // LSP validation should not be called
-    assert.equal(validateText.mock.calls.length, 0);
   });
 
   it('should run LSP validation when skipValidation is false (default)', async () => {
@@ -642,16 +592,15 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
 
     handler.lsp = { validateText: mock.fn(async () => []) };
 
-    // Apply with skipValidation=true
+    // Apply with default validation
     const result = await handler.execute({
       path: relPath,
       instructions,
-      skipValidation: true,
       preview: false
     });
 
     assert.equal(result.applied, true);
-    assert.equal(result.validationSkipped, true);
+    assert.equal(result.validationSkipped, false);
 
     const afterContent = await fs.readFile(absPath, 'utf8');
     assert.ok(!afterContent.includes('if (value == null)'));
