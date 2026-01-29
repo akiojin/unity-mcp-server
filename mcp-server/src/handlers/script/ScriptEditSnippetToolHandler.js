@@ -5,6 +5,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 import { preSyntaxCheck } from './csharpSyntaxCheck.js';
+import { logger } from '../../core/config.js';
 
 const MAX_INSTRUCTIONS = 10;
 const MAX_DIFF_CHARS = 80;
@@ -28,11 +29,6 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
             type: 'boolean',
             description:
               'If true, run validation and return preview text without writing to disk. Default=false.'
-          },
-          skipValidation: {
-            type: 'boolean',
-            description:
-              'If true, skip LSP validation for faster execution. Lightweight syntax checks (brace balance) are still performed. Use for simple edits on large files. Default=false.'
           },
           instructions: {
             type: 'array',
@@ -84,7 +80,10 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
 
   validate(params) {
     super.validate(params);
-    const { path: filePath, instructions } = params;
+    const { path: filePath, instructions, skipValidation } = params;
+    if (skipValidation === true) {
+      throw new Error('skipValidation is not allowed; LSP validation is required');
+    }
     if (!filePath || String(filePath).trim() === '') {
       throw new Error('path cannot be empty');
     }
@@ -115,10 +114,17 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
   }
 
   async execute(params) {
+    logger.info(
+      `[Handler edit_snippet] pid=${process.pid} path=${params?.path || ''} preview=${
+        params?.preview === true
+      }`
+    );
+    if (params?.skipValidation === true) {
+      throw new Error('skipValidation is not allowed; LSP validation is required');
+    }
     const info = await this.projectInfo.get();
     const { relative, absolute } = this.#resolvePaths(info, params.path);
     const preview = params.preview === true;
-    const skipValidation = params.skipValidation === true;
     const instructions = params.instructions;
 
     let original;
@@ -152,7 +158,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
         results,
         original,
         updated: working,
-        validationSkipped: skipValidation
+        validationSkipped: false
       });
     }
 
@@ -165,16 +171,14 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       );
     }
 
-    // LSP validation (skip if skipValidation=true for large files)
+    // LSP validation
     let diagnostics = [];
-    if (!skipValidation) {
-      diagnostics = await this.#validateWithLsp(info, relative, working);
-      const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
-      if (hasErrors) {
-        const first = diagnostics.find(d => this.#severityIsError(d.severity));
-        const msg = first?.message || 'syntax error';
-        throw new Error(`syntax_error: ${msg}`);
-      }
+    diagnostics = await this.#validateWithLsp(info, relative, working);
+    const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
+    if (hasErrors) {
+      const first = diagnostics.find(d => this.#severityIsError(d.severity));
+      const msg = first?.message || 'syntax error';
+      throw new Error(`syntax_error: ${msg}`);
     }
 
     if (!preview) {
@@ -187,7 +191,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       original,
       updated: working,
       diagnostics,
-      validationSkipped: skipValidation
+      validationSkipped: false
     });
   }
 
@@ -298,7 +302,30 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     if (!this.lsp) {
       this.lsp = await LspRpcClientSingleton.getValidationInstance(info.projectRoot);
     }
-    return await this.lsp.validateText(relative, updatedText);
+    const tempRelative = this.#buildTempValidationPath(relative);
+    const tempAbsolute = path.join(
+      info.projectRoot,
+      tempRelative.replace(/\//g, path.sep)
+    );
+    await fs.mkdir(path.dirname(tempAbsolute), { recursive: true });
+    await fs.writeFile(tempAbsolute, updatedText, 'utf8');
+    try {
+      return await this.lsp.validateText(tempRelative, '');
+    } finally {
+      try {
+        await fs.rm(tempAbsolute, { force: true });
+      } catch (e) {
+        logger.warning(`[Handler edit_snippet] failed to remove temp file: ${e.message}`);
+      }
+    }
+  }
+
+  #buildTempValidationPath(relative) {
+    const ext = path.extname(relative) || '.cs';
+    const base = path.basename(relative, ext).replace(/[^a-zA-Z0-9._-]/g, '_');
+    const stamp = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const hash = crypto.createHash('sha1').update(relative).digest('hex').slice(0, 8);
+    return `.unity/tmp/edit-snippet/${base}_${hash}_${stamp}${ext}`;
   }
 
   #buildResponse({
@@ -351,4 +378,5 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     const s = String(severity).toLowerCase();
     return s === 'error' || s === '2';
   }
+
 }

@@ -2,6 +2,7 @@ import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { LspRpcClient } from '../../../src/lsp/LspRpcClient.js';
+import { config } from '../../../src/core/config.js';
 
 const createMockProc = ({ stdinWritable = true } = {}) => {
   const proc = new EventEmitter();
@@ -150,6 +151,35 @@ describe('LspRpcClient', () => {
 
     it('should be async (returns Promise)', () => {
       assert.equal(client.request.constructor.name, 'AsyncFunction');
+    });
+  });
+
+  describe('retry behavior', () => {
+    it('should preserve timeout override on retry', async () => {
+      const originalTimeout = config.lsp.requestTimeoutMs;
+      config.lsp.requestTimeoutMs = 2000;
+
+      client.ensure = async () => {};
+      client.writeMessage = () => {};
+      client.mgr = { stop: async () => {} };
+
+      try {
+        await assert.rejects(
+          () =>
+            client.request(
+              'mcp/validateTextEdits',
+              { relative: 'Assets/Scripts/Foo.cs', newText: 'class Foo {}' },
+              { timeoutMs: 1000 }
+            ),
+          err => {
+            const msg = String(err?.message || err);
+            assert.match(msg, /timed out after 1000 ms/i);
+            return true;
+          }
+        );
+      } finally {
+        config.lsp.requestTimeoutMs = originalTimeout;
+      }
     });
   });
 

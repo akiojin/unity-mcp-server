@@ -10,6 +10,7 @@
 import { SystemPingToolHandler } from './system/SystemPingToolHandler.js';
 import { SystemRefreshAssetsToolHandler } from './system/SystemRefreshAssetsToolHandler.js';
 import { SystemGetCommandStatsToolHandler } from './system/SystemGetCommandStatsToolHandler.js';
+import { SystemGetServerInfoToolHandler } from './system/SystemGetServerInfoToolHandler.js';
 import { GameObjectCreateToolHandler } from './gameobject/GameObjectCreateToolHandler.js';
 import { GameObjectFindToolHandler } from './gameobject/GameObjectFindToolHandler.js';
 import { GameObjectModifyToolHandler } from './gameobject/GameObjectModifyToolHandler.js';
@@ -279,6 +280,7 @@ const HANDLER_CLASSES = [
   SystemPingToolHandler,
   SystemRefreshAssetsToolHandler,
   SystemGetCommandStatsToolHandler,
+  SystemGetServerInfoToolHandler,
 
   // GameObject handlers
   GameObjectCreateToolHandler,

@@ -15,6 +15,7 @@
  */
 import fs from 'node:fs';
 import { StdioRpcServer } from './stdioRpcServer.js';
+import { createProjectRootGuard } from './projectRootGuard.js';
 
 // Deferred state - will be initialized after transport connection
 let unityConnection = null;
@@ -128,6 +129,15 @@ export async function startServer(options = {}) {
       stdioEnabled: options.stdioEnabled !== undefined ? options.stdioEnabled : true
     };
 
+    const projectInfoProvider =
+      deps.projectInfoProvider ||
+      (deps.ProjectInfoProvider ? new deps.ProjectInfoProvider() : null);
+    const projectRootGuard = createProjectRootGuard({
+      requireClientRoot: runtimeConfig.project?.requireClientRoot === true,
+      logger,
+      projectInfoProvider
+    });
+
     // Step 2: Create a lightweight stdio MCP server (no TS SDK import)
     const server =
       runtimeConfig.stdioEnabled === false
@@ -180,7 +190,8 @@ export async function startServer(options = {}) {
             port: runtimeConfig.http.port,
             telemetryEnabled: runtimeConfig.telemetry.enabled,
             healthPath: runtimeConfig.http.healthPath,
-            allowedHosts: runtimeConfig.http.allowedHosts
+            allowedHosts: runtimeConfig.http.allowedHosts,
+            requireClientRoot: runtimeConfig.project?.requireClientRoot === true
           });
           try {
             await httpServerInstance.start();
@@ -361,6 +372,19 @@ export async function startServer(options = {}) {
         `[MCP] Received tool call request: ${name} at ${new Date(requestTime).toISOString()}`,
         { args }
       );
+
+      const guardError = await projectRootGuard(args || {});
+      if (guardError) {
+        logger.error(`[MCP] projectRoot guard failed: ${guardError}`);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Error: ${guardError}\nCode: PROJECT_ROOT_MISMATCH`
+            }
+          ]
+        };
+      }
 
       const handler = handlers.get(name);
       if (!handler) {
