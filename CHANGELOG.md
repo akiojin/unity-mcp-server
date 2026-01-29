@@ -1,5 +1,30 @@
 ## [Unreleased]
 
+## [5.4.0](https://github.com/akiojin/unity-mcp-server/compare/v5.3.2...v5.4.0) (2026-01-29)
+
+
+### Features
+
+* **system:** add get_server_info tool ([c567fbb](https://github.com/akiojin/unity-mcp-server/commit/c567fbb))
+* **system:** enforce projectRoot matching ([54efe70](https://github.com/akiojin/unity-mcp-server/commit/54efe70))
+
+
+### Bug Fixes
+
+* Addressables未導入時のハンドラを追加 ([82bf622](https://github.com/akiojin/unity-mcp-server/commit/82bf622))
+* **edit_snippet:** avoid validation timeouts ([a5a43ac](https://github.com/akiojin/unity-mcp-server/commit/a5a43ac))
+* **edit_snippet:** LSP検証を常時実行 ([7fedf2d](https://github.com/akiojin/unity-mcp-server/commit/7fedf2d))
+* **edit_snippet:** reject skipValidation ([f95f34d](https://github.com/akiojin/unity-mcp-server/commit/f95f34d))
+* **edit_snippet:** validate via temp file ([c97be55](https://github.com/akiojin/unity-mcp-server/commit/c97be55))
+* **index_build:** signature進捗を高頻度化 ([444f7fe](https://github.com/akiojin/unity-mcp-server/commit/444f7fe))
+* **index_build:** signature進捗を通知 ([d0a16b4](https://github.com/akiojin/unity-mcp-server/commit/d0a16b4))
+* **index_status:** build中はpendingで返す ([8f5b436](https://github.com/akiojin/unity-mcp-server/commit/8f5b436))
+* **index_status:** progress phaseを補完 ([cce606e](https://github.com/akiojin/unity-mcp-server/commit/cce606e))
+* **lsp:** preserve timeout override on retry ([ecdb72b](https://github.com/akiojin/unity-mcp-server/commit/ecdb72b))
+* **lsp:** read requests by byte length ([03379ef](https://github.com/akiojin/unity-mcp-server/commit/03379ef))
+* **unity:** Addressables defineと接続ポートを調整 ([185d46c](https://github.com/akiojin/unity-mcp-server/commit/185d46c))
+* **unity:** Addressables依存と接続設定を同期 ([46d1d97](https://github.com/akiojin/unity-mcp-server/commit/46d1d97))
+
 ## [5.3.2](https://github.com/akiojin/unity-mcp-server/compare/v5.3.1...v5.3.2) (2026-01-28)
 
 
