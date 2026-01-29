@@ -102,7 +102,14 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
             id: latestBuildJob.id,
             status: latestBuildJob.status,
             startedAt: latestBuildJob.startedAt ?? null,
-            ...(latestBuildJob.progress ? { progress: { ...latestBuildJob.progress } } : {})
+            ...(latestBuildJob.progress
+              ? {
+                  progress: {
+                    phase: latestBuildJob.progress.phase || 'index',
+                    ...latestBuildJob.progress
+                  }
+                }
+              : {})
           }
         : {
             id: null,
@@ -150,7 +157,9 @@ export class CodeIndexStatusToolHandler extends BaseToolHandler {
     };
 
     if (latestBuildJob) {
-      const progress = latestBuildJob.progress ? { ...latestBuildJob.progress } : undefined;
+      const progress = latestBuildJob.progress
+        ? { phase: latestBuildJob.progress.phase || 'index', ...latestBuildJob.progress }
+        : undefined;
       indexInfo.buildJob = {
         id: latestBuildJob.id,
         status: latestBuildJob.status,
