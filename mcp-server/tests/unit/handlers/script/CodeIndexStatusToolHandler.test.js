@@ -144,6 +144,28 @@ describe('CodeIndexStatusToolHandler', () => {
       assert.equal(result.index.buildJob.status, 'running');
     });
 
+    it('should report in-progress when worker pool is running without job tracking', async () => {
+      handler.codeIndex = {
+        disabled: false,
+        isReady: async () => false,
+        getStats: async () => ({ total: 0, lastIndexedAt: null, totalFilesEstimate: 0 })
+      };
+      handler.jobManager = {
+        getAllJobs: () => []
+      };
+      handler.workerPool = {
+        isRunning: () => true
+      };
+
+      const result = await handler.execute({});
+
+      assert.equal(result.success, true);
+      assert.equal(result.status, 'pending');
+      assert.ok(result.index?.buildJob);
+      assert.equal(result.index.buildJob.status, 'running');
+      assert.equal(result.index.buildJob.source, 'worker');
+    });
+
     it('should report failed build job when index is not ready', async () => {
       handler.codeIndex = {
         disabled: false,
