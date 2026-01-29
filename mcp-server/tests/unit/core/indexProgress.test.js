@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildProgress } from '../../../src/core/indexProgress.js';
+import { buildProgress, getReportEvery } from '../../../src/core/indexProgress.js';
 
 describe('indexProgress', () => {
   it('should default phase to index', () => {
@@ -14,5 +14,13 @@ describe('indexProgress', () => {
     assert.equal(result.processed, 10);
     assert.equal(result.total, 20);
     assert.equal(result.rate, 1.5);
+  });
+
+  it('should compute report interval for small totals', () => {
+    assert.equal(getReportEvery(5), 1);
+  });
+
+  it('should compute report interval for large totals', () => {
+    assert.equal(getReportEvery(7212), 360);
   });
 });
