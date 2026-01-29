@@ -260,6 +260,36 @@ describe('startServer (deps injection)', () => {
     assert.match(response.content[0].text, /Error: boom/);
   });
 
+  it('rejects tool calls when projectRoot is required but missing', async () => {
+    deps.config.project = { requireClientRoot: true };
+    deps.projectInfoProvider = {
+      async get() {
+        return { projectRoot: '/workspace/Project' };
+      }
+    };
+    await startServer({ deps });
+    const server = stdio.instances[0];
+    const callHandler = server._requestHandlers.get('tools/call');
+    const response = await callHandler({ params: { name: 'ping', arguments: {} } });
+    assert.match(response.content[0].text, /projectRoot is required/i);
+  });
+
+  it('rejects tool calls when projectRoot does not match', async () => {
+    deps.config.project = { requireClientRoot: true };
+    deps.projectInfoProvider = {
+      async get() {
+        return { projectRoot: '/workspace/Project' };
+      }
+    };
+    await startServer({ deps });
+    const server = stdio.instances[0];
+    const callHandler = server._requestHandlers.get('tools/call');
+    const response = await callHandler({
+      params: { name: 'ping', arguments: { projectRoot: '/other/Project' } }
+    });
+    assert.match(response.content[0].text, /projectRoot mismatch/i);
+  });
+
   it('starts post-init work after initialized notification', async () => {
     await startServer({ deps });
     const server = stdio.instances[0];

@@ -105,7 +105,8 @@ const baseConfig = {
   // Project settings (primarily for code index paths)
   project: {
     root: null,
-    codeIndexRoot: null
+    codeIndexRoot: null,
+    requireClientRoot: false
   },
 
   // Server settings
@@ -177,6 +178,7 @@ function loadEnvConfig() {
   const unityPort = parseIntEnv(process.env.UNITY_MCP_PORT);
 
   const projectRoot = envString('UNITY_PROJECT_ROOT');
+  const requireProjectRoot = parseBoolEnv(process.env.UNITY_MCP_REQUIRE_PROJECT_ROOT);
 
   const logLevel = envString('UNITY_MCP_LOG_LEVEL');
   const versionMismatch = envString('UNITY_MCP_VERSION_MISMATCH');
@@ -202,6 +204,9 @@ function loadEnvConfig() {
   if (projectRoot) {
     out.project = {};
     if (projectRoot) out.project.root = projectRoot;
+  }
+  if (requireProjectRoot !== undefined) {
+    out.project = { ...(out.project || {}), requireClientRoot: requireProjectRoot };
   }
 
   if (logLevel) {
