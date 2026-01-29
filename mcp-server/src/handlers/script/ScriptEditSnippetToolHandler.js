@@ -30,11 +30,6 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
             description:
               'If true, run validation and return preview text without writing to disk. Default=false.'
           },
-          skipValidation: {
-            type: 'boolean',
-            description:
-              'Deprecated. LSP validation must always run; skipValidation is not allowed.'
-          },
           instructions: {
             type: 'array',
             minItems: 1,
@@ -86,11 +81,11 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
   validate(params) {
     super.validate(params);
     const { path: filePath, instructions, skipValidation } = params;
-    if (!filePath || String(filePath).trim() === '') {
-      throw new Error('path cannot be empty');
-    }
     if (skipValidation === true) {
       throw new Error('skipValidation is not allowed; LSP validation is required');
+    }
+    if (!filePath || String(filePath).trim() === '') {
+      throw new Error('path cannot be empty');
     }
     if (!Array.isArray(instructions) || instructions.length === 0) {
       throw new Error('instructions must be a non-empty array');
@@ -124,14 +119,13 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
         params?.preview === true
       }`
     );
+    if (params?.skipValidation === true) {
+      throw new Error('skipValidation is not allowed; LSP validation is required');
+    }
     const info = await this.projectInfo.get();
     const { relative, absolute } = this.#resolvePaths(info, params.path);
     const preview = params.preview === true;
-    const skipValidation = params.skipValidation === true;
     const instructions = params.instructions;
-    if (skipValidation) {
-      throw new Error('skipValidation is not allowed; LSP validation is required');
-    }
 
     let original;
     try {
@@ -164,7 +158,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
         results,
         original,
         updated: working,
-        validationSkipped: skipValidation
+        validationSkipped: false
       });
     }
 
@@ -177,16 +171,14 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       );
     }
 
-    // LSP validation (skip if skipValidation=true)
+    // LSP validation
     let diagnostics = [];
-    if (!skipValidation) {
-      diagnostics = await this.#validateWithLsp(info, relative, working);
-      const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
-      if (hasErrors) {
-        const first = diagnostics.find(d => this.#severityIsError(d.severity));
-        const msg = first?.message || 'syntax error';
-        throw new Error(`syntax_error: ${msg}`);
-      }
+    diagnostics = await this.#validateWithLsp(info, relative, working);
+    const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
+    if (hasErrors) {
+      const first = diagnostics.find(d => this.#severityIsError(d.severity));
+      const msg = first?.message || 'syntax error';
+      throw new Error(`syntax_error: ${msg}`);
     }
 
     if (!preview) {
@@ -199,7 +191,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       original,
       updated: working,
       diagnostics,
-      validationSkipped: skipValidation
+      validationSkipped: false
     });
   }
 
