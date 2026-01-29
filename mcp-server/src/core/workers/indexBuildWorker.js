@@ -20,7 +20,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { fileURLToPath } from 'url';
-import { buildProgress } from '../indexProgress.js';
+import { buildProgress, getReportEvery } from '../indexProgress.js';
 
 // fast-sql helper: run SQL statement
 function runSQL(db, sql) {
@@ -626,6 +626,7 @@ async function runBuild() {
       // Determine changes (this calls makeSig for each file)
       log('info', `[worker] Computing file signatures (${files.length} files)...`);
       sendProgress('signature', 0, files.length, 0);
+      const signatureReportEvery = getReportEvery(files.length);
       const sigStartTime = Date.now();
       let sigProcessed = 0;
       for (const abs of files) {
@@ -634,7 +635,7 @@ async function runBuild() {
         wanted.set(rel, sig);
         sigProcessed++;
         // Report progress every 10000 files
-        if (sigProcessed % 10000 === 0) {
+        if (sigProcessed % signatureReportEvery === 0) {
           const elapsed = ((Date.now() - sigStartTime) / 1000).toFixed(1);
           log('info', `[worker] Signature progress: ${sigProcessed}/${files.length} (${elapsed}s)`);
           const sigElapsed = Math.max(1, Date.now() - sigStartTime);
