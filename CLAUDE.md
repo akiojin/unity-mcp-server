@@ -207,6 +207,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 | `find_refs` | 20参照 (4KB) | 全行 | **3倍小さい** |
 
 **重要**: `build_index` を実行してDBインデックスを構築してから使用してください。インデックスなしではLSPタイムアウト（60秒）が発生します。
+**絶対禁止**: LSPのタイムアウトをフォールバック（検証スキップや無視）でやり過ごさない。LSPが正常に完走する状態を作ることが最優先（設定/環境/実装の改善で解消）。
 
 #### コードインデックスの活用
 
@@ -272,9 +273,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 
 **オプション**:
 - `preview`: `true`でファイル書き込みなし、プレビュー返却
-- `skipValidation`: `true`でLSP検証をスキップ（大きなファイルでタイムアウト回避）
-  - 軽量構文チェック（括弧バランス）は引き続き実行される
-  - レスポンスに`validationSkipped: true`が含まれる
+- `skipValidation`: **使用禁止**（リクエストはエラー）。LSPタイムアウト回避のフォールバックは絶対にNG
 
 **使用例**:
 
@@ -339,21 +338,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
   ]
 }
 
-// 大きなファイルでの編集（LSP検証スキップ）
-{
-  "path": "Assets/Scripts/LargeFile.cs",
-  "skipValidation": true,
-  "instructions": [
-    {
-      "operation": "replace",
-      "anchor": {
-        "type": "text",
-        "target": "maxCount = 100"
-      },
-      "newText": "maxCount = 200"
-    }
-  ]
-}
+// 大きなファイルでもLSP検証は必須（フォールバック禁止）
 ```
 
 #### `edit_structured`: 構造化編集（メソッド本体、クラスメンバー追加）
@@ -434,7 +419,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 - A: `preview=true` で事前確認。LSP診断結果を確認してから修正
 
 **Q: 大きなファイル（1000行以上）でLSPタイムアウトが発生する**
-- A: `skipValidation=true` でLSP検証をスキップ。軽量構文チェック（括弧バランス）は引き続き実行される
+- A: **フォールバックで回避しない**。LSPが完走する状態に修正する（インデックス構築、設定の見直し、LSP実装/性能の改善）。`skipValidation` での回避はNG
 
 #### ベストプラクティス
 

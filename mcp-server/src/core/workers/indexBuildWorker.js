@@ -20,6 +20,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { fileURLToPath } from 'url';
+import { buildProgress, getReportEvery } from '../indexProgress.js';
 
 // fast-sql helper: run SQL statement
 function runSQL(db, sql) {
@@ -71,8 +72,8 @@ function log(level, message) {
   sendMessage('log', { level, message });
 }
 
-function sendProgress(processed, total, rate) {
-  sendMessage('progress', { data: { processed, total, rate } });
+function sendProgress(phase, processed, total, rate) {
+  sendMessage('progress', { data: buildProgress({ phase, processed, total, rate }) });
 }
 
 function sendComplete(result) {
@@ -624,6 +625,8 @@ async function runBuild() {
 
       // Determine changes (this calls makeSig for each file)
       log('info', `[worker] Computing file signatures (${files.length} files)...`);
+      sendProgress('signature', 0, files.length, 0);
+      const signatureReportEvery = getReportEvery(files.length);
       const sigStartTime = Date.now();
       let sigProcessed = 0;
       for (const abs of files) {
@@ -632,13 +635,19 @@ async function runBuild() {
         wanted.set(rel, sig);
         sigProcessed++;
         // Report progress every 10000 files
-        if (sigProcessed % 10000 === 0) {
+        if (sigProcessed % signatureReportEvery === 0) {
           const elapsed = ((Date.now() - sigStartTime) / 1000).toFixed(1);
           log('info', `[worker] Signature progress: ${sigProcessed}/${files.length} (${elapsed}s)`);
+          const sigElapsed = Math.max(1, Date.now() - sigStartTime);
+          const sigRate = parseFloat(((sigProcessed * 1000) / sigElapsed).toFixed(1));
+          sendProgress('signature', sigProcessed, files.length, sigRate);
         }
       }
       const sigTime = ((Date.now() - sigStartTime) / 1000).toFixed(1);
       log('info', `[worker] Signatures computed in ${sigTime}s`);
+      const sigElapsed = Math.max(1, Date.now() - sigStartTime);
+      const sigRate = parseFloat(((sigProcessed * 1000) / sigElapsed).toFixed(1));
+      sendProgress('signature', sigProcessed, files.length, sigRate);
 
       for (const [rel, sig] of wanted) {
         if (current.get(rel) !== sig) changed.push(rel);
@@ -671,6 +680,7 @@ async function runBuild() {
 
     // Prepare for updates
     const absList = changed.map(rel => path.resolve(projectRoot, rel));
+    sendProgress('index', 0, absList.length, 0);
     const startAt = Date.now();
     let processed = 0;
     let updated = 0;
@@ -786,7 +796,7 @@ async function runBuild() {
         currentPercentage >= lastReportedPercentage + reportPercentage ||
         processed === absList.length
       ) {
-        sendProgress(processed, absList.length, rate);
+        sendProgress('index', processed, absList.length, rate);
         log(
           'info',
           `[worker] progress ${currentPercentage}% (${processed}/${absList.length}) rate:${rate} f/s`
