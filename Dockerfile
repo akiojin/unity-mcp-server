@@ -64,4 +64,4 @@ RUN corepack enable && pnpm install --frozen-lockfile
 
 # Use bash to invoke entrypoint to avoid exec-bit and CRLF issues on Windows mounts
 ENTRYPOINT ["bash", "/unity-mcp-server/scripts/entrypoint.sh"]
-CMD ["bash"]
+CMD ["tmux", "-u"]
