@@ -1333,32 +1333,52 @@ sealed class LspServer
 
     private async Task<string?> ReadMessageAsync()
     {
-        // Read headers
-        string? line;
+        var stdin = Console.OpenStandardInput();
         int contentLength = 0;
-        while (!string.IsNullOrEmpty(line = await Console.In.ReadLineAsync()))
+
+        // Read headers as raw bytes until \r\n\r\n
+        var headerBytes = new List<byte>(256);
+        var one = new byte[1];
+        while (true)
         {
-            var idx = line.IndexOf(":", StringComparison.Ordinal);
-            if (idx > 0)
+            int n = await stdin.ReadAsync(one, 0, 1);
+            if (n <= 0) return null;
+            headerBytes.Add(one[0]);
+            int count = headerBytes.Count;
+            if (count >= 4 &&
+                headerBytes[count - 4] == (byte)'\r' &&
+                headerBytes[count - 3] == (byte)'\n' &&
+                headerBytes[count - 2] == (byte)'\r' &&
+                headerBytes[count - 1] == (byte)'\n')
             {
-                var key = line.Substring(0, idx).Trim();
-                var val = line.Substring(idx + 1).Trim();
-                if (key.Equals("Content-Length", StringComparison.OrdinalIgnoreCase))
-                {
-                    int.TryParse(val, out contentLength);
-                }
+                break;
             }
         }
+
+        var headerText = Encoding.ASCII.GetString(headerBytes.ToArray());
+        var headerLines = headerText.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in headerLines)
+        {
+            var idx = line.IndexOf(":", StringComparison.Ordinal);
+            if (idx <= 0) continue;
+            var key = line.Substring(0, idx).Trim();
+            var val = line.Substring(idx + 1).Trim();
+            if (key.Equals("Content-Length", StringComparison.OrdinalIgnoreCase))
+            {
+                int.TryParse(val, out contentLength);
+            }
+        }
+
         if (contentLength <= 0) return null;
-        var buf = new char[contentLength];
+        var body = new byte[contentLength];
         int read = 0;
         while (read < contentLength)
         {
-            int n = await Console.In.ReadAsync(buf, read, contentLength - read);
+            int n = await stdin.ReadAsync(body, read, contentLength - read);
             if (n <= 0) break;
             read += n;
         }
-        return new string(buf, 0, read);
+        return Encoding.UTF8.GetString(body, 0, read);
     }
 
     private async Task WriteMessageAsync(object payload)

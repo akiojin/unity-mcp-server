@@ -24,7 +24,7 @@ jobs:
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -91,7 +91,7 @@ jobs:
             ext: ''
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -112,7 +112,7 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
 
@@ -140,7 +140,7 @@ jobs:
             -p:InformationalVersion="$VERSION" \
             --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false \
             -o out/${{ matrix.rid }}
-          BIN="out/${{ matrix.rid }}/server${{ matrix.ext }}"
+          BIN="out/${{ matrix.rid }}/Server${{ matrix.ext }}"
           ASSET="csharp-lsp-${{ matrix.rid }}${{ matrix.ext }}"
           test -f "$BIN" || { echo "binary not found: $BIN" >&2; exit 1; }
           mv "$BIN" "$ASSET"
@@ -154,7 +154,7 @@ jobs:
 
       - name: Upload artifact
         if: steps.detect.outputs.present == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: asset-${{ matrix.rid }}
           path: |
@@ -170,12 +170,12 @@ jobs:
       RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: dist
 
@@ -190,7 +190,7 @@ jobs:
           fi
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
 
@@ -255,12 +255,12 @@ jobs:
       RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
@@ -309,7 +309,7 @@ jobs:
         working-directory: packages/fast-sql
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --access public
+        run: pnpm publish --access public --no-git-checks
 
   npm-publish:
     name: Publish to npm
@@ -319,12 +319,12 @@ jobs:
       RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
@@ -400,4 +400,4 @@ jobs:
         working-directory: mcp-server
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --access public
+        run: pnpm publish --access public --no-git-checks

@@ -400,6 +400,7 @@ describe('ScriptEditSnippetToolHandler (RED phase)', () => {
     assert.ok(afterContent.includes('Execute();'));
   });
 
+
   it('should handle CRLF line endings in file content', async () => {
     const relPath = 'Assets/Scripts/SnippetTarget.cs';
     const absPath = path.join(projectRoot, 'Assets', 'Scripts', 'SnippetTarget.cs');

@@ -21,6 +21,8 @@
 | US-8: バックグラウンドビルド | ✅ 完了 | ユニット + 統合 (20/20) |
 | US-9: 初回起動高速化 | ✅ 完了 | ユニット (11) + 統合 (5) |
 | US-10: LSPプロセス分離 | ✅ 完了 | ユニット |
+| US-11: LSPバージョン切替 | ✅ 完了 | ユニット |
+| US-12: サーバー識別 | ✅ 完了 | ユニット |
 
 ---
 
@@ -293,6 +295,30 @@ Polish (T111-T112) ← T109-T110完了が条件
 **テストファイル**:
 - `tests/unit/lsp/LspIsolationRouting.test.js`
 - `csharp-lsp/ConcurrencyTests.cs`
+
+---
+
+## US-11: LSPバージョン切替（完了済み）
+
+### Phase 3: テスト ✅
+
+- [x] T-401: 実行中LSPのバージョンと希望バージョンが異なる場合は再起動すること
+
+**テストファイル**:
+- `tests/unit/lsp/LspProcessManager.test.js`
+
+---
+
+## US-12: サーバー識別（完了済み）
+
+### Phase 3: テスト ✅
+
+- [x] T-501: get_server_info で pid/projectRoot/workspaceRoot を取得できること
+- [x] T-502: projectRoot 不一致時は tools/call がエラーを返すこと（requireClientRoot 有効時）
+
+**テストファイル**:
+- `tests/unit/handlers/system/SystemGetServerInfoToolHandler.test.js`
+- `tests/unit/core/startServer.test.js`
 
 ---
 

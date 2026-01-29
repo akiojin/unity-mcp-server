@@ -5,6 +5,7 @@ import { BaseToolHandler } from '../base/BaseToolHandler.js';
 import { ProjectInfoProvider } from '../../core/projectInfo.js';
 import { LspRpcClientSingleton } from '../../lsp/LspRpcClientSingleton.js';
 import { preSyntaxCheck } from './csharpSyntaxCheck.js';
+import { logger } from '../../core/config.js';
 
 const MAX_INSTRUCTIONS = 10;
 const MAX_DIFF_CHARS = 80;
@@ -115,6 +116,11 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
   }
 
   async execute(params) {
+    logger.info(
+      `[Handler edit_snippet] pid=${process.pid} path=${params?.path || ''} preview=${
+        params?.preview === true
+      }`
+    );
     const info = await this.projectInfo.get();
     const { relative, absolute } = this.#resolvePaths(info, params.path);
     const preview = params.preview === true;
@@ -300,6 +306,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     }
     return await this.lsp.validateText(relative, updatedText);
   }
+
 
   #buildResponse({
     preview,

@@ -105,7 +105,8 @@ const baseConfig = {
   // Project settings (primarily for code index paths)
   project: {
     root: null,
-    codeIndexRoot: null
+    codeIndexRoot: null,
+    requireClientRoot: false
   },
 
   // Server settings
@@ -154,7 +155,8 @@ const baseConfig = {
   // LSP client defaults
   lsp: {
     requestTimeoutMs: 120000,
-    slowRequestWarnMs: 2000
+    slowRequestWarnMs: 2000,
+    validationTimeoutMs: 5000
   },
 
   // Indexing (code index) settings
@@ -176,6 +178,7 @@ function loadEnvConfig() {
   const unityPort = parseIntEnv(process.env.UNITY_MCP_PORT);
 
   const projectRoot = envString('UNITY_PROJECT_ROOT');
+  const requireProjectRoot = parseBoolEnv(process.env.UNITY_MCP_REQUIRE_PROJECT_ROOT);
 
   const logLevel = envString('UNITY_MCP_LOG_LEVEL');
   const versionMismatch = envString('UNITY_MCP_VERSION_MISMATCH');
@@ -186,6 +189,7 @@ function loadEnvConfig() {
   const telemetryEnabled = parseBoolEnv(process.env.UNITY_MCP_TELEMETRY_ENABLED);
   const lspRequestTimeoutMs = parseIntEnv(process.env.UNITY_MCP_LSP_REQUEST_TIMEOUT_MS);
   const lspSlowRequestWarnMs = parseIntEnv(process.env.UNITY_MCP_LSP_SLOW_REQUEST_WARN_MS);
+  const lspValidationTimeoutMs = parseIntEnv(process.env.UNITY_MCP_LSP_VALIDATION_TIMEOUT_MS);
 
   const out = {};
 
@@ -200,6 +204,9 @@ function loadEnvConfig() {
   if (projectRoot) {
     out.project = {};
     if (projectRoot) out.project.root = projectRoot;
+  }
+  if (requireProjectRoot !== undefined) {
+    out.project = { ...(out.project || {}), requireClientRoot: requireProjectRoot };
   }
 
   if (logLevel) {
@@ -225,6 +232,9 @@ function loadEnvConfig() {
   }
   if (lspSlowRequestWarnMs !== undefined) {
     out.lsp = { ...(out.lsp || {}), slowRequestWarnMs: lspSlowRequestWarnMs };
+  }
+  if (lspValidationTimeoutMs !== undefined) {
+    out.lsp = { ...(out.lsp || {}), validationTimeoutMs: lspValidationTimeoutMs };
   }
 
   return out;
@@ -313,6 +323,15 @@ function validateAndNormalizeConfig(cfg) {
         `[unity-mcp-server] WARN: Invalid UNITY_MCP_LSP_SLOW_REQUEST_WARN_MS (${cfg.lsp.slowRequestWarnMs}); using default 2000`
       );
       cfg.lsp.slowRequestWarnMs = 2000;
+    }
+  }
+  if (cfg.lsp?.validationTimeoutMs !== undefined) {
+    const t = Number(cfg.lsp.validationTimeoutMs);
+    if (!Number.isFinite(t) || t < 0) {
+      logger.warning(
+        `[unity-mcp-server] WARN: Invalid UNITY_MCP_LSP_VALIDATION_TIMEOUT_MS (${cfg.lsp.validationTimeoutMs}); using default 5000`
+      );
+      cfg.lsp.validationTimeoutMs = 5000;
     }
   }
 }

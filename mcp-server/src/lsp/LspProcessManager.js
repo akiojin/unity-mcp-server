@@ -4,29 +4,45 @@ import { CSharpLspUtils } from './CSharpLspUtils.js';
 
 const sharedState = {
   proc: null,
-  starting: null
+  starting: null,
+  version: null
 };
 
 export class LspProcessManager {
   constructor(options = {}) {
     const useShared = options.shared !== false;
-    this.state = useShared ? sharedState : { proc: null, starting: null };
+    this.state = useShared ? sharedState : { proc: null, starting: null, version: null };
     this.utils = new CSharpLspUtils();
   }
 
   async ensureStarted() {
-    if (this.state.proc && !this.state.proc.killed) return this.state.proc;
+    const rid = this.utils.detectRid();
+    const desired = this.utils.getDesiredVersion();
+    if (this.state.proc && !this.state.proc.killed) {
+      const local = this.utils.readLocalVersion(rid);
+      const procVersion = this.state.version;
+      const desiredVersion = desired || local || null;
+      if (procVersion && desiredVersion && procVersion !== desiredVersion) {
+        logger.warning(
+          `[unity-mcp-server:lsp] version changed (proc=${procVersion}, desired=${desiredVersion}), restarting`
+        );
+        await this.stop();
+      } else {
+        return this.state.proc;
+      }
+    }
     if (this.state.starting) return this.state.starting;
     this.state.starting = (async () => {
       try {
-        const rid = this.utils.detectRid();
         const bin = await this.utils.ensureLocal(rid);
+        const resolvedVersion = this.utils.readLocalVersion(rid) || desired || null;
         const proc = spawn(bin, { stdio: ['pipe', 'pipe', 'pipe'] });
         proc.on('error', e => logger.error(`[unity-mcp-server:lsp] process error: ${e.message}`));
         proc.on('close', (code, sig) => {
           logger.warning(`[unity-mcp-server:lsp] exited code=${code} signal=${sig || ''}`);
           if (this.state.proc === proc) {
             this.state.proc = null;
+            this.state.version = null;
           }
         });
         proc.stderr.on('data', d => {
@@ -34,6 +50,7 @@ export class LspProcessManager {
           if (s) logger.debug(`[unity-mcp-server:lsp] ${s}`);
         });
         this.state.proc = proc;
+        this.state.version = resolvedVersion;
         logger.info(`[unity-mcp-server:lsp] started (pid=${proc.pid})`);
         return proc;
       } catch (e) {
@@ -52,6 +69,7 @@ export class LspProcessManager {
     if (!this.state.proc || this.state.proc.killed) return;
     const p = this.state.proc;
     this.state.proc = null;
+    this.state.version = null;
 
     // Remove all listeners to prevent memory leaks
     try {
