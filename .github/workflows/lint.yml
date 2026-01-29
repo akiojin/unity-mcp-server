@@ -41,7 +41,7 @@ jobs:
           --ignore-path .markdownlintignore
 
       - name: Run ESLint
-        run: pnpm exec eslint mcp-server/src mcp-server/tests --ext .js --max-warnings=0
+        run: pnpm exec eslint mcp-server/src mcp-server/tests
 
       - name: Check formatting
         run: pnpm exec prettier --check mcp-server

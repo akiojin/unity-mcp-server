@@ -1,3 +1,4 @@
+#if UNITY_ADDRESSABLES
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -959,3 +960,27 @@ namespace UnityMCPServer.Handlers
         #endregion
     }
 }
+
+#else
+using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
+using UnityMCPServer.Logging;
+
+namespace UnityMCPServer.Handlers
+{
+    public static class AddressablesHandler
+    {
+        public static object HandleCommand(string action, JObject parameters)
+        {
+            McpLogger.LogWarning("AddressablesHandler", "Addressables未導入");
+            return new Dictionary<string, object>
+            {
+                { "success", false },
+                { "message", "Addressables未導入" },
+                { "solution", "com.unity.addressables を追加してください" }
+            };
+        }
+    }
+}
+#endif
+
