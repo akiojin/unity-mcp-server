@@ -33,7 +33,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
           skipValidation: {
             type: 'boolean',
             description:
-              'If true, skip LSP validation for faster execution. Lightweight syntax checks (brace balance) are still performed. Use for simple edits on large files. Default=false.'
+              'Deprecated. LSP validation must always run; skipValidation is not allowed.'
           },
           instructions: {
             type: 'array',
@@ -85,9 +85,12 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
 
   validate(params) {
     super.validate(params);
-    const { path: filePath, instructions } = params;
+    const { path: filePath, instructions, skipValidation } = params;
     if (!filePath || String(filePath).trim() === '') {
       throw new Error('path cannot be empty');
+    }
+    if (skipValidation === true) {
+      throw new Error('skipValidation is not allowed; LSP validation is required');
     }
     if (!Array.isArray(instructions) || instructions.length === 0) {
       throw new Error('instructions must be a non-empty array');
@@ -126,6 +129,9 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     const preview = params.preview === true;
     const skipValidation = params.skipValidation === true;
     const instructions = params.instructions;
+    if (skipValidation) {
+      throw new Error('skipValidation is not allowed; LSP validation is required');
+    }
 
     let original;
     try {
