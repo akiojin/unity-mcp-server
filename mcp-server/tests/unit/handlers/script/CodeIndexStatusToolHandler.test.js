@@ -166,6 +166,30 @@ describe('CodeIndexStatusToolHandler', () => {
       assert.equal(result.index.buildJob.source, 'worker');
     });
 
+    it('should default progress phase when missing', async () => {
+      handler.codeIndex = {
+        disabled: false,
+        isReady: async () => false,
+        getStats: async () => ({ total: 0, lastIndexedAt: null, totalFilesEstimate: 0 })
+      };
+      handler.jobManager = {
+        getAllJobs: () => [
+          {
+            id: 'build-1730188800001',
+            status: 'running',
+            startedAt: '2025-01-01T00:00:00Z',
+            progress: { processed: 1, total: 10, rate: 0.5 }
+          }
+        ]
+      };
+
+      const result = await handler.execute({});
+
+      assert.equal(result.success, true);
+      assert.ok(result.index?.buildJob?.progress);
+      assert.equal(result.index.buildJob.progress.phase, 'index');
+    });
+
     it('should report failed build job when index is not ready', async () => {
       handler.codeIndex = {
         disabled: false,
