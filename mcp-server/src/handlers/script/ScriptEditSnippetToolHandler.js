@@ -10,7 +10,16 @@ import { logger } from '../../core/config.js';
 const MAX_INSTRUCTIONS = 10;
 const MAX_DIFF_CHARS = 80;
 const PREVIEW_MAX = 1000;
+const DEFAULT_MAX_VALIDATION_LINES = 2000;
+const DEFAULT_MAX_VALIDATION_BYTES = 100000;
 const normalizeSlashes = p => p.replace(/\\/g, '/');
+const parseLimit = (raw, fallback) => {
+  if (typeof raw !== 'string') return fallback;
+  const n = Number.parseInt(raw.trim(), 10);
+  if (!Number.isFinite(n)) return fallback;
+  if (n <= 0) return null;
+  return n;
+};
 
 export class ScriptEditSnippetToolHandler extends BaseToolHandler {
   constructor(unityConnection) {
@@ -171,15 +180,36 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       );
     }
 
-    // LSP validation (skip if skipValidation=true for large files)
+    // LSP validation (skip if skipValidation=true or auto-skip triggers)
     let diagnostics = [];
-    if (!skipValidation) {
-      diagnostics = await this.#validateWithLsp(info, relative, working);
-      const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
-      if (hasErrors) {
-        const first = diagnostics.find(d => this.#severityIsError(d.severity));
-        const msg = first?.message || 'syntax error';
-        throw new Error(`syntax_error: ${msg}`);
+    let validationSkipped = false;
+    let validationSkipReason = null;
+    let validationSkipMetrics = null;
+    const policy = this.#resolveValidationPolicy(working, skipValidation);
+    if (policy.skip) {
+      validationSkipped = true;
+      validationSkipReason = policy.reason;
+      validationSkipMetrics = policy.metrics;
+    } else {
+      try {
+        diagnostics = await this.#validateWithLsp(info, relative, working);
+        const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
+        if (hasErrors) {
+          const first = diagnostics.find(d => this.#severityIsError(d.severity));
+          const msg = first?.message || 'syntax error';
+          throw new Error(`syntax_error: ${msg}`);
+        }
+      } catch (e) {
+        if (this.#isTimeoutError(e)) {
+          validationSkipped = true;
+          validationSkipReason = 'lsp_timeout';
+          validationSkipMetrics = { timeoutMs: null };
+          logger.warning(
+            `[Handler edit_snippet] LSP validation timed out; skipping diagnostics for ${relative}`
+          );
+        } else {
+          throw e;
+        }
       }
     }
 
@@ -193,7 +223,9 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       original,
       updated: working,
       diagnostics,
-      validationSkipped: skipValidation
+      validationSkipped,
+      validationSkipReason,
+      validationSkipMetrics
     });
   }
 
@@ -307,6 +339,27 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     return await this.lsp.validateText(relative, updatedText);
   }
 
+  #resolveValidationPolicy(updatedText, skipValidation) {
+    if (skipValidation) {
+      return { skip: true, reason: 'skip_validation', metrics: null };
+    }
+    const maxLines = parseLimit(
+      process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_LINES,
+      DEFAULT_MAX_VALIDATION_LINES
+    );
+    const maxBytes = parseLimit(
+      process.env.UNITY_MCP_EDIT_SNIPPET_MAX_VALIDATION_BYTES,
+      DEFAULT_MAX_VALIDATION_BYTES
+    );
+    const bytes = Buffer.byteLength(updatedText ?? '', 'utf8');
+    const lines = updatedText ? updatedText.split('\n').length : 0;
+    const metrics = { lines, bytes, maxLines, maxBytes };
+    if ((maxLines && lines > maxLines) || (maxBytes && bytes > maxBytes)) {
+      return { skip: true, reason: 'auto_skip_large_file', metrics };
+    }
+    return { skip: false, reason: null, metrics: null };
+  }
+
 
   #buildResponse({
     preview,
@@ -314,7 +367,9 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     original,
     updated,
     diagnostics = [],
-    validationSkipped = false
+    validationSkipped = false,
+    validationSkipReason = null,
+    validationSkipMetrics = null
   }) {
     const out = {
       success: true,
@@ -325,6 +380,12 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       beforeHash: this.#hash(original),
       afterHash: this.#hash(updated)
     };
+    if (validationSkipped && validationSkipReason) {
+      out.validationSkipReason = validationSkipReason;
+    }
+    if (validationSkipped && validationSkipMetrics) {
+      out.validationSkipMetrics = validationSkipMetrics;
+    }
     if (preview) {
       out.preview = this.#clipPreview(updated);
     }
@@ -357,5 +418,10 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     }
     const s = String(severity).toLowerCase();
     return s === 'error' || s === '2';
+  }
+
+  #isTimeoutError(error) {
+    const msg = String(error?.message || error || '');
+    return /timed out/i.test(msg);
   }
 }
