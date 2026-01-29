@@ -4,7 +4,10 @@
       "command": "node",
       "args": [
         "mcp-server/bin/unity-mcp-server"
-      ]
+      ],
+      "env": {
+        "UNITY_MCP_MCP_HOST": "${UNITY_MCP_MCP_HOST}"
+      }
     },
     "context7": {
       "type": "sse",
