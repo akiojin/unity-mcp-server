@@ -273,8 +273,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
 
 **オプション**:
 - `preview`: `true`でファイル書き込みなし、プレビュー返却
-- `skipValidation`: **原則使用禁止**。LSPタイムアウト回避目的での使用は絶対にNG
-  - 例外的に使用する場合も、LSPが正常に完走する状態を先に作ること
+- `skipValidation`: **使用禁止**（リクエストはエラー）。LSPタイムアウト回避のフォールバックは絶対にNG
 
 **使用例**:
 
@@ -339,21 +338,7 @@ Speckitは要件ディレクトリ（`specs/SPEC-xxxxxxxx/`）のみを作成し
   ]
 }
 
-// 大きなファイルでの編集（LSP検証スキップ）
-{
-  "path": "Assets/Scripts/LargeFile.cs",
-  "skipValidation": true,
-  "instructions": [
-    {
-      "operation": "replace",
-      "anchor": {
-        "type": "text",
-        "target": "maxCount = 100"
-      },
-      "newText": "maxCount = 200"
-    }
-  ]
-}
+// 大きなファイルでもLSP検証は必須（フォールバック禁止）
 ```
 
 #### `edit_structured`: 構造化編集（メソッド本体、クラスメンバー追加）
