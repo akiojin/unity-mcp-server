@@ -112,3 +112,9 @@ bash .specify/scripts/bash/check-prerequisites.sh --json --paths-only || true
 例:
 
 > 「Speckitを上流v0.0.xxへ更新して。Runbook（docs/runbooks/speckit-upgrade.md）の不変条件（日本語/ブランチ無し/SPEC-ID/specs/specs.md生成）を必ず満たして。差分は .specify/upstream に取り込んで確認してから反映して。」
+
+## 更新履歴
+
+| 日付       | 上流タグ | 対応者 | 概要                                                  |
+|------------|----------|--------|-------------------------------------------------------|
+| 2026-01-30 | v0.0.90  | Claude | テンプレート拡張を日本語化。スクリプトは現状維持。    |
