@@ -34,6 +34,23 @@ export UNITY_PROJECT_ROOT=.
 | `UNITY_MCP_HTTP_PORT` | `6401` | HTTP port (when enabled) |
 | `UNITY_MCP_TELEMETRY_ENABLED` | `false` | Can also be controlled by command flags |
 | `UNITY_MCP_LSP_REQUEST_TIMEOUT_MS` | `60000` | LSP request timeout (ms) |
+| `UNITY_MCP_TOOL_INCLUDE_CATEGORIES` | (unset) | Comma-separated allowlist categories for `tools/list` (e.g. `scene,gameobject,script`) |
+| `UNITY_MCP_TOOL_EXCLUDE_CATEGORIES` | (unset) | Comma-separated denylist categories for `tools/list` (e.g. `ui,input,addressables`) |
+
+### Tool Category Filtering (for clients with tool-count limits)
+
+Some MCP clients reject servers when too many tools are exposed. Use category filters to reduce
+`tools/list` output.
+
+Example:
+
+```bash
+export UNITY_MCP_TOOL_INCLUDE_CATEGORIES=system,scene,gameobject,analysis,script
+export UNITY_MCP_TOOL_EXCLUDE_CATEGORIES=ui,input,addressables,video,screenshot,profiler
+```
+
+Supported categories:
+`system, gameobject, scene, analysis, playmode, ui, input, asset, prefab, material, addressables, menu, console, screenshot, video, component, compilation, test, editor, settings, package, script, profiler`
 
 ## Unity (Project Settings)
 
@@ -80,6 +97,23 @@ export UNITY_PROJECT_ROOT=.
 | `UNITY_MCP_HTTP_PORT` | `6401` | HTTPポート |
 | `UNITY_MCP_TELEMETRY_ENABLED` | `false` | コマンドフラグでも切替可能 |
 | `UNITY_MCP_LSP_REQUEST_TIMEOUT_MS` | `60000` | LSP リクエストタイムアウト（ms） |
+| `UNITY_MCP_TOOL_INCLUDE_CATEGORIES` | 未設定 | `tools/list` の公開カテゴリをカンマ区切りで指定（例: `scene,gameobject,script`） |
+| `UNITY_MCP_TOOL_EXCLUDE_CATEGORIES` | 未設定 | `tools/list` の除外カテゴリをカンマ区切りで指定（例: `ui,input,addressables`） |
+
+### ツールカテゴリフィルタ（ツール数上限のあるクライアント向け）
+
+一部のMCPクライアントは、ツール数が多いとサーバーを有効化できません。  
+カテゴリフィルタで `tools/list` の公開件数を減らせます。
+
+例:
+
+```bash
+export UNITY_MCP_TOOL_INCLUDE_CATEGORIES=system,scene,gameobject,analysis,script
+export UNITY_MCP_TOOL_EXCLUDE_CATEGORIES=ui,input,addressables,video,screenshot,profiler
+```
+
+指定可能カテゴリ:
+`system, gameobject, scene, analysis, playmode, ui, input, asset, prefab, material, addressables, menu, console, screenshot, video, component, compilation, test, editor, settings, package, script, profiler`
 
 ## Unity（Project Settings）
 

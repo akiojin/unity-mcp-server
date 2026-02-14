@@ -52,6 +52,15 @@ function parseIntEnv(value) {
   return Number.isFinite(n) ? n : undefined;
 }
 
+function parseCsvEnv(value) {
+  if (typeof value !== 'string') return undefined;
+  const items = value
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+  return items;
+}
+
 function envString(key) {
   const raw = process.env[key];
   if (typeof raw !== 'string') return undefined;
@@ -143,6 +152,12 @@ const baseConfig = {
     fields: []
   },
 
+  // Tool visibility filter
+  tools: {
+    includeCategories: [],
+    excludeCategories: []
+  },
+
   // Write queue removed: all edits go through structured Roslyn tools.
 
   // Search-related defaults and engine selection
@@ -190,6 +205,8 @@ function loadEnvConfig() {
   const lspRequestTimeoutMs = parseIntEnv(process.env.UNITY_MCP_LSP_REQUEST_TIMEOUT_MS);
   const lspSlowRequestWarnMs = parseIntEnv(process.env.UNITY_MCP_LSP_SLOW_REQUEST_WARN_MS);
   const lspValidationTimeoutMs = parseIntEnv(process.env.UNITY_MCP_LSP_VALIDATION_TIMEOUT_MS);
+  const includeCategories = parseCsvEnv(process.env.UNITY_MCP_TOOL_INCLUDE_CATEGORIES);
+  const excludeCategories = parseCsvEnv(process.env.UNITY_MCP_TOOL_EXCLUDE_CATEGORIES);
 
   const out = {};
 
@@ -225,6 +242,12 @@ function loadEnvConfig() {
 
   if (telemetryEnabled !== undefined) {
     out.telemetry = { enabled: telemetryEnabled };
+  }
+
+  if (includeCategories !== undefined || excludeCategories !== undefined) {
+    out.tools = {};
+    if (includeCategories !== undefined) out.tools.includeCategories = includeCategories;
+    if (excludeCategories !== undefined) out.tools.excludeCategories = excludeCategories;
   }
 
   if (lspRequestTimeoutMs !== undefined) {
@@ -305,6 +328,25 @@ function validateAndNormalizeConfig(cfg) {
   if (cfg.project?.codeIndexRoot && typeof cfg.project.codeIndexRoot !== 'string') {
     cfg.project.codeIndexRoot = null;
   }
+
+  if (!cfg.tools || typeof cfg.tools !== 'object') {
+    cfg.tools = {};
+  }
+  if (!Array.isArray(cfg.tools.includeCategories)) {
+    cfg.tools.includeCategories = [];
+  }
+  if (!Array.isArray(cfg.tools.excludeCategories)) {
+    cfg.tools.excludeCategories = [];
+  }
+
+  cfg.tools.includeCategories = cfg.tools.includeCategories
+    .filter(v => typeof v === 'string')
+    .map(v => v.trim())
+    .filter(Boolean);
+  cfg.tools.excludeCategories = cfg.tools.excludeCategories
+    .filter(v => typeof v === 'string')
+    .map(v => v.trim())
+    .filter(Boolean);
 
   // lsp timeout sanity
   if (cfg.lsp?.requestTimeoutMs !== undefined) {

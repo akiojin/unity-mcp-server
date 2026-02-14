@@ -5,15 +5,40 @@
 
 ## 概要
 
-Claude CodeなどMCPクライアントで「Capabilities: none」と表示され、107個のツールが認識されない問題を修正。MCP SDK v0.6.1の仕様に準拠し、未サポートのcapability（`resources`, `prompts`）を空オブジェクトではなく省略することで解決する。
+Claude CodeなどMCPクライアントで「Capabilities: none」と表示される問題を修正し、加えてツール数上限（100件）クライアントでも接続可能にする。MCP SDK v0.6.1の仕様準拠（未サポートcapabilityの省略）に加え、カテゴリ指定による公開ツール制御を提供する。
 
 **主要変更箇所**:
 - `mcp-server/src/core/server.js`: capabilities宣言（2箇所）とハンドラー登録（2箇所削除）
-- `mcp-server/README.md`: トラブルシューティングガイド追加
+- `mcp-server/src/core/toolCategoryFilter.js`: カテゴリ正規化・ツール分類・公開判定
+- `mcp-server/src/core/config.js`: カテゴリ指定環境変数読み込み
+- `mcp-server/src/core/server.js`: `tools/list`/`tools/call`へのカテゴリ公開ポリシー適用
+- `docs/configuration.md`, `docs/tools.md`, `README.md`, `README.ja.md`: ツール数上限クライアント向け設定追記
 
 **成功基準**:
 - Claude Codeで「Capabilities: tools」と表示される
-- 既存68個のテストすべて成功
+- カテゴリ指定で`tools/list`を縮小でき、`tools/call`と整合する
+- 既存テストと追加テストが成功する
+
+## 追補 (2026-02-14): Issue #381 対応
+
+### 実装方針
+
+- デフォルト（カテゴリ指定なし）は従来互換で全ツール公開
+- `UNITY_MCP_TOOL_INCLUDE_CATEGORIES` と `UNITY_MCP_TOOL_EXCLUDE_CATEGORIES` を追加
+- includeで候補を絞り、excludeで最終除外する
+- 非公開ツール名の直接実行を`tools/call`で拒否し、`tools/list`の公開範囲と一致させる
+
+### TDD適用方針
+
+1. RED: カテゴリフィルタの単体テストと`startServer`の公開範囲テストを先行追加  
+2. GREEN: `toolCategoryFilter`・`config`・`server`を実装してテスト合格  
+3. REFACTOR: 仕様説明と運用ドキュメント（設定例）を更新
+
+### 追加テスト対象
+
+- `mcp-server/tests/unit/core/toolCategoryFilter.test.js`
+- `mcp-server/tests/unit/core/startServer.test.js`
+- `mcp-server/tests/unit/core/config.test.js`
 
 ## 技術コンテキスト
 

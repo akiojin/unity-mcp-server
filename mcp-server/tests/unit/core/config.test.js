@@ -12,7 +12,9 @@ const ENV_KEYS = [
   'UNITY_MCP_HTTP_ENABLED',
   'UNITY_MCP_HTTP_PORT',
   'UNITY_MCP_TELEMETRY_ENABLED',
-  'UNITY_MCP_LSP_REQUEST_TIMEOUT_MS'
+  'UNITY_MCP_LSP_REQUEST_TIMEOUT_MS',
+  'UNITY_MCP_TOOL_INCLUDE_CATEGORIES',
+  'UNITY_MCP_TOOL_EXCLUDE_CATEGORIES'
 ];
 
 function snapshotEnv() {
@@ -31,7 +33,7 @@ function restoreEnv(snapshot) {
 
 async function importConfigFresh() {
   const moduleUrl = new URL('../../../src/core/config.js', import.meta.url);
-  moduleUrl.searchParams.set('ts', Date.now().toString());
+  moduleUrl.searchParams.set('ts', `${Date.now()}-${Math.random().toString(16).slice(2)}`);
   return import(moduleUrl.href);
 }
 
@@ -83,6 +85,13 @@ describe('Config', () => {
     const { config } = await importConfigFresh();
 
     assert.equal(config.compat.versionMismatch, 'warn');
+  });
+
+  it('should have default tool category filter settings', async () => {
+    const { config } = await importConfigFresh();
+
+    assert.deepEqual(config.tools.includeCategories, []);
+    assert.deepEqual(config.tools.excludeCategories, []);
   });
 
   it('should load version mismatch policy from environment variables', async () => {
@@ -140,6 +149,16 @@ describe('Config', () => {
     assert.equal(config.http.enabled, true);
     assert.equal(config.http.port, 6405);
     assert.equal(config.telemetry.enabled, true);
+  });
+
+  it('should load tool category filters from environment variables', async () => {
+    process.env.UNITY_MCP_TOOL_INCLUDE_CATEGORIES = ' scene, gameobject,script ';
+    process.env.UNITY_MCP_TOOL_EXCLUDE_CATEGORIES = ' ui, input ';
+
+    const { config } = await importConfigFresh();
+
+    assert.deepEqual(config.tools.includeCategories, ['scene', 'gameobject', 'script']);
+    assert.deepEqual(config.tools.excludeCategories, ['ui', 'input']);
   });
 });
 

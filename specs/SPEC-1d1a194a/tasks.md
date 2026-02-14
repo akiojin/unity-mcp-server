@@ -325,6 +325,19 @@ Task 2: "mcp-server/tests/contract/mcp-handler-registration.test.js作成"
 
 ---
 
+## 2026-02-14 追補タスク（Issue #381: カテゴリ指定 + TDD）
+
+- [x] **T024** [P] [US4] `mcp-server/tests/unit/core/toolCategoryFilter.test.js` を追加（カテゴリ分類・include/exclude・未知カテゴリを検証）
+- [x] **T025** [P] [US4] `mcp-server/tests/unit/core/startServer.test.js` にカテゴリフィルタ時の `tools/list` / `tools/call` 整合テストを追加
+- [x] **T026** [P] [US4] `mcp-server/tests/unit/core/config.test.js` にカテゴリ環境変数読込テストを追加
+- [x] **T027** [US4] `mcp-server/src/core/toolCategoryFilter.js` を実装
+- [x] **T028** [US4] `mcp-server/src/core/config.js` に `UNITY_MCP_TOOL_INCLUDE_CATEGORIES` / `UNITY_MCP_TOOL_EXCLUDE_CATEGORIES` を実装
+- [x] **T029** [US4] `mcp-server/src/core/server.js` で `tools/list` と `tools/call` に公開ポリシーを適用
+- [x] **T030** [US4] `docs/configuration.md`, `docs/tools.md`, `README.md`, `README.ja.md` を更新
+- [x] **T031** [US4] `node --test tests/unit/core/toolCategoryFilter.test.js tests/unit/core/config.test.js tests/unit/core/startServer.test.js` を実行し、GREENを確認
+
+---
+
 ## 検証チェックリスト
 
 - [x] すべてのcontractsに対応するテストがある（T004, T005）

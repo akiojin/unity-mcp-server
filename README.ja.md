@@ -120,6 +120,13 @@ Node 側は **環境変数のみ**、Unity 側の host/port は **Project Settin
 
 Unity MCP Server は **100+ ツール**を提供します。`search_tools` を使って目的のツールを素早く探すのが推奨です。
 
+ツール数上限のあるクライアントでは、環境変数でカテゴリ単位に公開ツールを絞り込めます:
+
+```bash
+export UNITY_MCP_TOOL_INCLUDE_CATEGORIES=system,scene,gameobject,analysis,script
+export UNITY_MCP_TOOL_EXCLUDE_CATEGORIES=ui,input,addressables,video,screenshot,profiler
+```
+
 ツール探索とコードインデックス運用は [docs/tools.md](docs/tools.md) を参照してください。
 
 ## Claude Code スキル
