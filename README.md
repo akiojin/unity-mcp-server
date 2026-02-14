@@ -120,6 +120,13 @@ See [docs/configuration.md](docs/configuration.md).
 
 Unity MCP Server ships **100+ tools**. Use the `search_tools` meta-tool to discover the right tool quickly.
 
+For clients with strict tool-count limits, you can filter exposed tools by category:
+
+```bash
+export UNITY_MCP_TOOL_INCLUDE_CATEGORIES=system,scene,gameobject,analysis,script
+export UNITY_MCP_TOOL_EXCLUDE_CATEGORIES=ui,input,addressables,video,screenshot,profiler
+```
+
 See [docs/tools.md](docs/tools.md) for discovery tips and the recommended Code Index workflow.
 
 Note: `find_refs` supports paging via `startAfter` and returns `cursor` when results are truncated.

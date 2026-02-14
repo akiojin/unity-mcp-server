@@ -28,6 +28,17 @@ Tips:
 - Use `tags` to filter by intent (e.g. `create`, `modify`, `read`)
 - Set `includeSchemas: true` only when you need the full input schema
 
+## Client Tool Limits
+
+For MCP clients with strict tool limits, filter `tools/list` using environment variables:
+
+```bash
+export UNITY_MCP_TOOL_INCLUDE_CATEGORIES=system,scene,gameobject,analysis,script
+export UNITY_MCP_TOOL_EXCLUDE_CATEGORIES=ui,input,addressables,video,screenshot,profiler
+```
+
+Filtering also applies to `tools/call` so hidden tools cannot be executed by name.
+
 ## Code Index Workflow (for script tools)
 
 For stable, fast code operations:
@@ -74,6 +85,17 @@ Unity MCP Server は Unity Editor 自動化の **100+ ツール**を提供しま
 - `category` で領域を限定（例: `scene`, `script`, `asset`）
 - `tags` で意図を限定（例: `create`, `modify`, `read`）
 - `includeSchemas: true` は必要なときだけ（入力スキーマが大きい）
+
+## ツール数上限のあるクライアント向け
+
+ツール数制限があるMCPクライアントでは、環境変数で `tools/list` を絞り込みます。
+
+```bash
+export UNITY_MCP_TOOL_INCLUDE_CATEGORIES=system,scene,gameobject,analysis,script
+export UNITY_MCP_TOOL_EXCLUDE_CATEGORIES=ui,input,addressables,video,screenshot,profiler
+```
+
+このフィルタは `tools/call` にも適用されるため、非公開ツール名の直接実行もブロックされます。
 
 ## コードインデックス運用（script系ツール向け）
 

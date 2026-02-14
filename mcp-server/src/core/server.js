@@ -16,6 +16,7 @@
 import fs from 'node:fs';
 import { StdioRpcServer } from './stdioRpcServer.js';
 import { createProjectRootGuard } from './projectRootGuard.js';
+import { createToolCategoryPolicy, filterToolsByCategory } from './toolCategoryFilter.js';
 
 // Deferred state - will be initialized after transport connection
 let unityConnection = null;
@@ -126,7 +127,40 @@ export async function startServer(options = {}) {
       ...config,
       http: { ...config.http, ...(options.http || {}) },
       telemetry: { ...config.telemetry, ...(options.telemetry || {}) },
+      tools: {
+        includeCategories: config.tools?.includeCategories || [],
+        excludeCategories: config.tools?.excludeCategories || []
+      },
       stdioEnabled: options.stdioEnabled !== undefined ? options.stdioEnabled : true
+    };
+    const toolCategoryPolicy = createToolCategoryPolicy(runtimeConfig.tools, logger);
+    let publicToolNames = null;
+    let toolFilterLogged = false;
+
+    const applyCategoryFilter = tools => {
+      if (!toolCategoryPolicy.isActive) {
+        return tools;
+      }
+
+      const filtered = filterToolsByCategory(tools, toolCategoryPolicy);
+      publicToolNames = filtered.publicToolNames;
+
+      if (!toolFilterLogged) {
+        const include =
+          toolCategoryPolicy.includeList.length > 0
+            ? toolCategoryPolicy.includeList.join(', ')
+            : '(all)';
+        const exclude =
+          toolCategoryPolicy.excludeList.length > 0
+            ? toolCategoryPolicy.excludeList.join(', ')
+            : '(none)';
+        logger.info(
+          `[MCP] Tool category filter enabled. include=${include}, exclude=${exclude}`
+        );
+        toolFilterLogged = true;
+      }
+
+      return filtered.tools;
     };
 
     const projectInfoProvider =
@@ -331,14 +365,15 @@ export async function startServer(options = {}) {
     server?.setRequestHandler('tools/list', async () => {
       const manifestTools = readToolManifest();
       if (manifestTools) {
-        logger.info(`[MCP] Returning ${manifestTools.length} tool definitions`);
+        const visibleTools = applyCategoryFilter(manifestTools);
+        logger.info(`[MCP] Returning ${visibleTools.length} tool definitions`);
         requestPostInit();
-        return { tools: manifestTools };
+        return { tools: visibleTools };
       }
 
       await ensureInitialized(deps);
 
-      const tools = Array.from(handlers.values())
+      const allTools = Array.from(handlers.values())
         .map((handler, index) => {
           try {
             const definition = handler.getDefinition();
@@ -356,6 +391,7 @@ export async function startServer(options = {}) {
         })
         .filter(tool => tool !== null);
 
+      const tools = applyCategoryFilter(allTools);
       logger.info(`[MCP] Returning ${tools.length} tool definitions`);
       requestPostInit();
       return { tools };
@@ -372,6 +408,17 @@ export async function startServer(options = {}) {
         `[MCP] Received tool call request: ${name} at ${new Date(requestTime).toISOString()}`,
         { args }
       );
+
+      if (toolCategoryPolicy.isActive) {
+        if (!publicToolNames) {
+          const handlerTools = Array.from(handlers.values()).map(handler => ({ name: handler.name }));
+          publicToolNames = filterToolsByCategory(handlerTools, toolCategoryPolicy).publicToolNames;
+        }
+        if (!publicToolNames.has(name)) {
+          logger.error(`[MCP] Tool not found (filtered): ${name}`);
+          throw new Error(`Tool not found: ${name}`);
+        }
+      }
 
       const guardError = await projectRootGuard(args || {});
       if (guardError) {

@@ -6,7 +6,7 @@ on:
 
 jobs:
   specs-readme:
-    name: Verify specs/README.md is up-to-date
+    name: Verify specs/specs.md is up-to-date
     runs-on: ubuntu-latest
     timeout-minutes: 2
 
@@ -14,14 +14,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Generate specs/README.md
+      - name: Generate specs/specs.md
         run: bash .specify/scripts/bash/update-specs-readme.sh --quiet
 
-      - name: Fail if specs/README.md changed
+      - name: Verify Speckit command invariants
+        run: bash .specify/scripts/checks/check-speckit-commands.sh
+
+      - name: Fail if specs/specs.md changed
         run: |
-          status="$(git status --porcelain -- specs/README.md)"
+          status="$(git status --porcelain -- specs/specs.md)"
           if [[ -n "$status" ]]; then
-            echo "ERROR: specs/README.md が最新ではありません。"
+            echo "ERROR: specs/specs.md が最新ではありません。"
             echo "ローカルで次を実行してコミットしてください:"
             echo "  bash .specify/scripts/bash/update-specs-readme.sh --quiet"
             echo ""

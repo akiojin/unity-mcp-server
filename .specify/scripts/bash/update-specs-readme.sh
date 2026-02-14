@@ -63,7 +63,7 @@ trap 'rm -f "$tmp_file"' EXIT INT TERM
 {
     echo "# 要件一覧"
     echo ""
-    echo 'このファイルは `.specify/scripts/bash/update-specs-readme.sh` により自動生成されます。'
+    echo 'このファイルは `.specify/scripts/bash/update-specs-readme.sh` または `.specify/scripts/powershell/create-new-feature.ps1` により自動生成されます。'
     echo '手動編集は避けてください（再生成で上書きされます）。'
     echo ""
     echo "## ステータス別一覧"
@@ -76,36 +76,60 @@ while IFS= read -r id; do
     spec_ids+=("$id")
 done < <(find "$SPECS_DIR" -maxdepth 1 -mindepth 1 -type d -name 'SPEC-*' -exec basename {} \; 2>/dev/null | grep -E '^SPEC-[a-z0-9]{8}$' | sort)
 
-declare -A GROUP_ROWS
-declare -A GROUP_COUNTS
-declare -a GROUP_ORDER
+GROUP_ORDER=()
+GROUP_ROWS=()
+GROUP_COUNTS=()
+
+get_group_index() {
+    local key="$1"
+    local i=0
+    for existing in "${GROUP_ORDER[@]+"${GROUP_ORDER[@]}"}"; do
+        if [[ "$existing" == "$key" ]]; then
+            echo "$i"
+            return 0
+        fi
+        i=$((i + 1))
+    done
+    echo "-1"
+}
 
 register_group() {
     local key="$1"
-    for existing in "${GROUP_ORDER[@]}"; do
-        if [[ "$existing" == "$key" ]]; then
-            return 0
-        fi
-    done
+    local idx
+    idx="$(get_group_index "$key")"
+    if [[ "$idx" != "-1" ]]; then
+        return 0
+    fi
+
     GROUP_ORDER+=("$key")
+    GROUP_ROWS+=("")
+    GROUP_COUNTS+=(0)
 }
 
 append_group_row() {
     local key="$1"
     local row="$2"
-    if [[ -n "${GROUP_ROWS[$key]:-}" ]]; then
-        GROUP_ROWS[$key]="${GROUP_ROWS[$key]}"$'\n'"$row"
-    else
-        GROUP_ROWS[$key]="$row"
+    local idx
+    idx="$(get_group_index "$key")"
+    if [[ "$idx" == "-1" ]]; then
+        register_group "$key"
+        idx="$((${#GROUP_ORDER[@]} - 1))"
     fi
-    GROUP_COUNTS[$key]=$(( ${GROUP_COUNTS[$key]:-0} + 1 ))
+
+    local current="${GROUP_ROWS[$idx]}"
+    if [[ -n "$current" ]]; then
+        GROUP_ROWS[$idx]="${current}"$'\n'"$row"
+    else
+        GROUP_ROWS[$idx]="$row"
+    fi
+    GROUP_COUNTS[$idx]=$(( ${GROUP_COUNTS[$idx]} + 1 ))
 }
 
 if [[ ${#spec_ids[@]} -eq 0 ]]; then
     register_group "未設定"
     append_group_row "未設定" "| (なし) | - | - | - |"
 else
-    for id in "${spec_ids[@]}"; do
+    for id in "${spec_ids[@]+"${spec_ids[@]}"}"; do
         spec_file="$SPECS_DIR/$id/spec.md"
 
         title=""
@@ -151,13 +175,21 @@ added=()
 
 add_group_output() {
     local key="$1"
-    local count="${GROUP_COUNTS[$key]:-0}"
+    local idx
+    idx="$(get_group_index "$key")"
+    local count="0"
+    local rows=""
+    if [[ "$idx" != "-1" ]]; then
+        count="${GROUP_COUNTS[$idx]}"
+        rows="${GROUP_ROWS[$idx]}"
+    fi
+
     echo "### $key (${count}件)" >>"$tmp_file"
     echo "" >>"$tmp_file"
     echo "| 要件ID | タイトル | ステータス | 作成日 |" >>"$tmp_file"
     echo "|---|---|---|---|" >>"$tmp_file"
-    if [[ -n "${GROUP_ROWS[$key]:-}" ]]; then
-        echo "${GROUP_ROWS[$key]}" >>"$tmp_file"
+    if [[ -n "$rows" ]]; then
+        printf '%s\n' "$rows" >>"$tmp_file"
     else
         echo "| (なし) | - | - | - |" >>"$tmp_file"
     fi
@@ -166,14 +198,15 @@ add_group_output() {
 }
 
 for key in "${preferred_order[@]}"; do
-    if [[ -n "${GROUP_ROWS[$key]:-}" ]]; then
+    idx="$(get_group_index "$key")"
+    if [[ "$idx" != "-1" && -n "${GROUP_ROWS[$idx]}" ]]; then
         add_group_output "$key"
     fi
 done
 
 for key in "${GROUP_ORDER[@]}"; do
     skip=false
-    for existing in "${added[@]}"; do
+    for existing in "${added[@]+"${added[@]}"}"; do
         if [[ "$existing" == "$key" ]]; then
             skip=true
             break
