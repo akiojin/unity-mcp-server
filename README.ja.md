@@ -37,7 +37,7 @@ Unity MCP Server は、LLMクライアントからUnity Editorを自動化しま
 ## 要件
 
 - Unity 2020.3 LTS以降
-- Node.js 18.x / 20.x / 22.x LTS（23以上は非対応）
+- Node.js 18.x / 20.x / 22.x / 24.x LTS（25以上は非対応）
 - Claude Desktop または MCP対応クライアント
 
 ## インストール

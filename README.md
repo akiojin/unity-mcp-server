@@ -37,7 +37,7 @@ Key benefits:
 ## Requirements
 
 - Unity 2020.3 LTS or newer
-- Node.js 18.x / 20.x / 22.x LTS (23+ not supported)
+- Node.js 18.x / 20.x / 22.x / 24.x LTS (25+ not supported)
 - Claude Desktop or another MCP-compatible client
 
 ## Installation

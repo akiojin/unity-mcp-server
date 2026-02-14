@@ -72,10 +72,56 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  compat-node:
+    name: Node Compatibility (${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18, 22, 24]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install build tools (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 make gcc g++
+
+      - name: Install mcp-server dependencies
+        working-directory: ./mcp-server
+        run: pnpm install --frozen-lockfile
+
+      - name: Run compatibility smoke tests
+        working-directory: ./mcp-server
+        run: >
+          node --test
+          tests/unit/scripts/ensure-better-sqlite3.test.js
+          tests/unit/core/codeIndex.test.js
+          tests/unit/core/server.test.js
+        env:
+          NODE_ENV: test
+          CI: true
+          DISABLE_AUTO_RECONNECT: true
+
   build:
     name: Package
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, compat-node]
     timeout-minutes: 10
 
     steps:
