@@ -7,7 +7,8 @@ import { createRequire } from 'node:module';
 const ABI_BY_NODE_MAJOR = new Map([
   [18, 115],
   [20, 120],
-  [22, 131]
+  [22, 131],
+  [24, 137]
 ]);
 
 export function parseEnvFlag(value) {

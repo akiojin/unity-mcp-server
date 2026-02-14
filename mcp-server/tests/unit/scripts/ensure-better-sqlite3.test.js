@@ -19,6 +19,7 @@ describe('scripts/ensure-better-sqlite3.mjs', () => {
     assert.strictEqual(resolveNodeAbi({ nodeVersion: '18.20.0' }), 115);
     assert.strictEqual(resolveNodeAbi({ nodeVersion: '20.11.1' }), 120);
     assert.strictEqual(resolveNodeAbi({ nodeVersion: '22.0.0' }), 131);
+    assert.strictEqual(resolveNodeAbi({ nodeVersion: '24.0.0' }), 137);
   });
 
   it('builds platform key from runtime info', () => {
