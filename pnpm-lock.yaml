@@ -60,8 +60,8 @@ importers:
 
 packages:
 
-  '@alcalzone/ansi-tokenize@0.2.2':
-    resolution: {integrity: sha512-mkOh+Wwawzuf5wa30bvc4nA+Qb6DIrGWgBhRR/Pw4T9nsgYait8izvXkNyU78D6Wcu3Z+KUdwCmLCxlWjEotYA==}
+  '@alcalzone/ansi-tokenize@0.2.5':
+    resolution: {integrity: sha512-3NX/MpTdroi0aKz134A6RC2Gb2iXVECN4QaAXnvCIxxIm3C3AVB1mkUe8NaaiyvOpDfsrqWhYtj+Q6a62RrTsw==}
     engines: {node: '>=18'}
 
   '@babel/code-frame@7.27.1':
@@ -759,8 +759,8 @@ packages:
   ansi-align@3.0.1:
     resolution: {integrity: sha512-IOfwwBF5iczOjp/WeY4YxyjqAFMQoZufdQWDd19SEExbVLNXqvpzSJ/M7Za4/sCPmQ0+GRquoA7bGcINcxew6w==}
 
-  ansi-escapes@7.2.0:
-    resolution: {integrity: sha512-g6LhBsl+GBPRWGWsBtutpzBYuIIdBkLEvad5C/va/74Db018+5TZiyA26cZJAr3Rft5lprVqOIPxf5Vid6tqAw==}
+  ansi-escapes@7.3.0:
+    resolution: {integrity: sha512-BvU8nYgGQBxcmMuEeUEmNTvrMVjJNSH7RgW24vXexN4Ven6qCvy4TntnvlnwnMLTVlcRQQdbRY8NKnaIoeWDNg==}
     engines: {node: '>=18'}
 
   ansi-regex@5.0.1:
@@ -1250,8 +1250,8 @@ packages:
     resolution: {integrity: sha512-w+5mJ3GuFL+NjVtJlvydShqE1eN3h3PbI7/5LAsYJP/2qtuMXjfL2LpHSRqo4b4eSF5K/DH1JXKUAHSB2UW50g==}
     engines: {node: '>= 0.4'}
 
-  es-toolkit@1.43.0:
-    resolution: {integrity: sha512-SKCT8AsWvYzBBuUqMk4NPwFlSdqLpJwmy6AP322ERn8W2YLIB6JBXnwMI2Qsh2gfphT3q7EKAxKb23cvFHFwKA==}
+  es-toolkit@1.44.0:
+    resolution: {integrity: sha512-6penXeZalaV88MM3cGkFZZfOoLGWshWWfdy0tWw/RlVVyhvMaWSBTOvXNeiW3e5FwdS5ePW0LGEu17zT139ktg==}
 
   escalade@3.2.0:
     resolution: {integrity: sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==}
@@ -2922,8 +2922,8 @@ packages:
     resolution: {integrity: sha512-g9ljZiwki/LfxmQADO3dEY1CbpmXT5Hm2fJ+QaGKwSXUylMybePR7/67YW7jOrrvjEgL1Fmz5kzyAjWVWLlucg==}
     engines: {node: '>=6'}
 
-  tar@7.5.6:
-    resolution: {integrity: sha512-xqUeu2JAIJpXyvskvU3uvQW8PAmHrtXp2KDuMJwQqW8Sqq0CaZBAQ+dKS3RBXVhU4wC5NjAdKrmh84241gO9cA==}
+  tar@7.5.7:
+    resolution: {integrity: sha512-fov56fJiRuThVFXD6o6/Q354S7pnWMJIVlDBYijsTNx6jKSE4pvrDTs6lUnmGvNyfJwFQQwWy3owKz1ucIhveQ==}
     engines: {node: '>=18'}
 
   teeny-request@9.0.0:
@@ -3127,8 +3127,8 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
-  ws@8.18.3:
-    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
+  ws@8.19.0:
+    resolution: {integrity: sha512-blAT2mjOEIi0ZzruJfIhb3nps74PRWTCz1IjglWEEpQl5XS/UNama6u2/rjFkDDouqr4L67ry+1aGIALViWjDg==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -3191,7 +3191,7 @@ packages:
 
 snapshots:
 
-  '@alcalzone/ansi-tokenize@0.2.2':
+  '@alcalzone/ansi-tokenize@0.2.5':
     dependencies:
       ansi-styles: 6.2.3
       is-fullwidth-code-point: 5.1.0
@@ -3494,7 +3494,7 @@ snapshots:
       tree-sitter-bash: 0.25.1
       undici: 7.19.1
       web-tree-sitter: 0.25.10
-      ws: 8.18.3
+      ws: 8.19.0
       zod: 3.25.76
     optionalDependencies:
       '@lydell/node-pty': 1.1.0
@@ -3550,7 +3550,7 @@ snapshots:
       string-width: 8.1.0
       strip-ansi: 7.1.2
       strip-json-comments: 3.1.1
-      tar: 7.5.6
+      tar: 7.5.7
       tinygradient: 1.1.5
       undici: 7.19.1
       wrap-ansi: 9.0.2
@@ -3575,7 +3575,7 @@ snapshots:
   '@google/genai@1.30.0(@modelcontextprotocol/sdk@1.25.3(hono@4.11.3)(zod@3.25.76))':
     dependencies:
       google-auth-library: 10.5.0
-      ws: 8.18.3
+      ws: 8.19.0
     optionalDependencies:
       '@modelcontextprotocol/sdk': 1.25.3(hono@4.11.3)(zod@3.25.76)
     transitivePeerDependencies:
@@ -3652,8 +3652,8 @@ snapshots:
 
   '@jrichman/ink@6.4.6(react@19.2.3)':
     dependencies:
-      '@alcalzone/ansi-tokenize': 0.2.2
-      ansi-escapes: 7.2.0
+      '@alcalzone/ansi-tokenize': 0.2.5
+      ansi-escapes: 7.3.0
       ansi-styles: 6.2.3
       auto-bind: 5.0.1
       chalk: 5.6.2
@@ -3661,7 +3661,7 @@ snapshots:
       cli-cursor: 4.0.0
       cli-truncate: 4.0.0
       code-excerpt: 4.0.0
-      es-toolkit: 1.43.0
+      es-toolkit: 1.44.0
       indent-string: 5.0.0
       is-in-ci: 2.0.0
       mnemonist: 0.40.3
@@ -3674,7 +3674,7 @@ snapshots:
       string-width: 8.1.0
       type-fest: 4.41.0
       wrap-ansi: 9.0.2
-      ws: 8.18.3
+      ws: 8.19.0
       yoga-layout: 3.2.1
     transitivePeerDependencies:
       - bufferutil
@@ -4184,7 +4184,7 @@ snapshots:
     dependencies:
       string-width: 4.2.3
 
-  ansi-escapes@7.2.0:
+  ansi-escapes@7.3.0:
     dependencies:
       environment: 1.1.0
 
@@ -4723,7 +4723,7 @@ snapshots:
       is-date-object: 1.1.0
       is-symbol: 1.1.1
 
-  es-toolkit@1.43.0: {}
+  es-toolkit@1.44.0: {}
 
   escalade@3.2.0: {}
 
@@ -6676,7 +6676,7 @@ snapshots:
 
   tapable@2.3.0: {}
 
-  tar@7.5.6:
+  tar@7.5.7:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0
@@ -6905,7 +6905,7 @@ snapshots:
 
   wrappy@1.0.2: {}
 
-  ws@8.18.3: {}
+  ws@8.19.0: {}
 
   wsl-utils@0.1.0:
     dependencies:
