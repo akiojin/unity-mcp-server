@@ -1,5 +1,17 @@
 ## [Unreleased]
 
+## [5.5.0](https://github.com/akiojin/unity-mcp-server/compare/v5.4.0...v5.5.0) (2026-02-15)
+
+
+### Features
+
+* Node.js 24 サポートを追加 ([d3caf15](https://github.com/akiojin/unity-mcp-server/commit/d3caf15))
+
+
+### Bug Fixes
+
+* **core:** filter tools by category for tool limits ([1767e04](https://github.com/akiojin/unity-mcp-server/commit/1767e04))
+
 ## [5.4.0](https://github.com/akiojin/unity-mcp-server/compare/v5.3.2...v5.4.0) (2026-01-29)
 
 
