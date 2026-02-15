@@ -251,7 +251,7 @@ export class LspRpcClient {
       } else {
         hint = 'Check request parameters or increase lsp.requestTimeoutMs.';
       }
-      throw new Error(`[${method}] failed: ${msg}. ${hint}`);
+      throw new Error(`[${method}] failed: ${msg}. ${hint}`, { cause: e });
     }
   }
 

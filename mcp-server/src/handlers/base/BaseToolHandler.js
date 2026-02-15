@@ -179,7 +179,7 @@ export class BaseToolHandler {
 
     return entries
       .map(([key, value]) => {
-        let valueStr = '';
+        let valueStr;
         if (value === null) {
           valueStr = 'null';
         } else if (value === undefined) {

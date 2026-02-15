@@ -132,7 +132,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
       original = await fs.readFile(absolute, 'utf8');
     } catch (e) {
       if (e && e.code === 'ENOENT') {
-        throw new Error(`file not found: ${relative}`);
+        throw new Error(`file not found: ${relative}`, { cause: e });
       }
       throw e;
     }
@@ -172,8 +172,7 @@ export class ScriptEditSnippetToolHandler extends BaseToolHandler {
     }
 
     // LSP validation
-    let diagnostics = [];
-    diagnostics = await this.#validateWithLsp(info, relative, working);
+    const diagnostics = await this.#validateWithLsp(info, relative, working);
     const hasErrors = diagnostics.some(d => this.#severityIsError(d.severity));
     if (hasErrors) {
       const first = diagnostics.find(d => this.#severityIsError(d.severity));

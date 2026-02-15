@@ -183,7 +183,7 @@ function createMockUnityServer({ host = '127.0.0.1', port = 6400 } = {}) {
 
         if (cmd?.type) receivedTypes.add(String(cmd.type));
 
-        let result = {};
+        let result;
         switch (cmd?.type) {
           case 'ping':
             result = {
