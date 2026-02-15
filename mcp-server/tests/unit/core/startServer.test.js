@@ -215,6 +215,26 @@ describe('startServer (deps injection)', () => {
     assert.equal(createHandlersCalls, 0);
   });
 
+  it('filters tools/list and tools/call when category filter is enabled', async () => {
+    deps.config.tools = { includeCategories: ['system'], excludeCategories: [] };
+
+    await startServer({ deps });
+
+    const server = stdio.instances[0];
+    const listHandler = server._requestHandlers.get('tools/list');
+    const listResult = await listHandler();
+    const listedNames = listResult.tools.map(t => t.name);
+
+    assert.ok(listedNames.includes('ping'));
+    assert.ok(!listedNames.includes('find_ui_elements'));
+
+    const callHandler = server._requestHandlers.get('tools/call');
+    await assert.rejects(
+      () => callHandler({ params: { name: 'error_tool', arguments: {} } }),
+      /Tool not found/
+    );
+  });
+
   it('returns error text when tool is missing', async () => {
     await startServer({ deps });
     const server = stdio.instances[0];

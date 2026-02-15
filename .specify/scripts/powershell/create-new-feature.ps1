@@ -70,7 +70,7 @@ function Update-SpecsReadme {
     $lines = New-Object System.Collections.Generic.List[string]
     $lines.Add('# 要件一覧')
     $lines.Add('')
-    $lines.Add('このファイルは `.specify/scripts/powershell/create-new-feature.ps1` または `.specify/scripts/bash/update-specs-readme.sh` により自動生成されます。')
+    $lines.Add('このファイルは `.specify/scripts/bash/update-specs-readme.sh` または `.specify/scripts/powershell/create-new-feature.ps1` により自動生成されます。')
     $lines.Add('手動編集は避けてください（再生成で上書きされます）。')
     $lines.Add('')
     $lines.Add('## ステータス別一覧')

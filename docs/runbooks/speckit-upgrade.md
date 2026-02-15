@@ -86,17 +86,21 @@ git diff --no-index .specify/scripts/bash .specify/upstream/spec-kit-v0.0.90/scr
 # bash構文チェック
 bash -n .specify/scripts/bash/*.sh
 
-# 要件一覧生成（既存specsを読み取れること）
-bash .specify/scripts/bash/update-specs-readme.sh --quiet
+	# 要件一覧生成（既存specsを読み取れること）
+	bash .specify/scripts/bash/update-specs-readme.sh --quiet
 
-# 要件未選択時にエラーになること（安全側）
-rm -f .specify/current-feature
-bash .specify/scripts/bash/check-prerequisites.sh --json --paths-only || true
-```
+	# Speckitコマンドの不変条件チェック（.claude/.specify の整合）
+	bash .specify/scripts/checks/check-speckit-commands.sh
+
+	# 要件未選択時にエラーになること（安全側）
+	rm -f .specify/current-feature
+	bash .specify/scripts/bash/check-prerequisites.sh --json --paths-only || true
+	```
 
 補足:
 
 - GitHub Actionsで `specs/specs.md` の最新性を検証しています。CIが落ちた場合は `bash .specify/scripts/bash/update-specs-readme.sh --quiet` を実行して再コミットしてください。
+- GitHub Actionsで Speckit コマンド（`.claude/commands` と `.specify/templates/commands`）の不変条件も検証しています。必要なら `bash .specify/scripts/checks/check-speckit-commands.sh` を実行してください。
 
 ### 6) 変更を記録（コミット）
 
@@ -112,3 +116,10 @@ bash .specify/scripts/bash/check-prerequisites.sh --json --paths-only || true
 例:
 
 > 「Speckitを上流v0.0.xxへ更新して。Runbook（docs/runbooks/speckit-upgrade.md）の不変条件（日本語/ブランチ無し/SPEC-ID/specs/specs.md生成）を必ず満たして。差分は .specify/upstream に取り込んで確認してから反映して。」
+
+## 更新履歴
+
+| 日付       | 上流タグ | 対応者 | 概要                                                  |
+|------------|----------|--------|-------------------------------------------------------|
+| 2026-01-30 | v0.0.90  | Claude | テンプレート拡張を日本語化。スクリプトは現状維持。    |
+| 2026-02-14 | v0.0.95  | Codex  | `specs/specs.md`生成のbash3.2互換化、CI/不変条件チェック追加。 |

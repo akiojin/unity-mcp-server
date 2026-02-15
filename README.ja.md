@@ -37,7 +37,7 @@ Unity MCP Server は、LLMクライアントからUnity Editorを自動化しま
 ## 要件
 
 - Unity 2020.3 LTS以降
-- Node.js 18.x / 20.x / 22.x LTS（23以上は非対応）
+- Node.js 18.x / 20.x / 22.x / 24.x LTS（25以上は非対応）
 - Claude Desktop または MCP対応クライアント
 
 ## インストール
@@ -119,6 +119,13 @@ Node 側は **環境変数のみ**、Unity 側の host/port は **Project Settin
 ## ツール探索
 
 Unity MCP Server は **100+ ツール**を提供します。`search_tools` を使って目的のツールを素早く探すのが推奨です。
+
+ツール数上限のあるクライアントでは、環境変数でカテゴリ単位に公開ツールを絞り込めます:
+
+```bash
+export UNITY_MCP_TOOL_INCLUDE_CATEGORIES=system,scene,gameobject,analysis,script
+export UNITY_MCP_TOOL_EXCLUDE_CATEGORIES=ui,input,addressables,video,screenshot,profiler
+```
 
 ツール探索とコードインデックス運用は [docs/tools.md](docs/tools.md) を参照してください。
 

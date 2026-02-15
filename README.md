@@ -37,7 +37,7 @@ Key benefits:
 ## Requirements
 
 - Unity 2020.3 LTS or newer
-- Node.js 18.x / 20.x / 22.x LTS (23+ not supported)
+- Node.js 18.x / 20.x / 22.x / 24.x LTS (25+ not supported)
 - Claude Desktop or another MCP-compatible client
 
 ## Installation
@@ -119,6 +119,13 @@ See [docs/configuration.md](docs/configuration.md).
 ## Tools
 
 Unity MCP Server ships **100+ tools**. Use the `search_tools` meta-tool to discover the right tool quickly.
+
+For clients with strict tool-count limits, you can filter exposed tools by category:
+
+```bash
+export UNITY_MCP_TOOL_INCLUDE_CATEGORIES=system,scene,gameobject,analysis,script
+export UNITY_MCP_TOOL_EXCLUDE_CATEGORIES=ui,input,addressables,video,screenshot,profiler
+```
 
 See [docs/tools.md](docs/tools.md) for discovery tips and the recommended Code Index workflow.
 

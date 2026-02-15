@@ -186,6 +186,6 @@
     "drawio@akiojin-skills": true,
     "unity-mcp-server@unity-mcp-server": true,
     "github@akiojin-skills": true,
-    "requirements-spec-kit@akiojin-skills": true
+    "speckit@akiojin-skills": true
   }
 }

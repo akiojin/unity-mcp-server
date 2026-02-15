@@ -20,7 +20,7 @@ $ARGUMENTS
    - `FEATURE_ID`（例: `SPEC-a1b2c3d4`）
    - `FEATURE_DIR`
    - `SPEC_FILE`
-   - `SPECS_README`（`specs/README.md`。要件一覧はスクリプトが自動更新します）
+   - `SPECS_README`（`specs/specs.md`。要件一覧はスクリプトが自動更新します）
 
 2. `.specify/templates/spec-template.md` を読み込み、必須セクションと見出し構造を理解します。
 
@@ -46,7 +46,7 @@ $ARGUMENTS
 6. 最後に、ユーザーへ以下を返します:
    - `FEATURE_ID`
    - `SPEC_FILE` のパス
-   - `specs/README.md` が更新されている旨
+   - `specs/specs.md` が更新されている旨
    - 次ステップ（`/speckit.plan`）への案内
 
 ## 注意
