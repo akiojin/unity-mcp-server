@@ -1,5 +1,8 @@
 # Unity MCP Server (npm package)
 
+> Maintenance status (February 17, 2026): `@akiojin/unity-mcp-server` is no longer maintained.  
+> Active maintenance moved to `akiojin/unity-cli`: https://github.com/akiojin/unity-cli
+
 MCP (Model Context Protocol) server for Unity Editor integration.
 Enables AI assistants like Claude and Cursor to interact directly with Unity Editor for automated workflows.
 

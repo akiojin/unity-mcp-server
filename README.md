@@ -2,6 +2,10 @@
 
 English | [日本語](README.ja.md)
 
+> Maintenance status (February 17, 2026): `unity-mcp-server` is no longer maintained.  
+> Active development moved to `akiojin/unity-cli`: https://github.com/akiojin/unity-cli
+> Migration to `unity-cli` is strongly recommended for all users.
+
 ## Overview
 
 Unity MCP Server lets LLM-based clients automate the Unity Editor. It focuses on reliable, scriptable workflows with a simple interface and zero or low-configuration setup.
@@ -39,6 +43,26 @@ Key benefits:
 - Unity 2020.3 LTS or newer
 - Node.js 18.x / 20.x / 22.x / 24.x LTS (25+ not supported)
 - Claude Desktop or another MCP-compatible client
+
+## Migration to unity-cli (Rust)
+
+`unity-mcp-server` maintenance has ended and development has moved to the dedicated Rust CLI repository.
+
+### Command mapping
+
+| Before | After |
+| --- | --- |
+| `npx @akiojin/unity-mcp-server@latest` | `unity-cli system ping` (after installing `unity-cli`) |
+| MCP tool call `create_scene` | `unity-cli scene create <scene_name>` |
+| MCP tool call `<tool>` with params | `unity-cli raw <tool> --json '{...}'` |
+| `unity-mcp-server list-instances --ports=6400,6401` | `unity-cli instances list --ports 6400,6401` |
+| `unity-mcp-server set-active localhost:6401` | `unity-cli instances set-active localhost:6401` |
+
+### Current transition policy
+
+- Old repository (`unity-mcp-server`): maintenance ended.
+- New maintenance target: `akiojin/unity-cli`.
+- Use `unity-cli` for all new features, bug fixes, and release operations.
 
 ## Installation
 
