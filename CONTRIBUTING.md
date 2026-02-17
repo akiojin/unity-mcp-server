@@ -2,6 +2,9 @@
 
 English | [日本語](#日本語)
 
+> Maintenance status (February 17, 2026): this repository is no longer maintained.  
+> Please open new issues and pull requests in `akiojin/unity-cli`: https://github.com/akiojin/unity-cli
+
 Thank you for your interest in contributing to Unity MCP Server! This document provides guidelines and instructions for contributing to the project.
 
 ## Table of Contents

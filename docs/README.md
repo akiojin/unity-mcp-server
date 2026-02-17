@@ -2,6 +2,9 @@
 
 English | [日本語](#日本語)
 
+> Maintenance status (February 17, 2026): this repository is frozen for maintenance.  
+> Active maintenance moved to `akiojin/unity-cli`: https://github.com/akiojin/unity-cli
+
 ## Quick Links
 
 - **User docs**: `README.md`, `README.ja.md`, `mcp-server/README.md`
