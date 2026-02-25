@@ -1,5 +1,12 @@
 ## [Unreleased]
 
+## [5.5.1](https://github.com/akiojin/unity-mcp-server/compare/v5.5.0...v5.5.1) (2026-02-25)
+
+
+### Bug Fixes
+
+* **mcp-server:** resolve ESLint 10 errors ([a4a2637](https://github.com/akiojin/unity-mcp-server/commit/a4a2637))
+
 ## [5.5.0](https://github.com/akiojin/unity-mcp-server/compare/v5.4.0...v5.5.0) (2026-02-15)
 
 
