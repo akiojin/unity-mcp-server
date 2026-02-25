@@ -529,7 +529,7 @@ async function runBuild() {
       const fastSql = await import('@akiojin/fast-sql');
       Database = fastSql.Database;
     } catch (e) {
-      throw new Error(`fast-sql unavailable in worker: ${e.message}`);
+      throw new Error(`fast-sql unavailable in worker: ${e.message}`, { cause: e });
     }
 
     // Open or create database using Database.create() for better-sqlite3 support
@@ -693,7 +693,7 @@ async function runBuild() {
       await lsp.start();
       log('info', `[worker] Worker-local LSP initialized`);
     } catch (e) {
-      throw new Error(`LSP initialization failed: ${e.message}`);
+      throw new Error(`LSP initialization failed: ${e.message}`, { cause: e });
     }
 
     // LSP request with retry

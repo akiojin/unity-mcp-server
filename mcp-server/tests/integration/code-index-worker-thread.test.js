@@ -13,7 +13,6 @@ try {
   workerPoolAvailable = true;
 } catch {
   // Expected in RED phase - module doesn't exist yet
-  workerPoolAvailable = false;
 }
 
 // Skip tests in CI or when Worker Pool not implemented yet

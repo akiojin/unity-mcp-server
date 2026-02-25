@@ -339,6 +339,13 @@ namespace UnityMCPServer.Core
                     }
                 }
             }
+            catch (Exception ex) when (IsClientDisconnected(ex))
+            {
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    McpLogger.Log("Client disconnected");
+                }
+            }
             catch (Exception ex)
             {
                 if (!cancellationToken.IsCancellationRequested)
@@ -373,9 +380,55 @@ namespace UnityMCPServer.Core
             }
             catch (Exception ex)
             {
+                if (IsClientDisconnected(ex))
+                {
+                    return;
+                }
+
                 try { McpLogger.LogError($"Send error: {ex}"); } catch { }
                 throw;
             }
+        }
+
+        private static bool IsClientDisconnected(Exception ex)
+        {
+            if (ex is null) return false;
+
+            if (ex is ObjectDisposedException || ex is OperationCanceledException)
+            {
+                return true;
+            }
+
+            if (ex is IOException ioEx && ioEx.Message != null &&
+                ioEx.Message.IndexOf("transport connection", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+
+            var socketError = GetSocketError(ex);
+            return socketError.HasValue && IsSocketDisconnected(socketError.Value);
+        }
+
+        private static SocketError? GetSocketError(Exception ex)
+        {
+            if (ex is SocketException socketEx)
+            {
+                return socketEx.SocketErrorCode;
+            }
+
+            if (ex is IOException ioEx && ioEx.InnerException is SocketException innerSocketEx)
+            {
+                return innerSocketEx.SocketErrorCode;
+            }
+
+            return null;
+        }
+
+        private static bool IsSocketDisconnected(SocketError errorCode)
+        {
+            return errorCode == SocketError.ConnectionAborted ||
+                   errorCode == SocketError.ConnectionReset ||
+                   errorCode == SocketError.Shutdown;
         }
         
         /// <summary>
