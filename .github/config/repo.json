@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/twelvelabs/gh-repo-config/main/schema/repo.json",
   "name": "unity-mcp-server",
-  "description": "Unity MCP server with OpenUPM/npm/LSP auto-release",
+  "description": "[DEPRECATED] Unity MCP server — successor: akiojin/unity-cli",
   "homepage": null,
   "private": false,
   "has_issues": true,

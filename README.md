@@ -1,5 +1,9 @@
 # Unity MCP Server
 
+> [!WARNING]
+> **This repository is deprecated.** Development has moved to [akiojin/unity-cli](https://github.com/akiojin/unity-cli).
+> This repository will no longer receive updates. Please migrate to the successor project.
+
 English | [日本語](README.ja.md)
 
 ## Overview
