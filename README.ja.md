@@ -1,5 +1,9 @@
 # Unity MCP Server
 
+> [!WARNING]
+> **このリポジトリは非推奨です。** 開発は [akiojin/unity-cli](https://github.com/akiojin/unity-cli) に移行しました。
+> 今後このリポジトリは更新されません。後継プロジェクトへの移行をお願いします。
+
 [English](README.md) | 日本語
 
 ## 概要
