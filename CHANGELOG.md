@@ -1,5 +1,13 @@
 ## [Unreleased]
 
+## [5.5.2](https://github.com/akiojin/unity-mcp-server/compare/v5.5.1...v5.5.2) (2026-02-27)
+
+
+### Chores
+
+* deprecate repository in favor of akiojin/unity-cli ([d2c919f](https://github.com/akiojin/unity-mcp-server/commit/d2c919f))
+* **deps:** bump the npm_and_yarn group across 2 directories with 5 updates ([44600f3](https://github.com/akiojin/unity-mcp-server/commit/44600f3))
+
 ## [5.5.1](https://github.com/akiojin/unity-mcp-server/compare/v5.5.0...v5.5.1) (2026-02-25)
 
 
