@@ -20,7 +20,7 @@ importers:
     devDependencies:
       '@commitlint/cli':
         specifier: ^20.4.2
-        version: 20.4.2(@types/node@25.3.1)(typescript@5.9.3)
+        version: 20.4.2(@types/node@25.3.3)(typescript@5.9.3)
       '@commitlint/config-conventional':
         specifier: ^20.4.2
         version: 20.4.2
@@ -28,11 +28,11 @@ importers:
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.0.2(jiti@2.6.1))
       '@google/gemini-cli':
-        specifier: ^0.30.0
-        version: 0.30.0(@grpc/grpc-js@1.14.3)(express@5.2.1)
+        specifier: ^0.31.0
+        version: 0.31.0(@grpc/grpc-js@1.14.3)(express@5.2.1)
       '@openai/codex':
-        specifier: ^0.105.0
-        version: 0.105.0
+        specifier: ^0.106.0
+        version: 0.106.0
       eslint:
         specifier: ^10.0.2
         version: 10.0.2(jiti@2.6.1)
@@ -49,8 +49,8 @@ importers:
         specifier: ^7.2.1
         version: 7.2.1(eslint@10.0.2(jiti@2.6.1))
       globals:
-        specifier: ^17.3.0
-        version: 17.3.0
+        specifier: ^17.4.0
+        version: 17.4.0
       markdownlint-cli:
         specifier: ^0.47.0
         version: 0.47.0
@@ -255,17 +255,17 @@ packages:
     resolution: {integrity: sha512-Orxzlfb9c67A15cq2JQEyVc7wEsmFBmHjZWZYQMUyJ1qivXyMwdyNOs9odi79hze+2zqdTtu1E19IM/FtqZ10g==}
     engines: {node: '>=14'}
 
-  '@google/gemini-cli-core@0.30.0':
-    resolution: {integrity: sha512-mCm8Y5D0LQVU7mK2yWIcP1CPbtbVdjgFpwmIE0ZzFK8QlCkj179F1iLoZqbHbA2B/ozoE3lIk2Mj1k7xKMFCbg==}
+  '@google/gemini-cli-core@0.31.0':
+    resolution: {integrity: sha512-AU/MWqrTZ7SY2nfawg838NnB5Ir8OBzG69XtTCYxCl+gI5KJDcpH+0Rgr1DCbq2sYk/jlboMSOc2nduqXavAkg==}
     engines: {node: '>=20'}
 
-  '@google/gemini-cli@0.30.0':
-    resolution: {integrity: sha512-A6eUWKZ10zi2sTkrW2xJBAag+gyQL+E7bCt12KyDwW5+KEmdY5CRu9SxnyRlFIP2si4SVWnCBtBALbtwGTNOvA==}
+  '@google/gemini-cli@0.31.0':
+    resolution: {integrity: sha512-Q/ucS6Gz5uPa5978Ms7tZDl3tGqQKL2Sd/a713VXHBomyCf0W3zcSHP0bxnqIhQR1e9SPh2J2tywcVD883AupA==}
     engines: {node: '>=20'}
     hasBin: true
 
-  '@google/genai@1.30.0':
-    resolution: {integrity: sha512-3MRcgczBFbUat1wIlZoLJ0vCCfXgm7Qxjh59cZi2X08RgWLtm9hKOspzp7TOg1TV2e26/MLxR2GR5yD5GmBV2w==}
+  '@google/genai@1.41.0':
+    resolution: {integrity: sha512-S4WGil+PG0NBQRAx+0yrQuM/TWOLn2gGEy5wn4IsoOI6ouHad0P61p3OWdhJ3aqr9kfj8o904i/jevfaGoGuIQ==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.25.2'
@@ -327,8 +327,8 @@ packages:
   '@joshua.litt/get-ripgrep@0.0.3':
     resolution: {integrity: sha512-rycdieAKKqXi2bsM7G2ayDiNk5CAX8ZOzsTQsirfOqUKPef04Xw40BWGGyimaOOuvPgLWYt3tPnLLG3TvPXi5Q==}
 
-  '@jrichman/ink@6.4.10':
-    resolution: {integrity: sha512-kjJqZFkGVm0QyJmga/L02rsFJroF1aP2bhXEGkpuuT7clB6/W+gxAbLNw7ZaJrG6T30DgqOT92Pu6C9mK1FWyg==}
+  '@jrichman/ink@6.4.11':
+    resolution: {integrity: sha512-93LQlzT7vvZ1XJcmOMwN4s+6W334QegendeHOMnEJBlhnpIzr8bws6/aOEHG8ZCuVD/vNeeea5m1msHIdAY6ig==}
     engines: {node: '>=20'}
     peerDependencies:
       '@types/react': '>=19.0.0'
@@ -398,43 +398,43 @@ packages:
       '@cfworker/json-schema':
         optional: true
 
-  '@openai/codex@0.105.0':
-    resolution: {integrity: sha512-enoNmQs3aOgUhsKYC6kfuKEG0AogS4q01pqcySPwf9zl2r8OcKuMUoLw1v5n4Y7sd3B6qGS7UtTABqbcT5FaMA==}
+  '@openai/codex@0.106.0':
+    resolution: {integrity: sha512-GgzVs+mOaJfAFalI+QqEXcuJuBODhIg217g+B5jg6HMujux3Q4yeSki57x8MD/DJ43hRq9X1DTyZL/345Bo0Ag==}
     engines: {node: '>=16'}
     hasBin: true
 
-  '@openai/codex@0.105.0-darwin-arm64':
-    resolution: {integrity: sha512-9TD7pDIg8o7itmOhyEPcC2HeVnVIOxxrrbwTvnTibMj2rHPLnY8E0JaK8QOBRNiIUlqI4WKspTMUZQg5Fegndw==}
+  '@openai/codex@0.106.0-darwin-arm64':
+    resolution: {integrity: sha512-icTUe8ZKRH2RqO2qS/FPNLMP1TloxbfM/5RxGRjh2xkd8wXDvYFeEnP2siKKLISFT49+oIbT0phUeSPR2Tlg4A==}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [darwin]
 
-  '@openai/codex@0.105.0-darwin-x64':
-    resolution: {integrity: sha512-00xRV2X7RwKFRY8LB99/WmVSWqhHnMV6BB4gc5x4MMuDPDslaNrGTYWdp6KBukok1ayrg0JfwazUeAawNWU5Zw==}
+  '@openai/codex@0.106.0-darwin-x64':
+    resolution: {integrity: sha512-i9/V2CEfH3QlhZkA/iG/Sw8eR8I8uvH23AoIrd91/LbFX77aAjzg7rSdshU6thhdy2fhiyPjKq23/bVk5cvh5g==}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [darwin]
 
-  '@openai/codex@0.105.0-linux-arm64':
-    resolution: {integrity: sha512-UFGyZhRB0Gtr31wFf0WDd//W3XGbZZ7mxYwf528i6rhlwabb3FIJKWrgv4DVXKQZCGiBujqAk0pr32PziElouA==}
+  '@openai/codex@0.106.0-linux-arm64':
+    resolution: {integrity: sha512-l/xmB0w+LTf9c/0CLEkQclUfPNsOlPENR0lxiATSv9vGaQdCi/P3MEI+L1iOMWn2Nx7o04foCfkSJiKV38n4DQ==}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [linux]
 
-  '@openai/codex@0.105.0-linux-x64':
-    resolution: {integrity: sha512-cZgNzNjspqHmXNf/CraqqQrfotw5cXO7wvkSSYs2NZjZR7Ud10u5hFeumUW1sEvb5/F9tEKsjO+WCj+bVxdrYQ==}
+  '@openai/codex@0.106.0-linux-x64':
+    resolution: {integrity: sha512-cVNGR8nlnW4V+2ofDt8+Q1mbR7JwxZGvSWjXJ+9GvEt0DBEO0Q5KRIsJa6iSYqTcH6V5oBcTFiK//+HDbTaFNQ==}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [linux]
 
-  '@openai/codex@0.105.0-win32-arm64':
-    resolution: {integrity: sha512-OGvHTn/XAyY8889n0ZEcvUgiaPeT/rLFEFUEOzWgt5yhKiODV+zEzfruYmcvZUpzgFJ1kRQlDgKPMbW7u2r01Q==}
+  '@openai/codex@0.106.0-win32-arm64':
+    resolution: {integrity: sha512-8CBtM8Nr4gDqQNKl4VK/+vRv9Mj+Et0pMZqEKFXZ+3Vwovs3lFDsuDET4XQ1trk11UejFNpPCk9Tle9P99hGTw==}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [win32]
 
-  '@openai/codex@0.105.0-win32-x64':
-    resolution: {integrity: sha512-8V26RjFeg06i4mrrhQTKLY6lcRXsm0s1cxT3lamApLccvBBAhhAOE0je6jHb5nkrncvf9x/lee+WmY0louvvGQ==}
+  '@openai/codex@0.106.0-win32-x64':
+    resolution: {integrity: sha512-fF1AKwRDf6t54OmEgMf3JyaJrFWUozeYBa3W/0P6LkaTfCz68zrajL5yO78mhf/rf9eAb83PIkvej0EHBzTheQ==}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
@@ -751,8 +751,8 @@ packages:
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
-  '@types/node@25.3.1':
-    resolution: {integrity: sha512-hj9YIJimBCipHVfHKRMnvmHg+wfhKc0o4mTtXh9pKBjC8TLJzz0nzGmLi5UJsYAUgSvXFHgb0V2oY10DUFtImw==}
+  '@types/node@25.3.3':
+    resolution: {integrity: sha512-DpzbrH7wIcBaJibpKo9nnSQL0MTRdnWttGyE5haGwK86xgMOkFLp7vEyfQPGLOJh5wNYiJ3V9PmUMDhV9u8kkQ==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -1257,6 +1257,14 @@ packages:
     resolution: {integrity: sha512-tE7ztYzXHIeyvc7N+hR3oi7FIbf/NIjVP9hmAt3yMXzrQ072/fpjGLx2GxNxGxUl5V73MEqYzioOMoVhGMJ5cA==}
     engines: {node: '>=10'}
 
+  dotenv-expand@12.0.3:
+    resolution: {integrity: sha512-uc47g4b+4k/M/SeaW1y4OApx+mtLWl92l5LMPP0GNXctZqELk+YGgOPIIC5elYmUH4OuoK3JLhuRUYegeySiFA==}
+    engines: {node: '>=12'}
+
+  dotenv@16.6.1:
+    resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
+    engines: {node: '>=12'}
+
   dotenv@17.3.1:
     resolution: {integrity: sha512-IO8C/dzEb6O3F9/twg6ZLXz164a2fhTnEWb95H23Dm4OuN+92NmEAlTrupP9VW6Jm3sO26tQlqyvyi4CsnY9GA==}
     engines: {node: '>=12'}
@@ -1680,6 +1688,7 @@ packages:
   git-raw-commits@4.0.0:
     resolution: {integrity: sha512-ICsMM1Wk8xSGMowkOmPrzo2Fgmfo4bMHLNX6ytHjajRJUqvHOw/TFapQ+QG75c3X/tTDDhOSRPGC52dDbNM8FQ==}
     engines: {node: '>=16'}
+    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
     hasBin: true
 
   github-from-package@0.0.0:
@@ -1701,8 +1710,8 @@ packages:
     resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
     engines: {node: '>=18'}
 
-  globals@17.3.0:
-    resolution: {integrity: sha512-yMqGUQVVCkD4tqjOJf3TnrvaaHDMYp4VlUSObbkIiuCPe/ofdMBFIAcBbCSRFWOnos6qRiTVStDwqPLUclaxIw==}
+  globals@17.4.0:
+    resolution: {integrity: sha512-hjrNztw/VajQwOLsMNT1cbJiH2muO3OROCHnbehc8eY5JyD2gqz4AcMHPqgaOR59DjgUjYAYLeH699g/eWi2jw==}
     engines: {node: '>=18'}
 
   globalthis@1.0.4:
@@ -2015,6 +2024,10 @@ packages:
   is-negative-zero@2.0.3:
     resolution: {integrity: sha512-5KoIu2Ngpyek75jXodFvnafB6DJgr3u8uuK0LEZJjrU19DrMD3EVERaR8sjz8CCGgpZvxPl9SuE1GMVPFHx1mw==}
     engines: {node: '>= 0.4'}
+
+  is-network-error@1.3.1:
+    resolution: {integrity: sha512-6QCxa49rQbmUWLfk0nuGqzql9U8uaV2H6279bRErPBHe/109hCzsLUBUHfbEtvLIHBd6hyXbgedBSHevm43Edw==}
+    engines: {node: '>=16'}
 
   is-number-object@1.1.1:
     resolution: {integrity: sha512-lZhclumE1G6VYD8VHe35wFaIif+CTy5SJIi5+3y4psDgWu4wPDoBhF8NxUOinEc7pHgiTsT6MaBb92rKhhD+Xw==}
@@ -2443,8 +2456,8 @@ packages:
   node-addon-api@7.1.1:
     resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
 
-  node-addon-api@8.5.0:
-    resolution: {integrity: sha512-/bRZty2mXUIFY/xU5HLvveNHlswNJej+RnxBjOMkidWfwZzgTbPG1E3K5TOxRLOR+5hX7bSofy8yf1hZevMS8A==}
+  node-addon-api@8.6.0:
+    resolution: {integrity: sha512-gBVjCaqDlRUk0EwoPNKzIr9KkS9041G/q31IBShPs1Xz6UTA+EXdZADbzqAJQrpDRq71CIMnOP5VMut3SL0z5Q==}
     engines: {node: ^18 || ^20 || >= 21}
 
   node-domexception@1.0.0:
@@ -2557,6 +2570,10 @@ packages:
   p-locate@5.0.0:
     resolution: {integrity: sha512-LaNjtRWUBY++zB5nE/NwcaoMylSPk+S+ZHNB1TzdbMJMny6dynpAGt7X/tl/QYq3TIeE6nxHppbo2LGymrG5Pw==}
     engines: {node: '>=10'}
+
+  p-retry@7.1.1:
+    resolution: {integrity: sha512-J5ApzjyRkkf601HpEeykoiCvzHQjWxPAHhyjFcEUP2SWq0+35NKh8TLhpLw+Dkq5TZBFvUM6UigdE9hIVYTl5w==}
+    engines: {node: '>=20'}
 
   package-json@10.0.1:
     resolution: {integrity: sha512-ua1L4OgXSBdsu1FPb7F3tYH0F48a6kxvod4pLUlGY9COeJAJQNX/sNH2IiEmsxw7lqYiAwrdHMjz1FctOsyDQg==}
@@ -2691,8 +2708,8 @@ packages:
     resolution: {integrity: sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==}
     engines: {node: '>= 0.10'}
 
-  pump@3.0.3:
-    resolution: {integrity: sha512-todwxLMY7/heScKmntwQG8CXVkWUOdYxIvY2s0VWAAMh/nd8SoYiRaKjlr7+iCs984f2P8zvrfWcDDYVb73NfA==}
+  pump@3.0.4:
+    resolution: {integrity: sha512-VS7sjc6KR7e1ukRFhQSY5LM2uBWAUPiOPa/A3mkKmiMwSmRFUITt0xuj+/lesgnCv+dPIEYlkzrcyXgquIHMcA==}
 
   pumpify@2.0.1:
     resolution: {integrity: sha512-m7KOje7jZxrmutanlkS1daj1dS6z6BgslzOXmcSEpIlCxM3VJH7lG5QLeck/6hgF6F4crFf01UtQmNsJfweTAw==}
@@ -3380,11 +3397,11 @@ snapshots:
 
   '@babel/helper-validator-identifier@7.28.5': {}
 
-  '@commitlint/cli@20.4.2(@types/node@25.3.1)(typescript@5.9.3)':
+  '@commitlint/cli@20.4.2(@types/node@25.3.3)(typescript@5.9.3)':
     dependencies:
       '@commitlint/format': 20.4.0
       '@commitlint/lint': 20.4.2
-      '@commitlint/load': 20.4.0(@types/node@25.3.1)(typescript@5.9.3)
+      '@commitlint/load': 20.4.0(@types/node@25.3.3)(typescript@5.9.3)
       '@commitlint/read': 20.4.0
       '@commitlint/types': 20.4.0
       tinyexec: 1.0.2
@@ -3431,14 +3448,14 @@ snapshots:
       '@commitlint/rules': 20.4.2
       '@commitlint/types': 20.4.0
 
-  '@commitlint/load@20.4.0(@types/node@25.3.1)(typescript@5.9.3)':
+  '@commitlint/load@20.4.0(@types/node@25.3.3)(typescript@5.9.3)':
     dependencies:
       '@commitlint/config-validator': 20.4.0
       '@commitlint/execute-rule': 20.0.0
       '@commitlint/resolve-extends': 20.4.0
       '@commitlint/types': 20.4.0
       cosmiconfig: 9.0.0(typescript@5.9.3)
-      cosmiconfig-typescript-loader: 6.2.0(@types/node@25.3.1)(cosmiconfig@9.0.0(typescript@5.9.3))(typescript@5.9.3)
+      cosmiconfig-typescript-loader: 6.2.0(@types/node@25.3.3)(cosmiconfig@9.0.0(typescript@5.9.3))(typescript@5.9.3)
       is-plain-obj: 4.1.0
       lodash.mergewith: 4.6.2
       picocolors: 1.1.1
@@ -3614,13 +3631,13 @@ snapshots:
 
   '@google-cloud/promisify@4.0.0': {}
 
-  '@google/gemini-cli-core@0.30.0(@grpc/grpc-js@1.14.3)(express@5.2.1)':
+  '@google/gemini-cli-core@0.31.0(@grpc/grpc-js@1.14.3)(express@5.2.1)':
     dependencies:
       '@a2a-js/sdk': 0.3.10(@grpc/grpc-js@1.14.3)(express@5.2.1)
       '@google-cloud/logging': 11.2.1
       '@google-cloud/opentelemetry-cloud-monitoring-exporter': 0.21.0(@opentelemetry/api@1.9.0)(@opentelemetry/core@2.5.1(@opentelemetry/api@1.9.0))(@opentelemetry/resources@2.5.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-metrics@2.5.1(@opentelemetry/api@1.9.0))
       '@google-cloud/opentelemetry-cloud-trace-exporter': 3.0.0(@opentelemetry/api@1.9.0)(@opentelemetry/core@2.5.1(@opentelemetry/api@1.9.0))(@opentelemetry/resources@2.5.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@2.5.1(@opentelemetry/api@1.9.0))
-      '@google/genai': 1.30.0(@modelcontextprotocol/sdk@1.27.1(zod@3.25.76))
+      '@google/genai': 1.41.0(@modelcontextprotocol/sdk@1.27.1(zod@3.25.76))
       '@iarna/toml': 2.2.5
       '@joshua.litt/get-ripgrep': 0.0.3
       '@modelcontextprotocol/sdk': 1.27.1(zod@3.25.76)
@@ -3648,11 +3665,13 @@ snapshots:
       ajv-formats: 3.0.1(ajv@8.18.0)
       chardet: 2.1.1
       diff: 8.0.3
+      dotenv: 17.3.1
+      dotenv-expand: 12.0.3
       fast-levenshtein: 2.0.6
       fdir: 6.5.0(picomatch@4.0.3)
       fzf: 0.5.2
       glob: 13.0.6
-      google-auth-library: 9.15.1
+      google-auth-library: 10.6.1
       html-to-text: 9.0.5
       https-proxy-agent: 7.0.6
       ignore: 7.0.5
@@ -3667,6 +3686,7 @@ snapshots:
       shell-quote: 1.8.3
       simple-git: 3.32.3
       strip-ansi: 7.2.0
+      strip-json-comments: 3.1.1
       systeminformation: 5.31.1
       tree-sitter-bash: 0.25.1
       undici: 7.22.0
@@ -3695,11 +3715,11 @@ snapshots:
       - tree-sitter
       - utf-8-validate
 
-  '@google/gemini-cli@0.30.0(@grpc/grpc-js@1.14.3)(express@5.2.1)':
+  '@google/gemini-cli@0.31.0(@grpc/grpc-js@1.14.3)(express@5.2.1)':
     dependencies:
       '@agentclientprotocol/sdk': 0.12.0(zod@3.25.76)
-      '@google/gemini-cli-core': 0.30.0(@grpc/grpc-js@1.14.3)(express@5.2.1)
-      '@google/genai': 1.30.0(@modelcontextprotocol/sdk@1.27.1(zod@3.25.76))
+      '@google/gemini-cli-core': 0.31.0(@grpc/grpc-js@1.14.3)(express@5.2.1)
+      '@google/genai': 1.41.0(@modelcontextprotocol/sdk@1.27.1(zod@3.25.76))
       '@iarna/toml': 2.2.5
       '@modelcontextprotocol/sdk': 1.27.1(zod@3.25.76)
       ansi-escapes: 7.3.0
@@ -3707,6 +3727,7 @@ snapshots:
       chalk: 4.1.2
       cli-spinners: 2.9.2
       clipboardy: 5.3.1
+      color-convert: 2.0.1
       command-exists: 1.2.9
       comment-json: 4.5.1
       diff: 8.0.3
@@ -3715,9 +3736,9 @@ snapshots:
       fzf: 0.5.2
       glob: 13.0.6
       highlight.js: 11.11.1
-      ink: '@jrichman/ink@6.4.10(react@19.2.4)'
-      ink-gradient: 3.0.0(@jrichman/ink@6.4.10(react@19.2.4))
-      ink-spinner: 5.0.0(@jrichman/ink@6.4.10(react@19.2.4))(react@19.2.4)
+      ink: '@jrichman/ink@6.4.11(react@19.2.4)'
+      ink-gradient: 3.0.0(@jrichman/ink@6.4.11(react@19.2.4))
+      ink-spinner: 5.0.0(@jrichman/ink@6.4.11(react@19.2.4))(react@19.2.4)
       latest-version: 9.0.0
       lowlight: 3.3.0
       mnemonist: 0.40.3
@@ -3750,9 +3771,11 @@ snapshots:
       - tree-sitter
       - utf-8-validate
 
-  '@google/genai@1.30.0(@modelcontextprotocol/sdk@1.27.1(zod@3.25.76))':
+  '@google/genai@1.41.0(@modelcontextprotocol/sdk@1.27.1(zod@3.25.76))':
     dependencies:
       google-auth-library: 10.6.1
+      p-retry: 7.1.1
+      protobufjs: 7.5.4
       ws: 8.19.0
     optionalDependencies:
       '@modelcontextprotocol/sdk': 1.27.1(zod@3.25.76)
@@ -3819,7 +3842,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@jrichman/ink@6.4.10(react@19.2.4)':
+  '@jrichman/ink@6.4.11(react@19.2.4)':
     dependencies:
       '@alcalzone/ansi-tokenize': 0.2.5
       ansi-escapes: 7.3.0
@@ -3913,31 +3936,31 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@openai/codex@0.105.0':
+  '@openai/codex@0.106.0':
     optionalDependencies:
-      '@openai/codex-darwin-arm64': '@openai/codex@0.105.0-darwin-arm64'
-      '@openai/codex-darwin-x64': '@openai/codex@0.105.0-darwin-x64'
-      '@openai/codex-linux-arm64': '@openai/codex@0.105.0-linux-arm64'
-      '@openai/codex-linux-x64': '@openai/codex@0.105.0-linux-x64'
-      '@openai/codex-win32-arm64': '@openai/codex@0.105.0-win32-arm64'
-      '@openai/codex-win32-x64': '@openai/codex@0.105.0-win32-x64'
+      '@openai/codex-darwin-arm64': '@openai/codex@0.106.0-darwin-arm64'
+      '@openai/codex-darwin-x64': '@openai/codex@0.106.0-darwin-x64'
+      '@openai/codex-linux-arm64': '@openai/codex@0.106.0-linux-arm64'
+      '@openai/codex-linux-x64': '@openai/codex@0.106.0-linux-x64'
+      '@openai/codex-win32-arm64': '@openai/codex@0.106.0-win32-arm64'
+      '@openai/codex-win32-x64': '@openai/codex@0.106.0-win32-x64'
 
-  '@openai/codex@0.105.0-darwin-arm64':
+  '@openai/codex@0.106.0-darwin-arm64':
     optional: true
 
-  '@openai/codex@0.105.0-darwin-x64':
+  '@openai/codex@0.106.0-darwin-x64':
     optional: true
 
-  '@openai/codex@0.105.0-linux-arm64':
+  '@openai/codex@0.106.0-linux-arm64':
     optional: true
 
-  '@openai/codex@0.105.0-linux-x64':
+  '@openai/codex@0.106.0-linux-x64':
     optional: true
 
-  '@openai/codex@0.105.0-win32-arm64':
+  '@openai/codex@0.106.0-win32-arm64':
     optional: true
 
-  '@openai/codex@0.105.0-win32-x64':
+  '@openai/codex@0.106.0-win32-x64':
     optional: true
 
   '@opentelemetry/api-logs@0.211.0':
@@ -4302,7 +4325,7 @@ snapshots:
 
   '@types/ms@2.1.0': {}
 
-  '@types/node@25.3.1':
+  '@types/node@25.3.3':
     dependencies:
       undici-types: 7.18.2
 
@@ -4311,7 +4334,7 @@ snapshots:
   '@types/request@2.48.13':
     dependencies:
       '@types/caseless': 0.12.5
-      '@types/node': 25.3.1
+      '@types/node': 25.3.3
       '@types/tough-cookie': 4.0.5
       form-data: 2.5.5
 
@@ -4325,7 +4348,7 @@ snapshots:
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 25.3.1
+      '@types/node': 25.3.3
     optional: true
 
   '@xterm/headless@5.5.0': {}
@@ -4665,9 +4688,9 @@ snapshots:
       object-assign: 4.1.1
       vary: 1.1.2
 
-  cosmiconfig-typescript-loader@6.2.0(@types/node@25.3.1)(cosmiconfig@9.0.0(typescript@5.9.3))(typescript@5.9.3):
+  cosmiconfig-typescript-loader@6.2.0(@types/node@25.3.3)(cosmiconfig@9.0.0(typescript@5.9.3))(typescript@5.9.3):
     dependencies:
-      '@types/node': 25.3.1
+      '@types/node': 25.3.3
       cosmiconfig: 9.0.0(typescript@5.9.3)
       jiti: 2.6.1
       typescript: 5.9.3
@@ -4805,6 +4828,12 @@ snapshots:
   dot-prop@6.0.1:
     dependencies:
       is-obj: 2.0.0
+
+  dotenv-expand@12.0.3:
+    dependencies:
+      dotenv: 16.6.1
+
+  dotenv@16.6.1: {}
 
   dotenv@17.3.1: {}
 
@@ -5357,7 +5386,7 @@ snapshots:
 
   get-stream@5.2.0:
     dependencies:
-      pump: 3.0.3
+      pump: 3.0.4
 
   get-stream@6.0.1: {}
 
@@ -5401,7 +5430,7 @@ snapshots:
 
   globals@15.15.0: {}
 
-  globals@17.3.0: {}
+  globals@17.4.0: {}
 
   globalthis@1.0.4:
     dependencies:
@@ -5636,18 +5665,18 @@ snapshots:
 
   ini@4.1.3: {}
 
-  ink-gradient@3.0.0(@jrichman/ink@6.4.10(react@19.2.4)):
+  ink-gradient@3.0.0(@jrichman/ink@6.4.11(react@19.2.4)):
     dependencies:
       '@types/gradient-string': 1.1.6
       gradient-string: 2.0.2
-      ink: '@jrichman/ink@6.4.10(react@19.2.4)'
+      ink: '@jrichman/ink@6.4.11(react@19.2.4)'
       prop-types: 15.8.1
       strip-ansi: 7.2.0
 
-  ink-spinner@5.0.0(@jrichman/ink@6.4.10(react@19.2.4))(react@19.2.4):
+  ink-spinner@5.0.0(@jrichman/ink@6.4.11(react@19.2.4))(react@19.2.4):
     dependencies:
       cli-spinners: 2.9.2
-      ink: '@jrichman/ink@6.4.10(react@19.2.4)'
+      ink: '@jrichman/ink@6.4.11(react@19.2.4)'
       react: 19.2.4
 
   internal-slot@1.1.0:
@@ -5750,6 +5779,8 @@ snapshots:
   is-map@2.0.3: {}
 
   is-negative-zero@2.0.3: {}
+
+  is-network-error@1.3.1: {}
 
   is-number-object@1.1.1:
     dependencies:
@@ -6247,7 +6278,7 @@ snapshots:
   node-addon-api@7.1.1:
     optional: true
 
-  node-addon-api@8.5.0: {}
+  node-addon-api@8.6.0: {}
 
   node-domexception@1.0.0: {}
 
@@ -6368,6 +6399,10 @@ snapshots:
     dependencies:
       p-limit: 3.1.0
 
+  p-retry@7.1.1:
+    dependencies:
+      is-network-error: 1.3.1
+
   package-json@10.0.1:
     dependencies:
       ky: 1.14.3
@@ -6453,7 +6488,7 @@ snapshots:
       mkdirp-classic: 0.5.3
       napi-build-utils: 2.0.0
       node-abi: 3.87.0
-      pump: 3.0.3
+      pump: 3.0.4
       rc: 1.2.8
       simple-get: 4.0.1
       tar-fs: 2.1.4
@@ -6503,7 +6538,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 25.3.1
+      '@types/node': 25.3.3
       long: 5.3.2
 
   protobufjs@8.0.0:
@@ -6518,7 +6553,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 25.3.1
+      '@types/node': 25.3.3
       long: 5.3.2
 
   proxy-addr@2.0.7:
@@ -6526,7 +6561,7 @@ snapshots:
       forwarded: 0.2.0
       ipaddr.js: 1.9.1
 
-  pump@3.0.3:
+  pump@3.0.4:
     dependencies:
       end-of-stream: 1.4.5
       once: 1.4.0
@@ -6535,7 +6570,7 @@ snapshots:
     dependencies:
       duplexify: 4.1.3
       inherits: 2.0.4
-      pump: 3.0.3
+      pump: 3.0.4
 
   punycode.js@2.3.1: {}
 
@@ -6974,7 +7009,7 @@ snapshots:
     dependencies:
       chownr: 1.1.4
       mkdirp-classic: 0.5.3
-      pump: 3.0.3
+      pump: 3.0.4
       tar-stream: 2.2.0
     optional: true
 
@@ -7026,7 +7061,7 @@ snapshots:
 
   tree-sitter-bash@0.25.1:
     dependencies:
-      node-addon-api: 8.5.0
+      node-addon-api: 8.6.0
       node-gyp-build: 4.8.4
 
   ts-declaration-location@1.0.7(typescript@5.9.3):
