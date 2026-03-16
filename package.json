@@ -8,11 +8,11 @@
     "release": "echo \"Release is handled by GitHub Actions (release-please).\" && exit 1"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.4.3",
-    "@commitlint/config-conventional": "^20.4.3",
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^10.0.1",
-    "@google/gemini-cli": "^0.32.1",
-    "@openai/codex": "^0.112.0",
+    "@google/gemini-cli": "^0.33.1",
+    "@openai/codex": "^0.114.0",
     "eslint": "^10.0.3",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.31.0",
