@@ -290,7 +290,7 @@ jobs:
 
       - name: Setup pnpm
         if: steps.check.outputs.skip == 'false'
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           run_install: false
 
@@ -384,7 +384,7 @@ jobs:
           exit 1
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           run_install: false
 
