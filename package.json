@@ -11,16 +11,16 @@
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^10.0.1",
-    "@google/gemini-cli": "^0.36.0",
-    "@openai/codex": "^0.118.0",
-    "eslint": "^10.2.0",
+    "@google/gemini-cli": "^0.38.2",
+    "@openai/codex": "^0.121.0",
+    "eslint": "^10.2.1",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-n": "^17.24.0",
     "eslint-plugin-promise": "^7.2.1",
-    "globals": "^17.4.0",
+    "globals": "^17.5.0",
     "markdownlint-cli": "^0.48.0",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.3"
   },
   "overrides": {
     "markdownlint-cli": {
